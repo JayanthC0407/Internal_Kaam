@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      Cleartext permitted so shared release APKs with APP_ENV=dev can reach
+      local/HTTP OBDX hosts. App-layer EnvConfig still rejects http:// when
+      APP_ENV is uat or prod — always use https:// for those builds.
+    -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

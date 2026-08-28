@@ -1,0 +1,6 @@
+{
+  "dart.flutterRunAdditionalArgs": [
+    "--dart-define=APP_ENV=dev",
+    "--dart-define=OBDX_BASE_URL=https://your-api-host.example"
+  ]
+}

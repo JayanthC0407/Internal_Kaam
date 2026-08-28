@@ -1,0 +1,59 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Optional local editor settings (may contain machine-specific dart-defines / URLs).
+# Keep settings.json.example committed as the template. Android Studio uses .idea (gitignored).
+.vscode/settings.json
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Secrets & local environment (never commit real values)
+.env
+.env.*
+!.env.example
+dart_defines.json
+
+# Local project documentation (kept on machine; not published to remote)
+/docs/
+
+# Node (web CORS proxy) — keep package.json, package-lock.json, and proxy.js in git
+# so other developers can: npm install && node proxy.js
+node_modules/
+*.zip
+proxy.js.save

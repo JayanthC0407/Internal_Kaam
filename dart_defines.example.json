@@ -1,0 +1,4 @@
+{
+  "APP_ENV": "dev",
+  "OBDX_BASE_URL": "https://your-api-host.example"
+}
