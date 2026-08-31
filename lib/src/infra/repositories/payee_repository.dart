@@ -22,6 +22,35 @@ class PayeeRepository {
   Future<ResponseHandler<Map<String, dynamic>>> fetchCountries() =>
       _payeeApi.fetchCountries();
 
+  /// Typed country list for the International Payee / Demand Draft "Country"
+  /// and "Draft Payable At" pickers. Uses the same confirmed
+  /// `/enumerations/country` endpoint as [fetchCountries], parsed the same
+  /// way [fetchAccountTypes] parses its `enumRepresentations`.
+  Future<ResponseHandler<List<CountryOption>>> fetchCountryOptions() async {
+    final result = await _payeeApi.fetchCountries();
+    final bodyResult = _body(result);
+    if (bodyResult == null) return _mapFailure(result);
+    final body = bodyResult.body;
+    if (!_isSuccess(body, bodyResult.statusCode)) {
+      return _businessFailure(bodyResult.statusCode, body);
+    }
+
+    final enumRepresentations = body['enumRepresentations'];
+    final first = enumRepresentations is List && enumRepresentations.isNotEmpty
+        ? enumRepresentations.first
+        : null;
+    final data = first is Map ? first['data'] : null;
+    final list = data is List
+        ? data
+            .whereType<Map>()
+            .map((item) => CountryOption.fromMap(
+                  Map<String, dynamic>.from(item),
+                ))
+            .toList()
+        : <CountryOption>[];
+    return ResponseHandler.success(list, code: bodyResult.statusCode);
+  }
+
   Future<ResponseHandler<Map<String, dynamic>>> fetchAssignedLimits() =>
       _payeeApi.fetchAssignedLimits();
 

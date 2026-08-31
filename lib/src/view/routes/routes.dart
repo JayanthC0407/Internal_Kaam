@@ -16,6 +16,8 @@ import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/login_screen.dart';
 import 'package:ubci_bank/src/view/screens/otp_login_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/add_bank_account_payee_screen.dart';
+import 'package:ubci_bank/src/view/screens/payees/add_demand_draft_payee_screen.dart';
+import 'package:ubci_bank/src/view/screens/payees/add_peer_to_peer_payee_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/payees_screen.dart';
 import 'package:ubci_bank/src/view/screens/registration_screen.dart';
 import 'package:ubci_bank/src/view/screens/splash_screen.dart';
@@ -164,6 +166,24 @@ class Routes {
           settings: routeSettings,
           child: const AuthenticatedSessionGate(
             child: AddBankAccountPayeeScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.addDemandDraftPayeeScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: AddDemandDraftPayeeScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.addPeerToPeerPayeeScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: AddPeerToPeerPayeeScreen(),
           ),
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,

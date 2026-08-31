@@ -52,6 +52,28 @@ class DomesticNetworkOption {
   }
 }
 
+class CountryOption {
+  const CountryOption({
+    required this.code,
+    required this.value,
+    required this.description,
+  });
+
+  final String code;
+  final String value;
+  final String description;
+
+  String get displayName => description.isNotEmpty ? description : value;
+
+  factory CountryOption.fromMap(Map<String, dynamic> map) {
+    return CountryOption(
+      code: map['code']?.toString() ?? '',
+      value: map['value']?.toString() ?? '',
+      description: map['description']?.toString().trim() ?? '',
+    );
+  }
+}
+
 class PayeeSummary {
   const PayeeSummary({
     required this.nickname,
