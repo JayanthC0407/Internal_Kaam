@@ -160,6 +160,7 @@ class ObdxErrorMapper {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.sendTimeout:
+      case DioExceptionType.transformTimeout:
         return _err(
           ObdxErrorCategory.timeout,
           l10nKey: 'errorTimeout',
@@ -207,9 +208,6 @@ class ObdxErrorMapper {
           fallback: 'An unexpected error occurred. Please try again.',
           requestId: requestId,
         );
-      case DioExceptionType.transformTimeout:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
   }
 

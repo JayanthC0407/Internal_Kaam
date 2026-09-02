@@ -3,6 +3,7 @@
   "appTitle": "Demo Bank",
   "brandName": "Demo",
   "welcome": "Welcome!",
+  "welcomeBack": "Welcome Back!",
   "loginSubtitle": "Please enter your username and password to login",
   "loginDesktopHeadline": "Banking that\nfits your day.",
   "loginDesktopSubtitle": "Manage cards, transfers and spending insights from one place - now on desktop.",
@@ -513,5 +514,13 @@
   "patternConfirmSubtitle": "Draw the same pattern again",
   "patternMismatch": "Patterns do not match. Please try again.",
   "patternUnlockTitle": "Draw pattern",
-  "patternUnlockSubtitle": "Use your pattern to continue"
+  "patternUnlockSubtitle": "Use your pattern to continue",
+  "accountCategoryCurrentSavings": "Current and Savings",
+  "accountCategoryLoans": "Loans",
+  "accountCategoryTermDeposits": "Term Deposits",
+  "accountCategoryRecurringDeposits": "Recurring Deposits",
+  "accountCategoryCreditCards": "Credit Cards",
+  "accountCategoryComingSoon": "This account type isn't available here yet.",
+  "selectAccountTitle": "Select account",
+  "casaStatementFormatTitle": "Choose a format"
 }

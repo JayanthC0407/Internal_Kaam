@@ -2,6 +2,7 @@
   "@@locale": "uz",
   "appTitle": "Demo Bank",
   "welcome": "Xush kelibsiz!",
+  "welcomeBack": "Qaytganingizdan xursandmiz!",
   "loginSubtitle": "Tizimga kirish uchun foydalanuvchi nomi va parolni kiriting",
   "username": "Foydalanuvchi nomi",
   "password": "Parol",
@@ -415,5 +416,13 @@
       }
     }
   },
-  "errorBiometricAccessPoint": "Hisobingiz uchun mobil tezkor kirish yoqilmagan. Bankdan Mobile App kirish nuqtasini yoqishni so‘rang."
+  "errorBiometricAccessPoint": "Hisobingiz uchun mobil tezkor kirish yoqilmagan. Bankdan Mobile App kirish nuqtasini yoqishni so‘rang.",
+  "accountCategoryCurrentSavings": "Current and Savings",
+  "accountCategoryLoans": "Loans",
+  "accountCategoryTermDeposits": "Term Deposits",
+  "accountCategoryRecurringDeposits": "Recurring Deposits",
+  "accountCategoryCreditCards": "Credit Cards",
+  "accountCategoryComingSoon": "This account type isn't available here yet.",
+  "selectAccountTitle": "Select account",
+  "casaStatementFormatTitle": "Choose a format"
 }

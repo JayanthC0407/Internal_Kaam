@@ -4,19 +4,22 @@ import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
 import 'package:ubci_bank/src/core/models/casa_account_detail.dart';
 import 'package:ubci_bank/src/core/models/casa_transaction.dart';
+import 'package:ubci_bank/src/core/models/statement_format.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_accounts_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 
-class StatementPdfFile {
-  const StatementPdfFile({
+class StatementFile {
+  const StatementFile({
     required this.bytes,
     required this.fileName,
+    required this.mimeType,
   });
 
   final List<int> bytes;
   final String fileName;
+  final String mimeType;
 }
 
 class AccountsRepository {
@@ -83,13 +86,28 @@ class AccountsRepository {
     }
   }
 
-  Future<ResponseHandler<StatementPdfFile>> downloadStatementPdf(
+  /// Available statement download formats (CSV/PDF/QIF/OFX per the
+  /// `dda/v1/enumerations/mediatype` capture) — used to populate the
+  /// format picker before downloading.
+  Future<ResponseHandler<List<StatementFormat>>> fetchStatementFormats() async {
+    try {
+      final result = await _accountsApi.fetchMediaTypes();
+      return _parseSuccessBody(result, StatementFormat.listFromPayload);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  Future<ResponseHandler<StatementFile>> downloadStatement(
     String accountId, {
+    required StatementFormat format,
     CasaTransactionQuery query = const CasaTransactionQuery(),
   }) async {
     try {
-      final result = await _accountsApi.downloadStatementPdf(
+      final result = await _accountsApi.downloadStatement(
         accountId,
+        media: format.mimeType,
+        mediaFormat: format.code,
         queryParameters: query.toQueryParameters(),
       );
       if (result is! Success<List<int>> || result.data == null) {
@@ -97,42 +115,73 @@ class AccountsRepository {
       }
 
       final bytes = result.data!;
-      if (_looksLikePdf(bytes)) {
+      final extension = format.fileExtension;
+      final isPdf = extension == 'pdf';
+
+      if (isPdf && _looksLikePdf(bytes)) {
         return ResponseHandler.success(
-          StatementPdfFile(
+          StatementFile(
             bytes: bytes,
-            fileName: _defaultPdfName(accountId),
+            fileName: _defaultFileName(accountId, extension),
+            mimeType: format.mimeType,
           ),
           code: result.code,
         );
       }
 
-      // Some hosts return JSON (base64 / nested DTO) even with ResponseType.bytes.
-      final decoded = _pdfFromJsonBytes(bytes);
-      if (decoded != null) {
-        return ResponseHandler.success(decoded, code: result.code);
-      }
-
-      // OBDX error JSON without PDF payload.
-      final errorBody = _tryJsonMap(bytes);
-      if (errorBody != null) {
-        if (ObdxApiUtils.hasErrorMessage(errorBody)) {
-          final obdxError = ObdxErrorMapper.fromHttpResponse(
-            result.code == 0 ? 200 : result.code,
-            errorBody,
-          );
-          return ResponseHandler.error(
-            obdxError.httpStatusCode ?? result.code,
-            obdxError.userMessage,
-            obdxError: obdxError,
+      if (isPdf) {
+        // Some hosts return JSON (base64 / nested DTO) even with
+        // ResponseType.bytes — confirmed pattern for the PDF format only.
+        final decoded = _pdfFromJsonBytes(bytes, mimeType: format.mimeType);
+        if (decoded != null) {
+          return ResponseHandler.success(decoded, code: result.code);
+        }
+      } else {
+        // CSV/QIF/OFX are plain text — accept as-is unless the body is
+        // actually an OBDX error payload disguised as bytes.
+        final maybeError = _tryJsonMap(bytes);
+        if (maybeError == null || !ObdxApiUtils.hasErrorMessage(maybeError)) {
+          return ResponseHandler.success(
+            StatementFile(
+              bytes: bytes,
+              fileName: _defaultFileName(accountId, extension),
+              mimeType: format.mimeType,
+            ),
+            code: result.code,
           );
         }
+      }
+
+      // OBDX error JSON without a usable file payload.
+      final errorBody = _tryJsonMap(bytes);
+      if (errorBody != null && ObdxApiUtils.hasErrorMessage(errorBody)) {
+        final obdxError = ObdxErrorMapper.fromHttpResponse(
+          result.code == 0 ? 200 : result.code,
+          errorBody,
+        );
+        return ResponseHandler.error(
+          obdxError.httpStatusCode ?? result.code,
+          obdxError.userMessage,
+          obdxError: obdxError,
+        );
       }
 
       return ResponseHandler.exceptionError();
     } catch (_) {
       return ResponseHandler.exceptionError();
     }
+  }
+
+  /// Kept for any existing PDF-only call sites.
+  Future<ResponseHandler<StatementFile>> downloadStatementPdf(
+    String accountId, {
+    CasaTransactionQuery query = const CasaTransactionQuery(),
+  }) {
+    return downloadStatement(
+      accountId,
+      format: const StatementFormat(code: 'pdf', mimeType: 'application/pdf'),
+      query: query,
+    );
   }
 
   static bool _looksLikePdf(List<int> bytes) {
@@ -160,7 +209,10 @@ class AccountsRepository {
     return null;
   }
 
-  static StatementPdfFile? _pdfFromJsonBytes(List<int> bytes) {
+  static StatementFile? _pdfFromJsonBytes(
+    List<int> bytes, {
+    required String mimeType,
+  }) {
     try {
       final map = _tryJsonMap(bytes);
       if (map == null) return null;
@@ -175,7 +227,7 @@ class AccountsRepository {
       final name = fileName.toLowerCase().endsWith('.pdf')
           ? fileName
           : '$fileName.pdf';
-      return StatementPdfFile(bytes: pdfBytes, fileName: name);
+      return StatementFile(bytes: pdfBytes, fileName: name, mimeType: mimeType);
     } catch (_) {
       return null;
     }
@@ -270,12 +322,12 @@ class AccountsRepository {
     return null;
   }
 
-  static String _defaultPdfName(String accountId) {
+  static String _defaultFileName(String accountId, String extension) {
     final stamp = DateTime.now().toIso8601String().split('T').first;
     final short = accountId.length > 8
         ? accountId.substring(accountId.length - 8)
         : accountId;
-    return 'statement_${short}_$stamp.pdf';
+    return 'statement_${short}_$stamp.$extension';
   }
 
   Future<ResponseHandler<T>> _parseSuccessBody<T>(

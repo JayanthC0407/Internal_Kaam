@@ -2,6 +2,7 @@
   "@@locale": "fr",
   "appTitle": "Demo Bank",
   "welcome": "Bienvenue !",
+  "welcomeBack": "Content de vous revoir !",
   "loginSubtitle": "Veuillez saisir votre nom d'utilisateur et votre mot de passe pour vous connecter",
   "username": "Nom d'utilisateur",
   "password": "Mot de passe",
@@ -415,5 +416,13 @@
       }
     }
   },
-  "errorBiometricAccessPoint": "L'accès rapide mobile n'est pas activé pour votre compte. Demandez à votre banque d'activer le point d'accès application mobile."
+  "errorBiometricAccessPoint": "L'accès rapide mobile n'est pas activé pour votre compte. Demandez à votre banque d'activer le point d'accès application mobile.",
+  "accountCategoryCurrentSavings": "Current and Savings",
+  "accountCategoryLoans": "Loans",
+  "accountCategoryTermDeposits": "Term Deposits",
+  "accountCategoryRecurringDeposits": "Recurring Deposits",
+  "accountCategoryCreditCards": "Credit Cards",
+  "accountCategoryComingSoon": "This account type isn't available here yet.",
+  "selectAccountTitle": "Select account",
+  "casaStatementFormatTitle": "Choose a format"
 }

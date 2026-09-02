@@ -35,20 +35,9 @@ class _AddBankAccountPayeeScreenState
   final _ifscCode = TextEditingController();
   final _nickname = TextEditingController();
 
-  // International tab.
-  final _intlAddressLine1 = TextEditingController();
-  final _intlAddressLine2 = TextEditingController();
-  final _intlCity = TextEditingController();
-  final _nationalClearingCode = TextEditingController();
-  final _bankDetails = TextEditingController();
-  final _swiftCode = TextEditingController();
-
   int _selectedType = 0; // 0 Internal, 1 Domestic, 2 International.
   String? _selectedNetwork;
   String? _selectedAccountType;
-  String? _selectedCountry;
-  String _payVia = 'NCC'; // NCC, BANK_DETAILS, SWIFT
-  String _intermediaryBank = 'No'; // Yes, No
   bool _uploadingPhoto = false;
 
   @override
@@ -67,12 +56,6 @@ class _AddBankAccountPayeeScreenState
     _payeeEmail.dispose();
     _ifscCode.dispose();
     _nickname.dispose();
-    _intlAddressLine1.dispose();
-    _intlAddressLine2.dispose();
-    _intlCity.dispose();
-    _nationalClearingCode.dispose();
-    _bankDetails.dispose();
-    _swiftCode.dispose();
     super.dispose();
   }
 
@@ -242,7 +225,7 @@ class _AddBankAccountPayeeScreenState
       const SizedBox(height: AppSpacing.xl),
       if (_selectedType == 0) ..._buildInternalFields(context),
       if (_selectedType == 1) ..._buildDomesticFields(context, state),
-      if (_selectedType == 2) ..._buildInternationalFields(context, state),
+      if (_selectedType == 2) const _InternationalPlaceholder(),
       const SizedBox(height: AppSpacing.xxxl),
       _buildActions(context, state),
     ];
@@ -511,236 +494,6 @@ class _AddBankAccountPayeeScreenState
     ];
   }
 
-  List<Widget> _buildInternationalFields(
-    BuildContext context,
-    PayeesState state,
-  ) {
-    final countries = state.countries;
-    return [
-      _field(
-        controller: _accountNumber,
-        label: 'Account Number',
-        keyboardType: TextInputType.number,
-        validator: _required,
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _confirmAccountNumber,
-        label: 'Confirm Account Number',
-        keyboardType: TextInputType.number,
-        validator: (value) {
-          final required = _required(value);
-          if (required != null) return required;
-          if (value != _accountNumber.text) return 'Account numbers do not match';
-          return null;
-        },
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _accountName,
-        label: 'Account Name',
-        validator: _required,
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _intlAddressLine1,
-        label: 'Address Line 1',
-        validator: _required,
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _intlAddressLine2,
-        label: 'Address Line 2',
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _intlCity,
-        label: 'City',
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _dropdown<CountryOption>(
-        label: 'Country',
-        hint: 'Please Select',
-        value: countries.any((e) => e.code == _selectedCountry)
-            ? countries.firstWhere((e) => e.code == _selectedCountry)
-            : null,
-        items: countries,
-        itemLabel: (e) => e.displayName,
-        onChanged: (value) => setState(() => _selectedCountry = value?.code),
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _payeeEmail,
-        label: 'Payee Email ID',
-        keyboardType: TextInputType.emailAddress,
-        validator: (value) {
-          final trimmed = value?.trim() ?? '';
-          if (trimmed.isEmpty) return null; // optional, per captured screen.
-          if (!EmailValidator.isValid(trimmed)) return 'Enter a valid email';
-          return null;
-        },
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      Text('Pay Via', style: Theme.of(context).textTheme.titleSmall),
-      const SizedBox(height: AppSpacing.xs),
-      _payViaRadioRow(context),
-      const SizedBox(height: AppSpacing.lg),
-      ..._buildPayViaFields(context),
-      const SizedBox(height: AppSpacing.lg),
-      Text('Intermediary Bank', style: Theme.of(context).textTheme.titleSmall),
-      const SizedBox(height: AppSpacing.xs),
-      _intermediaryBankRadioRow(context),
-      const SizedBox(height: AppSpacing.lg),
-      _field(
-        controller: _nickname,
-        label: 'Nickname',
-        validator: _required,
-      ),
-    ];
-  }
-
-  Widget _payViaRadioRow(BuildContext context) {
-    return Wrap(
-      spacing: AppSpacing.lg,
-      runSpacing: AppSpacing.xs,
-      children: [
-        _radioOption(
-          label: 'NCC',
-          value: 'NCC',
-          groupValue: _payVia,
-          onChanged: (value) => setState(() => _payVia = value!),
-        ),
-        _radioOption(
-          label: 'Bank Details',
-          value: 'BANK_DETAILS',
-          groupValue: _payVia,
-          onChanged: (value) => setState(() => _payVia = value!),
-        ),
-        _radioOption(
-          label: 'SWIFT Code',
-          value: 'SWIFT',
-          groupValue: _payVia,
-          onChanged: (value) => setState(() => _payVia = value!),
-        ),
-      ],
-    );
-  }
-
-  List<Widget> _buildPayViaFields(BuildContext context) {
-    switch (_payVia) {
-      case 'BANK_DETAILS':
-        // The captured screens only show the NCC variant end-to-end; Bank
-        // Details field names were not part of the supplied capture.
-        return [
-          _field(
-            controller: _bankDetails,
-            label: 'Bank Details',
-            validator: _required,
-          ),
-        ];
-      case 'SWIFT':
-        return [
-          _field(
-            controller: _swiftCode,
-            label: 'SWIFT Code',
-            textCapitalization: TextCapitalization.characters,
-            validator: _required,
-          ),
-        ];
-      case 'NCC':
-      default:
-        return [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _field(
-                  controller: _nationalClearingCode,
-                  label: 'National Clearing Code',
-                  textCapitalization: TextCapitalization.characters,
-                  validator: _required,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: OutlinedButton(
-                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'National Clearing Code verification endpoint was not included in the supplied capture.',
-                      ),
-                    ),
-                  ),
-                  child: const Text('Verify'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'National Clearing Code lookup endpoint was not included in the supplied capture.',
-                ),
-              ),
-            ),
-            style: TextButton.styleFrom(alignment: Alignment.centerLeft),
-            child: const Text('Lookup National Clearing Code'),
-          ),
-        ];
-    }
-  }
-
-  Widget _intermediaryBankRadioRow(BuildContext context) {
-    return Wrap(
-      spacing: AppSpacing.lg,
-      runSpacing: AppSpacing.xs,
-      children: [
-        _radioOption(
-          label: 'Yes',
-          value: 'Yes',
-          groupValue: _intermediaryBank,
-          onChanged: (value) => setState(() => _intermediaryBank = value!),
-        ),
-        _radioOption(
-          label: 'No',
-          value: 'No',
-          groupValue: _intermediaryBank,
-          onChanged: (value) => setState(() => _intermediaryBank = value!),
-        ),
-      ],
-    );
-  }
-
-  Widget _radioOption({
-    required String label,
-    required String value,
-    required String groupValue,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return InkWell(
-      onTap: () => onChanged(value),
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Radio<String>(
-              value: value,
-              groupValue: groupValue,
-              onChanged: onChanged,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            Text(label),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _field({
     required TextEditingController controller,
     required String label,
@@ -763,15 +516,10 @@ class _AddBankAccountPayeeScreenState
     required List<T> items,
     required String Function(T) itemLabel,
     required ValueChanged<T?> onChanged,
-    String? hint,
   }) {
     return DropdownButtonFormField<T>(
       value: value,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-      ),
+      decoration: InputDecoration(labelText: label),
       items: items
           .map(
             (item) => DropdownMenuItem<T>(
@@ -872,4 +620,20 @@ class _InfoPanel extends StatelessWidget {
   }
 }
 
+class _InternationalPlaceholder extends StatelessWidget {
+  const _InternationalPlaceholder();
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      decoration: BoxDecoration(
+        color: HomeColors.surfaceSecondary(context),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: const Text(
+        'International Payee UI/API fields were not part of the supplied capture. This tab is intentionally left unimplemented rather than inventing an API contract.',
+      ),
+    );
+  }
+}

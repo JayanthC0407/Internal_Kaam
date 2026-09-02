@@ -8,6 +8,7 @@ import 'package:ubci_bank/src/view/screens/accounts/casa_transactions_screen.dar
 import 'package:ubci_bank/src/view/screens/accounts/loan_account_details_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_repayment_screen.dart';
+import 'package:ubci_bank/src/view/screens/accounts/loan_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/biometric_setup_screen.dart';
 import 'package:ubci_bank/src/view/screens/biometric_unlock_screen.dart';
 import 'package:ubci_bank/src/view/screens/device_blocked_screen.dart';
@@ -18,7 +19,13 @@ import 'package:ubci_bank/src/view/screens/otp_login_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/add_bank_account_payee_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/add_demand_draft_payee_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/add_peer_to_peer_payee_screen.dart';
+import 'package:ubci_bank/src/view/screens/payees/payee_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/payees_screen.dart';
+import 'package:ubci_bank/src/view/screens/payments/adhoc_payee_transfer_screen.dart';
+import 'package:ubci_bank/src/view/screens/payments/internal_payment_screen.dart';
+import 'package:ubci_bank/src/view/screens/payments/international_payment_screen.dart';
+import 'package:ubci_bank/src/view/screens/payments/transfer_money_screen.dart';
+import 'package:ubci_bank/src/view/screens/payments/transfers_module_screen.dart';
 import 'package:ubci_bank/src/view/screens/registration_screen.dart';
 import 'package:ubci_bank/src/view/screens/splash_screen.dart';
 import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
@@ -152,6 +159,19 @@ class Routes {
           );
         }
         return _splashFallback(routeSettings);
+      case RoutesConst.loanTransactionsScreen:
+        final loanTxArgs = routeSettings.arguments;
+        if (loanTxArgs is LoanTransactionsArgs) {
+          return PageTransition(
+            settings: routeSettings,
+            child: AuthenticatedSessionGate(
+              child: LoanTransactionsScreen(args: loanTxArgs),
+            ),
+            type: PageTransitionType.rightToLeft,
+            duration: pageAnimDuration,
+          );
+        }
+        return _splashFallback(routeSettings);
       case RoutesConst.payeesScreen:
         return PageTransition(
           settings: routeSettings,
@@ -184,6 +204,15 @@ class Routes {
           settings: routeSettings,
           child: const AuthenticatedSessionGate(
             child: AddPeerToPeerPayeeScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.payeeHubScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: PayeeHubScreen(),
           ),
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,
@@ -223,6 +252,51 @@ class Routes {
           );
         }
         return _splashFallback(routeSettings);
+      case RoutesConst.internalPaymentScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: InternalPaymentScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.internationalPaymentScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: InternationalPaymentScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.transfersModuleScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: TransfersModuleScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.transferMoneyScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: TransferMoneyScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.adhocPayeeTransferScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: AdhocPayeeTransferScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
       case RoutesConst.deviceBlockedScreen:
         final threat = routeSettings.arguments;
         if (threat is DeviceThreatType) {

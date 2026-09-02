@@ -124,6 +124,12 @@ abstract class AppLocalizations {
   /// **'Welcome!'**
   String get welcome;
 
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back!'**
+  String get welcomeBack;
+
   /// No description provided for @loginSubtitle.
   ///
   /// In en, this message translates to:
@@ -2793,6 +2799,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use your pattern to continue'**
   String get patternUnlockSubtitle;
+
+  /// No description provided for @accountCategoryCurrentSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Current and Savings'**
+  String get accountCategoryCurrentSavings;
+
+  /// No description provided for @accountCategoryLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get accountCategoryLoans;
+
+  /// No description provided for @accountCategoryTermDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposits'**
+  String get accountCategoryTermDeposits;
+
+  /// No description provided for @accountCategoryRecurringDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Deposits'**
+  String get accountCategoryRecurringDeposits;
+
+  /// No description provided for @accountCategoryCreditCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Cards'**
+  String get accountCategoryCreditCards;
+
+  /// No description provided for @accountCategoryComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'This account type isn\'t available here yet.'**
+  String get accountCategoryComingSoon;
+
+  /// No description provided for @selectAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select account'**
+  String get selectAccountTitle;
+
+  /// No description provided for @casaStatementFormatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a format'**
+  String get casaStatementFormatTitle;
 }
 
 class _AppLocalizationsDelegate

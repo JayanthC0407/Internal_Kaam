@@ -18,6 +18,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get welcome => 'Bienvenue !';
 
   @override
+  String get welcomeBack => 'Content de vous revoir !';
+
+  @override
   String get loginSubtitle =>
       'Veuillez saisir votre nom d\'utilisateur et votre mot de passe pour vous connecter';
 
@@ -1471,4 +1474,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get patternUnlockSubtitle => 'Use your pattern to continue';
+
+  @override
+  String get accountCategoryCurrentSavings => 'Current and Savings';
+
+  @override
+  String get accountCategoryLoans => 'Loans';
+
+  @override
+  String get accountCategoryTermDeposits => 'Term Deposits';
+
+  @override
+  String get accountCategoryRecurringDeposits => 'Recurring Deposits';
+
+  @override
+  String get accountCategoryCreditCards => 'Credit Cards';
+
+  @override
+  String get accountCategoryComingSoon =>
+      'This account type isn\'t available here yet.';
+
+  @override
+  String get selectAccountTitle => 'Select account';
+
+  @override
+  String get casaStatementFormatTitle => 'Choose a format';
 }

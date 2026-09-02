@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http_status_code/http_status_code.dart';
+import 'package:ubci_bank/src/core/models/account_transaction.dart';
 import 'package:ubci_bank/src/core/models/loan_account.dart';
 import 'package:ubci_bank/src/core/models/loan_account_details.dart';
 import 'package:ubci_bank/src/core/models/loan_repayment.dart';
@@ -45,6 +46,53 @@ class LoanRepository {
 
       final summary = LoanAccountsSummary.fromPayload(body);
       return ResponseHandler.success(summary, code: statusCode);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// Last [noOfTransactions] transactions for a loan — reuses
+  /// [AccountTransaction] since the loan transactions endpoint shares
+  /// the same field names as the CASA one.
+  Future<ResponseHandler<List<AccountTransaction>>> fetchRecentLoanTransactions(
+    String loanId, {
+    int noOfTransactions = 5,
+  }) async {
+    try {
+      final result = await _loanApi.fetchLoanTransactions(
+        loanId,
+        noOfTransactions: noOfTransactions,
+      );
+      if (result is! Success<Map<String, dynamic>> || result.data == null) {
+        return _mapFailure(result);
+      }
+
+      final wrapped = result.data!;
+      final statusCode = wrapped['statusCode'] as int? ?? 0;
+      final body = ObdxApiUtils.asMap(wrapped['body'] ?? wrapped['rawBody']);
+
+      if (statusCode != StatusCode.OK) {
+        final obdxError = ObdxErrorMapper.fromHttpResponse(statusCode, body);
+        return ResponseHandler.error(
+          obdxError.httpStatusCode ?? statusCode,
+          obdxError.userMessage,
+          obdxError: obdxError,
+        );
+      }
+
+      if (ObdxApiUtils.hasErrorMessage(body)) {
+        final obdxError = ObdxErrorMapper.fromHttpResponse(statusCode, body);
+        return ResponseHandler.error(
+          obdxError.httpStatusCode ?? statusCode,
+          obdxError.userMessage,
+          obdxError: obdxError,
+        );
+      }
+
+      return ResponseHandler.success(
+        AccountTransaction.listFromPayload(body),
+        code: statusCode,
+      );
     } catch (_) {
       return ResponseHandler.exceptionError();
     }

@@ -77,11 +77,11 @@ class ApiConst {
 
   /// CASA account detail: `GET …/demandDeposit/{accountId}`.
   static String demandDepositAccountApi(String accountId) =>
-      '$accountsApiDemandDeposit/$accountId';
+      '$accountsApiDemandDeposit/${Uri.encodeComponent(accountId)}';
 
   /// CASA transactions: `GET …/demandDeposit/{accountId}/transactions`.
   static String demandDepositTransactionsApi(String accountId) =>
-      '$accountsApiDemandDeposit/$accountId/transactions';
+      '$accountsApiDemandDeposit/${Uri.encodeComponent(accountId)}/transactions';
 
   /// Statement media types enumeration.
   static const String demandDepositMediaTypeApi =

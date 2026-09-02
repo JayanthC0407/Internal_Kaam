@@ -4,6 +4,7 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
 import 'package:ubci_bank/src/core/models/casa_account_detail.dart';
 import 'package:ubci_bank/src/core/models/casa_transaction.dart';
+import 'package:ubci_bank/src/core/models/statement_format.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
@@ -20,6 +21,17 @@ import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_transactions_ta
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+
+/// Statements are always offered in this order/set when the host's
+/// `dda/v1/enumerations/mediatype` call is unavailable — mirrors the
+/// confirmed capture (csv, pdf, qif, ofx) so the picker still works if
+/// that lookup ever fails.
+const List<StatementFormat> _fallbackStatementFormats = [
+  StatementFormat(code: 'csv', mimeType: 'text/csv', ordinal: 1),
+  StatementFormat(code: 'pdf', mimeType: 'application/pdf', ordinal: 2),
+  StatementFormat(code: 'qif', mimeType: 'application/qif', ordinal: 3),
+  StatementFormat(code: 'ofx', mimeType: 'application/x-ofx', ordinal: 4),
+];
 
 class CasaTransactionsArgs {
   const CasaTransactionsArgs({required this.accountId});
@@ -41,7 +53,7 @@ class _CasaTransactionsScreenState
     extends ConsumerState<CasaTransactionsScreen> {
   late String _selectedAccountId;
   CasaTransactionQuery _query = const CasaTransactionQuery();
-  bool _downloadingPdf = false;
+  bool _downloadingStatement = false;
 
   @override
   void initState() {
@@ -86,9 +98,33 @@ class _CasaTransactionsScreenState
     _loadSelected();
   }
 
-  Future<void> _downloadPdf() async {
-    if (_downloadingPdf) return;
+  Future<void> _downloadStatement() async {
+    if (_downloadingStatement) return;
     final l10n = AppLocalizations.of(context);
+
+    // Ask the host which formats it actually supports before offering a
+    // choice; fall back to the confirmed capture if that lookup fails
+    // rather than blocking the whole flow.
+    final formatsResult =
+        await ref.read(accountsRepositoryProvider).fetchStatementFormats();
+    if (!mounted) return;
+    final formats =
+        (formatsResult is Success<List<StatementFormat>> &&
+                (formatsResult.data?.isNotEmpty ?? false))
+            ? formatsResult.data!
+            : _fallbackStatementFormats;
+
+    final chosenFormat = await AppBottomSheet.pick<StatementFormat>(
+      context: context,
+      title: l10n.casaStatementFormatTitle,
+      options: [
+        for (final format in formats)
+          (value: format, label: format.label),
+      ],
+      selected: formats.first,
+    );
+    if (chosenFormat == null || !mounted) return;
+
     final proceed = await AppBottomSheet.confirm(
       context,
       title: l10n.casaStatementPasswordTitle,
@@ -101,24 +137,26 @@ class _CasaTransactionsScreenState
     );
     if (!proceed || !mounted) return;
 
-    setState(() => _downloadingPdf = true);
+    setState(() => _downloadingStatement = true);
 
-    final result = await ref.read(accountsRepositoryProvider).downloadStatementPdf(
+    final result = await ref.read(accountsRepositoryProvider).downloadStatement(
           _selectedAccountId,
+          format: chosenFormat,
           query: _query,
         );
 
     if (!mounted) return;
 
-    if (result is Success<StatementPdfFile> && result.data != null) {
+    if (result is Success<StatementFile> && result.data != null) {
       try {
         final box = context.findRenderObject() as RenderBox?;
         final origin = box != null && box.hasSize
             ? box.localToGlobal(Offset.zero) & box.size
             : null;
-        await StatementFileSaver.savePdf(
+        await StatementFileSaver.saveStatement(
           bytes: result.data!.bytes,
           fileName: result.data!.fileName,
+          mimeType: result.data!.mimeType,
           sharePositionOrigin: origin,
         );
         if (!mounted) return;
@@ -141,7 +179,7 @@ class _CasaTransactionsScreenState
       );
     }
 
-    if (mounted) setState(() => _downloadingPdf = false);
+    if (mounted) setState(() => _downloadingStatement = false);
   }
 
   @override
@@ -213,7 +251,7 @@ class _CasaTransactionsScreenState
                         icon: Icons.filter_alt_outlined,
                       ),
                       const SizedBox(width: 8),
-                      _downloadingPdf
+                      _downloadingStatement
                           ? const SizedBox(
                               width: 22,
                               height: 22,
@@ -221,7 +259,7 @@ class _CasaTransactionsScreenState
                             )
                           : CasaIconButton(
                               tooltip: l10n.casaDownloadStatement,
-                              onPressed: _downloadPdf,
+                              onPressed: _downloadStatement,
                               icon: Icons.download_rounded,
                             ),
                     ],

@@ -13,7 +13,6 @@ class PayeesState {
     this.payees = const [],
     this.accountTypes = const [],
     this.domesticNetworks = const [],
-    this.countries = const [],
     this.errorMessage,
     this.submitError,
     this.submitSuccess = false,
@@ -24,7 +23,6 @@ class PayeesState {
   final List<PayeeSummary> payees;
   final List<PayeeAccountTypeOption> accountTypes;
   final List<DomesticNetworkOption> domesticNetworks;
-  final List<CountryOption> countries;
   final String? errorMessage;
   final String? submitError;
   final bool submitSuccess;
@@ -35,7 +33,6 @@ class PayeesState {
     List<PayeeSummary>? payees,
     List<PayeeAccountTypeOption>? accountTypes,
     List<DomesticNetworkOption>? domesticNetworks,
-    List<CountryOption>? countries,
     String? errorMessage,
     String? submitError,
     bool? submitSuccess,
@@ -48,7 +45,6 @@ class PayeesState {
       payees: payees ?? this.payees,
       accountTypes: accountTypes ?? this.accountTypes,
       domesticNetworks: domesticNetworks ?? this.domesticNetworks,
-      countries: countries ?? this.countries,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       submitError:
           clearSubmitError ? null : (submitError ?? this.submitError),
@@ -83,10 +79,10 @@ class PayeesNotifier extends StateNotifier<PayeesState> {
     final payeesResult = await repository.fetchPayees();
     final accountTypesResult = await repository.fetchAccountTypes();
     final networksResult = await repository.fetchDomesticNetworks();
-    final countriesResult = await repository.fetchCountryOptions();
     await repository.fetchMaintenance();
     await repository.fetchCustomLimits();
     await repository.fetchBankConfiguration();
+    await repository.fetchCountries();
     await repository.fetchAssignedLimits();
     await repository.fetchPayeeContent();
     final l10n = await AppLocalizationsHelper.current();
@@ -103,9 +99,6 @@ class PayeesNotifier extends StateNotifier<PayeesState> {
         networksResult is Success<List<DomesticNetworkOption>>
             ? networksResult.data ?? const []
             : const <DomesticNetworkOption>[];
-    final countries = countriesResult is Success<List<CountryOption>>
-        ? countriesResult.data ?? const []
-        : const <CountryOption>[];
 
     if (payeesResult is! Success<List<PayeeSummary>>) {
       errors.add(
@@ -132,10 +125,6 @@ class PayeesNotifier extends StateNotifier<PayeesState> {
       );
     }
 
-    // Country fetch failures are non-fatal — the International Payee /
-    // Demand Draft screens fall back to an empty picker rather than
-    // blocking the whole Manage Payee bootstrap on it.
-
     if (SessionExpiryCoordinator.instance.isHandling) {
       state = state.copyWith(isLoading: false, clearError: true);
       return;
@@ -147,7 +136,6 @@ class PayeesNotifier extends StateNotifier<PayeesState> {
       payees: payees,
       accountTypes: accountTypes,
       domesticNetworks: networks,
-      countries: countries,
       errorMessage: errors.isEmpty ? null : errors.join('\n'),
     );
   }

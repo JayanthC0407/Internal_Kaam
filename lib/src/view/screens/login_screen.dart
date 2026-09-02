@@ -29,7 +29,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  static const _logoAsset = 'assets/images/demobank_logo.png';
+  //static const _logoAsset = 'assets/images/demobank_logo.png';
+  String get _logoAsset {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return isDark
+        ? 'assets/images/logo-dark.png'
+        : 'assets/images/logo-light.png';
+  }
 
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -248,9 +255,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (responsive.width >= 1000)
           Expanded(
             child: Container(
-decoration: BoxDecoration(
-  gradient: AppGradients.primary(context),
-),
+              decoration: BoxDecoration(
+                gradient: AppGradients.primary(context),
+              ),
               child: SafeArea(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(
@@ -369,34 +376,162 @@ decoration: BoxDecoration(
     AppColors colors,
     Responsive responsive,
   ) {
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final landscape =
-              responsive.isLandscape && constraints.maxHeight < 560;
-          return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              landscape ? 24 : 16,
-              landscape ? 8 : 16,
-              landscape ? 24 : 16,
-              20,
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: responsive.formMaxWidth),
-                child: _buildLoginForm(
-                  l10n: l10n,
-                  isLoading: isLoading,
-                  errorMessage: errorMessage,
-                  colors: colors,
-                  desktopMode: false,
-                  compact: landscape,
-                  showTopLogo: true,
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: AppGradients.primary(context),
+      ),
+      child: SafeArea(
+        child: Stack(
+          children: [
+            // Optional background pattern
+            Positioned(
+              right: -70,
+              top: 40,
+              child: Opacity(
+                opacity: 0.08,
+                child: Icon(
+                  Icons.circle,
+                  size: 260,
+                  color: Colors.white,
                 ),
               ),
             ),
-          );
-        },
+
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      children: [
+                        //----------------------------------------
+                        // HEADER
+                        //----------------------------------------
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            18,
+                            14,
+                            18,
+                            0,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  _buildLogo(Colors.white),
+                                  const Spacer(),
+                                  _buildHelpBadge(),
+                                ],
+                              ),
+                              const SizedBox(height: 58),
+                              Text(
+                                l10n.welcomeBack,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -.4,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const SizedBox(
+                                width: 280,
+                                child: Text(
+                                  "Sign in to continue with your corporate banking activity securely.",
+                                  style: TextStyle(
+                                    color: Color(0xE6FFFFFF),
+                                    fontSize: 15,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 130),
+                            ],
+                          ),
+                        ),
+
+                        //----------------------------------------
+                        // LOGIN CARD
+                        //----------------------------------------
+                        Transform.translate(
+                          offset: const Offset(0, -42),
+                          child: Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.fromLTRB(
+                              24,
+                              36,
+                              24,
+                              28,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.cardBg,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(28),
+                                topRight: Radius.circular(28),
+                                bottomLeft: Radius.circular(16),
+                                bottomRight: Radius.circular(16),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(.15),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: _buildLoginForm(
+                              l10n: l10n,
+                              isLoading: isLoading,
+                              errorMessage: errorMessage,
+                              colors: colors,
+                              desktopMode: false,
+                              compact: false,
+                              showTopLogo: false,
+                              showHeader: false,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            )
+          ],
+        ),
+      ),
+      // ),
+    );
+  }
+
+  Widget _buildHelpBadge() {
+    return InkWell(
+      onTap: _handleHelpTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0x26FFFFFF),
+        ),
+        child: const Text(
+          '?',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
@@ -409,6 +544,7 @@ decoration: BoxDecoration(
     required bool desktopMode,
     required bool compact,
     bool showTopLogo = false,
+    bool showHeader = true,
   }) {
     final brand = colors.brand;
     final textPrimary = colors.textPrimary;
@@ -417,73 +553,75 @@ decoration: BoxDecoration(
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (showTopLogo) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildLogo(brand),
-              TextButton(
+        if (showHeader) ...[
+          if (showTopLogo) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildLogo(brand),
+                TextButton(
+                  onPressed: _handleHelpTap,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(40, 30),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    l10n.help,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: brand,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: compact ? 12 : 22),
+          ] else ...[
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
                 onPressed: _handleHelpTap,
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(40, 30),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  l10n.help,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: brand,
+                  foregroundColor: brand,
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
                     decoration: TextDecoration.underline,
                   ),
                 ),
+                child: Text(l10n.help),
               ),
-            ],
-          ),
-          SizedBox(height: compact ? 12 : 22),
-        ] else ...[
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: _handleHelpTap,
-              style: TextButton.styleFrom(
-                foregroundColor: brand,
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-              child: Text(l10n.help),
+            ),
+            SizedBox(height: compact ? 12 : 40),
+          ],
+          Text(
+            l10n.welcome,
+            style: TextStyle(
+              fontSize: desktopMode ? (compact ? 32 : 40) : (compact ? 32 : 40),
+              fontWeight: desktopMode ? FontWeight.w800 : FontWeight.w600,
+              color: textPrimary,
+              height: 1.05,
             ),
           ),
-          SizedBox(height: compact ? 12 : 40),
+          const SizedBox(height: 8),
+          Text(
+            l10n.loginSubtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: textSecondary,
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: compact ? 14 : 24),
         ],
-        Text(
-          l10n.welcome,
-          style: TextStyle(
-            fontSize: desktopMode ? (compact ? 32 : 40) : (compact ? 32 : 40),
-            fontWeight: desktopMode ? FontWeight.w800 : FontWeight.w600,
-            color: textPrimary,
-            height: 1.05,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.loginSubtitle,
-          style: TextStyle(
-            fontSize: 14,
-            color: textSecondary,
-            height: 1.4,
-          ),
-        ),
-        SizedBox(height: compact ? 14 : 24),
         _buildCredentialFields(l10n, colors, desktopMode: desktopMode),
         const SizedBox(height: 14),
         Row(
           children: [
             SizedBox(
-              width: 24,
-              height: 24,
+              width: 20,
+              height: 20,
               child: Checkbox(
                 value: _keepSignedIn,
                 onChanged: (value) =>
@@ -500,78 +638,26 @@ decoration: BoxDecoration(
                 onTap: () => setState(() => _keepSignedIn = !_keepSignedIn),
                 child: Text(
                   l10n.keepMeSignedIn,
-                  style: TextStyle(fontSize: 13, color: textSecondary),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: textPrimary,
+                  ),
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        Center(
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            children: [
-              TextButton(
-                onPressed: () =>
-                    _openForgotCredentials(ForgotCredentialsKind.password),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                ),
-                child: Text(
-                  l10n.forgotPassword,
-                  style: TextStyle(
-                    color: brand,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-              Text(
-                '|',
-                style: TextStyle(
-                  color: textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              TextButton(
-                onPressed: () =>
-                    _openForgotCredentials(ForgotCredentialsKind.username),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                ),
-                child: Text(
-                  l10n.forgotUsername,
-                  style: TextStyle(
-                    color: brand,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         ElevatedButton(
           onPressed: isLoading ? null : _login,
           style: ElevatedButton.styleFrom(
             backgroundColor: brand,
             foregroundColor: Colors.white,
             disabledBackgroundColor: brand.withValues(alpha: 0.6),
-            minimumSize: Size.fromHeight(desktopMode ? 50 : 48),
+            minimumSize: const Size.fromHeight(50),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(desktopMode ? 12 : 8),
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
           child: isLoading
@@ -586,10 +672,27 @@ decoration: BoxDecoration(
               : Text(
                   l10n.login,
                   style: TextStyle(
-                    fontSize: desktopMode ? 15 : 16,
-                    fontWeight: desktopMode ? FontWeight.w700 : FontWeight.w400,
+                    // fontSize: desktopMode ? 15 : 16,
+                    // fontWeight: desktopMode ? FontWeight.w700 : FontWeight.w400,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
                   ),
                 ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: TextButton(
+            onPressed: () =>
+                _openForgotCredentials(ForgotCredentialsKind.password),
+            child: Text(
+              "Forgot Username or Password?",
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ),
         if (_canBiometricLogin) ...[
           const SizedBox(height: 12),
@@ -614,21 +717,19 @@ decoration: BoxDecoration(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              l10n.notRegistered,
-              style: TextStyle(fontSize: 13, color: textSecondary),
-            ),
-            TextButton(
-              onPressed: _openRegistration,
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              "Don't have an account? ",
+              style: TextStyle(
+                fontSize: 13,
+                color: textPrimary,
               ),
+            ),
+            GestureDetector(
+              onTap: _openRegistration,
               child: Text(
-                l10n.registerHere,
+                "Signup",
                 style: TextStyle(
-                  fontSize: 13,
                   color: brand,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -669,12 +770,15 @@ decoration: BoxDecoration(
     final borderColor = colors.inputBorder;
     final fillColor = colors.inputBackground;
     final showVirtualKeyboard = kIsWeb;
+    final underlineMode = !desktopMode;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(l10n.username, style: labelStyle),
-        const SizedBox(height: 8),
+        if (desktopMode) ...[
+          Text(l10n.username, style: labelStyle),
+          const SizedBox(height: 8),
+        ],
         TextField(
           controller: _usernameController,
           enabled: !isLoading,
@@ -684,6 +788,11 @@ decoration: BoxDecoration(
             fillColor: fillColor,
             borderColor: borderColor,
             borderRadius: desktopMode ? 10 : 8,
+            underlineMode: underlineMode,
+            prefixIcon: underlineMode
+                ? Icon(Icons.person_outline,
+                    color: colors.textSecondary, size: 20)
+                : null,
             suffixIcon: showVirtualKeyboard
                 ? VirtualKeyboardIconButton(
                     controller: _usernameController,
@@ -695,9 +804,11 @@ decoration: BoxDecoration(
           textInputAction: TextInputAction.next,
           onSubmitted: (_) => FocusScope.of(context).nextFocus(),
         ),
-        const SizedBox(height: 12),
-        Text(l10n.password, style: labelStyle),
-        const SizedBox(height: 8),
+        SizedBox(height: underlineMode ? 20 : 12),
+        if (desktopMode) ...[
+          Text(l10n.password, style: labelStyle),
+          const SizedBox(height: 8),
+        ],
         TextField(
           controller: _passwordController,
           enabled: !isLoading,
@@ -708,6 +819,11 @@ decoration: BoxDecoration(
             fillColor: fillColor,
             borderColor: borderColor,
             borderRadius: desktopMode ? 10 : 8,
+            underlineMode: underlineMode,
+            prefixIcon: underlineMode
+                ? Icon(Icons.lock_outline,
+                    color: colors.textSecondary, size: 20)
+                : null,
             suffixIcon: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -790,8 +906,38 @@ decoration: BoxDecoration(
     required Color fillColor,
     required Color borderColor,
     double borderRadius = 8,
+    bool underlineMode = false,
+    Widget? prefixIcon,
     Widget? suffixIcon,
   }) {
+    if (underlineMode) {
+      return InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(
+          color: colors.inputHint,
+          fontSize: 14,
+        ),
+        filled: false,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        prefixIcon: prefixIcon,
+        prefixIconConstraints:
+            const BoxConstraints(minWidth: 32, minHeight: 20),
+        border: UnderlineInputBorder(
+          borderSide: BorderSide(color: borderColor),
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: borderColor),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: colors.brand, width: 1.5),
+        ),
+        suffixIcon: suffixIcon,
+        suffixIconConstraints:
+            suffixIcon == null ? null : const BoxConstraints(minHeight: 40),
+      );
+    }
+
     return InputDecoration(
       hintText: hintText,
       hintStyle: TextStyle(
@@ -801,6 +947,7 @@ decoration: BoxDecoration(
       filled: true,
       fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+      prefixIcon: prefixIcon,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(borderRadius),
         borderSide: BorderSide(color: borderColor),

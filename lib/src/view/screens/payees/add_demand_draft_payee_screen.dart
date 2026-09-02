@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/payee/payee_models.dart';
+import 'package:ubci_bank/src/core/models/payment/payment_models.dart';
 import 'package:ubci_bank/src/core/theme/app_radius.dart';
 import 'package:ubci_bank/src/core/theme/app_spacing.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/providers/payee_providers.dart';
+import 'package:ubci_bank/src/view/providers/payment_providers.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 
 /// Add Demand Draft Payee — Domestic / International draft type, matching
@@ -375,15 +376,16 @@ class _AddDemandDraftPayeeScreenState
       );
     }
 
-    final countries = state.countries;
-    return _dropdown<CountryOption>(
+    final countries = ref.watch(paymentCountriesProvider).valueOrNull ??
+        const <PaymentCountry>[];
+    return _dropdown<PaymentCountry>(
       label: 'Draft Payable At',
       searchable: true,
       value: countries.any((e) => e.code == _draftPayableAtCountry)
           ? countries.firstWhere((e) => e.code == _draftPayableAtCountry)
           : null,
       items: countries,
-      itemLabel: (e) => e.displayName,
+      itemLabel: (e) => e.name,
       onChanged: (value) => setState(() {
         _draftPayableAtCountry = value?.code;
         _addressMode = 0;
@@ -506,16 +508,17 @@ class _AddDemandDraftPayeeScreenState
     final fields = <Widget>[];
 
     if (_draftType == 1) {
-      final countries = state.countries;
+      final countries = ref.watch(paymentCountriesProvider).valueOrNull ??
+          const <PaymentCountry>[];
       fields.addAll([
-        _dropdown<CountryOption>(
+        _dropdown<PaymentCountry>(
           label: 'Country',
           hint: 'Please Select',
           value: countries.any((e) => e.code == _otherAddressCountry)
               ? countries.firstWhere((e) => e.code == _otherAddressCountry)
               : null,
           items: countries,
-          itemLabel: (e) => e.displayName,
+          itemLabel: (e) => e.name,
           onChanged: (value) =>
               setState(() => _otherAddressCountry = value?.code),
         ),

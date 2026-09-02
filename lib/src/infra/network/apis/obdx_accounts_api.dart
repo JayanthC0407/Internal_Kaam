@@ -112,9 +112,14 @@ class ObdxAccountsApi extends ObdxApiBase {
   }
 
   /// `GET /digx-common/dda/v1/demandDeposit/{accountId}/transactions`
-  /// with `media=application/pdf&mediaFormat=pdf` (Postman Statement Download).
-  Future<ResponseHandler<List<int>>> downloadStatementPdf(
+  /// with `media`/`mediaFormat` set from a [StatementFormat] resolved via
+  /// [fetchMediaTypes] (Postman Statement Download; confirmed formats:
+  /// csv/text/csv, pdf/application/pdf, qif/application/qif,
+  /// ofx/application/x-ofx).
+  Future<ResponseHandler<List<int>>> downloadStatement(
     String accountId, {
+    required String media,
+    required String mediaFormat,
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
@@ -124,8 +129,8 @@ class ObdxAccountsApi extends ObdxApiBase {
         ),
         queryParameters: {
           // Pass unencoded; Dio encodes once → application%2Fpdf (Postman shape).
-          'media': 'application/pdf',
-          'mediaFormat': 'pdf',
+          'media': media,
+          'mediaFormat': mediaFormat,
           'searchBy': 'CPR',
           'transactionType': 'A',
           ...?queryParameters,
@@ -134,7 +139,7 @@ class ObdxAccountsApi extends ObdxApiBase {
           responseType: ResponseType.bytes,
           receiveTimeout: const Duration(seconds: 60),
           headers: {
-            'Accept': 'application/pdf, application/octet-stream, application/json, */*',
+            'Accept': '$media, application/octet-stream, application/json, */*',
           },
         ),
       );
@@ -151,6 +156,19 @@ class ObdxAccountsApi extends ObdxApiBase {
     } catch (exc, stack) {
       return getExceptionErrorResponse<List<int>>(exc, stack);
     }
+  }
+
+  /// Kept for any existing PDF-only call sites.
+  Future<ResponseHandler<List<int>>> downloadStatementPdf(
+    String accountId, {
+    Map<String, dynamic>? queryParameters,
+  }) {
+    return downloadStatement(
+      accountId,
+      media: 'application/pdf',
+      mediaFormat: 'pdf',
+      queryParameters: queryParameters,
+    );
   }
 
   /// `GET /digx-common/dda/v1/enumerations/mediatype`

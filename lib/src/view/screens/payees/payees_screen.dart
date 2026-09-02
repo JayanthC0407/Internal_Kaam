@@ -8,44 +8,6 @@ import 'package:ubci_bank/src/view/providers/payee_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 
-/// The three "Add Payee" entry points offered from Manage Payee.
-enum AddPayeeFlow { bankAccount, demandDraft, peerToPeer }
-
-extension AddPayeeFlowX on AddPayeeFlow {
-  String get label {
-    switch (this) {
-      case AddPayeeFlow.bankAccount:
-        return 'Add Bank Account Payee';
-      case AddPayeeFlow.demandDraft:
-        return 'Add Demand Draft Payee';
-      case AddPayeeFlow.peerToPeer:
-        return 'Add Peer To Peer Payee';
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case AddPayeeFlow.bankAccount:
-        return Icons.account_balance_rounded;
-      case AddPayeeFlow.demandDraft:
-        return Icons.receipt_long_rounded;
-      case AddPayeeFlow.peerToPeer:
-        return Icons.people_alt_rounded;
-    }
-  }
-
-  String get routeName {
-    switch (this) {
-      case AddPayeeFlow.bankAccount:
-        return RoutesConst.addBankAccountPayeeScreen;
-      case AddPayeeFlow.demandDraft:
-        return RoutesConst.addDemandDraftPayeeScreen;
-      case AddPayeeFlow.peerToPeer:
-        return RoutesConst.addPeerToPeerPayeeScreen;
-    }
-  }
-}
-
 class PayeesScreen extends ConsumerStatefulWidget {
   const PayeesScreen({
     super.key,
@@ -55,7 +17,7 @@ class PayeesScreen extends ConsumerStatefulWidget {
   });
 
   final bool embedded;
-  final ValueChanged<AddPayeeFlow>? onAddPayee;
+  final VoidCallback? onAddPayee;
   final VoidCallback? onBack;
 
   @override
@@ -90,13 +52,15 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
     super.dispose();
   }
 
-  Future<void> _openAddPayee(AddPayeeFlow flow) async {
+  Future<void> _openAddPayee() async {
     if (widget.embedded && widget.onAddPayee != null) {
-      widget.onAddPayee!(flow);
+      widget.onAddPayee!();
       return;
     }
 
-    final created = await Navigator.of(context).pushNamed(flow.routeName);
+    final created = await Navigator.of(context).pushNamed(
+      RoutesConst.addBankAccountPayeeScreen,
+    );
 
     if (created == true && mounted) {
       await ref.read(payeesProvider.notifier).refresh();
@@ -175,9 +139,10 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(
                       width: double.infinity,
-                      child: _AddPayeeMenuButton(
-                        onSelected: _openAddPayee,
-                        expanded: true,
+                      child: FilledButton.icon(
+                        onPressed: _openAddPayee,
+                        icon: const Icon(Icons.person_add_alt_1_rounded),
+                        label: const Text('Add Bank Account Payee'),
                       ),
                     ),
                   ],
@@ -203,7 +168,11 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
                         ),
                       ),
                     ),
-                    _AddPayeeMenuButton(onSelected: _openAddPayee),
+                    FilledButton.icon(
+                      onPressed: _openAddPayee,
+                      icon: const Icon(Icons.person_add_alt_1_rounded),
+                      label: const Text('Add Bank Account Payee'),
+                    ),
                   ],
                 ),
 
@@ -225,7 +194,6 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
                     onSearchChanged: () => setState(() {}),
                     onRetry: () =>
                         ref.read(payeesProvider.notifier).refresh(),
-                    onAddPayee: _openAddPayee,
                   ),
                 )
               else
@@ -244,7 +212,6 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
                     onSearchChanged: () => setState(() {}),
                     onRetry: () =>
                         ref.read(payeesProvider.notifier).refresh(),
-                    onAddPayee: _openAddPayee,
                   ),
                 ),
             ],
@@ -285,56 +252,6 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
   }
 }
 
-class _AddPayeeMenuButton extends StatelessWidget {
-  const _AddPayeeMenuButton({
-    required this.onSelected,
-    this.expanded = false,
-  });
-
-  final ValueChanged<AddPayeeFlow> onSelected;
-  final bool expanded;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<AddPayeeFlow>(
-      onSelected: onSelected,
-      itemBuilder: (context) => [
-        for (final flow in AddPayeeFlow.values)
-          PopupMenuItem<AddPayeeFlow>(
-            value: flow,
-            child: Row(
-              children: [
-                Icon(flow.icon, size: 18, color: HomeColors.brand(context)),
-                const SizedBox(width: AppSpacing.sm),
-                Text(flow.label),
-              ],
-            ),
-          ),
-      ],
-      child: Material(
-        color: HomeColors.brand(context),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment:
-                expanded ? MainAxisAlignment.center : MainAxisAlignment.start,
-            children: const [
-              Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 18),
-              SizedBox(width: AppSpacing.sm),
-              Text('Add Payee', style: TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PayeeContentCard extends StatelessWidget {
   const _PayeeContentCard({
     required this.isPhone,
@@ -348,7 +265,6 @@ class _PayeeContentCard extends StatelessWidget {
     required this.filteredPayees,
     required this.onSearchChanged,
     required this.onRetry,
-    required this.onAddPayee,
   });
 
   final bool isPhone;
@@ -364,7 +280,6 @@ class _PayeeContentCard extends StatelessWidget {
   final List<PayeeSummary> filteredPayees;
   final VoidCallback onSearchChanged;
   final VoidCallback onRetry;
-  final ValueChanged<AddPayeeFlow> onAddPayee;
 
   @override
   Widget build(BuildContext context) {
@@ -442,19 +357,15 @@ class _PayeeContentCard extends StatelessWidget {
                   divider: divider,
                   brand: brand,
                 ),
-                _EmptyPayeesPane(
+                const _ComingSoonPane(
                   title: 'Demand Draft Payees',
                   detail:
-                      'The supplied API capture does not contain the Demand Draft payee list flow yet — you can still add one below.',
-                  flow: AddPayeeFlow.demandDraft,
-                  onAddPayee: onAddPayee,
+                      'The supplied API capture does not contain the Demand Draft payee flow.',
                 ),
-                _EmptyPayeesPane(
+                const _ComingSoonPane(
                   title: 'Peer To Peer Payees',
                   detail:
-                      'The supplied API capture does not contain the Peer To Peer payee list flow yet — you can still add one below.',
-                  flow: AddPayeeFlow.peerToPeer,
-                  onAddPayee: onAddPayee,
+                      'The supplied API capture does not contain the Peer To Peer payee flow.',
                 ),
               ],
             ),
@@ -611,18 +522,14 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-class _EmptyPayeesPane extends StatelessWidget {
-  const _EmptyPayeesPane({
+class _ComingSoonPane extends StatelessWidget {
+  const _ComingSoonPane({
     required this.title,
     required this.detail,
-    required this.flow,
-    required this.onAddPayee,
   });
 
   final String title;
   final String detail;
-  final AddPayeeFlow flow;
-  final ValueChanged<AddPayeeFlow> onAddPayee;
 
   @override
   Widget build(BuildContext context) {
@@ -635,7 +542,7 @@ class _EmptyPayeesPane extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              flow.icon,
+              Icons.info_outline_rounded,
               size: 40,
               color: HomeColors.brand(context),
             ),
@@ -650,12 +557,6 @@ class _EmptyPayeesPane extends StatelessWidget {
               detail,
               textAlign: TextAlign.center,
               style: TextStyle(color: textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            FilledButton.icon(
-              onPressed: () => onAddPayee(flow),
-              icon: const Icon(Icons.add_rounded),
-              label: Text(flow.label),
             ),
           ],
         ),

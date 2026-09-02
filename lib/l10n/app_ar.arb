@@ -2,6 +2,7 @@
   "@@locale": "ar",
   "appTitle": "بنك UBCI",
   "welcome": "مرحبًا!",
+  "welcomeBack": "مرحبًا بعودتك!",
   "loginSubtitle": "يرجى إدخال اسم المستخدم وكلمة المرور لتسجيل الدخول",
   "username": "اسم المستخدم",
   "password": "كلمة المرور",
@@ -415,5 +416,13 @@
       }
     }
   },
-  "errorBiometricAccessPoint": "الوصول السريع عبر الجوال غير مفعّل لحسابك. اطلب من البنك تفعيل نقطة وصول تطبيق الجوال."
+  "errorBiometricAccessPoint": "الوصول السريع عبر الجوال غير مفعّل لحسابك. اطلب من البنك تفعيل نقطة وصول تطبيق الجوال.",
+  "accountCategoryCurrentSavings": "Current and Savings",
+  "accountCategoryLoans": "Loans",
+  "accountCategoryTermDeposits": "Term Deposits",
+  "accountCategoryRecurringDeposits": "Recurring Deposits",
+  "accountCategoryCreditCards": "Credit Cards",
+  "accountCategoryComingSoon": "This account type isn't available here yet.",
+  "selectAccountTitle": "Select account",
+  "casaStatementFormatTitle": "Choose a format"
 }

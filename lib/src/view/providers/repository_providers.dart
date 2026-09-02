@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/infra/repositories/biometric_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/forgot_credentials_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/registration_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/payee_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/payment_repository.dart';
 import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
 import 'package:ubci_bank/src/view/providers/network_providers.dart';
 import 'package:ubci_bank/src/view/providers/session_providers.dart';
@@ -45,3 +46,7 @@ final payeeRepositoryProvider = Provider(
     payeeApi: ref.watch(obdxPayeeApiProvider),
   ),
 );
+
+/// See [PaymentRepository] — currently a local mock; no `ObdxPaymentApi`
+/// exists in this codebase yet.
+final paymentRepositoryProvider = Provider((ref) => PaymentRepository());

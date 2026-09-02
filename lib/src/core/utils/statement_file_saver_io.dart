@@ -5,9 +5,10 @@ import 'dart:ui' show Rect;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-Future<void> savePdf({
+Future<void> saveStatement({
   required Uint8List bytes,
   required String fileName,
+  required String mimeType,
   Rect? sharePositionOrigin,
 }) async {
   final dir = await getTemporaryDirectory();
@@ -19,7 +20,7 @@ Future<void> savePdf({
     await SharePlus.instance.share(
       ShareParams(
         files: [
-          XFile(file.path, mimeType: 'application/pdf', name: safeName),
+          XFile(file.path, mimeType: mimeType, name: safeName),
         ],
         subject: safeName,
         sharePositionOrigin: sharePositionOrigin,

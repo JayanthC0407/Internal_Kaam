@@ -18,6 +18,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get welcome => 'مرحبًا!';
 
   @override
+  String get welcomeBack => 'مرحبًا بعودتك!';
+
+  @override
   String get loginSubtitle =>
       'يرجى إدخال اسم المستخدم وكلمة المرور لتسجيل الدخول';
 
@@ -1465,4 +1468,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get patternUnlockSubtitle => 'Use your pattern to continue';
+
+  @override
+  String get accountCategoryCurrentSavings => 'Current and Savings';
+
+  @override
+  String get accountCategoryLoans => 'Loans';
+
+  @override
+  String get accountCategoryTermDeposits => 'Term Deposits';
+
+  @override
+  String get accountCategoryRecurringDeposits => 'Recurring Deposits';
+
+  @override
+  String get accountCategoryCreditCards => 'Credit Cards';
+
+  @override
+  String get accountCategoryComingSoon =>
+      'This account type isn\'t available here yet.';
+
+  @override
+  String get selectAccountTitle => 'Select account';
+
+  @override
+  String get casaStatementFormatTitle => 'Choose a format';
 }

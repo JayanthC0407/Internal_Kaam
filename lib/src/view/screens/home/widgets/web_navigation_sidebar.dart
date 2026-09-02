@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/app_nav_content.dart';
 
-enum WebPayeeDestination { manage, add, addDemandDraft, addPeerToPeer }
+enum WebPayeeDestination { manage, add }
 
 /// Persistent desktop side panel. On mobile/tablet the same menu content
 /// ([AppNavContent]) is shown inside a [Drawer] instead — see

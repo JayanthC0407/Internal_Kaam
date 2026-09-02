@@ -2,6 +2,7 @@
   "@@locale": "ru",
   "appTitle": "Demo Bank",
   "welcome": "Добро пожаловать!",
+  "welcomeBack": "С возвращением!",
   "loginSubtitle": "Введите имя пользователя и пароль для входа",
   "username": "Имя пользователя",
   "password": "Пароль",
@@ -415,5 +416,13 @@
       }
     }
   },
-  "errorBiometricAccessPoint": "Быстрый мобильный доступ не включён для вашей учётной записи. Попросите банк включить точку доступа мобильного приложения."
+  "errorBiometricAccessPoint": "Быстрый мобильный доступ не включён для вашей учётной записи. Попросите банк включить точку доступа мобильного приложения.",
+  "accountCategoryCurrentSavings": "Current and Savings",
+  "accountCategoryLoans": "Loans",
+  "accountCategoryTermDeposits": "Term Deposits",
+  "accountCategoryRecurringDeposits": "Recurring Deposits",
+  "accountCategoryCreditCards": "Credit Cards",
+  "accountCategoryComingSoon": "This account type isn't available here yet.",
+  "selectAccountTitle": "Select account",
+  "casaStatementFormatTitle": "Choose a format"
 }

@@ -18,6 +18,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get welcome => 'Xush kelibsiz!';
 
   @override
+  String get welcomeBack => 'Qaytganingizdan xursandmiz!';
+
+  @override
   String get loginSubtitle =>
       'Tizimga kirish uchun foydalanuvchi nomi va parolni kiriting';
 
@@ -1467,4 +1470,29 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get patternUnlockSubtitle => 'Use your pattern to continue';
+
+  @override
+  String get accountCategoryCurrentSavings => 'Current and Savings';
+
+  @override
+  String get accountCategoryLoans => 'Loans';
+
+  @override
+  String get accountCategoryTermDeposits => 'Term Deposits';
+
+  @override
+  String get accountCategoryRecurringDeposits => 'Recurring Deposits';
+
+  @override
+  String get accountCategoryCreditCards => 'Credit Cards';
+
+  @override
+  String get accountCategoryComingSoon =>
+      'This account type isn\'t available here yet.';
+
+  @override
+  String get selectAccountTitle => 'Select account';
+
+  @override
+  String get casaStatementFormatTitle => 'Choose a format';
 }

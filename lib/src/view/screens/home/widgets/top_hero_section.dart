@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/dashboard_header_bar.dart';
 
 class TopHeroSection extends StatelessWidget {
   const TopHeroSection({
@@ -15,11 +16,14 @@ class TopHeroSection extends StatelessWidget {
     this.onTransferTap,
     this.onProfileTap,
     this.onMenuTap,
+    this.onNotificationsTap,
     this.balanceText,
     this.balanceSubtitle,
     this.isBalanceLoading = false,
   });
 
+  /// Kept for future use — the header row no longer renders a greeting,
+  /// but callers still pass the resolved display name.
   final String displayName;
   final bool hideBalance;
   final int currentActionSlide;
@@ -30,9 +34,10 @@ class TopHeroSection extends StatelessWidget {
   final VoidCallback? onProfileTap;
 
   /// Opens the hamburger drawer. Only passed on mobile/tablet — desktop has
-  /// the persistent [WebNavigationSidebar] instead, so this is `null` there
+  /// the persistent `WebNavigationSidebar` instead, so this is `null` there
   /// and the menu button is not shown.
   final VoidCallback? onMenuTap;
+  final VoidCallback? onNotificationsTap;
   final String? balanceText;
   final String? balanceSubtitle;
   final bool isBalanceLoading;
@@ -40,7 +45,6 @@ class TopHeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final menuTap = onMenuTap;
     final actionSlides = [
       [
         _HeroActionItem(
@@ -99,76 +103,10 @@ decoration: BoxDecoration(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (menuTap != null) ...[
-                    Row(
-                      children: [
-                        _CircleIconButton(
-                          icon: Icons.menu_rounded,
-                          onTap: menuTap,
-                        ),
-                        const Spacer(),
-                        _CircleIconButton(
-                          icon: Icons.notifications_none_rounded,
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                  ],
-                  Row(
-                    children: [
-                      InkWell(
-                        onTap: onProfileTap,
-                        borderRadius: BorderRadius.circular(24),
-child: const CircleAvatar(
-  radius: 24,
-  backgroundColor: AppColors.neutral100,
-  child: Icon(
-    Icons.person,
-    size: 26,
-    color: AppColors.neutral600,
-  ),
-),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${l10n.goodMorning} ☀️',
-                              style: const TextStyle(
-                                color: Color(0xB3FFFFFF),
-                                fontSize: 13,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                height: 1.15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (menuTap == null)
-                        IconButton(
-                          onPressed: () {},
-                          visualDensity: VisualDensity.compact,
-                          icon: const Icon(
-                            Icons.notifications_none_rounded,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                    ],
+                  MobileDashboardHeaderRow(
+                    onMenuTap: onMenuTap,
+                    onNotificationsTap: onNotificationsTap,
+                    onProfileTap: onProfileTap,
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -264,29 +202,6 @@ child: const CircleAvatar(
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.14),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: const EdgeInsets.all(9),
-          child: Icon(icon, color: Colors.white, size: 21),
         ),
       ),
     );

@@ -2,6 +2,7 @@
   "@@locale": "it",
   "appTitle": "Demo Bank",
   "welcome": "Benvenuto!",
+  "welcomeBack": "Bentornato!",
   "loginSubtitle": "Inserisci nome utente e password per accedere",
   "username": "Nome utente",
   "password": "Password",
@@ -415,5 +416,13 @@
       }
     }
   },
-  "errorBiometricAccessPoint": "L'accesso rapido mobile non è abilitato per il tuo account. Chiedi alla banca di abilitare il touch point dell'app mobile."
+  "errorBiometricAccessPoint": "L'accesso rapido mobile non è abilitato per il tuo account. Chiedi alla banca di abilitare il touch point dell'app mobile.",
+  "accountCategoryCurrentSavings": "Current and Savings",
+  "accountCategoryLoans": "Loans",
+  "accountCategoryTermDeposits": "Term Deposits",
+  "accountCategoryRecurringDeposits": "Recurring Deposits",
+  "accountCategoryCreditCards": "Credit Cards",
+  "accountCategoryComingSoon": "This account type isn't available here yet.",
+  "selectAccountTitle": "Select account",
+  "casaStatementFormatTitle": "Choose a format"
 }

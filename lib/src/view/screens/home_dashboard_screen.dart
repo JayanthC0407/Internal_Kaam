@@ -8,7 +8,6 @@ import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/casa_accounts_panel.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
 
 import 'home/home_colors.dart';
 import 'home/tabs/insights_tab_screen.dart';
@@ -17,12 +16,11 @@ import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
 import 'home/widgets/app_nav_content.dart';
 import 'home/widgets/bottom_nav.dart';
+import 'home/widgets/dashboard_header_bar.dart';
 import 'home/widgets/home_content.dart';
 import 'home/widgets/top_hero_section.dart';
 import 'home/widgets/web_navigation_sidebar.dart';
 import 'payees/add_bank_account_payee_screen.dart';
-import 'payees/add_demand_draft_payee_screen.dart';
-import 'payees/add_peer_to_peer_payee_screen.dart';
 import 'payees/payees_screen.dart';
 
 class HomeDashboardArgs {
@@ -95,7 +93,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       ref.read(casaAccountsProvider.notifier).refresh(),
       ref.read(loanAccountsProvider.notifier).refresh(),
     ]);
-    await ref.read(homeRecentTransactionsProvider.notifier).refresh();
+    await ref.read(recentTransactionsWidgetProvider.notifier).refresh();
   }
 
   @override
@@ -128,14 +126,13 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     onPayeeSelected: (destination) => setState(() {
                       _selectedPayeeDestination = destination;
 
-                      if (destination != WebPayeeDestination.manage) {
-                        // Any "Add ..." destination opened directly from the
-                        // sidebar (not via Manage Payee).
+                      if (destination == WebPayeeDestination.add) {
+                        // Add Account Payee was opened directly from sidebar.
                         _addPayeeOpenedFromManage = false;
                       }
 
                       _selectedBottomNavIndex =
-                          _navIndexForPayeeDestination(destination);
+                          destination == WebPayeeDestination.manage ? 5 : 6;
                     }),
                   ),
                   Expanded(child: content),
@@ -173,20 +170,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen);
   }
 
-  /// Bottom-nav index that renders the given Payee destination.
-  int _navIndexForPayeeDestination(WebPayeeDestination destination) {
-    switch (destination) {
-      case WebPayeeDestination.manage:
-        return 5;
-      case WebPayeeDestination.add:
-        return 6;
-      case WebPayeeDestination.addDemandDraft:
-        return 7;
-      case WebPayeeDestination.addPeerToPeer:
-        return 8;
-    }
-  }
-
   /// Hamburger drawer content — mobile/tablet only. Selecting a destination
   /// closes the drawer first, then updates the same [_selectedBottomNavIndex]
   /// / [_selectedPayeeDestination] state the bottom nav and desktop sidebar
@@ -209,14 +192,13 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             setState(() {
               _selectedPayeeDestination = destination;
 
-              if (destination != WebPayeeDestination.manage) {
-                // Any "Add ..." destination opened directly from the
-                // navigation drawer (not via Manage Payee).
+              if (destination == WebPayeeDestination.add) {
+                // Opened directly from navigation drawer.
                 _addPayeeOpenedFromManage = false;
               }
 
               _selectedBottomNavIndex =
-                  _navIndexForPayeeDestination(destination);
+                  destination == WebPayeeDestination.manage ? 5 : 6;
             });
           },
         ),
@@ -237,18 +219,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 5:
         return PayeesScreen(
           embedded: true,
-          onAddPayee: (flow) => setState(() {
+          onAddPayee: () => setState(() {
             _addPayeeOpenedFromManage = true;
-            _selectedPayeeDestination = switch (flow) {
-              AddPayeeFlow.bankAccount => WebPayeeDestination.add,
-              AddPayeeFlow.demandDraft => WebPayeeDestination.addDemandDraft,
-              AddPayeeFlow.peerToPeer => WebPayeeDestination.addPeerToPeer,
-            };
-            _selectedBottomNavIndex = switch (flow) {
-              AddPayeeFlow.bankAccount => 6,
-              AddPayeeFlow.demandDraft => 7,
-              AddPayeeFlow.peerToPeer => 8,
-            };
+            _selectedPayeeDestination = WebPayeeDestination.add;
+            _selectedBottomNavIndex = 6;
           }),
           onBack: () => setState(() {
             _selectedPayeeDestination = null;
@@ -259,39 +233,42 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       return AddBankAccountPayeeScreen(
         embedded: true,
 
-        onBack: () => setState(() => _returnFromAddPayee()),
-        onCompleted: () => setState(() => _returnFromAddPayee()),
+        onBack: () {
+          setState(() {
+            if (_addPayeeOpenedFromManage) {
+              // Opened from Manage Payee → go back to Manage Payee.
+              _selectedPayeeDestination =
+                  WebPayeeDestination.manage;
+              _selectedBottomNavIndex = 5;
+            } else {
+              // Opened directly from sidebar → go back to Dashboard.
+              _selectedPayeeDestination = null;
+              _selectedBottomNavIndex = 0;
+            }
+
+            _addPayeeOpenedFromManage = false;
+          });
+        },
+
+        onCompleted: () {
+          setState(() {
+            if (_addPayeeOpenedFromManage) {
+              _selectedPayeeDestination =
+                  WebPayeeDestination.manage;
+              _selectedBottomNavIndex = 5;
+            } else {
+              _selectedPayeeDestination = null;
+              _selectedBottomNavIndex = 0;
+            }
+
+            _addPayeeOpenedFromManage = false;
+          });
+        },
       );
-      case 7:
-        return AddDemandDraftPayeeScreen(
-          embedded: true,
-          onBack: () => setState(() => _returnFromAddPayee()),
-          onCompleted: () => setState(() => _returnFromAddPayee()),
-        );
-      case 8:
-        return AddPeerToPeerPayeeScreen(
-          embedded: true,
-          onBack: () => setState(() => _returnFromAddPayee()),
-          onCompleted: () => setState(() => _returnFromAddPayee()),
-        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
     }
-  }
-
-  /// Shared back/complete handler for the three "Add Payee" screens
-  /// (Bank Account / Demand Draft / Peer To Peer): returns to Manage Payee
-  /// when opened from there, otherwise back to the Dashboard.
-  void _returnFromAddPayee() {
-    if (_addPayeeOpenedFromManage) {
-      _selectedPayeeDestination = WebPayeeDestination.manage;
-      _selectedBottomNavIndex = 5;
-    } else {
-      _selectedPayeeDestination = null;
-      _selectedBottomNavIndex = 0;
-    }
-    _addPayeeOpenedFromManage = false;
   }
 
   Widget _buildHomeBody(CasaAccountsState accountsState) {
@@ -342,7 +319,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   Widget _buildWebDashboard(CasaAccountsState accountsState) {
     final l10n = AppLocalizations.of(context);
-    final displayName = _displayNameFromTrace();
     final summary = accountsState.summary;
     final balanceText = _heroBalanceText(summary) ?? '—';
     final accounts = summary?.accounts ?? const <CasaAccount>[];
@@ -366,104 +342,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      if (!Responsive.of(context).isDesktop) ...[
-                        _TopIconButton(
-                          icon: Icons.menu_rounded,
-                          onTap: _openMenu,
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.goodMorningComma,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: HomeColors.textSecondary(context),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: width < 1000 ? 29 : 34,
-                                height: 1.1,
-                                fontWeight: FontWeight.w800,
-                                color: HomeColors.textPrimary(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 340),
-                        child: Container(
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 13),
-                          decoration: BoxDecoration(
-                            color: HomeColors.card(context),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: HomeColors.divider(context),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.search_rounded,
-                                size: 19,
-                                color: HomeColors.navInactive(context),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  l10n.searchPlaceholder,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: HomeColors.navInactive(context),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      _ProfileHeaderButton(
-                        onTap: () =>
-                            setState(() => _selectedBottomNavIndex = 4),
-                      ),
-                      const SizedBox(width: 8),
-                      const _TopIconButton(icon: Icons.notifications_none),
-                      const SizedBox(width: 8),
-                      FilledButton.icon(
-                        onPressed: () =>
-                            setState(() => _selectedBottomNavIndex = 2),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 44),
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: Text(
-                          l10n.newTransfer,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
+                  WebDashboardHeaderBar(
+                    onMenuTap:
+                        Responsive.of(context).isDesktop ? null : _openMenu,
                   ),
                   const SizedBox(height: 20),
                   if (stackHero) ...[
@@ -765,72 +646,5 @@ gradient: AppGradients.primary(context),
 
     final exactUserName = (userProfile['userName'] ?? '').toString().trim();
     return exactUserName.isNotEmpty ? exactUserName : widget.args.userName;
-  }
-}
-
-class _ProfileHeaderButton extends StatelessWidget {
-  const _ProfileHeaderButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Tooltip(
-      message: l10n.moreTitle,
-      child: Material(
-        color: HomeColors.card(context),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: HomeColors.divider(context)),
-            ),
-            alignment: Alignment.center,
-            child: const CircleAvatar(
-              radius: 14,
-              backgroundColor: AppColors.neutral100,
-              child: Icon(
-                Icons.person,
-                size: 18,
-                color: AppColors.neutral600,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TopIconButton extends StatelessWidget {
-  const _TopIconButton({required this.icon, this.onTap});
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: HomeColors.card(context),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: HomeColors.divider(context)),
-          ),
-          child: Icon(icon, size: 20, color: HomeColors.navInactive(context)),
-        ),
-      ),
-    );
   }
 }

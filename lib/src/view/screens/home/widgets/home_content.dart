@@ -6,7 +6,7 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/casa_accounts_panel.dart';
-import 'package:ubci_bank/src/view/screens/home/widgets/home_recent_transactions_card.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/recent_transactions_card.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/loan_accounts_inline_panel.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/loan_tracker_card.dart';
 import '../home_colors.dart';
@@ -346,7 +346,7 @@ class _OverviewContent extends StatelessWidget {
       ],
     );
     // Show live amounts (independent of total-balance / account eye toggles).
-    const transactions = HomeRecentTransactionsCard();
+    const transactions = RecentTransactionsCard();
 
     // Mobile: stack vertically (loan under cards, matching Figma flow).
     if (!isWide) {

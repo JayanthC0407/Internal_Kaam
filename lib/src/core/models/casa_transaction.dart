@@ -42,6 +42,7 @@ class CasaTransaction {
   factory CasaTransaction.fromJson(Map<String, dynamic> json) {
     final currency = (json['currencyCode'] ??
             json['currency'] ??
+            ObdxApiUtils.asMap(json['amountInAccountCurrency'])['currency'] ??
             ObdxApiUtils.asMap(json['amount'])['currency'] ??
             ObdxApiUtils.asMap(json['transactionAmount'])['currency'] ??
             '')
@@ -51,6 +52,9 @@ class CasaTransaction {
     final amount = CasaAccount.readBalance(
           json,
           const [
+            // Confirmed field name (HAR capture of
+            // dda/v1/demandDeposit/.../transactions) — kept first.
+            'amountInAccountCurrency',
             'transactionAmount',
             'amount',
             'txnAmount',
@@ -97,6 +101,10 @@ class CasaTransaction {
     final subtitle =
         rawSubtitle == null ? null : _toDisplayCase(rawSubtitle);
     final reference = _firstNonEmpty([
+      // Confirmed field names (HAR capture): top-level userReferenceNumber,
+      // falling back to the nested key.transactionReferenceNumber.
+      json['userReferenceNumber'],
+      ObdxApiUtils.asMap(json['key'])['transactionReferenceNumber'],
       json['referenceNumber'],
       json['txnReference'],
       json['transactionReference'],
