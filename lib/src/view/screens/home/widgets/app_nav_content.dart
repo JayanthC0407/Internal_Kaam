@@ -81,86 +81,116 @@ class _AppNavContentState extends State<AppNavContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.showLogo && !collapsed) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+          Expanded(
+            child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Image.asset(
-                    AppNavContent._logoAsset,
-                    width: 166,
-                    height: 72,
-                    alignment: Alignment.centerLeft,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.home,
-                    style: TextStyle(
-                      color: HomeColors.textSecondary(context),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  if (widget.showLogo && !collapsed) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Image.asset(
+                            AppNavContent._logoAsset,
+                            width: 166,
+                            height: 72,
+                            alignment: Alignment.centerLeft,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.home,
+                            style: TextStyle(
+                              color: HomeColors.textSecondary(context),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 30),
+                  ],
+                  if (collapsed) const SizedBox(height: 44),
+                  for (var i = 0; i < destinations.length; i++) ...[
+                    _NavDestination(
+                      label: destinations[i].$1,
+                      icon: destinations[i].$2,
+                      selected: widget.selectedIndex == i,
+                      collapsed: collapsed,
+                      onTap: () => widget.onSelected(i),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  if (showPayee) ...[
+                    _NavDestination(
+                      label: 'Payee',
+                      icon: Icons.people_alt_outlined,
+                      selected: widget.selectedPayeeDestination != null,
+                      collapsed: collapsed,
+                      trailing: collapsed
+                          ? null
+                          : Icon(
+                              _payeeExpanded
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 20,
+                              color: widget.selectedPayeeDestination != null
+                                  ? Colors.white
+                                  : HomeColors.textSecondary(context),
+                            ),
+                      onTap: collapsed
+                          ? () =>
+                              widget.onPayeeSelected!(WebPayeeDestination.manage)
+                          : () => setState(() => _payeeExpanded = !_payeeExpanded),
+                    ),
+                    if (_payeeExpanded && !collapsed) ...[
+                      const SizedBox(height: 3),
+                      _SubDestination(
+                        label: 'Manage Payee',
+                        icon: Icons.manage_accounts_outlined,
+                        selected: widget.selectedPayeeDestination ==
+                            WebPayeeDestination.manage,
+                        onTap: () =>
+                            widget.onPayeeSelected!(WebPayeeDestination.manage),
+                      ),
+                      const SizedBox(height: 3),
+                      _SubDestination(
+                        label: 'Add Account Payee',
+                        icon: Icons.person_add_alt_1_outlined,
+                        selected: widget.selectedPayeeDestination ==
+                            WebPayeeDestination.add,
+                        onTap: () =>
+                            widget.onPayeeSelected!(WebPayeeDestination.add),
+                      ),
+                      const SizedBox(height: 3),
+                      _SubDestination(
+                        label: 'Add Demand Draft Payee',
+                        icon: Icons.receipt_long_outlined,
+                        selected: widget.selectedPayeeDestination ==
+                            WebPayeeDestination.addDemandDraft,
+                        onTap: () => widget
+                            .onPayeeSelected!(WebPayeeDestination.addDemandDraft),
+                      ),
+                      const SizedBox(height: 3),
+                      _SubDestination(
+                        label: 'Add Peer To Peer Payee',
+                        icon: Icons.people_alt_outlined,
+                        selected: widget.selectedPayeeDestination ==
+                            WebPayeeDestination.addPeerToPeer,
+                        onTap: () => widget
+                            .onPayeeSelected!(WebPayeeDestination.addPeerToPeer),
+                      ),
+                    ],
+                    const SizedBox(height: 6),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(height: 30),
-          ],
-          if (collapsed) const SizedBox(height: 44),
-          for (var i = 0; i < destinations.length; i++) ...[
-            _NavDestination(
-              label: destinations[i].$1,
-              icon: destinations[i].$2,
-              selected: widget.selectedIndex == i,
-              collapsed: collapsed,
-              onTap: () => widget.onSelected(i),
-            ),
-            const SizedBox(height: 6),
-          ],
-          if (showPayee) ...[
-            _NavDestination(
-              label: 'Payee',
-              icon: Icons.people_alt_outlined,
-              selected: widget.selectedPayeeDestination != null,
-              collapsed: collapsed,
-              trailing: collapsed
-                  ? null
-                  : Icon(
-                      _payeeExpanded
-                          ? Icons.keyboard_arrow_up_rounded
-                          : Icons.keyboard_arrow_down_rounded,
-                      size: 20,
-                      color: widget.selectedPayeeDestination != null
-                          ? Colors.white
-                          : HomeColors.textSecondary(context),
-                    ),
-              onTap: collapsed
-                  ? () => widget.onPayeeSelected!(WebPayeeDestination.manage)
-                  : () => setState(() => _payeeExpanded = !_payeeExpanded),
-            ),
-            if (_payeeExpanded && !collapsed) ...[
-              const SizedBox(height: 3),
-              _SubDestination(
-                label: 'Manage Payee',
-                icon: Icons.manage_accounts_outlined,
-                selected:
-                    widget.selectedPayeeDestination == WebPayeeDestination.manage,
-                onTap: () => widget.onPayeeSelected!(WebPayeeDestination.manage),
-              ),
-              const SizedBox(height: 3),
-              _SubDestination(
-                label: 'Add Account Payee',
-                icon: Icons.person_add_alt_1_outlined,
-                selected:
-                    widget.selectedPayeeDestination == WebPayeeDestination.add,
-                onTap: () => widget.onPayeeSelected!(WebPayeeDestination.add),
-              ),
-            ],
-            const SizedBox(height: 6),
-          ],
-          const Spacer(),
+          ),
+          const SizedBox(height: 12),
           if (collapsed)
             Center(
               child: Tooltip(
