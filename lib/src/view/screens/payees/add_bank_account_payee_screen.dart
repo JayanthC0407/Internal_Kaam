@@ -35,10 +35,23 @@ class _AddBankAccountPayeeScreenState
   final _ifscCode = TextEditingController();
   final _nickname = TextEditingController();
 
+  // International tab.
+  final _intlAddressLine1 = TextEditingController();
+  final _intlAddressLine2 = TextEditingController();
+  final _intlCity = TextEditingController();
+  final _nationalClearingCode = TextEditingController();
+  final _bankDetails = TextEditingController();
+  final _swiftCode = TextEditingController();
+
   int _selectedType = 0; // 0 Internal, 1 Domestic, 2 International.
   String? _selectedNetwork;
   String? _selectedAccountType;
+  String? _selectedCountry;
+  String _payVia = 'NCC'; // NCC, BANK_DETAILS, SWIFT
+  String _intermediaryBank = 'No'; // Yes, No
   bool _uploadingPhoto = false;
+  bool _verifyingIfsc = false;
+  bool _verifyingNcc = false;
 
   @override
   void initState() {
@@ -56,15 +69,21 @@ class _AddBankAccountPayeeScreenState
     _payeeEmail.dispose();
     _ifscCode.dispose();
     _nickname.dispose();
+    _intlAddressLine1.dispose();
+    _intlAddressLine2.dispose();
+    _intlCity.dispose();
+    _nationalClearingCode.dispose();
+    _bankDetails.dispose();
+    _swiftCode.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (_selectedType != 0) {
+    if (_selectedType == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'The supplied API capture does not include the final Domestic/International submit endpoint yet.',
+            'The supplied API capture does not include a final Domestic Payee submit endpoint yet.',
           ),
         ),
       );
@@ -73,18 +92,19 @@ class _AddBankAccountPayeeScreenState
 
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(payeesProvider.notifier).createInternalPayee(
-          nickname: _nickname.text.trim(),
-          accountNumber: _accountNumber.text.trim(),
-          accountName: _accountName.text.trim(),
-          payeeEmail: _payeeEmail.text.trim(),
-        );
+    final success = _selectedType == 2 ? await _submitInternational() : await _submitInternal();
 
     if (!mounted) return;
     final state = ref.read(payeesProvider);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payee validated successfully.')),
+        SnackBar(
+          content: Text(
+            _selectedType == 2
+                ? 'International payee submitted.'
+                : 'Payee validated successfully.',
+          ),
+        ),
       );
       if (widget.embedded) {
         widget.onCompleted?.call();
@@ -101,6 +121,82 @@ class _AddBankAccountPayeeScreenState
     }
   }
 
+  Future<bool> _submitInternal() {
+    return ref.read(payeesProvider.notifier).createInternalPayee(
+          nickname: _nickname.text.trim(),
+          accountNumber: _accountNumber.text.trim(),
+          accountName: _accountName.text.trim(),
+          payeeEmail: _payeeEmail.text.trim(),
+        );
+  }
+
+  Future<bool> _submitInternational() {
+    // Pay Via → network + bankDetails, matching the confirmed payload shape
+    // (see 3.3 International Payee — Submit API). The captured attempt
+    // itself failed because bankDetails was left empty ("Bank code is a
+    // mandatory field"), so the entered code/details are placed into the
+    // closest matching bankDetails field for each Pay Via option.
+    final codeType = ref.read(payeesProvider).nationalClearingCodeTypes.isNotEmpty
+        ? ref.read(payeesProvider).nationalClearingCodeTypes.first.code
+        : 'SC';
+
+    Map<String, dynamic> bankDetails;
+    switch (_payVia) {
+      case 'BANK_DETAILS':
+        bankDetails = {
+          'name': _bankDetails.text.trim(),
+          'branch': null,
+          'address': null,
+          'city': null,
+          'country': _selectedCountry,
+          'codeType': null,
+        };
+        break;
+      case 'SWIFT':
+        bankDetails = {
+          'name': _swiftCode.text.trim(),
+          'branch': null,
+          'address': null,
+          'city': null,
+          'country': null,
+          'codeType': null,
+        };
+        break;
+      case 'NCC':
+      default:
+        bankDetails = {
+          'name': _nationalClearingCode.text.trim(),
+          'branch': null,
+          'address': null,
+          'city': null,
+          'country': null,
+          'codeType': codeType,
+        };
+        break;
+    }
+
+    final network = switch (_payVia) {
+      'BANK_DETAILS' => 'SPE',
+      'SWIFT' => 'SWI',
+      _ => 'NAC',
+    };
+
+    return ref.read(payeesProvider.notifier).createInternationalPayee(
+          nickname: _nickname.text.trim(),
+          accountNumber: _accountNumber.text.trim(),
+          accountName: _accountName.text.trim(),
+          payeeEmail: _payeeEmail.text.trim(),
+          network: network,
+          bankDetails: bankDetails,
+          address: {
+            'line1': _intlAddressLine1.text.trim(),
+            'line2': _intlAddressLine2.text.trim(),
+            'city': _intlCity.text.trim(),
+            'country': _selectedCountry,
+          },
+        );
+  }
+
   Future<void> _uploadPhoto() async {
     // The captured API exposes upload constraints through payeecontent, but
     // the supplied source does not contain the actual multipart upload API.
@@ -114,6 +210,49 @@ class _AddBankAccountPayeeScreenState
           'Photo upload UI is ready; the captured source does not contain the multipart upload endpoint.',
         ),
       ),
+    );
+  }
+
+  Future<void> _verifyIfscCode() async {
+    final code = _ifscCode.text.trim();
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter an IFSC code first.')),
+      );
+      return;
+    }
+    setState(() => _verifyingIfsc = true);
+    final result = await ref.read(payeesProvider.notifier).verifyNetworkCode(
+          code: code,
+          network: _selectedNetwork ?? 'RTGS',
+        );
+    if (!mounted) return;
+    setState(() => _verifyingIfsc = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
+  }
+
+  Future<void> _verifyNationalClearingCode() async {
+    final country = _selectedCountry;
+    if (country == null || country.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a Country first.')),
+      );
+      return;
+    }
+    final state = ref.read(payeesProvider);
+    final codeType = state.nationalClearingCodeTypes.isNotEmpty
+        ? state.nationalClearingCodeTypes.first.code
+        : 'SC';
+    setState(() => _verifyingNcc = true);
+    final result = await ref
+        .read(payeesProvider.notifier)
+        .verifyNationalClearingCode(country: country, codeType: codeType);
+    if (!mounted) return;
+    setState(() => _verifyingNcc = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
     );
   }
 
@@ -225,7 +364,7 @@ class _AddBankAccountPayeeScreenState
       const SizedBox(height: AppSpacing.xl),
       if (_selectedType == 0) ..._buildInternalFields(context),
       if (_selectedType == 1) ..._buildDomesticFields(context, state),
-      if (_selectedType == 2) const _InternationalPlaceholder(),
+      if (_selectedType == 2) ..._buildInternationalFields(context, state),
       const SizedBox(height: AppSpacing.xxxl),
       _buildActions(context, state),
     ];
@@ -466,12 +605,14 @@ class _AddBankAccountPayeeScreenState
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: OutlinedButton(
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('IFSC verification endpoint was not included in the supplied capture.'),
-                ),
-              ),
-              child: const Text('Verify'),
+              onPressed: _verifyingIfsc ? null : _verifyIfscCode,
+              child: _verifyingIfsc
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Verify'),
             ),
           ),
         ],
@@ -492,6 +633,236 @@ class _AddBankAccountPayeeScreenState
         validator: _required,
       ),
     ];
+  }
+
+  List<Widget> _buildInternationalFields(
+    BuildContext context,
+    PayeesState state,
+  ) {
+    final countries = state.countries;
+    return [
+      _field(
+        controller: _accountNumber,
+        label: 'Account Number',
+        keyboardType: TextInputType.number,
+        validator: _required,
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _confirmAccountNumber,
+        label: 'Confirm Account Number',
+        keyboardType: TextInputType.number,
+        validator: (value) {
+          final required = _required(value);
+          if (required != null) return required;
+          if (value != _accountNumber.text) return 'Account numbers do not match';
+          return null;
+        },
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _accountName,
+        label: 'Account Name',
+        validator: _required,
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _intlAddressLine1,
+        label: 'Address Line 1',
+        validator: _required,
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _intlAddressLine2,
+        label: 'Address Line 2',
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _intlCity,
+        label: 'City',
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _dropdown<CountryOption>(
+        label: 'Country',
+        hint: 'Please Select',
+        value: countries.any((e) => e.code == _selectedCountry)
+            ? countries.firstWhere((e) => e.code == _selectedCountry)
+            : null,
+        items: countries,
+        itemLabel: (e) => e.displayName,
+        onChanged: (value) => setState(() => _selectedCountry = value?.code),
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _payeeEmail,
+        label: 'Payee Email ID',
+        keyboardType: TextInputType.emailAddress,
+        validator: (value) {
+          final trimmed = value?.trim() ?? '';
+          if (trimmed.isEmpty) return null; // optional, per captured screen.
+          if (!EmailValidator.isValid(trimmed)) return 'Enter a valid email';
+          return null;
+        },
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      Text('Pay Via', style: Theme.of(context).textTheme.titleSmall),
+      const SizedBox(height: AppSpacing.xs),
+      _payViaRadioRow(context),
+      const SizedBox(height: AppSpacing.lg),
+      ..._buildPayViaFields(context),
+      const SizedBox(height: AppSpacing.lg),
+      Text('Intermediary Bank', style: Theme.of(context).textTheme.titleSmall),
+      const SizedBox(height: AppSpacing.xs),
+      _intermediaryBankRadioRow(context),
+      const SizedBox(height: AppSpacing.lg),
+      _field(
+        controller: _nickname,
+        label: 'Nickname',
+        validator: _required,
+      ),
+    ];
+  }
+
+  Widget _payViaRadioRow(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.lg,
+      runSpacing: AppSpacing.xs,
+      children: [
+        _radioOption(
+          label: 'NCC',
+          value: 'NCC',
+          groupValue: _payVia,
+          onChanged: (value) => setState(() => _payVia = value!),
+        ),
+        _radioOption(
+          label: 'Bank Details',
+          value: 'BANK_DETAILS',
+          groupValue: _payVia,
+          onChanged: (value) => setState(() => _payVia = value!),
+        ),
+        _radioOption(
+          label: 'SWIFT Code',
+          value: 'SWIFT',
+          groupValue: _payVia,
+          onChanged: (value) => setState(() => _payVia = value!),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildPayViaFields(BuildContext context) {
+    switch (_payVia) {
+      case 'BANK_DETAILS':
+        // The captured screens only show the NCC variant end-to-end; Bank
+        // Details field names were not part of the supplied capture.
+        return [
+          _field(
+            controller: _bankDetails,
+            label: 'Bank Details',
+            validator: _required,
+          ),
+        ];
+      case 'SWIFT':
+        return [
+          _field(
+            controller: _swiftCode,
+            label: 'SWIFT Code',
+            textCapitalization: TextCapitalization.characters,
+            validator: _required,
+          ),
+        ];
+      case 'NCC':
+      default:
+        return [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _field(
+                  controller: _nationalClearingCode,
+                  label: 'National Clearing Code',
+                  textCapitalization: TextCapitalization.characters,
+                  validator: _required,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: OutlinedButton(
+                  onPressed: _verifyingNcc ? null : _verifyNationalClearingCode,
+                  child: _verifyingNcc
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Verify'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'National Clearing Code lookup endpoint was not included in the supplied capture.',
+                ),
+              ),
+            ),
+            style: TextButton.styleFrom(alignment: Alignment.centerLeft),
+            child: const Text('Lookup National Clearing Code'),
+          ),
+        ];
+    }
+  }
+
+  Widget _intermediaryBankRadioRow(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.lg,
+      runSpacing: AppSpacing.xs,
+      children: [
+        _radioOption(
+          label: 'Yes',
+          value: 'Yes',
+          groupValue: _intermediaryBank,
+          onChanged: (value) => setState(() => _intermediaryBank = value!),
+        ),
+        _radioOption(
+          label: 'No',
+          value: 'No',
+          groupValue: _intermediaryBank,
+          onChanged: (value) => setState(() => _intermediaryBank = value!),
+        ),
+      ],
+    );
+  }
+
+  Widget _radioOption({
+    required String label,
+    required String value,
+    required String groupValue,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return InkWell(
+      onTap: () => onChanged(value),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Radio<String>(
+              value: value,
+              groupValue: groupValue,
+              onChanged: onChanged,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            Text(label),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _field({
@@ -516,10 +887,15 @@ class _AddBankAccountPayeeScreenState
     required List<T> items,
     required String Function(T) itemLabel,
     required ValueChanged<T?> onChanged,
+    String? hint,
   }) {
     return DropdownButtonFormField<T>(
       value: value,
-      decoration: InputDecoration(labelText: label),
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+      ),
       items: items
           .map(
             (item) => DropdownMenuItem<T>(
@@ -620,20 +996,4 @@ class _InfoPanel extends StatelessWidget {
   }
 }
 
-class _InternationalPlaceholder extends StatelessWidget {
-  const _InternationalPlaceholder();
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      decoration: BoxDecoration(
-        color: HomeColors.surfaceSecondary(context),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: const Text(
-        'International Payee UI/API fields were not part of the supplied capture. This tab is intentionally left unimplemented rather than inventing an API contract.',
-      ),
-    );
-  }
-}

@@ -8,10 +8,10 @@ import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 
 /// Add Peer To Peer Payee, matching the captured "Peer To Peer Payee" screen.
 ///
-/// The supplied API capture does not contain a Peer To Peer payee submit
-/// endpoint, so — as with the Domestic/International tabs on Add Bank
-/// Account Payee — this screen builds the full captured UI/validation and
-/// surfaces a clear message on submit rather than inventing an API contract.
+/// Final submit uses the confirmed `POST payeeGroup` endpoint (shared with
+/// Demand Draft Payee) — only its `name` field is confirmed, since the
+/// captured attempt returned a permission error (403 /
+/// DIGX_PROD_ACCESS_DENIED_0000) rather than a validation error.
 class AddPeerToPeerPayeeScreen extends ConsumerStatefulWidget {
   const AddPeerToPeerPayeeScreen({
     super.key,
@@ -73,16 +73,27 @@ class _AddPeerToPeerPayeeScreenState
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _submitting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final success = await ref
+        .read(payeesProvider.notifier)
+        .submitPayeeGroup(name: _payeeName.text.trim());
     if (!mounted) return;
     setState(() => _submitting = false);
 
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Peer to peer payee submitted.')),
+      );
+      if (widget.embedded) {
+        widget.onCompleted?.call();
+      } else {
+        Navigator.of(context).pop(true);
+      }
+      return;
+    }
+
+    final error = ref.read(payeesProvider).submitError;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'The supplied API capture does not include a Peer To Peer payee submit endpoint yet.',
-        ),
-      ),
+      SnackBar(content: Text(error ?? 'Unable to submit payee.')),
     );
   }
 
