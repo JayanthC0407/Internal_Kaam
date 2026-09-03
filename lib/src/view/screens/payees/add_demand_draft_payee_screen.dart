@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/src/core/models/payee/payee_models.dart';
 import 'package:ubci_bank/src/core/models/payment/payment_models.dart';
 import 'package:ubci_bank/src/core/theme/app_radius.dart';
 import 'package:ubci_bank/src/core/theme/app_spacing.dart';
@@ -11,11 +12,14 @@ import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 /// Add Demand Draft Payee — Domestic / International draft type, matching
 /// the captured "Add Demand Draft Payee" screens.
 ///
-/// The supplied API capture does not contain a Demand Draft payee submit
-/// endpoint (or a branch/city enumeration endpoint for "Draft Payable At"),
-/// so this screen builds the full captured UI/UX and validation, and — like
-/// the Domestic/International tabs on Add Bank Account Payee — surfaces a
-/// clear message instead of inventing an unverified API contract on submit.
+/// City / Branch Near Me / Address Type / My Address / final submit are all
+/// wired to the confirmed endpoints in the API capture. The submit contract
+/// (`POST payeeGroup`) only confirms a `name` field — the captured attempt
+/// itself returned a permission error (403 / DIGX_PROD_ACCESS_DENIED_0000)
+/// rather than a validation error, so no other field names are invented.
+/// The International "Draft Payable At" / "Other Address → Country" pickers
+/// use the shared [paymentCountriesProvider] rather than the payee-specific
+/// country list, matching the rest of the Payments module.
 class AddDemandDraftPayeeScreen extends ConsumerStatefulWidget {
   const AddDemandDraftPayeeScreen({
     super.key,
@@ -33,13 +37,6 @@ class AddDemandDraftPayeeScreen extends ConsumerStatefulWidget {
       _AddDemandDraftPayeeScreenState();
 }
 
-/// Draft Payable At, for the Domestic tab, is not backed by a captured
-/// branch/city enumeration endpoint. These placeholder options mirror the
-/// values visible in the captured demo-bank screens.
-const List<String> _kDomesticDraftPayableAtOptions = ['TZ', 'California', 'test'];
-const List<String> _kDomesticBranchOptions = ['NMB BANK PLC'];
-const List<String> _kMyAddressTypeOptions = ['Postal', 'Residence', 'Work'];
-
 class _AddDemandDraftPayeeScreenState
     extends ConsumerState<AddDemandDraftPayeeScreen> {
   final _formKey = GlobalKey<FormState>();
@@ -54,14 +51,28 @@ class _AddDemandDraftPayeeScreenState
   final _otherZipCode = TextEditingController();
 
   int _draftType = 0; // 0 Domestic, 1 International.
-  String? _draftPayableAtDomestic;
+  String? _draftPayableAtDomestic; // City code.
   String? _draftPayableAtCountry; // International.
   String? _otherAddressCountry; // International "Other Address" only.
 
   int _addressMode = 0; // 0 Branch Near Me, 1 My Address, 2 Other Address.
-  String? _branchCity;
-  String? _branchNearMe;
-  String? _myAddressType;
+
+  List<CityOption> _cities = [];
+  bool _loadingCities = false;
+
+  String? _branchCity; // City code selected within "Branch Near Me".
+  BranchOption? _branchOption;
+  bool _loadingBranch = false;
+  BranchAddress? _branchAddress;
+  bool _loadingBranchAddress = false;
+
+  List<PayeeEnumOption> _addressTypes = [];
+  bool _loadingAddressTypes = false;
+
+  String? _myAddressType; // Selected address-type code (WRK/RES/PST).
+  List<PartyAddress> _partyAddresses = [];
+  bool _loadingPartyAddresses = false;
+  bool _partyAddressesLoaded = false;
 
   bool _uploadingPhoto = false;
   bool _submitting = false;
@@ -71,6 +82,8 @@ class _AddDemandDraftPayeeScreenState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(payeesProvider.notifier).ensureLoaded();
+      _loadCities();
+      _loadAddressTypes();
     });
   }
 
@@ -100,6 +113,78 @@ class _AddDemandDraftPayeeScreenState
     );
   }
 
+  Future<void> _loadCities() async {
+    setState(() => _loadingCities = true);
+    final cities = await ref.read(payeesProvider.notifier).fetchCities();
+    if (!mounted) return;
+    setState(() {
+      _cities = cities;
+      _loadingCities = false;
+    });
+  }
+
+  Future<void> _loadAddressTypes() async {
+    setState(() => _loadingAddressTypes = true);
+    final types = await ref.read(payeesProvider.notifier).fetchAddressTypes();
+    if (!mounted) return;
+    setState(() {
+      _addressTypes = types;
+      _loadingAddressTypes = false;
+    });
+  }
+
+  Future<void> _loadBranchForCity(String cityCode) async {
+    setState(() {
+      _loadingBranch = true;
+      _branchOption = null;
+      _branchAddress = null;
+    });
+    final branch =
+        await ref.read(payeesProvider.notifier).fetchBranchForCity(cityCode);
+    if (!mounted) return;
+    setState(() {
+      _branchOption = branch;
+      _loadingBranch = false;
+    });
+    if (branch != null) {
+      _loadBranchAddress(branch.code);
+    }
+  }
+
+  Future<void> _loadBranchAddress(String branchCode) async {
+    setState(() => _loadingBranchAddress = true);
+    final address =
+        await ref.read(payeesProvider.notifier).fetchBranchAddress(branchCode);
+    if (!mounted) return;
+    setState(() {
+      _branchAddress = address;
+      _loadingBranchAddress = false;
+    });
+  }
+
+  Future<void> _ensurePartyAddressesLoaded() async {
+    if (_partyAddressesLoaded || _loadingPartyAddresses) return;
+    setState(() => _loadingPartyAddresses = true);
+    final addresses =
+        await ref.read(payeesProvider.notifier).fetchPartyAddresses();
+    if (!mounted) return;
+    setState(() {
+      _partyAddresses = addresses;
+      _loadingPartyAddresses = false;
+      _partyAddressesLoaded = true;
+    });
+  }
+
+  PartyAddress? _matchedPartyAddress() {
+    if (_myAddressType == null) return null;
+    for (final address in _partyAddresses) {
+      if (address.type.toUpperCase() == _myAddressType!.toUpperCase()) {
+        return address;
+      }
+    }
+    return null;
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_draftPayableAtSelected == null) {
@@ -110,16 +195,27 @@ class _AddDemandDraftPayeeScreenState
     }
 
     setState(() => _submitting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final success = await ref
+        .read(payeesProvider.notifier)
+        .submitPayeeGroup(name: _payeeName.text.trim());
     if (!mounted) return;
     setState(() => _submitting = false);
 
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Demand draft payee submitted.')),
+      );
+      if (widget.embedded) {
+        widget.onCompleted?.call();
+      } else {
+        Navigator.of(context).pop(true);
+      }
+      return;
+    }
+
+    final error = ref.read(payeesProvider).submitError;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'The supplied API capture does not include a Demand Draft payee submit endpoint yet.',
-        ),
-      ),
+      SnackBar(content: Text(error ?? 'Unable to submit payee.')),
     );
   }
 
@@ -362,15 +458,16 @@ class _AddDemandDraftPayeeScreenState
 
   Widget _buildDraftPayableAt(BuildContext context, PayeesState state) {
     if (_draftType == 0) {
-      return _dropdown<String>(
+      return _dropdown<CityOption>(
         label: 'Draft Payable At',
-        value: _kDomesticDraftPayableAtOptions.contains(_draftPayableAtDomestic)
-            ? _draftPayableAtDomestic
+        hint: _loadingCities ? 'Loading...' : null,
+        value: _cities.any((e) => e.code == _draftPayableAtDomestic)
+            ? _cities.firstWhere((e) => e.code == _draftPayableAtDomestic)
             : null,
-        items: _kDomesticDraftPayableAtOptions,
-        itemLabel: (e) => e,
+        items: _cities,
+        itemLabel: (e) => e.displayName,
         onChanged: (value) => setState(() {
-          _draftPayableAtDomestic = value;
+          _draftPayableAtDomestic = value?.code;
           _addressMode = 0;
         }),
       );
@@ -442,61 +539,84 @@ class _AddDemandDraftPayeeScreenState
   }
 
   List<Widget> _buildBranchNearMeFields(BuildContext context) {
-    final resolved = _branchCity != null && _branchNearMe != null;
     return [
-      _dropdown<String>(
+      _dropdown<CityOption>(
         label: 'City',
-        value: _kDomesticDraftPayableAtOptions.contains(_branchCity)
-            ? _branchCity
+        hint: _loadingCities ? 'Loading...' : null,
+        value: _cities.any((e) => e.code == _branchCity)
+            ? _cities.firstWhere((e) => e.code == _branchCity)
             : null,
-        items: _kDomesticDraftPayableAtOptions,
-        itemLabel: (e) => e,
-        onChanged: (value) => setState(() {
-          _branchCity = value;
-          _branchNearMe = null;
-        }),
+        items: _cities,
+        itemLabel: (e) => e.displayName,
+        onChanged: (value) {
+          setState(() {
+            _branchCity = value?.code;
+            _branchOption = null;
+            _branchAddress = null;
+          });
+          if (value != null) _loadBranchForCity(value.code);
+        },
       ),
       const SizedBox(height: AppSpacing.lg),
-      _dropdown<String>(
+      _dropdown<BranchOption>(
         label: 'Branch Near Me',
-        value: _kDomesticBranchOptions.contains(_branchNearMe)
-            ? _branchNearMe
-            : null,
-        items: _kDomesticBranchOptions,
-        itemLabel: (e) => e,
-        onChanged: (value) => setState(() => _branchNearMe = value),
+        hint: _loadingBranch ? 'Loading...' : null,
+        value: _branchOption,
+        items: _branchOption != null ? [_branchOption!] : const [],
+        itemLabel: (e) => e.displayName,
+        onChanged: (value) {
+          setState(() => _branchOption = value);
+          if (value != null) _loadBranchAddress(value.code);
+        },
       ),
-      if (resolved) ...[
+      if (_loadingBranchAddress) ...[
         const SizedBox(height: AppSpacing.lg),
-        _AddressPreview(
-          lines: const [
-            'OHIO STREET, ALI HASSAN MWINYI RD',
-            'TANZANIA',
-            'TZ',
-            'GREAT BRITAIN',
-          ],
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.md),
+            child: CircularProgressIndicator(),
+          ),
         ),
+      ] else if (_branchAddress != null &&
+          _branchAddress!.displayLines.isNotEmpty) ...[
+        const SizedBox(height: AppSpacing.lg),
+        _AddressPreview(lines: _branchAddress!.displayLines),
       ],
     ];
   }
 
   List<Widget> _buildMyAddressFields(BuildContext context) {
+    final matched = _matchedPartyAddress();
     return [
-      _dropdown<String>(
+      _dropdown<PayeeEnumOption>(
         label: 'Address Type',
-        hint: 'Postal',
-        value: _kMyAddressTypeOptions.contains(_myAddressType)
-            ? _myAddressType
+        hint: _loadingAddressTypes ? 'Loading...' : 'Postal',
+        value: _addressTypes.any((e) => e.code == _myAddressType)
+            ? _addressTypes.firstWhere((e) => e.code == _myAddressType)
             : null,
-        items: _kMyAddressTypeOptions,
-        itemLabel: (e) => e,
-        onChanged: (value) => setState(() => _myAddressType = value),
+        items: _addressTypes,
+        itemLabel: (e) => e.displayName,
+        onChanged: (value) {
+          setState(() => _myAddressType = value?.code);
+          _ensurePartyAddressesLoaded();
+        },
       ),
       if (_myAddressType != null) ...[
         const SizedBox(height: AppSpacing.lg),
-        const _AddressPreview(
-          lines: ['ADDRESS1', 'ADDRESS2', 'ADDRESS3', 'IN'],
-        ),
+        if (_loadingPartyAddresses)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.md),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else if (matched != null && matched.displayLines.isNotEmpty)
+          _AddressPreview(lines: matched.displayLines)
+        else
+          Text(
+            'No saved address on file for this type.',
+            style: TextStyle(color: HomeColors.textSecondary(context)),
+          ),
       ],
     ];
   }

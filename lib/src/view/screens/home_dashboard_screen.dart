@@ -21,6 +21,8 @@ import 'home/widgets/home_content.dart';
 import 'home/widgets/top_hero_section.dart';
 import 'home/widgets/web_navigation_sidebar.dart';
 import 'payees/add_bank_account_payee_screen.dart';
+import 'payees/add_demand_draft_payee_screen.dart';
+import 'payees/add_peer_to_peer_payee_screen.dart';
 import 'payees/payees_screen.dart';
 
 class HomeDashboardArgs {
@@ -126,13 +128,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     onPayeeSelected: (destination) => setState(() {
                       _selectedPayeeDestination = destination;
 
-                      if (destination == WebPayeeDestination.add) {
-                        // Add Account Payee was opened directly from sidebar.
+                      if (destination != WebPayeeDestination.manage) {
+                        // Any "Add ..." destination opened directly from the
+                        // sidebar (not via Manage Payee).
                         _addPayeeOpenedFromManage = false;
                       }
 
                       _selectedBottomNavIndex =
-                          destination == WebPayeeDestination.manage ? 5 : 6;
+                          _navIndexForPayeeDestination(destination);
                     }),
                   ),
                   Expanded(child: content),
@@ -170,6 +173,20 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen);
   }
 
+  /// Bottom-nav index that renders the given Payee destination.
+  int _navIndexForPayeeDestination(WebPayeeDestination destination) {
+    switch (destination) {
+      case WebPayeeDestination.manage:
+        return 5;
+      case WebPayeeDestination.add:
+        return 6;
+      case WebPayeeDestination.addDemandDraft:
+        return 7;
+      case WebPayeeDestination.addPeerToPeer:
+        return 8;
+    }
+  }
+
   /// Hamburger drawer content — mobile/tablet only. Selecting a destination
   /// closes the drawer first, then updates the same [_selectedBottomNavIndex]
   /// / [_selectedPayeeDestination] state the bottom nav and desktop sidebar
@@ -192,13 +209,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             setState(() {
               _selectedPayeeDestination = destination;
 
-              if (destination == WebPayeeDestination.add) {
-                // Opened directly from navigation drawer.
+              if (destination != WebPayeeDestination.manage) {
+                // Any "Add ..." destination opened directly from the
+                // navigation drawer (not via Manage Payee).
                 _addPayeeOpenedFromManage = false;
               }
 
               _selectedBottomNavIndex =
-                  destination == WebPayeeDestination.manage ? 5 : 6;
+                  _navIndexForPayeeDestination(destination);
             });
           },
         ),
@@ -219,10 +237,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 5:
         return PayeesScreen(
           embedded: true,
-          onAddPayee: () => setState(() {
+          onAddPayee: (flow) => setState(() {
             _addPayeeOpenedFromManage = true;
-            _selectedPayeeDestination = WebPayeeDestination.add;
-            _selectedBottomNavIndex = 6;
+            _selectedPayeeDestination = switch (flow) {
+              AddPayeeFlow.bankAccount => WebPayeeDestination.add,
+              AddPayeeFlow.demandDraft => WebPayeeDestination.addDemandDraft,
+              AddPayeeFlow.peerToPeer => WebPayeeDestination.addPeerToPeer,
+            };
+            _selectedBottomNavIndex = switch (flow) {
+              AddPayeeFlow.bankAccount => 6,
+              AddPayeeFlow.demandDraft => 7,
+              AddPayeeFlow.peerToPeer => 8,
+            };
           }),
           onBack: () => setState(() {
             _selectedPayeeDestination = null;
@@ -233,42 +259,39 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       return AddBankAccountPayeeScreen(
         embedded: true,
 
-        onBack: () {
-          setState(() {
-            if (_addPayeeOpenedFromManage) {
-              // Opened from Manage Payee → go back to Manage Payee.
-              _selectedPayeeDestination =
-                  WebPayeeDestination.manage;
-              _selectedBottomNavIndex = 5;
-            } else {
-              // Opened directly from sidebar → go back to Dashboard.
-              _selectedPayeeDestination = null;
-              _selectedBottomNavIndex = 0;
-            }
-
-            _addPayeeOpenedFromManage = false;
-          });
-        },
-
-        onCompleted: () {
-          setState(() {
-            if (_addPayeeOpenedFromManage) {
-              _selectedPayeeDestination =
-                  WebPayeeDestination.manage;
-              _selectedBottomNavIndex = 5;
-            } else {
-              _selectedPayeeDestination = null;
-              _selectedBottomNavIndex = 0;
-            }
-
-            _addPayeeOpenedFromManage = false;
-          });
-        },
+        onBack: () => setState(() => _returnFromAddPayee()),
+        onCompleted: () => setState(() => _returnFromAddPayee()),
       );
+      case 7:
+        return AddDemandDraftPayeeScreen(
+          embedded: true,
+          onBack: () => setState(() => _returnFromAddPayee()),
+          onCompleted: () => setState(() => _returnFromAddPayee()),
+        );
+      case 8:
+        return AddPeerToPeerPayeeScreen(
+          embedded: true,
+          onBack: () => setState(() => _returnFromAddPayee()),
+          onCompleted: () => setState(() => _returnFromAddPayee()),
+        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
     }
+  }
+
+  /// Shared back/complete handler for the three "Add Payee" screens
+  /// (Bank Account / Demand Draft / Peer To Peer): returns to Manage Payee
+  /// when opened from there, otherwise back to the Dashboard.
+  void _returnFromAddPayee() {
+    if (_addPayeeOpenedFromManage) {
+      _selectedPayeeDestination = WebPayeeDestination.manage;
+      _selectedBottomNavIndex = 5;
+    } else {
+      _selectedPayeeDestination = null;
+      _selectedBottomNavIndex = 0;
+    }
+    _addPayeeOpenedFromManage = false;
   }
 
   Widget _buildHomeBody(CasaAccountsState accountsState) {

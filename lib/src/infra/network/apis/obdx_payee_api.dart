@@ -5,11 +5,15 @@ import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 
-/// Manage Payee / Add Bank Account Payee APIs captured from the OBDX UI.
+/// Manage Payee / Add Bank Account Payee / Demand Draft Payee / Peer-To-Peer
+/// Payee APIs captured from the OBDX UI (see
+/// Manage_Payee_API_Call_Sequence_Final_Flow_Updated_With_Peer_to_Peer_Payee).
 ///
-/// The domestic pre-submit APIs are implemented from the captured flow.
-/// The supplied API document does not contain the final Domestic Payee POST
-/// endpoint/payload, so no unverified domestic submit endpoint is invented.
+/// International Payee, Demand Draft Payee and Peer-To-Peer Payee now have
+/// confirmed submit endpoints and are wired up. The supplied API document
+/// still does not contain a final Domestic Payee (Add Account Payee) submit
+/// endpoint/payload — its IFSC verification failed before a submit call was
+/// captured — so no unverified Domestic submit endpoint is invented.
 class ObdxPayeeApi extends ObdxApiBase {
   ObdxPayeeApi([ObdxDioClient? client])
       : super(client ?? ObdxDioClient.instance);
@@ -28,8 +32,27 @@ class ObdxPayeeApi extends ObdxApiBase {
       '/digx-payments/payment/v1/payments/maintenance/payeecontent';
   static const _fetchNetwork =
       '/digx-payments/payment/v1/payments/fetchNetwork';
+  static const _fetchNetworkCodeDetails =
+      '/digx-payments/payment/v1/payments/fetchNetworkCodeDetails';
   static const _internalPayee =
       '/digx-payments/payment/v1/payments/payeesv3/internal';
+  static const _internationalPayee =
+      '/digx-payments/payment/v1/payments/payeesv3/international';
+  static const _internationalNetworkType =
+      '/digx-payments/payment/v1/enumerations/networkType';
+  static const _nationalClearingCodeType =
+      '/digx-payments/payment/v1/enumerations/nationalClearingCodeType';
+  static const _nationalClearingDetails =
+      '/digx-payments/payment/v1/payments/financialInstitution/nationalClearingDetails';
+  static const _payeeGroup = '/digx-payments/payment/v1/payments/payeeGroup';
+  static const _effectiveToday =
+      '/digx-admin/finlimit/v1/limitPackages/config/effectiveToday';
+  static const _allCities =
+      '/digx-common/location/v1/locations/country/all/city';
+  static const _party = '/digx-common/user/v1/me/party';
+  static const _addressType =
+      '/digx-payments/payment/v1/enumerations/addressType';
+  static const _branches = '/digx-common/location/v1/locations/branches';
 
   Future<ResponseHandler<Map<String, dynamic>>> fetchMaintenance() =>
       _get(_maintenance);
@@ -56,6 +79,57 @@ class ObdxPayeeApi extends ObdxApiBase {
 
   Future<ResponseHandler<Map<String, dynamic>>> fetchDomesticNetworks() =>
       _get(_fetchNetwork, queryParameters: {'paymentType': 'DOMESTIC'});
+
+  /// Domestic Payee IFSC/BIC "Verify" — confirmed endpoint; the captured
+  /// trace only shows the failure case (DIGX_NC_003, invalid code).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchNetworkCodeDetails({
+    required String code,
+    required String network,
+  }) =>
+      _get(
+        '$_fetchNetworkCodeDetails/$code',
+        queryParameters: {'network': network},
+      );
+
+  Future<ResponseHandler<Map<String, dynamic>>>
+      fetchInternationalNetworkTypes() => _get(
+            _internationalNetworkType,
+            queryParameters: {'REGION': 'INTERNATIONAL'},
+          );
+
+  Future<ResponseHandler<Map<String, dynamic>>>
+      fetchNationalClearingCodeTypes() => _get(_nationalClearingCodeType);
+
+  /// International Payee "Verify" (National Clearing Code) — confirmed
+  /// endpoint; the captured trace only shows the failure case (DIGX_PY_0273,
+  /// no record found).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchNationalClearingDetails({
+    required String country,
+    required String codeType,
+  }) =>
+      _get('$_nationalClearingDetails/$country/$codeType');
+
+  Future<ResponseHandler<Map<String, dynamic>>> fetchEffectiveToday() =>
+      _get(_effectiveToday);
+
+  Future<ResponseHandler<Map<String, dynamic>>> fetchAllCities() =>
+      _get(_allCities);
+
+  Future<ResponseHandler<Map<String, dynamic>>> fetchPartyDetails() =>
+      _get(_party);
+
+  Future<ResponseHandler<Map<String, dynamic>>> fetchAddressTypes() =>
+      _get(_addressType);
+
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBranchCodeForCity(
+    String city,
+  ) =>
+      _get('$_allCities/$city/branchCode');
+
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBranches(
+    String branchCode,
+  ) =>
+      _get(_branches, queryParameters: {'branchCode': branchCode});
 
   Future<ResponseHandler<Map<String, dynamic>>> fetchPayees() => _get(
         _payees,
@@ -89,6 +163,74 @@ class ObdxPayeeApi extends ObdxApiBase {
             ApiConst.contentTypeKey: ApiConst.contentTypeValue,
             'X-Validate-Only': validateOnly ? 'Y' : 'N',
           },
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  /// International Payee final submit — confirmed endpoint + payload shape.
+  /// The captured trace's own attempt failed with DIGX_PY_0012 ("Bank code
+  /// is a mandatory field") because `bankDetails` was left entirely null, so
+  /// this fills `bankDetails` from whichever Pay Via variant the user chose.
+  Future<ResponseHandler<Map<String, dynamic>>> createInternationalPayee({
+    required String nickname,
+    required String accountNumber,
+    required String accountName,
+    required String payeeEmail,
+    required String network, // NAC | SPE | SWI
+    required Map<String, dynamic> bankDetails,
+    required Map<String, dynamic> address,
+    bool shared = false,
+    String status = 'ACT',
+    String transferMode = 'ACC',
+  }) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(_internationalPayee),
+        data: {
+          'status': status,
+          'nickName': nickname,
+          'shared': shared,
+          'accountNumber': accountNumber,
+          'accountName': accountName,
+          'transferMode': transferMode,
+          'payeeEmail': payeeEmail,
+          'network': network,
+          'bankDetails': bankDetails,
+          'address': address,
+        },
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  /// Shared final-submit endpoint for Demand Draft Payee (Domestic and
+  /// International) and Peer-To-Peer Payee. The only field confirmed in the
+  /// captured trace for either flow is `name`; the captured attempts both
+  /// returned HTTP 403 / DIGX_PROD_ACCESS_DENIED_0000 rather than a
+  /// validation error, so no further fields are confirmed and none are
+  /// invented here.
+  Future<ResponseHandler<Map<String, dynamic>>> submitPayeeGroup({
+    required String name,
+  }) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(_payeeGroup),
+        data: {'name': name},
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
         ),
       );
       return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
