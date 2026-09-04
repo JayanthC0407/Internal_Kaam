@@ -334,6 +334,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             onRetryAccounts: () =>
                 ref.read(casaAccountsProvider.notifier).refresh(),
             onViewAllLoans: _openLoanAccountsList,
+            displayName: displayName,
+            onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
           ),
         ),
       ],
@@ -345,6 +347,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     final summary = accountsState.summary;
     final balanceText = _heroBalanceText(summary) ?? '—';
     final accounts = summary?.accounts ?? const <CasaAccount>[];
+    final displayName = _displayNameFromTrace();
 
     return SafeArea(
       child: LayoutBuilder(
@@ -369,41 +372,41 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     onMenuTap:
                         Responsive.of(context).isDesktop ? null : _openMenu,
                   ),
-                  const SizedBox(height: 20),
-                  if (stackHero) ...[
-                    _buildWebBalanceCard(
-                      l10n: l10n,
-                      summary: summary,
-                      balanceText: balanceText,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildWebAccountsPreview(
-                      accountsState: accountsState,
-                      accounts: accounts,
-                    ),
-                  ] else
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 6,
-                          child: _buildWebBalanceCard(
-                            l10n: l10n,
-                            summary: summary,
-                            balanceText: balanceText,
-                          ),
-                        ),
-                        const SizedBox(width: 18),
-                        Expanded(
-                          flex: 5,
-                          child: _buildWebAccountsPreview(
-                            accountsState: accountsState,
-                            accounts: accounts,
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: 20),
+                  // if (stackHero) ...[
+                  //   _buildWebBalanceCard(
+                  //     l10n: l10n,
+                  //     summary: summary,
+                  //     balanceText: balanceText,
+                  //   ),
+                  //   const SizedBox(height: 16),
+                  //   _buildWebAccountsPreview(
+                  //     accountsState: accountsState,
+                  //     accounts: accounts,
+                  //   ),
+                  // ] else
+                  //   Row(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       Expanded(
+                  //         flex: 6,
+                  //         child: _buildWebBalanceCard(
+                  //           l10n: l10n,
+                  //           summary: summary,
+                  //           balanceText: balanceText,
+                  //         ),
+                  //       ),
+                  //       const SizedBox(width: 18),
+                  //       Expanded(
+                  //         flex: 5,
+                  //         child: _buildWebAccountsPreview(
+                  //           accountsState: accountsState,
+                  //           accounts: accounts,
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   HomeContent(
                     selectedTopTabIndex: _selectedTopTabIndex,
                     onTopTabSelected: (index) =>
@@ -417,6 +420,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                         ref.read(casaAccountsProvider.notifier).refresh(),
                     onViewAllLoans: _openLoanAccountsList,
                     isWide: true,
+                    displayName: displayName,
+                    onTransferTap: () =>
+                        setState(() => _selectedBottomNavIndex = 2),
                   ),
                 ],
               ),

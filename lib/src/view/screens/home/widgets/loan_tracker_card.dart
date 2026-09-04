@@ -24,57 +24,66 @@ class LoanTrackerCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(loanAccountsProvider);
     final summary = state.summary;
-
+final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: BoxDecoration(
-        color: HomeColors.card(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HomeColors.divider(context)),
-      ),
+      padding: const EdgeInsets.all(16),
+decoration: BoxDecoration(
+  borderRadius: BorderRadius.circular(14),
+  color: isDark
+      ? const Color(0xFF143847)
+      : Colors.white,
+  border: Border.all(
+    color: isDark
+        ? const Color(0x330AAADF)
+        : const Color(0xFFE5E7EB),
+  ),
+  boxShadow: [
+    BoxShadow(
+      color: isDark
+          ? const Color(0x2207D5FF)
+          : Colors.black.withOpacity(0.06),
+      blurRadius: 10,
+      offset: const Offset(0, 2),
+    ),
+  ],
+),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.loanTrackerTitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: HomeColors.textPrimary(context),
-                  ),
-                ),
+Row(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    InkWell(
+      onTap: onViewAll,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+          vertical: 2,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.viewAll,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              InkWell(
-                onTap: onViewAll,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        l10n.viewAll,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: HomeColors.brand(context),
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 18,
-                        color: HomeColors.brand(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ],
+        ),
+      ),
+    ),
+  ],
+),
           const SizedBox(height: 16),
           if (state.isLoading && summary == null)
             const Padding(
@@ -110,60 +119,49 @@ class _LoanTrackerBody extends StatelessWidget {
   final LoanAccountsSummary summary;
   final bool hideBalance;
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final currency = summary.primaryCurrency ?? '';
-    final brand = HomeColors.brand(context);
-    final percent = summary.outstandingPercent;
+@override
+Widget build(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
 
-    return Row(
+  final completedRatio =
+      (1 - summary.outstandingRatio).clamp(0.0, 1.0);
+
+  final completedPercent =
+      (completedRatio * 100).round();
+
+  return SizedBox(
+    height: 110,
+    child: Row(
       children: [
-        Expanded(
-          child: _AmountColumn(
-            label: l10n.loanTotalBorrowing,
-            value: MoneyFormat.format(
-              summary.totalBorrowing,
-              currencyCode: currency,
-              hidden: hideBalance,
-            ),
-          ),
+Expanded(
+  flex: 3,
+  child: Padding(
+    padding: const EdgeInsets.only(left: 32,bottom: 16),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        l10n.loanTrackerTitle,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: HomeColors.textPrimary(context),
         ),
-        SizedBox(
-          width: 96,
-          height: 96,
-          child: CustomPaint(
-            painter: _LoanDonutPainter(
-              progress: summary.outstandingRatio,
-              trackColor: const Color(0xFFE8F4F1),
-              progressColor: brand,
-            ),
-            child: Center(
-              child: Text(
-                hideBalance ? '**%' : '$percent%',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: HomeColors.textPrimary(context),
-                ),
-              ),
-            ),
-          ),
-        ),
+      ),
+    ),
+  ),
+),
+
         Expanded(
-          child: _AmountColumn(
-            label: l10n.loanTotalOutstanding,
-            value: MoneyFormat.format(
-              summary.totalOutstanding,
-              currencyCode: currency,
-              hidden: hideBalance,
-            ),
-            alignEnd: true,
+          flex: 4,
+          child: _AnimatedLoanGauge(
+            percent: completedPercent,
+            progress: completedRatio,
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }
 
 class _AmountColumn extends StatelessWidget {
@@ -244,50 +242,161 @@ class _LoanMessage extends StatelessWidget {
   }
 }
 
-class _LoanDonutPainter extends CustomPainter {
-  _LoanDonutPainter({
+class _LoanGaugePainter extends CustomPainter {
+  _LoanGaugePainter({
     required this.progress,
-    required this.trackColor,
-    required this.progressColor,
+    required this.isDark,
   });
 
   final double progress;
-  final Color trackColor;
-  final Color progressColor;
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final stroke = size.width * 0.12;
-    final radius = (size.width - stroke) / 2;
-    final track = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
+    final center =
+        Offset(size.width / 2, size.height);
+
+    final radius = size.width * 0.38;
+
+    const stroke = 10.0;
+
+    final trackPaint = Paint()
+      ..color = isDark
+    ? Colors.white.withOpacity(.15)
+    : const Color(0xFFD7DDE3)
       ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-    final arc = Paint()
-      ..color = progressColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawCircle(center, radius, track);
-    final sweep = 2 * math.pi * progress.clamp(0.0, 1.0);
-    if (sweep > 0) {
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -math.pi / 2,
-        sweep,
-        false,
-        arc,
-      );
-    }
+    final glowPaint = Paint()
+      ..color = const Color(0xFF0CC7C7)
+      ..strokeWidth = stroke + 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..maskFilter =
+          const MaskFilter.blur(BlurStyle.normal, 8);
+
+    final progressPaint = Paint()
+      ..color = const Color(0xFF12CFCF)
+      ..strokeWidth = stroke
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final rect =
+        Rect.fromCircle(center: center, radius: radius);
+
+    canvas.drawArc(
+      rect,
+      math.pi,
+      math.pi,
+      false,
+      trackPaint,
+    );
+
+    final sweep = math.pi * progress;
+
+    canvas.drawArc(
+      rect,
+      math.pi,
+      sweep,
+      false,
+      glowPaint,
+    );
+
+    canvas.drawArc(
+      rect,
+      math.pi,
+      sweep,
+      false,
+      progressPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _LoanDonutPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.trackColor != trackColor ||
-        oldDelegate.progressColor != progressColor;
+  bool shouldRepaint(_LoanGaugePainter oldDelegate) {
+    return progress != oldDelegate.progress;
+  }
+}
+
+class _AnimatedLoanGauge extends StatefulWidget {
+  const _AnimatedLoanGauge({
+    required this.percent,
+    required this.progress,
+  });
+
+  final int percent;
+  final double progress;
+
+  @override
+  State<_AnimatedLoanGauge> createState() =>
+      _AnimatedLoanGaugeState();
+}
+
+class _AnimatedLoanGaugeState
+    extends State<_AnimatedLoanGauge>
+    with SingleTickerProviderStateMixin {
+
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.002)
+            ..rotateX(-0.25),
+          child: SizedBox(
+            width: 180,
+            height: 90,
+            child: CustomPaint(
+              painter: _LoanGaugePainter(
+                progress:
+                    widget.progress * _controller.value,
+                    isDark: Theme.of(context).brightness == Brightness.dark,
+              ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${widget.percent}%',
+                        style:  TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                       Text(
+                        'Completed',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
