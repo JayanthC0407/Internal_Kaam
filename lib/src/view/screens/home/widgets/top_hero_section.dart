@@ -68,36 +68,36 @@ class TopHeroSection extends StatelessWidget {
 
     return Container(
 decoration: BoxDecoration(
-  gradient: AppGradients.primary(context),
+  // gradient: AppGradients.primary(context),
 ),
       child: SafeArea(
         bottom: false,
         child: Stack(
           children: [
-            Positioned(
-              right: -45,
-              top: -70,
-              child: Container(
-                width: 240,
-                height: 240,
-decoration: BoxDecoration(
-  shape: BoxShape.circle,
-  color: AppColors.cyan400.withValues(alpha: 0.13),
-),
-              ),
-            ),
-            Positioned(
-              right: -55,
-              bottom: -40,
-              child: Container(
-                width: 190,
-                height: 190,
-decoration: BoxDecoration(
-  shape: BoxShape.circle,
-  color: AppColors.cyan300.withValues(alpha: 0.10),
-),
-              ),
-            ),
+//             Positioned(
+//               right: -45,
+//               top: -70,
+//               child: Container(
+//                 width: 240,
+//                 height: 240,
+// decoration: BoxDecoration(
+//   shape: BoxShape.circle,
+//   color: AppColors.cyan400.withValues(alpha: 0.13),
+// ),
+//               ),
+//             ),
+//             Positioned(
+//               right: -55,
+//               bottom: -40,
+//               child: Container(
+//                 width: 190,
+//                 height: 190,
+// decoration: BoxDecoration(
+//   shape: BoxShape.circle,
+//   color: AppColors.cyan300.withValues(alpha: 0.10),
+// ),
+//               ),
+//             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 16, 20),
               child: Column(
@@ -108,96 +108,96 @@ decoration: BoxDecoration(
                     onNotificationsTap: onNotificationsTap,
                     onProfileTap: onProfileTap,
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.totalBalance.toUpperCase(),
-                    style: const TextStyle(
-                      color: Color(0xB3FFFFFF),
-                      fontSize: 11,
-                      letterSpacing: 1.1,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: isBalanceLoading && balanceText == null
-                            ? const SizedBox(
-                                height: 34,
-                                width: 34,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                hideBalance ? '******' : (balanceText ?? '—'),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.1,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                      ),
-                      const SizedBox(width: 10),
-                      InkWell(
-                        onTap: onToggleBalance,
-                        borderRadius: BorderRadius.circular(16),
-                        child: CircleAvatar(
-                          radius: 15,
-                          backgroundColor: const Color(0x33FFFFFF),
-                          child: Icon(
-                            hideBalance
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    balanceSubtitle ?? l10n.availableBalanceLabel,
-                    style: const TextStyle(
-                      color: Color(0xB3FFFFFF),
-                      fontSize: 13,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    height: 84,
-                    child: PageView.builder(
-                      controller: actionPageController,
-                      onPageChanged: onActionSlideChanged,
-                      itemCount: actionSlides.length,
-                      itemBuilder: (_, index) {
-                        final items = actionSlides[index];
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: _HeroActionTile(
-                                item: items[0],
-                                onTap: index == 0 ? onTransferTap : null,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(child: _HeroActionTile(item: items[1])),
-                            const SizedBox(width: 10),
-                            Expanded(child: _HeroActionTile(item: items[2])),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _HeroDots(active: currentActionSlide),
+                 // const SizedBox(height: 20),
+                  // Text(
+                  //   l10n.totalBalance.toUpperCase(),
+                  //   style: const TextStyle(
+                  //     color: Color(0xB3FFFFFF),
+                  //     fontSize: 11,
+                  //     letterSpacing: 1.1,
+                  //     fontWeight: FontWeight.w600,
+                  //   ),
+                  // ),
+                  //const SizedBox(height: 6),
+                  // Row(
+                  //   crossAxisAlignment: CrossAxisAlignment.center,
+                  //   children: [
+                  //     Flexible(
+                  //       child: isBalanceLoading && balanceText == null
+                  //           ? const SizedBox(
+                  //               height: 34,
+                  //               width: 34,
+                  //               child: CircularProgressIndicator(
+                  //                 strokeWidth: 2.5,
+                  //                 color: Colors.white,
+                  //               ),
+                  //             )
+                  //           : Text(
+                  //               hideBalance ? '******' : (balanceText ?? '—'),
+                  //               style: const TextStyle(
+                  //                 color: Colors.white,
+                  //                 fontSize: 32,
+                  //                 fontWeight: FontWeight.w700,
+                  //                 height: 1.1,
+                  //                 letterSpacing: -0.5,
+                  //               ),
+                  //             ),
+                  //     ),
+                  //     const SizedBox(width: 10),
+                  //     InkWell(
+                  //       onTap: onToggleBalance,
+                  //       borderRadius: BorderRadius.circular(16),
+                  //       child: CircleAvatar(
+                  //         radius: 15,
+                  //         backgroundColor: const Color(0x33FFFFFF),
+                  //         child: Icon(
+                  //           hideBalance
+                  //               ? Icons.visibility_off_outlined
+                  //               : Icons.visibility_outlined,
+                  //           color: Colors.white,
+                  //           size: 16,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                //  const SizedBox(height: 4),
+                  // Text(
+                  //   balanceSubtitle ?? l10n.availableBalanceLabel,
+                  //   style: const TextStyle(
+                  //     color: Color(0xB3FFFFFF),
+                  //     fontSize: 13,
+                  //     letterSpacing: 0.6,
+                  //   ),
+                  // ),
+                 // const SizedBox(height: 18),
+                  // SizedBox(
+                  //   height: 84,
+                  //   child: PageView.builder(
+                  //     controller: actionPageController,
+                  //     onPageChanged: onActionSlideChanged,
+                  //     itemCount: actionSlides.length,
+                  //     itemBuilder: (_, index) {
+                  //       final items = actionSlides[index];
+                  //       return Row(
+                  //         children: [
+                  //           Expanded(
+                  //             child: _HeroActionTile(
+                  //               item: items[0],
+                  //               onTap: index == 0 ? onTransferTap : null,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(width: 10),
+                  //           Expanded(child: _HeroActionTile(item: items[1])),
+                  //           const SizedBox(width: 10),
+                  //           Expanded(child: _HeroActionTile(item: items[2])),
+                  //         ],
+                  //       );
+                  //     },
+                  //   ),
+                  // ),
+                //  const SizedBox(height: 14),
+                  // _HeroDots(active: currentActionSlide),
                 ],
               ),
             ),

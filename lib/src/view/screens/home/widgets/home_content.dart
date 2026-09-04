@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/accounts_tab_card.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/casa_accounts_panel.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/info_corner_card.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/recent_transactions_card.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/loan_accounts_inline_panel.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/loan_tracker_card.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/quick_actions_grid.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/spendings_donut_card.dart';
 import '../home_colors.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
@@ -26,6 +30,8 @@ class HomeContent extends StatelessWidget {
     this.onRetryAccounts,
     this.onViewAllLoans,
     this.isWide = false,
+    this.displayName = '',
+    this.onTransferTap,
   });
 
   final int selectedTopTabIndex;
@@ -38,6 +44,11 @@ class HomeContent extends StatelessWidget {
   final VoidCallback? onRetryAccounts;
   final VoidCallback? onViewAllLoans;
   final bool isWide;
+
+  /// Resolved account-holder name, shown on the Overview tab's account
+  /// hero card.
+  final String displayName;
+  final VoidCallback? onTransferTap;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +127,16 @@ class HomeContent extends StatelessWidget {
         );
       case 0:
       default:
-        return _OverviewContent(isWide: isWide, onViewAllLoans: onViewAllLoans);
+        return _OverviewContent(
+          isWide: isWide,
+          displayName: displayName,
+          accounts: accounts,
+          revealedAccountIds: revealedAccountIds,
+          onToggleAccountVisibility: onToggleAccountVisibility,
+          onTransferTap: onTransferTap,
+          onViewAllAccountsTap: () => onTopTabSelected(1),
+          onViewAllLoans: onViewAllLoans,
+        );
     }
   }
 }
@@ -301,77 +321,82 @@ class _CategoryDropdown extends StatelessWidget {
 class _OverviewContent extends StatelessWidget {
   const _OverviewContent({
     required this.isWide,
+    required this.displayName,
+    required this.accounts,
+    required this.revealedAccountIds,
+    required this.onToggleAccountVisibility,
+    this.onTransferTap,
+    this.onViewAllAccountsTap,
     this.onViewAllLoans,
   });
 
   final bool isWide;
+  final String displayName;
+  final List<CasaAccount> accounts;
+  final Set<String> revealedAccountIds;
+  final ValueChanged<String> onToggleAccountVisibility;
+  final VoidCallback? onTransferTap;
+  final VoidCallback? onViewAllAccountsTap;
   final VoidCallback? onViewAllLoans;
+
+  void _comingSoon(BuildContext context, String label) {
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$label \u00b7 ${l10n.featureComingSoon}')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
+    final accountCard = AccountsTabCard(
+      displayName: displayName,
+      accounts: accounts,
+      revealedAccountIds: revealedAccountIds,
+      onToggleAccountVisibility: onToggleAccountVisibility,
+      onViewAllAccountsTap: onViewAllAccountsTap,
+    );
+    final quickActions = QuickActionsGrid(
+      title: isWide ? 'Activity Centre' : l10n.quickActions,
+      onTermDeposit: () => _comingSoon(context, 'Term Deposit'),
+      onViewStatement: () => _comingSoon(context, 'View Statement'),
+      onChequeBook: () => _comingSoon(context, 'Cheque Book'),
+      onPassbook: () => _comingSoon(context, 'Passbook'),
+      onNewDebitCard: () => _comingSoon(context, 'New Debit card'),
+      onCalculator: () => _comingSoon(context, 'Calculator'),
+    );
     final loanTracker = LoanTrackerCard(onViewAll: onViewAllLoans);
-
-    final cards = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionHeader(
-          title: l10n.myCards,
-          actionLabel: l10n.viewAll,
-          onAction: () {},
-        ),
-        const SizedBox(height: 12),
-        const _CardsStrip(),
-      ],
-    );
-    final spending = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionHeader(title: l10n.mySpendingsLower),
-        const SizedBox(height: 12),
-        const _SpendingChartCard(),
-      ],
-    );
-    final topSpending = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionHeader(
-          title: l10n.topSpending,
-          actionLabel: l10n.viewAll,
-          onAction: () {},
-        ),
-        const SizedBox(height: 12),
-        const _TopSpendingsCard(),
-      ],
-    );
+    const spending = SpendingsDonutCard();
     // Show live amounts (independent of total-balance / account eye toggles).
+    // Kept as our own multi-category RecentTransactionsCard (supports
+    // switching between CASA / Loans / etc.) rather than the simpler,
+    // CASA-only card from the reference design.
     const transactions = RecentTransactionsCard();
+    const infoCorner = InfoCornerCard();
 
-    // Mobile: stack vertically (loan under cards, matching Figma flow).
+    // Mobile: single column, matching the redesigned Figma flow.
     if (!isWide) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _CashbackCard(),
-          const SizedBox(height: 12),
-          const _Dots(active: 0),
+          accountCard,
           const SizedBox(height: 20),
-          cards,
+          quickActions,
           const SizedBox(height: 16),
           loanTracker,
           const SizedBox(height: 20),
           spending,
           const SizedBox(height: 20),
-          topSpending,
-          const SizedBox(height: 20),
           transactions,
+          const SizedBox(height: 20),
+          infoCorner,
         ],
       );
     }
 
-    // Web (Figma 11:6815): left = Cards + Loan Tracker; right = My Spendings;
-    // then bottom row Top Spending | Recent Transactions.
+    // Web: left column = account card + loan tracker + activity centre;
+    // right column = my spendings + recent transactions.
     return LayoutBuilder(
       builder: (context, constraints) {
         final useTwoColumns = constraints.maxWidth >= 920;
@@ -379,50 +404,43 @@ class _OverviewContent extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _CashbackCard(),
-              const SizedBox(height: 16),
-              cards,
+              accountCard,
               const SizedBox(height: 16),
               loanTracker,
+              const SizedBox(height: 16),
+              quickActions,
               const SizedBox(height: 20),
               spending,
-              const SizedBox(height: 20),
-              topSpending,
               const SizedBox(height: 20),
               transactions,
             ],
           );
         }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _CashbackCard(),
-            const SizedBox(height: 20),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      cards,
-                      const SizedBox(height: 16),
-                      loanTracker,
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(child: spending),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  accountCard,
+                  const SizedBox(height: 16),
+                  loanTracker,
+                  const SizedBox(height: 16),
+                  quickActions,
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: topSpending),
-                const SizedBox(width: 20),
-                Expanded(child: transactions),
-              ],
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  spending,
+                  const SizedBox(height: 20),
+                  transactions,
+                ],
+              ),
             ),
           ],
         );
