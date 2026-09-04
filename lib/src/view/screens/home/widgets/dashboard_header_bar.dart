@@ -133,9 +133,9 @@ class MobileDashboardHeaderRow extends StatelessWidget {
           IconButton(
             onPressed: menuTap,
             visualDensity: VisualDensity.compact,
-            icon: const Icon(
+            icon: Icon(
               Icons.menu_rounded,
-              color: Colors.white,
+              color: HomeColors.textPrimary(context),
               size: 26,
             ),
           ),
@@ -147,31 +147,39 @@ class MobileDashboardHeaderRow extends StatelessWidget {
             child: TextField(
               onSubmitted: onSearchSubmitted,
               textInputAction: TextInputAction.search,
-              cursorColor: Colors.white,
-              style: const TextStyle(fontSize: 13, color: Colors.white),
+              cursorColor: HomeColors.brand(context),
+              style: TextStyle(fontSize: 13, color: HomeColors.textPrimary(context)),
               decoration: InputDecoration(
                 isDense: true,
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.search_rounded,
                   size: 18,
-                  color: Colors.white70,
+                  color: HomeColors.textSecondary(context),
                 ),
                 hintText: l10n.searchPlaceholder,
-                hintStyle: const TextStyle(fontSize: 12.5, color: Colors.white70),
+                hintStyle: TextStyle(fontSize: 12.5, color: HomeColors.navInactive(context)),
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.16),
+                fillColor: HomeColors.card(context),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: HomeColors.divider(context),
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: HomeColors.divider(context),
+                    width: 1,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.white54, width: 1.2),
+                  borderSide: BorderSide(
+                    color: HomeColors.brand(context),
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -180,9 +188,9 @@ class MobileDashboardHeaderRow extends StatelessWidget {
         IconButton(
           onPressed: onNotificationsTap,
           visualDensity: VisualDensity.compact,
-          icon: const Icon(
+          icon: Icon(
             Icons.notifications_none_rounded,
-            color: Colors.white,
+            color: HomeColors.textPrimary(context),
             size: 26,
           ),
         ),
