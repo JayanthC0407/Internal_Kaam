@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
+import 'package:ubci_bank/src/core/models/loan_account.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
+import 'package:ubci_bank/src/view/providers/loan_providers.dart';
+import 'package:ubci_bank/src/view/routes/routes_const.dart';
+import 'package:ubci_bank/src/view/screens/accounts/loan_account_details_screen.dart';
 import '../home_colors.dart';
 
 /// Dashboard "Accounts / Credit Card / Loans / Insurance" hero section.
@@ -19,7 +25,7 @@ import '../home_colors.dart';
 /// Uses the same card chrome (background, radius, border, padding) as
 /// [SpendingsDonutCard] so the two can later sit side by side with matching
 /// height and width.
-class AccountsTabCard extends StatefulWidget {
+class AccountsTabCard extends ConsumerStatefulWidget {
   const AccountsTabCard({
     super.key,
     required this.accounts,
@@ -27,6 +33,7 @@ class AccountsTabCard extends StatefulWidget {
     required this.onToggleAccountVisibility,
     this.displayName = '',
     this.onViewAllAccountsTap,
+    this.onViewAllLoans,
   });
 
   final List<CasaAccount> accounts;
@@ -39,26 +46,52 @@ class AccountsTabCard extends StatefulWidget {
   /// Invoked when "View all accounts" is tapped.
   final VoidCallback? onViewAllAccountsTap;
 
+  /// Invoked when "View all loans" is tapped on the Loans inner tab.
+  final VoidCallback? onViewAllLoans;
+
   @override
-  State<AccountsTabCard> createState() => _AccountsTabCardState();
+  ConsumerState<AccountsTabCard> createState() => _AccountsTabCardState();
 }
 
 enum _HeroTab { accounts, creditCard, loans, insurance }
 
-class _AccountsTabCardState extends State<AccountsTabCard> {
+class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
   _HeroTab _tab = _HeroTab.accounts;
   final PageController _pageController = PageController();
   int _page = 0;
   String _accountTypeFilter = _AccountTypeDropdown.savingAccount;
 
+  final PageController _loanPageController = PageController();
+  int _loanPage = 0;
+  final Set<String> _revealedLoanIds = {};
+
   @override
   void dispose() {
     _pageController.dispose();
+    _loanPageController.dispose();
     super.dispose();
   }
 
   String _accountKey(CasaAccount account) =>
       account.id.isNotEmpty ? account.id : account.displayNumber;
+
+  String _loanKey(LoanAccount loan) =>
+      loan.id.isNotEmpty ? loan.id : loan.displayNumber;
+
+  void _toggleLoanVisibility(LoanAccount loan) {
+    final key = _loanKey(loan);
+    setState(() {
+      if (!_revealedLoanIds.remove(key)) _revealedLoanIds.add(key);
+    });
+  }
+
+  void _openLoanDetails(BuildContext context, LoanAccount loan) {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).pushNamed(
+      RoutesConst.loanAccountDetailsScreen,
+      arguments: LoanAccountDetailsArgs(loan: loan),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +134,7 @@ class _AccountsTabCardState extends State<AccountsTabCard> {
           title: 'Credit Card',
         );
       case _HeroTab.loans:
-        return const _ComingSoonPlaceholder(
-          icon: Icons.request_quote_outlined,
-          title: 'Loans',
-        );
+        return _buildLoansTab(context);
       case _HeroTab.insurance:
         return const _ComingSoonPlaceholder(
           icon: Icons.shield_outlined,
@@ -194,6 +224,264 @@ class _AccountsTabCardState extends State<AccountsTabCard> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildLoansTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final state = ref.watch(loanAccountsProvider);
+    final loans = state.summary?.loans ?? const <LoanAccount>[];
+
+    if (state.isLoading && loans.isEmpty) {
+      return const SizedBox(
+        height: 220,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (state.errorMessage != null && loans.isEmpty) {
+      return _ComingSoonPlaceholder(
+        icon: Icons.request_quote_outlined,
+        title: state.errorMessage!,
+        isMessageOnly: true,
+      );
+    }
+
+    if (loans.isEmpty) {
+      return _ComingSoonPlaceholder(
+        icon: Icons.request_quote_outlined,
+        title: l10n.loansEmpty,
+        isMessageOnly: true,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 168,
+          child: loans.length == 1
+              ? _LoanHeroCard(
+                  loan: loans.first,
+                  revealed: _revealedLoanIds.contains(_loanKey(loans.first)),
+                  onToggleVisibility: () =>
+                      _toggleLoanVisibility(loans.first),
+                  onTap: () => _openLoanDetails(context, loans.first),
+                )
+              : PageView.builder(
+                  controller: _loanPageController,
+                  itemCount: loans.length,
+                  onPageChanged: (index) => setState(() => _loanPage = index),
+                  itemBuilder: (_, index) => Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: _LoanHeroCard(
+                      loan: loans[index],
+                      revealed:
+                          _revealedLoanIds.contains(_loanKey(loans[index])),
+                      onToggleVisibility: () =>
+                          _toggleLoanVisibility(loans[index]),
+                      onTap: () => _openLoanDetails(context, loans[index]),
+                    ),
+                  ),
+                ),
+        ),
+        if (loans.length > 1) ...[
+          const SizedBox(height: 10),
+          _CarouselDots(count: loans.length, active: _loanPage),
+        ],
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            InkWell(
+              onTap: widget.onViewAllLoans,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Text(
+                  'View all loans',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: HomeColors.brand(context),
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Loans-tab counterpart to [_HeroAccountCard] — same gradient chrome,
+/// carousel behavior, and per-item semantics: each card shows that one
+/// loan's own outstanding/sanctioned amounts (never a portfolio total), the
+/// same way each account card shows only its own balance.
+class _LoanHeroCard extends StatelessWidget {
+  const _LoanHeroCard({
+    required this.loan,
+    required this.revealed,
+    required this.onToggleVisibility,
+    required this.onTap,
+  });
+
+  final LoanAccount loan;
+  final bool revealed;
+  final VoidCallback onToggleVisibility;
+  final VoidCallback onTap;
+
+  static const _brandLogomarkAsset = 'assets/images/figma/brand_logomark.svg';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final outstanding = loan.outstandingAmount;
+    final outstandingCurrency =
+        (outstanding?.currency ?? loan.currencyCode).trim();
+    final outstandingText = outstanding == null
+        ? '—'
+        : revealed
+            ? MoneyFormat.format(
+                outstanding.amount,
+                currencyCode: outstandingCurrency,
+              )
+            : '${outstandingCurrency.isEmpty ? '' : '$outstandingCurrency '}••••';
+
+    final sanctioned = loan.sanctionedAmount;
+    final borrowingCurrency =
+        (sanctioned?.currency ?? loan.currencyCode).trim();
+    final borrowingText = sanctioned == null
+        ? '—'
+        : revealed
+            ? MoneyFormat.format(
+                sanctioned.amount,
+                currencyCode: borrowingCurrency,
+              )
+            : '${borrowingCurrency.isEmpty ? '' : '$borrowingCurrency '}••••';
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          decoration: BoxDecoration(
+            gradient: AppGradients.primary(context),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Positioned(
+                right: -46,
+                bottom: -56,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.55,
+                    child: SizedBox(
+                      width: 170,
+                      height: 186,
+                      child: SvgPicture.asset(
+                        _brandLogomarkAsset,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          loan.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: SvgPicture.asset(
+                          _brandLogomarkAsset,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Text(
+                        l10n.loanTotalOutstanding,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkWell(
+                        onTap: onToggleVisibility,
+                        borderRadius: BorderRadius.circular(14),
+                        child: Padding(
+                          padding: const EdgeInsets.all(3),
+                          child: Icon(
+                            revealed
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    outstandingText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${l10n.loanTotalBorrowing}: $borrowingText',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

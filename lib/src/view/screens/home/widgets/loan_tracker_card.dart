@@ -6,6 +6,7 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/loan_account.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/view/providers/loan_providers.dart';
+import 'package:ubci_bank/src/view/screens/accounts/widgets/loan_currency_tabs.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 
 /// Dashboard "Loan Tracker" card — Total Borrowing / Outstanding + donut %.
@@ -25,6 +26,14 @@ class LoanTrackerCard extends ConsumerWidget {
     final state = ref.watch(loanAccountsProvider);
     final summary = state.summary;
 final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Loans in more than one currency share the same selected-currency tab
+    // as the "Loans & Finances" list screen, so the two stay in sync.
+    final currencies = summary?.currencies ?? const <String>[];
+    final rawSelection = ref.watch(selectedLoanCurrencyProvider);
+    final currency = (rawSelection != null && currencies.contains(rawSelection))
+        ? rawSelection
+        : (currencies.isNotEmpty ? currencies.first : summary?.primaryCurrency);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -52,8 +61,19 @@ decoration: BoxDecoration(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
 Row(
-  mainAxisAlignment: MainAxisAlignment.end,
   children: [
+    if (summary != null && summary.isMultiCurrency)
+      Expanded(
+        child: LoanCurrencyTabs(
+          currencies: currencies,
+          selected: currency ?? currencies.first,
+          dense: true,
+          onChanged: (c) =>
+              ref.read(selectedLoanCurrencyProvider.notifier).state = c,
+        ),
+      )
+    else
+      const Spacer(),
     InkWell(
       onTap: onViewAll,
       borderRadius: BorderRadius.circular(8),
@@ -103,6 +123,7 @@ Row(
             _LoanTrackerBody(
               summary: summary,
               hideBalance: hideBalance,
+              currency: currency,
             ),
         ],
       ),
@@ -114,17 +135,22 @@ class _LoanTrackerBody extends StatelessWidget {
   const _LoanTrackerBody({
     required this.summary,
     required this.hideBalance,
+    required this.currency,
   });
 
   final LoanAccountsSummary summary;
   final bool hideBalance;
+
+  /// Currency the gauge below is scoped to (from the currency tabs when the
+  /// customer holds loans in more than one) — never blends currencies.
+  final String? currency;
 
 @override
 Widget build(BuildContext context) {
   final l10n = AppLocalizations.of(context);
 
   final completedRatio =
-      (1 - summary.outstandingRatio).clamp(0.0, 1.0);
+      (1 - summary.outstandingRatioFor(currency)).clamp(0.0, 1.0);
 
   final completedPercent =
       (completedRatio * 100).round();
@@ -242,14 +268,33 @@ class _LoanMessage extends StatelessWidget {
   }
 }
 
+/// Maps loan progress to a traffic-light color: red when most of the loan
+/// is still outstanding, through amber, to green as it nears payoff —
+/// mirrors how risk/health indicators read in banking UX (red = attention
+/// needed, green = healthy/nearly settled). Colors are read from the active
+/// theme's semantic error/warning/success tokens rather than hardcoded, so
+/// this follows the app's light/dark theme automatically.
+Color _loanRiskColor(BuildContext context, double completedRatio) {
+  final red = HomeColors.error(context);
+  final amber = HomeColors.warning(context);
+  final green = HomeColors.success(context);
+  final clamped = completedRatio.clamp(0.0, 1.0);
+  if (clamped <= 0.5) {
+    return Color.lerp(red, amber, clamped / 0.5)!;
+  }
+  return Color.lerp(amber, green, (clamped - 0.5) / 0.5)!;
+}
+
 class _LoanGaugePainter extends CustomPainter {
   _LoanGaugePainter({
     required this.progress,
-    required this.isDark,
+    required this.color,
+    required this.trackColor,
   });
 
   final double progress;
-  final bool isDark;
+  final Color color;
+  final Color trackColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -261,15 +306,13 @@ class _LoanGaugePainter extends CustomPainter {
     const stroke = 10.0;
 
     final trackPaint = Paint()
-      ..color = isDark
-    ? Colors.white.withOpacity(.15)
-    : const Color(0xFFD7DDE3)
+      ..color = trackColor
       ..strokeWidth = stroke
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     final glowPaint = Paint()
-      ..color = const Color(0xFF0CC7C7)
+      ..color = color
       ..strokeWidth = stroke + 3
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -277,7 +320,7 @@ class _LoanGaugePainter extends CustomPainter {
           const MaskFilter.blur(BlurStyle.normal, 8);
 
     final progressPaint = Paint()
-      ..color = const Color(0xFF12CFCF)
+      ..color = color
       ..strokeWidth = stroke
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -314,7 +357,9 @@ class _LoanGaugePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LoanGaugePainter oldDelegate) {
-    return progress != oldDelegate.progress;
+    return progress != oldDelegate.progress ||
+        color != oldDelegate.color ||
+        trackColor != oldDelegate.trackColor;
   }
 }
 
@@ -351,6 +396,7 @@ class _AnimatedLoanGaugeState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = _loanRiskColor(context, widget.progress);
     return AnimatedBuilder(
       animation: _controller,
       builder: (_, __) {
@@ -366,7 +412,8 @@ class _AnimatedLoanGaugeState
               painter: _LoanGaugePainter(
                 progress:
                     widget.progress * _controller.value,
-                    isDark: Theme.of(context).brightness == Brightness.dark,
+                    color: color,
+                    trackColor: HomeColors.divider(context),
               ),
               child: Center(
                 child: Padding(
@@ -379,7 +426,7 @@ class _AnimatedLoanGaugeState
                         style:  TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color: color,
                         ),
                       ),
                        Text(

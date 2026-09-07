@@ -356,6 +356,7 @@ class _OverviewContent extends StatelessWidget {
       revealedAccountIds: revealedAccountIds,
       onToggleAccountVisibility: onToggleAccountVisibility,
       onViewAllAccountsTap: onViewAllAccountsTap,
+      onViewAllLoans: onViewAllLoans,
     );
     final quickActions = QuickActionsGrid(
       title: isWide ? 'Activity Centre' : l10n.quickActions,
