@@ -9,6 +9,7 @@ class LoanAccountDetails {
     required this.displayNumber,
     this.status,
     this.productName,
+    this.holderName,
     this.branchName,
     this.branchCode,
     this.openingDate,
@@ -34,6 +35,12 @@ class LoanAccountDetails {
   final String displayNumber;
   final String? status;
   final String? productName;
+
+  /// Primary account holder's name. OBDX loan DTOs are inconsistent about
+  /// where this lands, so we check every key seen across capture variants
+  /// (`accountHolderName`, `customerName`, `primaryHolderName`, `partyName`,
+  /// `holderName`) — `null` if the host doesn't return one for this loan.
+  final String? holderName;
   final String? branchName;
   final String? branchCode;
   final DateTime? openingDate;
@@ -71,6 +78,13 @@ class LoanAccountDetails {
       productName: _firstNonEmpty([
         product['description'],
         product['name'],
+      ]),
+      holderName: _firstNonEmpty([
+        json['accountHolderName'],
+        json['customerName'],
+        json['primaryHolderName'],
+        json['partyName'],
+        json['holderName'],
       ]),
       branchName: branch['branchName']?.toString(),
       branchCode: json['branchCode']?.toString(),
