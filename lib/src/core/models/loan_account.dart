@@ -10,6 +10,7 @@ class LoanAccount {
     this.productName,
     this.nickname,
     this.status,
+    this.holderName,
     this.sanctionedAmount,
     this.outstandingAmount,
     this.module,
@@ -21,6 +22,10 @@ class LoanAccount {
   final String? productName;
   final String? nickname;
   final String? status;
+
+  /// Primary account holder's name, when the list endpoint includes one
+  /// (best-effort — many OBDX hosts only return this on the detail call).
+  final String? holderName;
   final MoneyAmount? sanctionedAmount;
   final MoneyAmount? outstandingAmount;
 
@@ -82,6 +87,13 @@ class LoanAccount {
         json['alias'],
       ]),
       status: _firstNonEmpty([json['status'], json['accountStatus']]),
+      holderName: _firstNonEmpty([
+        json['accountHolderName'],
+        json['customerName'],
+        json['primaryHolderName'],
+        json['partyName'],
+        json['holderName'],
+      ]),
       module: _firstNonEmpty([json['module']]),
       sanctionedAmount: CasaAccount.readBalance(
         json,
@@ -142,6 +154,25 @@ class LoanAccountsSummary {
 
   bool get isEmpty => loans.isEmpty && borrowingByCurrency.isEmpty;
 
+  /// Every currency that appears across the loans and/or the aggregated
+  /// totals, sorted alphabetically so tab order is stable across refreshes.
+  List<String> get currencies {
+    final set = <String>{};
+    for (final loan in loans) {
+      final code = loan.currencyCode.trim();
+      if (code.isNotEmpty) set.add(code);
+    }
+    set.addAll(borrowingByCurrency.keys);
+    set.addAll(outstandingByCurrency.keys);
+    final list = set.toList()..sort();
+    return list;
+  }
+
+  /// True when the customer holds loans in more than one currency — totals
+  /// can no longer be shown as a single number and need a currency tab/
+  /// selector instead.
+  bool get isMultiCurrency => currencies.length > 1;
+
   String? get primaryCurrency {
     for (final loan in loans) {
       if (loan.currencyCode.isNotEmpty) return loan.currencyCode;
@@ -153,26 +184,42 @@ class LoanAccountsSummary {
     return null;
   }
 
-  double get totalBorrowing {
-    final currency = primaryCurrency;
+  double get totalBorrowing => totalBorrowingFor(primaryCurrency);
+
+  double get totalOutstanding => totalOutstandingFor(primaryCurrency);
+
+  /// Total borrowing for a single currency only — never mixes currencies.
+  double totalBorrowingFor(String? currency) {
     if (currency == null) return 0;
     return borrowingByCurrency[currency] ?? 0;
   }
 
-  double get totalOutstanding {
-    final currency = primaryCurrency;
+  /// Total outstanding for a single currency only — never mixes currencies.
+  double totalOutstandingFor(String? currency) {
     if (currency == null) return 0;
     return outstandingByCurrency[currency] ?? 0;
   }
 
-  /// Outstanding as a fraction of borrowing (0–1).
-  double get outstandingRatio {
-    final borrowing = totalBorrowing;
+  /// Only the loans denominated in [currency].
+  List<LoanAccount> loansFor(String? currency) {
+    if (currency == null) return loans;
+    return loans.where((loan) => loan.currencyCode.trim() == currency).toList();
+  }
+
+  /// Outstanding as a fraction of borrowing (0–1) for a single currency.
+  double outstandingRatioFor(String? currency) {
+    final borrowing = totalBorrowingFor(currency);
     if (borrowing <= 0) return 0;
-    final ratio = totalOutstanding / borrowing;
+    final ratio = totalOutstandingFor(currency) / borrowing;
     if (ratio.isNaN || ratio.isInfinite) return 0;
     return ratio.clamp(0.0, 1.0);
   }
+
+  int outstandingPercentFor(String? currency) =>
+      (outstandingRatioFor(currency) * 100).round();
+
+  /// Outstanding as a fraction of borrowing (0–1).
+  double get outstandingRatio => outstandingRatioFor(primaryCurrency);
 
   int get outstandingPercent => (outstandingRatio * 100).round();
 
@@ -224,12 +271,28 @@ class LoanAccountsSummary {
 
     return LoanAccountsSummary(
       loans: loans,
-      borrowingByCurrency:
-          summaryBorrowing.isNotEmpty ? summaryBorrowing : clientBorrowing,
-      outstandingByCurrency: summaryOutstanding.isNotEmpty
-          ? summaryOutstanding
-          : clientOutstanding,
+      // Merge, don't replace: some OBDX hosts only return `summary.total*`
+      // for one currency (often just the customer's primary/base currency)
+      // even when the loan list itself spans several currencies. Starting
+      // from the per-loan client sums guarantees every currency present in
+      // `loans` gets a total; overlaying the API summary on top keeps its
+      // numbers authoritative wherever it *does* report a currency (it may
+      // include fees/accruals a raw sum of loan amounts wouldn't).
+      borrowingByCurrency: _mergeTotals(clientBorrowing, summaryBorrowing),
+      outstandingByCurrency: _mergeTotals(clientOutstanding, summaryOutstanding),
     );
+  }
+
+  /// Combines client-computed per-loan totals with the API's own summary
+  /// totals, keyed by currency. The summary's value wins for any currency it
+  /// reports; the client sum fills in any currency the summary is silent on
+  /// (this is what previously made e.g. AED show as 0 outstanding whenever
+  /// the summary block only covered a single other currency).
+  static Map<String, double> _mergeTotals(
+    Map<String, double> clientTotals,
+    Map<String, double> summaryTotals,
+  ) {
+    return {...clientTotals, ...summaryTotals};
   }
 
   static List<LoanAccount> _parseLoans(Map<String, dynamic> root) {
