@@ -53,6 +53,9 @@ class CasaAccount {
     this.productName,
     this.availableBalance,
     this.currentBalance,
+    this.isDefault = false,
+    this.openingDate,
+    this.holdingPattern,
   });
 
   /// Complex OBDX account id (`id.value`), used for subsequent detail/statement calls.
@@ -69,8 +72,18 @@ class CasaAccount {
   final MoneyAmount? availableBalance;
   final MoneyAmount? currentBalance;
 
+  /// `accounts[].defaultAccount` — drives the "PRIMARY" badge.
+  final bool isDefault;
+  final String? openingDate;
+  final String? holdingPattern;
+
   bool get isActive => status.toUpperCase() == 'ACTIVE';
   bool get isDormant => status.toUpperCase() == 'DORMANT';
+  bool get isClosed => status.toUpperCase() == 'CLOSED';
+
+  /// CURRENT / SAVING — normalized from `ddaAccountType`/`accountType`.
+  bool get isSaving => (accountType ?? '').toUpperCase().contains('SAV');
+  bool get isCurrent => (accountType ?? '').toUpperCase().contains('CUR');
 
   /// Preferred balance for dashboard tiles (available, else current).
   MoneyAmount? get displayBalance => availableBalance ?? currentBalance;
@@ -126,10 +139,20 @@ class CasaAccount {
         ?.toString()
         .trim();
 
-    final accountType = (json['accountType'] ??
+    final accountType = (json['ddaAccountType'] ??
+            json['accountType'] ??
             json['type'] ??
             ObdxApiUtils.asMap(json['accountTypeDTO'])['code'] ??
             ObdxApiUtils.asMap(json['accountTypeDTO'])['description'])
+        ?.toString()
+        .trim();
+
+    final defaultAccountRaw = json['defaultAccount'];
+    final isDefault = defaultAccountRaw == true ||
+        defaultAccountRaw?.toString().trim().toLowerCase() == 'true';
+
+    final holdingPattern = (json['holdingPattern'] ??
+            ObdxApiUtils.asMap(json['holdingPatternDTO'])['description'])
         ?.toString()
         .trim();
 
@@ -143,6 +166,11 @@ class CasaAccount {
           ?.toString()
           .trim(),
       productName: productName?.isEmpty == true ? null : productName,
+      isDefault: isDefault,
+      openingDate: (json['openingDate'] ?? json['accountOpenDate'])
+          ?.toString()
+          .trim(),
+      holdingPattern: holdingPattern?.isEmpty == true ? null : holdingPattern,
       availableBalance: readBalance(
         json,
         const [

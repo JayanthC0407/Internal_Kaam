@@ -958,6 +958,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get casaFilterAmount => 'Amount';
 
   @override
+  String get casaFilterFromAmount => 'From Amount';
+
+  @override
+  String get casaFilterToAmount => 'To Amount';
+
+  @override
+  String get casaFilterDate => 'Date';
+
+  @override
+  String get casaFilterFromDate => 'From Date';
+
+  @override
+  String get casaFilterToDate => 'To Date';
+
+  @override
   String get casaFilterReferenceNumber => 'Reference Number';
 
   @override
@@ -976,7 +991,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get casaViewPreviousDay => 'Previous Day';
 
   @override
+  String get casaViewDateRange => 'Date Range';
+
+  @override
+  String get casaViewSpecificDay => 'Specific Day';
+
+  @override
   String get casaViewPreviousMonth => 'Previous Month';
+
+  @override
+  String get casaViewPreviousQuarter => 'Previous Quarter';
+
+  @override
+  String get casaViewLast10 => 'Last 10 Transactions';
 
   @override
   String get casaViewCurrentAndPreviousMonth => 'Current & Previous Month';

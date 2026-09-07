@@ -4,7 +4,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/infra/security/device_security_models.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/accounts/casa_transactions_screen.dart';
+import 'package:ubci_bank/src/view/screens/accounts/casa_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_account_details_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_repayment_screen.dart';
@@ -131,6 +131,15 @@ class Routes {
         }
         // Web reload / deep link with no args → resolve auth via splash.
         return _splashFallback(routeSettings);
+      case RoutesConst.casaAccountsListScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: CasaAccountsListScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
       case RoutesConst.casaAccountDetailsScreen:
         final detailsArgs = routeSettings.arguments;
         if (detailsArgs is CasaAccountDetailsArgs) {
@@ -140,19 +149,6 @@ class Routes {
               child: CasaAccountDetailsScreen(
                 accountId: detailsArgs.accountId,
               ),
-            ),
-            type: PageTransitionType.rightToLeft,
-            duration: pageAnimDuration,
-          );
-        }
-        return _splashFallback(routeSettings);
-      case RoutesConst.casaTransactionsScreen:
-        final txArgs = routeSettings.arguments;
-        if (txArgs is CasaTransactionsArgs) {
-          return PageTransition(
-            settings: routeSettings,
-            child: AuthenticatedSessionGate(
-              child: CasaTransactionsScreen(accountId: txArgs.accountId),
             ),
             type: PageTransitionType.rightToLeft,
             duration: pageAnimDuration,

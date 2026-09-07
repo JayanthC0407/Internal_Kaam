@@ -961,6 +961,21 @@ class AppLocalizationsUz extends AppLocalizations {
   String get casaFilterAmount => 'Summa';
 
   @override
+  String get casaFilterFromAmount => 'Summadan';
+
+  @override
+  String get casaFilterToAmount => 'Summagacha';
+
+  @override
+  String get casaFilterDate => 'Sana';
+
+  @override
+  String get casaFilterFromDate => 'Boshlanish sanasi';
+
+  @override
+  String get casaFilterToDate => 'Tugash sanasi';
+
+  @override
   String get casaFilterReferenceNumber => 'Ma’lumotnoma raqami';
 
   @override
@@ -979,7 +994,19 @@ class AppLocalizationsUz extends AppLocalizations {
   String get casaViewPreviousDay => 'Oldingi kun';
 
   @override
+  String get casaViewDateRange => 'Sana oralig\'i';
+
+  @override
+  String get casaViewSpecificDay => 'Muayyan kun';
+
+  @override
   String get casaViewPreviousMonth => 'Oldingi oy';
+
+  @override
+  String get casaViewPreviousQuarter => 'Oldingi chorak';
+
+  @override
+  String get casaViewLast10 => 'Oxirgi 10 ta tranzaksiya';
 
   @override
   String get casaViewCurrentAndPreviousMonth => 'Joriy va oldingi oy';
