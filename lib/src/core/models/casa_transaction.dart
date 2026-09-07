@@ -281,26 +281,27 @@ class CasaTransactionsResult {
   }
 }
 
-/// OBDX `searchBy` period codes. Default [currentMonth] keeps the live
-/// Postman value `CPR` so unfiltered loads stay unchanged.
+/// OBDX `searchBy` period codes, per the API doc's confirmed enum:
+/// `CPR` (current period), `SPD` (specific period — a single day, the
+/// previous day, or a date range, all expressed via `fromDate`/`toDate`),
+/// `PMT` (previous month), `PQT` (previous quarter), and `LNT` (last N
+/// transactions). [specificDay], [previousDay], and [dateRange] are
+/// distinct UI options that all resolve to `SPD` on the wire — they only
+/// differ in how [CasaTransactionQuery] computes `fromDate`/`toDate` for
+/// each. Default [currentMonth] keeps the live Postman value `CPR` so
+/// unfiltered loads stay unchanged.
 enum CasaTransactionPeriod {
   currentMonth('CPR'),
-  currentDay('C'),
-  previousDay('P'),
-  previousMonth('PM'),
-  currentAndPreviousMonth('CP');
+  specificDay('SPD'),
+  previousDay('SPD'),
+  dateRange('SPD'),
+  previousMonth('PMT'),
+  previousQuarter('PQT'),
+  last10('LNT');
 
   const CasaTransactionPeriod(this.searchBy);
 
   final String searchBy;
-
-  static CasaTransactionPeriod fromSearchBy(String? raw) {
-    final code = (raw ?? '').trim().toUpperCase();
-    for (final value in CasaTransactionPeriod.values) {
-      if (value.searchBy == code) return value;
-    }
-    return CasaTransactionPeriod.currentMonth;
-  }
 }
 
 /// OBDX `transactionType`: A = all, C = credits, D = debits.
@@ -323,17 +324,30 @@ enum CasaCreditDebitFilter {
 }
 
 /// Query sent to `GET …/demandDeposit/{accountId}/transactions`.
+///
+/// [specificDate] is only meaningful when [period] is
+/// [CasaTransactionPeriod.specificDay]; [rangeStart]/[rangeEnd] only when
+/// [period] is [CasaTransactionPeriod.dateRange]. [CasaTransactionPeriod.previousDay]
+/// needs no stored date — it's computed as "yesterday" at query time.
 class CasaTransactionQuery {
   const CasaTransactionQuery({
     this.period = CasaTransactionPeriod.currentMonth,
     this.creditDebit = CasaCreditDebitFilter.all,
-    this.amount,
+    this.specificDate,
+    this.rangeStart,
+    this.rangeEnd,
+    this.fromAmount,
+    this.toAmount,
     this.referenceNumber,
   });
 
   final CasaTransactionPeriod period;
   final CasaCreditDebitFilter creditDebit;
-  final String? amount;
+  final DateTime? specificDate;
+  final DateTime? rangeStart;
+  final DateTime? rangeEnd;
+  final String? fromAmount;
+  final String? toAmount;
   final String? referenceNumber;
 
   String get searchBy => period.searchBy;
@@ -342,34 +356,95 @@ class CasaTransactionQuery {
   bool get isDefault =>
       period == CasaTransactionPeriod.currentMonth &&
       creditDebit == CasaCreditDebitFilter.all &&
-      !_hasText(amount) &&
+      !_hasText(fromAmount) &&
+      !_hasText(toAmount) &&
       !_hasText(referenceNumber);
 
   CasaTransactionQuery copyWith({
     CasaTransactionPeriod? period,
     CasaCreditDebitFilter? creditDebit,
-    String? amount,
+    DateTime? specificDate,
+    DateTime? rangeStart,
+    DateTime? rangeEnd,
+    String? fromAmount,
+    String? toAmount,
     String? referenceNumber,
-    bool clearAmount = false,
+    bool clearSpecificDate = false,
+    bool clearRangeStart = false,
+    bool clearRangeEnd = false,
+    bool clearFromAmount = false,
+    bool clearToAmount = false,
     bool clearReference = false,
   }) {
     return CasaTransactionQuery(
       period: period ?? this.period,
       creditDebit: creditDebit ?? this.creditDebit,
-      amount: clearAmount ? null : (amount ?? this.amount),
+      specificDate: clearSpecificDate
+          ? null
+          : (specificDate ?? this.specificDate),
+      rangeStart: clearRangeStart ? null : (rangeStart ?? this.rangeStart),
+      rangeEnd: clearRangeEnd ? null : (rangeEnd ?? this.rangeEnd),
+      fromAmount: clearFromAmount ? null : (fromAmount ?? this.fromAmount),
+      toAmount: clearToAmount ? null : (toAmount ?? this.toAmount),
       referenceNumber:
           clearReference ? null : (referenceNumber ?? this.referenceNumber),
     );
   }
 
-  /// Query params for list and PDF download. Empty amount/ref are omitted.
+  /// Resolves the `fromDate`/`toDate` pair to send for `SPD`-family
+  /// periods. Returns null for periods that don't send dates at all.
+  (DateTime, DateTime)? _resolveDateRange() {
+    switch (period) {
+      case CasaTransactionPeriod.specificDay:
+        final day = specificDate ?? DateTime.now();
+        return (day, day);
+      case CasaTransactionPeriod.previousDay:
+        final yesterday =
+            DateTime.now().subtract(const Duration(days: 1));
+        return (yesterday, yesterday);
+      case CasaTransactionPeriod.dateRange:
+        if (rangeStart == null || rangeEnd == null) return null;
+        return (rangeStart!, rangeEnd!);
+      case CasaTransactionPeriod.currentMonth:
+      case CasaTransactionPeriod.previousMonth:
+      case CasaTransactionPeriod.previousQuarter:
+      case CasaTransactionPeriod.last10:
+        return null;
+    }
+  }
+
+  /// Query params for list and PDF download. Empty/absent fields are
+  /// omitted rather than sent blank.
   Map<String, dynamic> toQueryParameters() {
-    return {
+    final params = <String, dynamic>{
       'searchBy': searchBy,
       'transactionType': transactionType,
-      if (_hasText(amount)) 'amount': amount!.trim(),
-      if (_hasText(referenceNumber)) 'referenceNumber': referenceNumber!.trim(),
     };
+
+    final dateRange = _resolveDateRange();
+    if (dateRange != null) {
+      params['fromDate'] = _formatDate(dateRange.$1);
+      params['toDate'] = _formatDate(dateRange.$2);
+    }
+
+    if (period == CasaTransactionPeriod.last10) {
+      params['noOfTransactions'] = 10;
+    }
+
+    if (_hasText(fromAmount)) params['fromAmount'] = fromAmount!.trim();
+    if (_hasText(toAmount)) params['toAmount'] = toAmount!.trim();
+    if (_hasText(referenceNumber)) {
+      params['referenceNo'] = referenceNumber!.trim();
+    }
+
+    return params;
+  }
+
+  static String _formatDate(DateTime date) {
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
   }
 
   static bool _hasText(String? value) =>
@@ -381,10 +456,22 @@ class CasaTransactionQuery {
       other is CasaTransactionQuery &&
           period == other.period &&
           creditDebit == other.creditDebit &&
-          amount == other.amount &&
+          specificDate == other.specificDate &&
+          rangeStart == other.rangeStart &&
+          rangeEnd == other.rangeEnd &&
+          fromAmount == other.fromAmount &&
+          toAmount == other.toAmount &&
           referenceNumber == other.referenceNumber;
 
   @override
-  int get hashCode =>
-      Object.hash(period, creditDebit, amount, referenceNumber);
+  int get hashCode => Object.hash(
+        period,
+        creditDebit,
+        specificDate,
+        rangeStart,
+        rangeEnd,
+        fromAmount,
+        toAmount,
+        referenceNumber,
+      );
 }

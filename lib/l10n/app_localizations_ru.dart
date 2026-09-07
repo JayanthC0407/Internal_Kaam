@@ -960,6 +960,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get casaFilterAmount => 'Сумма';
 
   @override
+  String get casaFilterFromAmount => 'Сумма от';
+
+  @override
+  String get casaFilterToAmount => 'Сумма до';
+
+  @override
+  String get casaFilterDate => 'Дата';
+
+  @override
+  String get casaFilterFromDate => 'Дата с';
+
+  @override
+  String get casaFilterToDate => 'Дата по';
+
+  @override
   String get casaFilterReferenceNumber => 'Номер ссылки';
 
   @override
@@ -978,7 +993,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get casaViewPreviousDay => 'Предыдущий день';
 
   @override
+  String get casaViewDateRange => 'Диапазон дат';
+
+  @override
+  String get casaViewSpecificDay => 'Определённый день';
+
+  @override
   String get casaViewPreviousMonth => 'Предыдущий месяц';
+
+  @override
+  String get casaViewPreviousQuarter => 'Предыдущий квартал';
+
+  @override
+  String get casaViewLast10 => 'Последние 10 транзакций';
 
   @override
   String get casaViewCurrentAndPreviousMonth => 'Текущий и предыдущий месяц';

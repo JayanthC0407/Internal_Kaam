@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/web_navigation_sidebar.dart'
-    show WebPayeeDestination;
+    show WebAccountsDestination, WebPayeeDestination;
 
 /// The actual navigation menu — logo, destination list, Payee submenu,
 /// security footer. Single source of truth for "what's in the app's main
@@ -20,7 +20,9 @@ class AppNavContent extends StatefulWidget {
     required this.selectedIndex,
     required this.onSelected,
     this.selectedPayeeDestination,
+    this.selectedAccountsDestination,
     this.onPayeeSelected,
+    this.onAccountsSelected,
     this.showLogo = true,
     this.collapsed = false,
   });
@@ -28,7 +30,9 @@ class AppNavContent extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
   final WebPayeeDestination? selectedPayeeDestination;
+  final WebAccountsDestination? selectedAccountsDestination;
   final ValueChanged<WebPayeeDestination>? onPayeeSelected;
+  final ValueChanged<WebAccountsDestination>? onAccountsSelected;
 
   /// The drawer variant can hide the logo block if the [Drawer] already has
   /// its own header — kept `true` by default so it matches the sidebar.
@@ -47,6 +51,7 @@ class AppNavContent extends StatefulWidget {
 
 class _AppNavContentState extends State<AppNavContent> {
   bool _payeeExpanded = false;
+  bool _accountsExpanded = false;
 
   @override
   void initState() {
@@ -75,6 +80,7 @@ class _AppNavContentState extends State<AppNavContent> {
       (l10n.more, Icons.more_horiz_rounded),
     ];
     final showPayee = widget.onPayeeSelected != null;
+    final showAccounts = widget.onAccountsSelected != null;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(collapsed ? 10 : 16, 22, collapsed ? 10 : 16, 18),
@@ -122,6 +128,47 @@ class _AppNavContentState extends State<AppNavContent> {
                       collapsed: collapsed,
                       onTap: () => widget.onSelected(i),
                     ),
+                    const SizedBox(height: 6),
+                  ],
+                  if (showAccounts) ...[
+                    _NavDestination(
+                      label: l10n.accounts,
+                      icon: Icons.account_balance_outlined,
+                      selected: widget.selectedAccountsDestination != null,
+                      collapsed: collapsed,
+                      trailing: collapsed
+                          ? null
+                          : Icon(
+                              _accountsExpanded
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 20,
+                              color: HomeColors.textSecondary(context),
+                            ),
+                      onTap: collapsed
+                          ? () => widget
+                              .onAccountsSelected!(WebAccountsDestination.casa)
+                          : () => setState(
+                              () => _accountsExpanded = !_accountsExpanded),
+                    ),
+                    if (_accountsExpanded && !collapsed) ...[
+                      const SizedBox(height: 3),
+                      _SubDestination(
+                        label: 'CASA',
+                        icon: Icons.account_balance_wallet_outlined,
+                        selected: widget.selectedAccountsDestination == WebAccountsDestination.casa,
+                        onTap: () => widget
+                            .onAccountsSelected!(WebAccountsDestination.casa),
+                      ),
+                      const SizedBox(height: 3),
+                      _SubDestination(
+                        label: 'Loans',
+                        icon: Icons.request_quote_outlined,
+                        selected: false,
+                        onTap: () => widget
+                            .onAccountsSelected!(WebAccountsDestination.loans),
+                      ),
+                    ],
                     const SizedBox(height: 6),
                   ],
                   if (showPayee) ...[

@@ -959,6 +959,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get casaFilterAmount => 'المبلغ';
 
   @override
+  String get casaFilterFromAmount => 'من مبلغ';
+
+  @override
+  String get casaFilterToAmount => 'إلى مبلغ';
+
+  @override
+  String get casaFilterDate => 'التاريخ';
+
+  @override
+  String get casaFilterFromDate => 'من تاريخ';
+
+  @override
+  String get casaFilterToDate => 'إلى تاريخ';
+
+  @override
   String get casaFilterReferenceNumber => 'رقم المرجع';
 
   @override
@@ -977,7 +992,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get casaViewPreviousDay => 'اليوم السابق';
 
   @override
+  String get casaViewDateRange => 'نطاق تاريخ';
+
+  @override
+  String get casaViewSpecificDay => 'يوم محدد';
+
+  @override
   String get casaViewPreviousMonth => 'الشهر السابق';
+
+  @override
+  String get casaViewPreviousQuarter => 'الربع السابق';
+
+  @override
+  String get casaViewLast10 => 'آخر 10 معاملات';
 
   @override
   String get casaViewCurrentAndPreviousMonth => 'الشهر الحالي والسابق';

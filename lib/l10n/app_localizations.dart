@@ -1888,6 +1888,36 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get casaFilterAmount;
 
+  /// No description provided for @casaFilterFromAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'From Amount'**
+  String get casaFilterFromAmount;
+
+  /// No description provided for @casaFilterToAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'To Amount'**
+  String get casaFilterToAmount;
+
+  /// No description provided for @casaFilterDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get casaFilterDate;
+
+  /// No description provided for @casaFilterFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From Date'**
+  String get casaFilterFromDate;
+
+  /// No description provided for @casaFilterToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date'**
+  String get casaFilterToDate;
+
   /// No description provided for @casaFilterReferenceNumber.
   ///
   /// In en, this message translates to:
@@ -1924,11 +1954,35 @@ abstract class AppLocalizations {
   /// **'Previous Day'**
   String get casaViewPreviousDay;
 
+  /// No description provided for @casaViewDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get casaViewDateRange;
+
+  /// No description provided for @casaViewSpecificDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific Day'**
+  String get casaViewSpecificDay;
+
   /// No description provided for @casaViewPreviousMonth.
   ///
   /// In en, this message translates to:
   /// **'Previous Month'**
   String get casaViewPreviousMonth;
+
+  /// No description provided for @casaViewPreviousQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Quarter'**
+  String get casaViewPreviousQuarter;
+
+  /// No description provided for @casaViewLast10.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 10 Transactions'**
+  String get casaViewLast10;
 
   /// No description provided for @casaViewCurrentAndPreviousMonth.
   ///

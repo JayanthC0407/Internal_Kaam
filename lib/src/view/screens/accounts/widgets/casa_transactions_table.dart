@@ -29,7 +29,7 @@ class CasaTransactionsTable extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: colors.inputBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colors.divider),
       ),
@@ -44,13 +44,12 @@ class CasaTransactionsTable extends StatelessWidget {
             headingRowHeight: 44,
             dataRowMinHeight: 48,
             dataRowMaxHeight: 56,
-            headingRowColor: WidgetStatePropertyAll(colors.surface),
+            headingRowColor: const WidgetStatePropertyAll(Colors.white),
             dividerThickness: 0.6,
             headingTextStyle: headerStyle,
             dataTextStyle: cellStyle,
             columns: [
               DataColumn(label: Text(l10n.casaColTxnDate)),
-              DataColumn(label: Text(l10n.casaColValueDate)),
               DataColumn(label: Text(l10n.casaColDescription)),
               DataColumn(label: Text(l10n.casaColReference)),
               DataColumn(label: Text(l10n.casaColType)),
@@ -61,8 +60,9 @@ class CasaTransactionsTable extends StatelessWidget {
               for (final txn in transactions)
                 DataRow(
                   cells: [
-                    DataCell(Text(_formatDate(txn.transactionDate ?? txn.dateTime))),
-                    DataCell(Text(_formatDate(txn.valueDate ?? txn.dateTime))),
+                    DataCell(
+                      Text(_formatDate(txn.transactionDate ?? txn.dateTime)),
+                    ),
                     DataCell(
                       SizedBox(
                         width: 180,

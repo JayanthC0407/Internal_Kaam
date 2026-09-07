@@ -22,14 +22,18 @@ String casaPeriodLabel(AppLocalizations l10n, CasaTransactionPeriod period) {
   switch (period) {
     case CasaTransactionPeriod.currentMonth:
       return l10n.casaViewCurrentMonth;
-    case CasaTransactionPeriod.currentDay:
-      return l10n.casaViewCurrentDay;
+    case CasaTransactionPeriod.specificDay:
+      return l10n.casaViewSpecificDay;
     case CasaTransactionPeriod.previousDay:
       return l10n.casaViewPreviousDay;
+    case CasaTransactionPeriod.dateRange:
+      return l10n.casaViewDateRange;
     case CasaTransactionPeriod.previousMonth:
       return l10n.casaViewPreviousMonth;
-    case CasaTransactionPeriod.currentAndPreviousMonth:
-      return l10n.casaViewCurrentAndPreviousMonth;
+    case CasaTransactionPeriod.previousQuarter:
+      return l10n.casaViewPreviousQuarter;
+    case CasaTransactionPeriod.last10:
+      return l10n.casaViewLast10;
   }
 }
 
@@ -45,6 +49,22 @@ String casaCreditDebitLabel(
     case CasaCreditDebitFilter.debits:
       return l10n.casaFilterDebitsOnly;
   }
+}
+
+/// Short "active filter" summary shown above the transaction list, e.g.
+/// `Specific Day · Credits Only · Ref: INV1234`.
+String casaFilterSummary(AppLocalizations l10n, CasaTransactionQuery query) {
+  final parts = <String>[
+    casaPeriodLabel(l10n, query.period),
+    if (query.creditDebit != CasaCreditDebitFilter.all)
+      casaCreditDebitLabel(l10n, query.creditDebit),
+    if ((query.fromAmount ?? '').trim().isNotEmpty ||
+        (query.toAmount ?? '').trim().isNotEmpty)
+      '${query.fromAmount?.trim() ?? ''}–${query.toAmount?.trim() ?? ''}',
+    if ((query.referenceNumber ?? '').trim().isNotEmpty)
+      query.referenceNumber!.trim(),
+  ];
+  return parts.join('  ·  ');
 }
 
 Future<CasaTransactionFilterResult?> showCasaTransactionFilter({
@@ -83,7 +103,11 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   late String _accountId;
   late CasaTransactionPeriod _period;
   late CasaCreditDebitFilter _creditDebit;
-  late final TextEditingController _amountController;
+  DateTime? _specificDate;
+  DateTime? _rangeStart;
+  DateTime? _rangeEnd;
+  late final TextEditingController _fromAmountController;
+  late final TextEditingController _toAmountController;
   late final TextEditingController _referenceController;
 
   @override
@@ -92,25 +116,41 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
     _accountId = widget.selectedAccountId;
     _period = widget.query.period;
     _creditDebit = widget.query.creditDebit;
-    _amountController = TextEditingController(text: widget.query.amount ?? '');
+    _specificDate = widget.query.specificDate;
+    _rangeStart = widget.query.rangeStart;
+    _rangeEnd = widget.query.rangeEnd;
+    _fromAmountController =
+        TextEditingController(text: widget.query.fromAmount ?? '');
+    _toAmountController =
+        TextEditingController(text: widget.query.toAmount ?? '');
     _referenceController =
         TextEditingController(text: widget.query.referenceNumber ?? '');
   }
 
   @override
   void dispose() {
-    _amountController.dispose();
+    _fromAmountController.dispose();
+    _toAmountController.dispose();
     _referenceController.dispose();
     super.dispose();
   }
+
+  bool get _needsSpecificDate => _period == CasaTransactionPeriod.specificDay;
+  bool get _needsDateRange => _period == CasaTransactionPeriod.dateRange;
 
   CasaTransactionQuery _buildQuery() {
     return CasaTransactionQuery(
       period: _period,
       creditDebit: _creditDebit,
-      amount: _amountController.text.trim().isEmpty
+      specificDate: _needsSpecificDate ? _specificDate : null,
+      rangeStart: _needsDateRange ? _rangeStart : null,
+      rangeEnd: _needsDateRange ? _rangeEnd : null,
+      fromAmount: _fromAmountController.text.trim().isEmpty
           ? null
-          : _amountController.text.trim(),
+          : _fromAmountController.text.trim(),
+      toAmount: _toAmountController.text.trim().isEmpty
+          ? null
+          : _toAmountController.text.trim(),
       referenceNumber: _referenceController.text.trim().isEmpty
           ? null
           : _referenceController.text.trim(),
@@ -135,11 +175,52 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
     );
   }
 
+  Future<void> _pickSpecificDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _specificDate ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+    );
+    if (picked == null) return;
+    setState(() => _specificDate = picked);
+  }
+
+  Future<void> _pickRangeStart() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _rangeStart ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: _rangeEnd ?? now,
+    );
+    if (picked == null) return;
+    setState(() {
+      _rangeStart = picked;
+      if (_rangeEnd != null && _rangeEnd!.isBefore(picked)) {
+        _rangeEnd = picked;
+      }
+    });
+  }
+
+  Future<void> _pickRangeEnd() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _rangeEnd ?? now,
+      firstDate: _rangeStart ?? DateTime(now.year - 5),
+      lastDate: now,
+    );
+    if (picked == null) return;
+    setState(() => _rangeEnd = picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
-    final maxHeight = MediaQuery.sizeOf(context).height * 0.75;
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.85;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),
@@ -195,6 +276,44 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
                 setState(() => _period = value);
               },
             ),
+            if (_needsSpecificDate) ...[
+              const SizedBox(height: 16),
+              _FieldLabel(label: l10n.casaFilterDate),
+              const SizedBox(height: 8),
+              _DateField(
+                value: _specificDate,
+                onTap: _pickSpecificDate,
+              ),
+            ],
+            if (_needsDateRange) ...[
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _FieldLabel(label: l10n.casaFilterFromDate),
+                        const SizedBox(height: 8),
+                        _DateField(value: _rangeStart, onTap: _pickRangeStart),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _FieldLabel(label: l10n.casaFilterToDate),
+                        const SizedBox(height: 8),
+                        _DateField(value: _rangeEnd, onTap: _pickRangeEnd),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             _FieldLabel(label: l10n.casaFilterTransactions),
             const SizedBox(height: 8),
@@ -208,15 +327,45 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
               },
             ),
             const SizedBox(height: 16),
-            _FieldLabel(label: l10n.casaFilterAmount),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              textInputAction: TextInputAction.next,
-              decoration: AuthFormStyles.inputDecoration(colors: colors),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _FieldLabel(label: l10n.casaFilterFromAmount),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _fromAmountController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        textInputAction: TextInputAction.next,
+                        decoration: AuthFormStyles.inputDecoration(colors: colors),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _FieldLabel(label: l10n.casaFilterToAmount),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _toAmountController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        textInputAction: TextInputAction.next,
+                        decoration: AuthFormStyles.inputDecoration(colors: colors),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _FieldLabel(label: l10n.casaFilterReferenceNumber),
@@ -290,6 +439,73 @@ class _FieldLabel extends StatelessWidget {
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: HomeColors.textSecondary(context),
+      ),
+    );
+  }
+}
+
+/// Read-only field that opens [showDatePicker] on tap. Shown inline (not
+/// as a modal route) so it fits inside the filter sheet's own scroll view.
+class _DateField extends StatelessWidget {
+  const _DateField({required this.value, required this.onTap});
+
+  final DateTime? value;
+  final VoidCallback onTap;
+
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  String get _label {
+    final date = value;
+    if (date == null) return '';
+    final day = date.day.toString().padLeft(2, '0');
+    return '$day ${_months[date.month - 1]} ${date.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: HomeColors.card(context),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: HomeColors.divider(context)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: HomeColors.divider(context)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: value == null
+                      ? HomeColors.textSecondary(context)
+                      : HomeColors.textPrimary(context),
+                ),
+              ),
+            ),
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 15,
+              color: HomeColors.textSecondary(context),
+            ),
+          ],
+        ),
       ),
     );
   }
