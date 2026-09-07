@@ -20,16 +20,23 @@ class CasaAccountsState {
     this.isLoading = false,
     this.summary,
     this.errorMessage,
+    this.accountsIncludingClosed,
   });
 
   final bool isLoading;
   final CasaAccountsSummary? summary;
   final String? errorMessage;
 
+  /// API-03 result (ACTIVE/DORMANT/CLOSED) — kept separate from [summary]
+  /// (API-01, ACTIVE/DORMANT only) so list/dashboard surfaces never show
+  /// closed accounts by default.
+  final CasaAccountsSummary? accountsIncludingClosed;
+
   CasaAccountsState copyWith({
     bool? isLoading,
     CasaAccountsSummary? summary,
     String? errorMessage,
+    CasaAccountsSummary? accountsIncludingClosed,
     bool clearError = false,
     bool clearSummary = false,
   }) {
@@ -37,6 +44,8 @@ class CasaAccountsState {
       isLoading: isLoading ?? this.isLoading,
       summary: clearSummary ? null : (summary ?? this.summary),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      accountsIncludingClosed:
+          accountsIncludingClosed ?? this.accountsIncludingClosed,
     );
   }
 }
@@ -50,6 +59,19 @@ class CasaAccountsNotifier extends StateNotifier<CasaAccountsState> {
   Future<void> ensureLoaded() async {
     if (_loadedOnce || state.isLoading) return;
     await refresh();
+  }
+
+  /// API-03 — silently refreshes the cached account list to include CLOSED
+  /// accounts, as observed in the doc's transaction-history flow. Fire and
+  /// forget: never surfaces its own loading/error state since it's a
+  /// background supporting call, not the primary list load.
+  Future<void> refreshIncludingClosed() async {
+    final result = await _ref
+        .read(accountsRepositoryProvider)
+        .fetchCasaAccountsIncludingClosed();
+    if (result is Success<CasaAccountsSummary> && result.data != null) {
+      state = state.copyWith(accountsIncludingClosed: result.data);
+    }
   }
 
   Future<void> refresh() async {

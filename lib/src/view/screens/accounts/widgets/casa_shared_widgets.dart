@@ -214,17 +214,21 @@ class CasaScreenHeader extends StatelessWidget {
     required this.title,
     this.trailing,
     this.wide = false,
+    this.onBack,
   });
 
   final String title;
   final Widget? trailing;
   final bool wide;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const CasaBackButton(),
+        CasaBackButton(
+          onPressed: onBack,
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(

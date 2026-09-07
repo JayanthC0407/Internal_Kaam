@@ -22,6 +22,32 @@ class StatementFile {
   final String mimeType;
 }
 
+/// `common/v1/currentDate` (API-05) response.
+class BankingDate {
+  const BankingDate({this.currentDate, this.nextWorkingDate, this.prevWorkingDate});
+
+  final DateTime? currentDate;
+  final DateTime? nextWorkingDate;
+  final DateTime? prevWorkingDate;
+
+  factory BankingDate.fromPayload(dynamic data) {
+    Map<String, dynamic>? root;
+    if (data is Map) {
+      root = Map<String, dynamic>.from(data);
+      final nested = root['branchDateDefinitionDTO'];
+      if (nested is Map) root = Map<String, dynamic>.from(nested);
+    }
+    root ??= const {};
+    DateTime? parse(dynamic v) =>
+        v == null ? null : DateTime.tryParse(v.toString());
+    return BankingDate(
+      currentDate: parse(root['currentDate']),
+      nextWorkingDate: parse(root['nextWorkingDate']),
+      prevWorkingDate: parse(root['prevWorkingDate']),
+    );
+  }
+}
+
 class AccountsRepository {
   AccountsRepository({required ObdxAccountsApi accountsApi})
       : _accountsApi = accountsApi;
@@ -32,6 +58,33 @@ class AccountsRepository {
     try {
       final result = await _accountsApi.fetchDemandDepositAccounts();
       return _parseSuccessBody(result, CasaAccountsSummary.fromPayload);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// `GET /demandDeposit?...&status=CLOSED` (API-03) — CASA accounts
+  /// including CLOSED ones, captured as part of the transaction-history
+  /// flow. Kept separate from [fetchCasaAccounts] (API-01, ACTIVE/DORMANT
+  /// only) so dashboard/list surfaces never show closed accounts by default.
+  Future<ResponseHandler<CasaAccountsSummary>>
+      fetchCasaAccountsIncludingClosed() async {
+    try {
+      final result = await _accountsApi.fetchDemandDepositAccounts(
+        statuses: const ['ACTIVE', 'DORMANT', 'CLOSED'],
+      );
+      return _parseSuccessBody(result, CasaAccountsSummary.fromPayload);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// `GET /common/v1/currentDate` (API-05) — banking/business date, fetched
+  /// as a supporting call in the transaction-history flow.
+  Future<ResponseHandler<BankingDate>> fetchCurrentBankingDate() async {
+    try {
+      final result = await _accountsApi.fetchCurrentDate();
+      return _parseSuccessBody(result, BankingDate.fromPayload);
     } catch (_) {
       return ResponseHandler.exceptionError();
     }

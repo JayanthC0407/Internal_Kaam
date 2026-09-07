@@ -6,6 +6,8 @@ import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
+import 'package:ubci_bank/src/view/screens/accounts/casa_account_details_screen.dart';
+import 'package:ubci_bank/src/view/screens/accounts/casa_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/casa_accounts_panel.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
 
@@ -59,7 +61,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   int _heroSlideIndex = 0;
   int _selectedTopTabIndex = 0;
   late int _selectedBottomNavIndex;
+  
   WebPayeeDestination? _selectedPayeeDestination;
+  WebAccountsDestination? _selectedAccountsDestination;
+
+  String? _selectedCasaAccountId;
+
   bool _addPayeeOpenedFromManage = false;
   bool _hideTotalBalance = true;
   final Set<String> _revealedAccountIds = <String>{};
@@ -121,9 +128,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                   WebNavigationSidebar(
                     selectedIndex: _selectedBottomNavIndex,
                     selectedPayeeDestination: _selectedPayeeDestination,
+                    selectedAccountsDestination: _selectedAccountsDestination,
                     onSelected: (index) => setState(() {
                       _selectedBottomNavIndex = index;
                       _selectedPayeeDestination = null;
+                      _selectedAccountsDestination = null;
+                      _selectedCasaAccountId = null;
                     }),
                     onPayeeSelected: (destination) => setState(() {
                       _selectedPayeeDestination = destination;
@@ -137,6 +147,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                       _selectedBottomNavIndex =
                           _navIndexForPayeeDestination(destination);
                     }),
+                    onAccountsSelected: _openAccountsDestination,
                   ),
                   Expanded(child: content),
                 ],
@@ -173,6 +184,28 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen);
   }
 
+  /// "Accounts" ▸ CASA / Loans from the side panel / nav drawer — both are
+  /// one-shot pushes onto a fresh screen (see [WebAccountsDestination]),
+  /// not embedded destinations, so there's no selected-index bookkeeping
+  /// here beyond routing to the right screen.
+  void _openAccountsDestination(WebAccountsDestination destination) {
+  switch (destination) {
+    case WebAccountsDestination.casa:
+      setState(() {
+        _selectedAccountsDestination = WebAccountsDestination.casa;
+        _selectedPayeeDestination = null;
+        _selectedCasaAccountId = null;
+        _selectedBottomNavIndex = 9;
+      });
+
+    case WebAccountsDestination.loans:
+      _selectedAccountsDestination = WebAccountsDestination.loans;
+      _selectedPayeeDestination = null;
+      _selectedCasaAccountId = null;
+      _openLoanAccountsList();
+  }
+}
+
   /// Bottom-nav index that renders the given Payee destination.
   int _navIndexForPayeeDestination(WebPayeeDestination destination) {
     switch (destination) {
@@ -196,11 +229,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       child: SafeArea(
         child: AppNavContent(
           selectedIndex: _selectedBottomNavIndex,
+          selectedAccountsDestination: _selectedAccountsDestination,
           onSelected: (index) {
             Navigator.of(context).pop();
             setState(() {
               _selectedBottomNavIndex = index;
               _selectedPayeeDestination = null;
+              _selectedAccountsDestination = null;
+              _selectedCasaAccountId = null;
             });
           },
           selectedPayeeDestination: _selectedPayeeDestination,
@@ -218,6 +254,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               _selectedBottomNavIndex =
                   _navIndexForPayeeDestination(destination);
             });
+          },
+          onAccountsSelected: (destination) {
+            Navigator.of(context).pop();
+            _openAccountsDestination(destination);
           },
         ),
       ),
@@ -625,10 +665,47 @@ gradient: AppGradients.primary(context),
   }
 
   Widget _buildWideDestination(CasaAccountsState accountsState) {
-    return SafeArea(
-      child: _buildCurrentBody(accountsState),
-    );
+  switch (_selectedBottomNavIndex) {
+    case 9:
+      if (_selectedCasaAccountId != null) {
+        return SafeArea(
+          child: CasaAccountDetailsScreen(
+            accountId: _selectedCasaAccountId!,
+            embedded: true,
+            onBack: () {
+              setState(() {
+                _selectedCasaAccountId = null;
+              });
+            },
+          ),
+        );
+      }
+
+      return SafeArea(
+        child: CasaAccountsListScreen(
+          embedded: true,
+          onAccountSelected: (account) {
+            setState(() {
+              _selectedCasaAccountId = account.id;
+            });
+          },
+          onBack: () {
+            setState(() {
+              _selectedAccountsDestination = null;
+              _selectedCasaAccountId = null;
+              _selectedPayeeDestination = null;
+              _selectedBottomNavIndex = 0;
+            });
+          },
+        ),
+      );
+
+    default:
+      return SafeArea(
+        child: _buildCurrentBody(accountsState),
+      );
   }
+}
 
   String? _heroBalanceText(CasaAccountsSummary? summary) {
     if (summary == null) return null;

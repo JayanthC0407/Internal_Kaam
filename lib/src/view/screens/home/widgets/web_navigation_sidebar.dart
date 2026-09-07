@@ -4,6 +4,12 @@ import 'package:ubci_bank/src/view/screens/home/widgets/app_nav_content.dart';
 
 enum WebPayeeDestination { manage, add, addDemandDraft, addPeerToPeer }
 
+/// "Accounts" ▸ CASA / Loans — both are one-shot navigations (they push a
+/// full screen rather than swapping embedded dashboard content), so unlike
+/// [WebPayeeDestination] there's no need to track which one stays "selected"
+/// across rebuilds; see [AppNavContent] for the expand/collapse-only state.
+enum WebAccountsDestination { casa, loans }
+
 /// Persistent desktop side panel. On mobile/tablet the same menu content
 /// ([AppNavContent]) is shown inside a [Drawer] instead — see
 /// [HomeDashboardScreen]'s `drawer:`. [BottomNav] remains the dedicated
@@ -17,14 +23,18 @@ class WebNavigationSidebar extends StatefulWidget {
     super.key,
     required this.selectedIndex,
     required this.onSelected,
+    this.selectedAccountsDestination,
     this.selectedPayeeDestination,
     this.onPayeeSelected,
+    this.onAccountsSelected,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onSelected;
   final WebPayeeDestination? selectedPayeeDestination;
+  final WebAccountsDestination? selectedAccountsDestination;
   final ValueChanged<WebPayeeDestination>? onPayeeSelected;
+  final ValueChanged<WebAccountsDestination>? onAccountsSelected;
 
   @override
   State<WebNavigationSidebar> createState() => _WebNavigationSidebarState();
@@ -54,8 +64,10 @@ class _WebNavigationSidebarState extends State<WebNavigationSidebar> {
             AppNavContent(
               selectedIndex: widget.selectedIndex,
               onSelected: widget.onSelected,
+              selectedAccountsDestination: widget.selectedAccountsDestination,
               selectedPayeeDestination: widget.selectedPayeeDestination,
               onPayeeSelected: widget.onPayeeSelected,
+              onAccountsSelected: widget.onAccountsSelected,
               collapsed: _collapsed,
             ),
             Positioned(
