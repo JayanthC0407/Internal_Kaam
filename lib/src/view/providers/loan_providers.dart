@@ -89,3 +89,10 @@ final loanAccountsProvider =
     StateNotifierProvider<LoanAccountsNotifier, LoanAccountsState>(
   (ref) => LoanAccountsNotifier(ref),
 );
+
+/// Currency tab currently selected on the loan tracker / loans list, for
+/// customers holding loans in more than one currency. `null` means "not
+/// chosen yet" — consumers fall back to [LoanAccountsSummary.primaryCurrency]
+/// in that case. Kept as a single shared provider so the dashboard tracker
+/// card and the "Loans & Finances" list screen stay in sync with each other.
+final selectedLoanCurrencyProvider = StateProvider<String?>((ref) => null);
