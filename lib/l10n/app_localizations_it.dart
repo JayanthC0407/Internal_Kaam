@@ -961,6 +961,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get casaFilterAmount => 'Importo';
 
   @override
+  String get casaFilterFromAmount => 'Importo da';
+
+  @override
+  String get casaFilterToAmount => 'Importo a';
+
+  @override
+  String get casaFilterDate => 'Data';
+
+  @override
+  String get casaFilterFromDate => 'Data inizio';
+
+  @override
+  String get casaFilterToDate => 'Data fine';
+
+  @override
   String get casaFilterReferenceNumber => 'Numero di riferimento';
 
   @override
@@ -979,7 +994,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get casaViewPreviousDay => 'Giorno precedente';
 
   @override
+  String get casaViewDateRange => 'Intervallo di date';
+
+  @override
+  String get casaViewSpecificDay => 'Giorno specifico';
+
+  @override
   String get casaViewPreviousMonth => 'Mese precedente';
+
+  @override
+  String get casaViewPreviousQuarter => 'Trimestre precedente';
+
+  @override
+  String get casaViewLast10 => 'Ultime 10 transazioni';
 
   @override
   String get casaViewCurrentAndPreviousMonth => 'Mese corrente e precedente';
