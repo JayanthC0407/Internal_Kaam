@@ -129,50 +129,91 @@ class _QuickActionTileState extends State<_QuickActionTile> {
   }
 
   @override
-Widget build(BuildContext context) {
-  final tileColor = HomeColors.backgroundSecondary(context);
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileColor = HomeColors.backgroundSecondary(context);
+    final hoverColor = isDark
+        ? brand.withValues(alpha: 0.10)
+        : Color.alphaBlend(brand.withValues(alpha: 0.055), tileColor);
+    final hoverBorder = brand.withValues(alpha: isDark ? 0.70 : 0.38);
+    final hoverShadow = brand.withValues(alpha: isDark ? 0.22 : 0.12);
+    final transform = Matrix4.identity()
+      ..setEntry(3, 2, 0.0015)
+      ..rotateX(_isHovered ? -_pointerPosition.dy * 0.12 : 0)
+      ..rotateY(_isHovered ? _pointerPosition.dx * 0.12 : 0)
+      ..translate(0.0, _isHovered ? -4.0 : 0.0);
 
-  return Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: widget.action.onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 6,
-          vertical: 8,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onHover: _updatePointer,
+      onExit: (_) => setState(() {
+        _isHovered = false;
+        _pointerPosition = Offset.zero;
+      }),
+      child: TweenAnimationBuilder<Matrix4>(
+        tween: Matrix4Tween(end: transform),
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
+        builder: (context, value, child) => Transform(
+          alignment: Alignment.center,
+          transform: value!,
+          child: child,
         ),
-        decoration: BoxDecoration(
-          color: tileColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: HomeColors.divider(context),
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              widget.action.icon,
-              size: 22,
-              color: HomeColors.brand(context),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.action.label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: HomeColors.textPrimary(context),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.action.onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              decoration: BoxDecoration(
+                color: _isHovered ? hoverColor : tileColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isHovered
+                      ? hoverBorder
+                      : HomeColors.divider(context),
+                ),
+                boxShadow: _isHovered
+                    ? [
+                        BoxShadow(
+                          color: hoverShadow,
+                          blurRadius: 14,
+                          offset: const Offset(0, 7),
+                        ),
+                      ]
+                    : const [],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedScale(
+                    scale: _isHovered ? 1.08 : 1,
+                    duration: const Duration(milliseconds: 160),
+                    child: Icon(widget.action.icon, size: 20, color: brand),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.action.label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.15,
+                      color: HomeColors.textPrimary(context),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

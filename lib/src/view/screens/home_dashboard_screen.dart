@@ -412,6 +412,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     onMenuTap:
                         Responsive.of(context).isDesktop ? null : _openMenu,
                   ),
+                  const SizedBox(height: 20),
                   // if (stackHero) ...[
                   //   _buildWebBalanceCard(
                   //     l10n: l10n,
