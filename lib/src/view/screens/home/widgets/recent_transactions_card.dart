@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/account_category.dart';
-import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/providers/recent_transactions_widget_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_transactions_screen.dart';
@@ -14,11 +13,10 @@ import 'package:ubci_bank/src/view/screens/transactions/widgets/transaction_tile
 import '../home_colors.dart';
 
 /// Shows [items] as a menu anchored directly under the tapped field,
-/// instead of a full [showModalBottomSheet] — used on wide/tablet+desktop
-/// (web) layouts so the "Account Type" / "Account Number" selectors behave
-/// like a normal dropdown opening right at the placeholder, rather than a
-/// mobile-style sheet covering the page. The bottom sheet stays as-is on
-/// phones, where it's the expected pattern.
+/// instead of a full [showModalBottomSheet] — used on every layout (mobile
+/// included) so the "Account Type" / "Account Number" selectors behave like
+/// a normal dropdown opening right at the placeholder, rather than a sheet
+/// popup covering the page.
 Future<T?> _showAnchoredPicker<T>(
   BuildContext context,
   List<PopupMenuEntry<T>> items,
@@ -250,9 +248,9 @@ class _RecentTransactionsCardState
   }
 }
 
-/// "Account Type" dropdown — a plain tappable field that opens a bottom
-/// sheet listing all 5 [AccountCategory] values, matching the reference
-/// design's select-box look.
+/// "Account Type" dropdown — a plain tappable field that opens an anchored
+/// menu listing all 5 [AccountCategory] values right below itself, matching
+/// the reference design's select-box look.
 class _CategoryField extends StatelessWidget {
   const _CategoryField({
     required this.l10n,
@@ -318,55 +316,8 @@ class _CategoryField extends StatelessWidget {
   }
 
   Future<void> _openPicker(BuildContext context) async {
-    if (!Responsive.of(context).useWideLayout) {
-      return showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: HomeColors.card(context),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-        ),
-        builder: (sheetContext) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final category in AccountCategory.values)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        _label(category),
-                        style: TextStyle(
-                          fontWeight: category == selected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: HomeColors.textPrimary(sheetContext),
-                        ),
-                      ),
-                      trailing: category == selected
-                          ? Icon(
-                              Icons.check_circle,
-                              size: 18,
-                              color: HomeColors.brand(sheetContext),
-                            )
-                          : null,
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        if (category != selected) onSelected(category);
-                      },
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
-
-    // Wide/desktop (web): drop the options right below this field instead
-    // of covering the page with a bottom sheet.
+    // Drop the options right below this field on every layout — mobile
+    // included — instead of covering the page with a bottom sheet.
     final result = await _showAnchoredPicker<AccountCategory>(
       context,
       [
@@ -470,74 +421,8 @@ class _AccountNumberField extends StatelessWidget {
   }
 
   Future<void> _openPicker(BuildContext context) async {
-    if (!Responsive.of(context).useWideLayout) {
-      return showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: HomeColors.card(context),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-        ),
-        builder: (sheetContext) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Flexible(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: accounts.length,
-                      separatorBuilder: (_, __) => Divider(
-                        height: 1,
-                        color: HomeColors.divider(sheetContext),
-                      ),
-                      itemBuilder: (context, index) {
-                        final account = accounts[index];
-                        final selected = account.id == selectedAccountId;
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            account.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: HomeColors.textPrimary(context),
-                            ),
-                          ),
-                          subtitle: Text(
-                            account.subtitle,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: HomeColors.textSecondary(context),
-                            ),
-                          ),
-                          trailing: selected
-                              ? Icon(
-                                  Icons.check_circle,
-                                  size: 18,
-                                  color: HomeColors.brand(context),
-                                )
-                              : null,
-                          onTap: () {
-                            Navigator.of(sheetContext).pop();
-                            onSelected(account.id);
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
-
-    // Wide/desktop (web): drop the account list right below this field
-    // instead of covering the page with a bottom sheet.
+    // Drop the account list right below this field on every layout —
+    // mobile included — instead of covering the page with a bottom sheet.
     final result = await _showAnchoredPicker<String>(
       context,
       [
