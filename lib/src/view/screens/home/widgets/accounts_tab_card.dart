@@ -98,7 +98,7 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
   Widget build(BuildContext context) {
     // TODO(l10n): wire through AppLocalizations once translated keys land
     // for the Credit Card / Loans / Insurance tab labels.
-    const tabs = ['Accounts', 'Credit Card', 'Loans', 'Insurance'];
+    const tabs = ['CASA', 'Credit Card', 'Loans', 'Insurance'];
 
     return Container(
       width: double.infinity,
