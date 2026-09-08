@@ -314,6 +314,39 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           onBack: () => setState(() => _returnFromAddPayee()),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
+      case 9:
+        if (_selectedCasaAccountId != null) {
+          return SafeArea(
+            child: CasaAccountDetailsScreen(
+              accountId: _selectedCasaAccountId!,
+              embedded: true,
+              onBack: () {
+                setState(() {
+                  _selectedCasaAccountId = null;
+                });
+              },
+            ),
+          );
+        }
+
+        return SafeArea(
+          child: CasaAccountsListScreen(
+            embedded: true,
+            onAccountSelected: (account) {
+              setState(() {
+                _selectedCasaAccountId = account.id;
+              });
+            },
+            onBack: () {
+              setState(() {
+                _selectedAccountsDestination = null;
+                _selectedCasaAccountId = null;
+                _selectedPayeeDestination = null;
+                _selectedBottomNavIndex = 0;
+              });
+            },
+          ),
+        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
@@ -374,6 +407,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             onRetryAccounts: () =>
                 ref.read(casaAccountsProvider.notifier).refresh(),
             onViewAllLoans: _openLoanAccountsList,
+            onViewAllAccountsTap: () =>
+                _openAccountsDestination(WebAccountsDestination.casa),
             displayName: displayName,
             onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
           ),
@@ -460,6 +495,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     onRetryAccounts: () =>
                         ref.read(casaAccountsProvider.notifier).refresh(),
                     onViewAllLoans: _openLoanAccountsList,
+                    onViewAllAccountsTap: () =>
+                        _openAccountsDestination(WebAccountsDestination.casa),
                     isWide: true,
                     displayName: displayName,
                     onTransferTap: () =>
