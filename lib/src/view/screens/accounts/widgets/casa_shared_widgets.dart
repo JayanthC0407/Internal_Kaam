@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/core/theme/app_gradients.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 
-/// Dark teal summary banner used on CASA details / transactions screens.
-/// Matches Figma brand gradient `#005C51 → #004A41 → #002E29` + logomark watermark.
+/// Brand summary banner used on CASA details / transactions screens.
+/// Uses the app's cyan brand gradient (see [AppGradients.primary]) +
+/// logomark watermark.
 ///
 /// Logomark placement (mobile details card, Figma `11:6737`):
 /// card 361×178 → mark at x=292, y=-73, size ~210×221 (mostly clipped top-right).
@@ -19,22 +21,13 @@ class CasaBrandBanner extends StatelessWidget {
   final List<Widget> children;
   final EdgeInsetsGeometry padding;
 
-  static const _brand500 = Color(0xFF005C51);
-  static const _brand600 = Color(0xFF004A41);
-  static const _brand800 = Color(0xFF002E29);
-
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_brand500, _brand600, _brand800],
-            stops: [0.0, 0.45, 1.0],
-          ),
+        decoration: BoxDecoration(
+          gradient: AppGradients.primary(context),
         ),
         child: Stack(
           clipBehavior: Clip.hardEdge,
