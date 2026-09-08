@@ -95,7 +95,14 @@ class BottomNav extends StatelessWidget {
                         icon: Icons.pie_chart_outline_rounded,
                         label: l10n.insights,
                       ),
-                      const SizedBox(width: _fabSize),
+                      // Flexible (not a fixed SizedBox) so this reserved
+                      // gap for the floating swap button can shrink to 0
+                      // instead of forcing an overflow if the row is ever
+                      // handed less width than _fabSize for a frame (e.g.
+                      // during a resize/route-transition).
+                      const Flexible(
+                        child: SizedBox(width: _fabSize),
+                      ),
                       item(
                         index: 3,
                         icon: Icons.card_giftcard_rounded,

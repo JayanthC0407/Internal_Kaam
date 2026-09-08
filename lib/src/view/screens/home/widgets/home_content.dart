@@ -71,18 +71,6 @@ class HomeContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _MainTabs(
-              selectedIndex: selectedTopTabIndex,
-              onSelected: onTopTabSelected,
-              tabLabels: (
-                l10n.overview,
-                l10n.accounts,
-                l10n.cards,
-                l10n.deposit,
-              ),
-              isWide: isWide,
-            ),
-            SizedBox(height: isWide ? 22 : 16),
             _buildSelectedContent(context, l10n),
           ],
         ),
