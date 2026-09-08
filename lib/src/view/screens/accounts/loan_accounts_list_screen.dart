@@ -24,7 +24,26 @@ import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 /// a searchable/filterable account list, and a table-style layout on
 /// tablet/desktop widths.
 class LoanAccountsListScreen extends ConsumerStatefulWidget {
-  const LoanAccountsListScreen({super.key});
+  const LoanAccountsListScreen({
+    super.key,
+    this.embedded = false,
+    this.onLoanSelected,
+    this.onBack,
+  });
+
+  /// When `true`, this screen is rendered inline inside the desktop/wide
+  /// dashboard shell (next to the persistent [WebNavigationSidebar]) rather
+  /// than pushed as its own route — mirrors [CasaAccountsListScreen].
+  final bool embedded;
+
+  /// Called instead of pushing [LoanAccountDetailsScreen] when [embedded]
+  /// is `true`, so the caller can swap the embedded content while keeping
+  /// the sidebar on screen.
+  final ValueChanged<LoanAccount>? onLoanSelected;
+
+  /// Back handler used by the embedded header; ignored when not embedded
+  /// (the screen then relies on the normal Navigator back button).
+  final VoidCallback? onBack;
 
   @override
   ConsumerState<LoanAccountsListScreen> createState() =>
@@ -119,6 +138,7 @@ class _LoanAccountsListScreenState
               child: CasaScreenHeader(
                 title: l10n.menuLoansFinances,
                 wide: wide,
+                onBack: widget.onBack,
               ),
             ),
             Expanded(
@@ -246,13 +266,19 @@ class _LoanAccountsListScreenState
         else if (loans.isEmpty)
           _EmptyState(message: 'No loans match your search.')
         else if (wide)
-          _LoanTable(loans: loans)
+          _LoanTable(
+            loans: loans,
+            onSelected: widget.embedded ? widget.onLoanSelected : null,
+          )
         else
           Column(
             children: [
               for (var i = 0; i < loans.length; i++) ...[
                 if (i > 0) const SizedBox(height: 12),
-                _LoanCard(loan: loans[i]),
+                _LoanCard(
+                  loan: loans[i],
+                  onSelected: widget.embedded ? widget.onLoanSelected : null,
+                ),
               ],
             ],
           ),
@@ -683,9 +709,10 @@ class _EmptyState extends StatelessWidget {
 /// Desktop/tablet table-style presentation of the loan list, matching the
 /// "Your Accounts" table region in the wide UX spec.
 class _LoanTable extends StatelessWidget {
-  const _LoanTable({required this.loans});
+  const _LoanTable({required this.loans, this.onSelected});
 
   final List<LoanAccount> loans;
+  final ValueChanged<LoanAccount>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -719,7 +746,7 @@ class _LoanTable extends StatelessWidget {
           Divider(height: 1, color: HomeColors.divider(context)),
           for (var i = 0; i < loans.length; i++) ...[
             if (i > 0) Divider(height: 1, color: HomeColors.divider(context)),
-            _LoanRow(loan: loans[i]),
+            _LoanRow(loan: loans[i], onSelected: onSelected),
           ],
         ],
       ),
@@ -737,9 +764,10 @@ class _LoanTable extends StatelessWidget {
 }
 
 class _LoanRow extends StatelessWidget {
-  const _LoanRow({required this.loan});
+  const _LoanRow({required this.loan, this.onSelected});
 
   final LoanAccount loan;
+  final ValueChanged<LoanAccount>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -752,7 +780,7 @@ class _LoanRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _openDetails(context, loan),
+        onTap: () => _openDetails(context, loan, onSelected: onSelected),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
@@ -845,8 +873,16 @@ class _LoanRow extends StatelessWidget {
   }
 }
 
-void _openDetails(BuildContext context, LoanAccount loan) {
+void _openDetails(
+  BuildContext context,
+  LoanAccount loan, {
+  ValueChanged<LoanAccount>? onSelected,
+}) {
   HapticFeedback.selectionClick();
+  if (onSelected != null) {
+    onSelected(loan);
+    return;
+  }
   Navigator.of(context).pushNamed(
     RoutesConst.loanAccountDetailsScreen,
     arguments: LoanAccountDetailsArgs(loan: loan),
@@ -893,9 +929,10 @@ class _StatusBadge extends StatelessWidget {
 
 /// Mobile card presentation of a single loan tile.
 class _LoanCard extends StatelessWidget {
-  const _LoanCard({required this.loan});
+  const _LoanCard({required this.loan, this.onSelected});
 
   final LoanAccount loan;
+  final ValueChanged<LoanAccount>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -911,7 +948,7 @@ class _LoanCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => _openDetails(context, loan),
+        onTap: () => _openDetails(context, loan, onSelected: onSelected),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
