@@ -184,6 +184,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   void _openMenu() => _scaffoldKey.currentState?.openDrawer();
 
+  void _openCasaAccountsList() {
+    Navigator.of(context).pushNamed(RoutesConst.casaAccountsListScreen);
+  }
+
   void _openLoanAccountsList() {
     Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen);
   }
@@ -191,18 +195,28 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// "Accounts" ▸ CASA / Loans from the side panel / nav drawer. On the
   /// wide/desktop shell both destinations embed next to the persistent
   /// sidebar (CASA at index 9, Loans at index 10 — see
-  /// [_buildWideDestination]); on phones, Loans still pushes its own full
-  /// screen since there's no sidebar to keep around.
+  /// [_buildWideDestination]); on phones, both push their own full screen
+  /// since there's no sidebar to keep around.
   void _openAccountsDestination(WebAccountsDestination destination) {
   switch (destination) {
     case WebAccountsDestination.casa:
-      setState(() {
+      // On the wide/desktop shell, CASA is embedded next to the persistent
+      // sidebar so it never disappears. On phones there's no sidebar to
+      // preserve, so it pushes its own full screen for a normal back-stack.
+      if (Responsive.of(context).useWideHome) {
+        setState(() {
+          _selectedAccountsDestination = WebAccountsDestination.casa;
+          _selectedPayeeDestination = null;
+          _selectedCasaAccountId = null;
+          _selectedLoanAccount = null;
+          _selectedBottomNavIndex = 9;
+        });
+      } else {
         _selectedAccountsDestination = WebAccountsDestination.casa;
         _selectedPayeeDestination = null;
-        _selectedCasaAccountId = null;
         _selectedLoanAccount = null;
-        _selectedBottomNavIndex = 9;
-      });
+        _openCasaAccountsList();
+      }
 
     case WebAccountsDestination.loans:
       // On the wide/desktop shell, Loans is embedded next to the
@@ -335,39 +349,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           onBack: () => setState(() => _returnFromAddPayee()),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
-      case 9:
-        if (_selectedCasaAccountId != null) {
-          return SafeArea(
-            child: CasaAccountDetailsScreen(
-              accountId: _selectedCasaAccountId!,
-              embedded: true,
-              onBack: () {
-                setState(() {
-                  _selectedCasaAccountId = null;
-                });
-              },
-            ),
-          );
-        }
-
-        return SafeArea(
-          child: CasaAccountsListScreen(
-            embedded: true,
-            onAccountSelected: (account) {
-              setState(() {
-                _selectedCasaAccountId = account.id;
-              });
-            },
-            onBack: () {
-              setState(() {
-                _selectedAccountsDestination = null;
-                _selectedCasaAccountId = null;
-                _selectedPayeeDestination = null;
-                _selectedBottomNavIndex = 0;
-              });
-            },
-          ),
-        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
@@ -429,6 +410,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 ref.read(casaAccountsProvider.notifier).refresh(),
             onViewAllLoans: () =>
                 _openAccountsDestination(WebAccountsDestination.loans),
+            onViewAllAccountsTap: () =>
+                _openAccountsDestination(WebAccountsDestination.casa),
             displayName: displayName,
             onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
           ),
@@ -516,6 +499,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                         ref.read(casaAccountsProvider.notifier).refresh(),
                     onViewAllLoans: () =>
                         _openAccountsDestination(WebAccountsDestination.loans),
+                    onViewAllAccountsTap: () =>
+                        _openAccountsDestination(WebAccountsDestination.casa),
                     isWide: true,
                     displayName: displayName,
                     onTransferTap: () =>
