@@ -11,6 +11,7 @@ import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/view/providers/loan_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_account_details_screen.dart';
+import 'credit_cards_visual.dart';
 import '../home_colors.dart';
 
 /// Dashboard "Accounts / Credit Card / Loans / Insurance" hero section.
@@ -127,11 +128,9 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
       case _HeroTab.accounts:
         return _buildAccountsTab(context);
       case _HeroTab.creditCard:
-        return const _ComingSoonPlaceholder(
-          icon: Icons.credit_card_outlined,
-          // TODO(l10n): wire through AppLocalizations once a translated
-          // key is added for all locales.
-          title: 'Credit Card',
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: CreditCardsVisual(),
         );
       case _HeroTab.loans:
         return _buildLoansTab(context);

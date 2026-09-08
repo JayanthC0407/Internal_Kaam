@@ -75,6 +75,10 @@ class _RecentTransactionsCardState
       decoration: BoxDecoration(
         color: HomeColors.card(context),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: HomeColors.brand(context).withValues(alpha: 0.15),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
