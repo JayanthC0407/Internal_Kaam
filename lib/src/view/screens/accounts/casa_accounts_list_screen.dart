@@ -93,10 +93,9 @@ class _CasaAccountsListScreenState
                 a.maskedNumber.toLowerCase().contains(search);
           }).toList(growable: false);
 
-    final currentAccounts =
-        allAccounts.where((a) => a.isCurrent).toList(growable: false);
-    final savingAccounts =
-        allAccounts.where((a) => a.isSaving).toList(growable: false);
+    // Dashboard tiles are per-account (not a fixed Current/Savings pair) so a
+    // customer holding e.g. two Savings accounts sees both real balances
+    // instead of an empty "Current Account" placeholder.
 
     return Scaffold(
       backgroundColor: HomeColors.bg(context),
@@ -123,8 +122,6 @@ class _CasaAccountsListScreenState
                   wide: wide,
                   state: state,
                   allAccounts: allAccounts,
-                  currentAccounts: currentAccounts,
-                  savingAccounts: savingAccounts,
                   accounts: accounts,
                 ),
               ),
@@ -141,8 +138,6 @@ class _CasaAccountsListScreenState
     required bool wide,
     required CasaAccountsState state,
     required List<CasaAccount> allAccounts,
-    required List<CasaAccount> currentAccounts,
-    required List<CasaAccount> savingAccounts,
     required List<CasaAccount> accounts,
   }) {
     if (state.isLoading && allAccounts.isEmpty) {
@@ -213,8 +208,7 @@ class _CasaAccountsListScreenState
           totalCurrency: state.summary?.primaryCurrency,
           totalAmount: state.summary?.primaryTotal,
           accountCount: allAccounts.length,
-          currentAccounts: currentAccounts,
-          savingAccounts: savingAccounts,
+          allAccounts: allAccounts,
         ),
         const SizedBox(height: 20),
         if (wide)
@@ -359,8 +353,7 @@ class _SummaryRow extends StatelessWidget {
     required this.totalCurrency,
     required this.totalAmount,
     required this.accountCount,
-    required this.currentAccounts,
-    required this.savingAccounts,
+    required this.allAccounts,
   });
 
   final bool wide;
@@ -369,81 +362,106 @@ class _SummaryRow extends StatelessWidget {
   final String? totalCurrency;
   final double? totalAmount;
   final int accountCount;
-  final List<CasaAccount> currentAccounts;
-  final List<CasaAccount> savingAccounts;
+
+  /// Every CASA account the customer holds — one tile is rendered per
+  /// account (not a fixed Current/Savings pair), so a customer with e.g.
+  /// two Savings accounts and no Current account sees two real Savings
+  /// balances instead of an empty "Current Account" placeholder.
+  final List<CasaAccount> allAccounts;
 
   @override
   Widget build(BuildContext context) {
-    final tiles = <Widget>[
-      Expanded(
-        flex: wide ? 3 : 0,
-        child: _TotalBalanceTile(
-          hideBalance: hideBalance,
-          onToggleHide: onToggleHide,
-          currency: totalCurrency,
-          amount: totalAmount,
-          accountCount: accountCount,
-        ),
-      ),
-      SizedBox(width: wide ? 16 : 0, height: wide ? 0 : 12),
-      Expanded(
-        child: _CategoryTile(
-          icon: Icons.account_balance_wallet_outlined,
-          label: 'Current Account',
-          accounts: currentAccounts,
-          hideBalance: hideBalance,
-        ),
-      ),
-      SizedBox(width: wide ? 16 : 0, height: wide ? 0 : 12),
-      Expanded(
-        child: _CategoryTile(
-          icon: Icons.savings_outlined,
-          label: 'Savings Account',
-          accounts: savingAccounts,
-          hideBalance: hideBalance,
-        ),
-      ),
-    ];
+    final totalTile = _TotalBalanceTile(
+      hideBalance: hideBalance,
+      onToggleHide: onToggleHide,
+      currency: totalCurrency,
+      amount: totalAmount,
+      accountCount: accountCount,
+    );
+
+    final List<Widget> accountTiles = allAccounts.isEmpty
+        ? const <Widget>[_AccountSummaryTile.empty()]
+        : <Widget>[
+            for (final account in allAccounts)
+              _AccountSummaryTile(
+                icon: account.isSaving
+                    ? Icons.savings_outlined
+                    : Icons.account_balance_wallet_outlined,
+                label: account.isSaving
+                    ? 'Savings Account'
+                    : account.isCurrent
+                        ? 'Current Account'
+                        : (account.productName?.trim().isNotEmpty == true
+                            ? account.productName!.trim()
+                            : (account.accountType ?? 'Account')),
+                balance: account.displayBalance?.amount,
+                currency:
+                    account.displayBalance?.currency ?? account.currencyCode,
+                hasBalance: account.displayBalance != null,
+                hideBalance: hideBalance,
+              ),
+          ];
 
     if (!wide) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _TotalBalanceTile(
-            hideBalance: hideBalance,
-            onToggleHide: onToggleHide,
-            currency: totalCurrency,
-            amount: totalAmount,
-            accountCount: accountCount,
-          ),
+          totalTile,
           const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _CategoryTile(
-                  icon: Icons.account_balance_wallet_outlined,
-                  label: 'Current Account',
-                  accounts: currentAccounts,
-                  hideBalance: hideBalance,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _CategoryTile(
-                  icon: Icons.savings_outlined,
-                  label: 'Savings Account',
-                  accounts: savingAccounts,
-                  hideBalance: hideBalance,
-                ),
-              ),
-            ],
-          ),
+          _TileGrid(columns: 2, spacing: 12, tiles: accountTiles),
         ],
       );
     }
 
-    return IntrinsicHeight(child: Row(children: tiles));
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: 3, child: totalTile),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 4,
+          child: _TileGrid(
+            columns: accountTiles.length <= 2 ? accountTiles.length : 3,
+            spacing: 16,
+            tiles: accountTiles,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Lays [tiles] out in a fixed-column, equal-width grid that wraps to as
+/// many rows as needed — so any number of accounts fits without stretching
+/// the layout meant for exactly two categories.
+class _TileGrid extends StatelessWidget {
+  const _TileGrid({
+    required this.columns,
+    required this.spacing,
+    required this.tiles,
+  });
+
+  final int columns;
+  final double spacing;
+  final List<Widget> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    final cols = columns < 1 ? 1 : columns;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width =
+            (constraints.maxWidth - spacing * (cols - 1)) / cols;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final tile in tiles)
+              SizedBox(width: width, child: tile),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -602,31 +620,43 @@ class _TotalBalanceTile extends StatelessWidget {
   }
 }
 
-class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({
+/// One tile per CASA account — shows that account's own type and its own
+/// real balance (never an aggregated or hard-coded category total).
+class _AccountSummaryTile extends StatelessWidget {
+  const _AccountSummaryTile({
     required this.icon,
     required this.label,
-    required this.accounts,
+    required this.balance,
+    required this.currency,
+    required this.hasBalance,
     required this.hideBalance,
   });
 
+  /// Placeholder shown only when the customer has no CASA accounts at all.
+  const _AccountSummaryTile.empty()
+      : icon = Icons.account_balance_wallet_outlined,
+        label = 'Account',
+        balance = null,
+        currency = null,
+        hasBalance = false,
+        hideBalance = false;
+
   final IconData icon;
   final String label;
-  final List<CasaAccount> accounts;
+  final double? balance;
+  final String? currency;
+  final bool hasBalance;
   final bool hideBalance;
 
   @override
   Widget build(BuildContext context) {
-    final currency = accounts.isNotEmpty
-        ? (accounts.first.displayBalance?.currency ?? accounts.first.currencyCode)
-        : null;
-    final total = accounts.fold<double>(
-      0,
-      (sum, a) => sum + (a.displayBalance?.amount ?? 0),
-    );
-    final text = accounts.isEmpty
+    final text = !hasBalance
         ? '—'
-        : MoneyFormat.format(total, currencyCode: currency ?? '', hidden: hideBalance);
+        : MoneyFormat.format(
+            balance ?? 0,
+            currencyCode: currency ?? '',
+            hidden: hideBalance,
+          );
 
     return Container(
       constraints: const BoxConstraints(minHeight: 96),
