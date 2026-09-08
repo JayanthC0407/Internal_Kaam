@@ -45,9 +45,10 @@ class HomeContent extends StatelessWidget {
   final VoidCallback? onRetryAccounts;
   final VoidCallback? onViewAllLoans;
 
-  /// Invoked when "View all accounts" is tapped on the Overview tab's
-  /// account hero card. Navigates to the full CASA accounts list screen
-  /// rather than switching the (now-hidden) internal top-tab index.
+  /// Invoked when "View all accounts" is tapped on the Overview tab's CASA
+  /// card. Navigates to the dedicated CASA accounts screen (same
+  /// destination as Accounts ▸ CASA in the side menu). Falls back to
+  /// switching this widget's own Accounts tab when not provided.
   final VoidCallback? onViewAllAccountsTap;
   final bool isWide;
 
@@ -128,7 +129,7 @@ class HomeContent extends StatelessWidget {
           revealedAccountIds: revealedAccountIds,
           onToggleAccountVisibility: onToggleAccountVisibility,
           onTransferTap: onTransferTap,
-          onViewAllAccountsTap: onViewAllAccountsTap,
+          onViewAllAccountsTap: onViewAllAccountsTap ?? () => onTopTabSelected(1),
           onViewAllLoans: onViewAllLoans,
         );
     }
