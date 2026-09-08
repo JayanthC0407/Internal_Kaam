@@ -29,6 +29,7 @@ class HomeContent extends StatelessWidget {
     this.accountsError,
     this.onRetryAccounts,
     this.onViewAllLoans,
+    this.onViewAllAccountsTap,
     this.isWide = false,
     this.displayName = '',
     this.onTransferTap,
@@ -43,6 +44,11 @@ class HomeContent extends StatelessWidget {
   final String? accountsError;
   final VoidCallback? onRetryAccounts;
   final VoidCallback? onViewAllLoans;
+
+  /// Invoked when "View all accounts" is tapped on the Overview tab's
+  /// account hero card. Navigates to the full CASA accounts list screen
+  /// rather than switching the (now-hidden) internal top-tab index.
+  final VoidCallback? onViewAllAccountsTap;
   final bool isWide;
 
   /// Resolved account-holder name, shown on the Overview tab's account
@@ -122,7 +128,7 @@ class HomeContent extends StatelessWidget {
           revealedAccountIds: revealedAccountIds,
           onToggleAccountVisibility: onToggleAccountVisibility,
           onTransferTap: onTransferTap,
-          onViewAllAccountsTap: () => onTopTabSelected(1),
+          onViewAllAccountsTap: onViewAllAccountsTap,
           onViewAllLoans: onViewAllLoans,
         );
     }
