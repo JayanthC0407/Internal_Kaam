@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/account_category.dart';
+import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/providers/recent_transactions_widget_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_transactions_screen.dart';
@@ -11,6 +12,35 @@ import 'package:ubci_bank/src/view/screens/accounts/loan_transactions_screen.dar
 import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_transaction_tile.dart';
 import 'package:ubci_bank/src/view/screens/transactions/widgets/transaction_tile.dart';
 import '../home_colors.dart';
+
+/// Shows [items] as a menu anchored directly under the tapped field,
+/// instead of a full [showModalBottomSheet] — used on wide/tablet+desktop
+/// (web) layouts so the "Account Type" / "Account Number" selectors behave
+/// like a normal dropdown opening right at the placeholder, rather than a
+/// mobile-style sheet covering the page. The bottom sheet stays as-is on
+/// phones, where it's the expected pattern.
+Future<T?> _showAnchoredPicker<T>(
+  BuildContext context,
+  List<PopupMenuEntry<T>> items,
+) {
+  final button = context.findRenderObject() as RenderBox;
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final position = RelativeRect.fromRect(
+    Rect.fromPoints(
+      button.localToGlobal(Offset.zero, ancestor: overlay),
+      button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+    ),
+    Offset.zero & overlay.size,
+  );
+
+  return showMenu<T>(
+    context: context,
+    position: position,
+    color: HomeColors.card(context),
+    constraints: BoxConstraints(minWidth: button.size.width),
+    items: items,
+  );
+}
 
 /// "Recent Transactions" dashboard widget. Lets the user switch between
 /// account types (Current & Savings, Loans, Term Deposits, Recurring
@@ -287,51 +317,87 @@ class _CategoryField extends StatelessWidget {
     );
   }
 
-  Future<void> _openPicker(BuildContext context) {
-    return showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: HomeColors.card(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final category in AccountCategory.values)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      _label(category),
-                      style: TextStyle(
-                        fontWeight: category == selected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: HomeColors.textPrimary(sheetContext),
+  Future<void> _openPicker(BuildContext context) async {
+    if (!Responsive.of(context).useWideLayout) {
+      return showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: HomeColors.card(context),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        ),
+        builder: (sheetContext) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final category in AccountCategory.values)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        _label(category),
+                        style: TextStyle(
+                          fontWeight: category == selected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: HomeColors.textPrimary(sheetContext),
+                        ),
                       ),
+                      trailing: category == selected
+                          ? Icon(
+                              Icons.check_circle,
+                              size: 18,
+                              color: HomeColors.brand(sheetContext),
+                            )
+                          : null,
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        if (category != selected) onSelected(category);
+                      },
                     ),
-                    trailing: category == selected
-                        ? Icon(
-                            Icons.check_circle,
-                            size: 18,
-                            color: HomeColors.brand(sheetContext),
-                          )
-                        : null,
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      if (category != selected) onSelected(category);
-                    },
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    // Wide/desktop (web): drop the options right below this field instead
+    // of covering the page with a bottom sheet.
+    final result = await _showAnchoredPicker<AccountCategory>(
+      context,
+      [
+        for (final category in AccountCategory.values)
+          PopupMenuItem<AccountCategory>(
+            value: category,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _label(category),
+                    style: TextStyle(
+                      fontWeight: category == selected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: HomeColors.textPrimary(context),
+                    ),
+                  ),
+                ),
+                if (category == selected)
+                  Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: HomeColors.brand(context),
                   ),
               ],
             ),
           ),
-        );
-      },
+      ],
     );
+    if (result != null && result != selected) onSelected(result);
   }
 }
 
@@ -403,70 +469,124 @@ class _AccountNumberField extends StatelessWidget {
     );
   }
 
-  Future<void> _openPicker(BuildContext context) {
-    return showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: HomeColors.card(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: accounts.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 1,
-                      color: HomeColors.divider(sheetContext),
+  Future<void> _openPicker(BuildContext context) async {
+    if (!Responsive.of(context).useWideLayout) {
+      return showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: HomeColors.card(context),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        ),
+        builder: (sheetContext) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: accounts.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: HomeColors.divider(sheetContext),
+                      ),
+                      itemBuilder: (context, index) {
+                        final account = accounts[index];
+                        final selected = account.id == selectedAccountId;
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            account.title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: HomeColors.textPrimary(context),
+                            ),
+                          ),
+                          subtitle: Text(
+                            account.subtitle,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: HomeColors.textSecondary(context),
+                            ),
+                          ),
+                          trailing: selected
+                              ? Icon(
+                                  Icons.check_circle,
+                                  size: 18,
+                                  color: HomeColors.brand(context),
+                                )
+                              : null,
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            onSelected(account.id);
+                          },
+                        );
+                      },
                     ),
-                    itemBuilder: (context, index) {
-                      final account = accounts[index];
-                      final selected = account.id == selectedAccountId;
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          account.title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: HomeColors.textPrimary(context),
-                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    // Wide/desktop (web): drop the account list right below this field
+    // instead of covering the page with a bottom sheet.
+    final result = await _showAnchoredPicker<String>(
+      context,
+      [
+        for (final account in accounts)
+          PopupMenuItem<String>(
+            value: account.id,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        account.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: HomeColors.textPrimary(context),
                         ),
-                        subtitle: Text(
-                          account.subtitle,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: HomeColors.textSecondary(context),
-                          ),
+                      ),
+                      Text(
+                        account.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: HomeColors.textSecondary(context),
                         ),
-                        trailing: selected
-                            ? Icon(
-                                Icons.check_circle,
-                                size: 18,
-                                color: HomeColors.brand(context),
-                              )
-                            : null,
-                        onTap: () {
-                          Navigator.of(sheetContext).pop();
-                          onSelected(account.id);
-                        },
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
+                if (account.id == selectedAccountId) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: HomeColors.brand(context),
+                  ),
+                ],
               ],
             ),
           ),
-        );
-      },
+      ],
     );
+    if (result != null && result != selectedAccountId) onSelected(result);
   }
 }
 
