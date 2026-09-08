@@ -335,6 +335,39 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           onBack: () => setState(() => _returnFromAddPayee()),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
+      case 9:
+        if (_selectedCasaAccountId != null) {
+          return SafeArea(
+            child: CasaAccountDetailsScreen(
+              accountId: _selectedCasaAccountId!,
+              embedded: true,
+              onBack: () {
+                setState(() {
+                  _selectedCasaAccountId = null;
+                });
+              },
+            ),
+          );
+        }
+
+        return SafeArea(
+          child: CasaAccountsListScreen(
+            embedded: true,
+            onAccountSelected: (account) {
+              setState(() {
+                _selectedCasaAccountId = account.id;
+              });
+            },
+            onBack: () {
+              setState(() {
+                _selectedAccountsDestination = null;
+                _selectedCasaAccountId = null;
+                _selectedPayeeDestination = null;
+                _selectedBottomNavIndex = 0;
+              });
+            },
+          ),
+        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
