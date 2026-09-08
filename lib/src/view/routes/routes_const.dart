@@ -10,6 +10,7 @@ class RoutesConst {
   static const String deviceBlockedScreen = '/device_blocked_screen';
   static const String casaAccountsListScreen = '/casa_accounts_list_screen';
   static const String casaAccountDetailsScreen = '/casa_account_details_screen';
+  static const String casaTransactionsScreen = '/casa_transactions_screen';
   static const String loanTransactionsScreen = '/loan_transactions_screen';
   static const String payeesScreen = '/payees_screen';
   static const String addBankAccountPayeeScreen = '/add_bank_account_payee_screen';

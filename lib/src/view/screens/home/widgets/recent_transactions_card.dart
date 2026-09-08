@@ -6,7 +6,7 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/account_category.dart';
 import 'package:ubci_bank/src/view/providers/recent_transactions_widget_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/accounts/casa_account_details_screen.dart';
+import 'package:ubci_bank/src/view/screens/accounts/casa_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/loan_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_transaction_tile.dart';
 import 'package:ubci_bank/src/view/screens/transactions/widgets/transaction_tile.dart';
@@ -47,8 +47,8 @@ class _RecentTransactionsCardState
 
     if (state.category == AccountCategory.currentAndSavings) {
       Navigator.of(context).pushNamed(
-        RoutesConst.casaAccountDetailsScreen,
-        arguments: CasaAccountDetailsArgs(accountId: accountId),
+        RoutesConst.casaTransactionsScreen,
+        arguments: CasaTransactionsArgs(accountId: accountId),
       );
       return;
     }
