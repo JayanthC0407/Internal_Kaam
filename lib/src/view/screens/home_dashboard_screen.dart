@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
+import 'package:ubci_bank/src/core/models/loan_account.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_account_details_screen.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_accounts_list_screen.dart';
+import 'package:ubci_bank/src/view/screens/accounts/loan_account_details_screen.dart';
+import 'package:ubci_bank/src/view/screens/accounts/loan_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/casa_accounts_panel.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
 
@@ -66,6 +69,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   WebAccountsDestination? _selectedAccountsDestination;
 
   String? _selectedCasaAccountId;
+  LoanAccount? _selectedLoanAccount;
 
   bool _addPayeeOpenedFromManage = false;
   bool _hideTotalBalance = true;
@@ -180,29 +184,59 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   void _openMenu() => _scaffoldKey.currentState?.openDrawer();
 
+  void _openCasaAccountsList() {
+    Navigator.of(context).pushNamed(RoutesConst.casaAccountsListScreen);
+  }
+
   void _openLoanAccountsList() {
     Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen);
   }
 
-  /// "Accounts" ▸ CASA / Loans from the side panel / nav drawer — both are
-  /// one-shot pushes onto a fresh screen (see [WebAccountsDestination]),
-  /// not embedded destinations, so there's no selected-index bookkeeping
-  /// here beyond routing to the right screen.
+  /// "Accounts" ▸ CASA / Loans from the side panel / nav drawer. On the
+  /// wide/desktop shell both destinations embed next to the persistent
+  /// sidebar (CASA at index 9, Loans at index 10 — see
+  /// [_buildWideDestination]); on phones, both push their own full screen
+  /// since there's no sidebar to keep around.
   void _openAccountsDestination(WebAccountsDestination destination) {
   switch (destination) {
     case WebAccountsDestination.casa:
-      setState(() {
+      // On the wide/desktop shell, CASA is embedded next to the persistent
+      // sidebar so it never disappears. On phones there's no sidebar to
+      // preserve, so it pushes its own full screen for a normal back-stack.
+      if (Responsive.of(context).useWideHome) {
+        setState(() {
+          _selectedAccountsDestination = WebAccountsDestination.casa;
+          _selectedPayeeDestination = null;
+          _selectedCasaAccountId = null;
+          _selectedLoanAccount = null;
+          _selectedBottomNavIndex = 9;
+        });
+      } else {
         _selectedAccountsDestination = WebAccountsDestination.casa;
         _selectedPayeeDestination = null;
-        _selectedCasaAccountId = null;
-        _selectedBottomNavIndex = 9;
-      });
+        _selectedLoanAccount = null;
+        _openCasaAccountsList();
+      }
 
     case WebAccountsDestination.loans:
-      _selectedAccountsDestination = WebAccountsDestination.loans;
-      _selectedPayeeDestination = null;
-      _selectedCasaAccountId = null;
-      _openLoanAccountsList();
+      // On the wide/desktop shell, Loans is embedded next to the
+      // persistent sidebar exactly like CASA (index 10) so the sidebar
+      // never disappears. On phones there's no sidebar to preserve, so
+      // it keeps pushing its own full screen for a normal back-stack.
+      if (Responsive.of(context).useWideHome) {
+        setState(() {
+          _selectedAccountsDestination = WebAccountsDestination.loans;
+          _selectedPayeeDestination = null;
+          _selectedCasaAccountId = null;
+          _selectedLoanAccount = null;
+          _selectedBottomNavIndex = 10;
+        });
+      } else {
+        _selectedAccountsDestination = WebAccountsDestination.loans;
+        _selectedPayeeDestination = null;
+        _selectedCasaAccountId = null;
+        _openLoanAccountsList();
+      }
   }
 }
 
@@ -237,6 +271,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               _selectedPayeeDestination = null;
               _selectedAccountsDestination = null;
               _selectedCasaAccountId = null;
+              _selectedLoanAccount = null;
             });
           },
           selectedPayeeDestination: _selectedPayeeDestination,
@@ -314,39 +349,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           onBack: () => setState(() => _returnFromAddPayee()),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
-      case 9:
-        if (_selectedCasaAccountId != null) {
-          return SafeArea(
-            child: CasaAccountDetailsScreen(
-              accountId: _selectedCasaAccountId!,
-              embedded: true,
-              onBack: () {
-                setState(() {
-                  _selectedCasaAccountId = null;
-                });
-              },
-            ),
-          );
-        }
-
-        return SafeArea(
-          child: CasaAccountsListScreen(
-            embedded: true,
-            onAccountSelected: (account) {
-              setState(() {
-                _selectedCasaAccountId = account.id;
-              });
-            },
-            onBack: () {
-              setState(() {
-                _selectedAccountsDestination = null;
-                _selectedCasaAccountId = null;
-                _selectedPayeeDestination = null;
-                _selectedBottomNavIndex = 0;
-              });
-            },
-          ),
-        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
@@ -406,7 +408,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             accountsError: accountsState.errorMessage,
             onRetryAccounts: () =>
                 ref.read(casaAccountsProvider.notifier).refresh(),
-            onViewAllLoans: _openLoanAccountsList,
+            onViewAllLoans: () =>
+                _openAccountsDestination(WebAccountsDestination.loans),
             onViewAllAccountsTap: () =>
                 _openAccountsDestination(WebAccountsDestination.casa),
             displayName: displayName,
@@ -494,7 +497,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     accountsError: accountsState.errorMessage,
                     onRetryAccounts: () =>
                         ref.read(casaAccountsProvider.notifier).refresh(),
-                    onViewAllLoans: _openLoanAccountsList,
+                    onViewAllLoans: () =>
+                        _openAccountsDestination(WebAccountsDestination.loans),
                     onViewAllAccountsTap: () =>
                         _openAccountsDestination(WebAccountsDestination.casa),
                     isWide: true,
@@ -731,6 +735,40 @@ gradient: AppGradients.primary(context),
             setState(() {
               _selectedAccountsDestination = null;
               _selectedCasaAccountId = null;
+              _selectedPayeeDestination = null;
+              _selectedBottomNavIndex = 0;
+            });
+          },
+        ),
+      );
+
+    case 10:
+      if (_selectedLoanAccount != null) {
+        return SafeArea(
+          child: LoanAccountDetailsScreen(
+            args: LoanAccountDetailsArgs(loan: _selectedLoanAccount!),
+            embedded: true,
+            onBack: () {
+              setState(() {
+                _selectedLoanAccount = null;
+              });
+            },
+          ),
+        );
+      }
+
+      return SafeArea(
+        child: LoanAccountsListScreen(
+          embedded: true,
+          onLoanSelected: (loan) {
+            setState(() {
+              _selectedLoanAccount = loan;
+            });
+          },
+          onBack: () {
+            setState(() {
+              _selectedAccountsDestination = null;
+              _selectedLoanAccount = null;
               _selectedPayeeDestination = null;
               _selectedBottomNavIndex = 0;
             });
