@@ -12,6 +12,34 @@ import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_transaction_til
 import 'package:ubci_bank/src/view/screens/transactions/widgets/transaction_tile.dart';
 import '../home_colors.dart';
 
+/// Shows [items] as a menu anchored directly under the tapped field,
+/// instead of a full [showModalBottomSheet] — used on every layout (mobile
+/// included) so the "Account Type" / "Account Number" selectors behave like
+/// a normal dropdown opening right at the placeholder, rather than a sheet
+/// popup covering the page.
+Future<T?> _showAnchoredPicker<T>(
+  BuildContext context,
+  List<PopupMenuEntry<T>> items,
+) {
+  final button = context.findRenderObject() as RenderBox;
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final position = RelativeRect.fromRect(
+    Rect.fromPoints(
+      button.localToGlobal(Offset.zero, ancestor: overlay),
+      button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+    ),
+    Offset.zero & overlay.size,
+  );
+
+  return showMenu<T>(
+    context: context,
+    position: position,
+    color: HomeColors.card(context),
+    constraints: BoxConstraints(minWidth: button.size.width),
+    items: items,
+  );
+}
+
 /// "Recent Transactions" dashboard widget. Lets the user switch between
 /// account types (Current & Savings, Loans, Term Deposits, Recurring
 /// Deposits, Credit Cards) and a specific account within that type,
@@ -220,9 +248,9 @@ class _RecentTransactionsCardState
   }
 }
 
-/// "Account Type" dropdown — a plain tappable field that opens a bottom
-/// sheet listing all 5 [AccountCategory] values, matching the reference
-/// design's select-box look.
+/// "Account Type" dropdown — a plain tappable field that opens an anchored
+/// menu listing all 5 [AccountCategory] values right below itself, matching
+/// the reference design's select-box look.
 class _CategoryField extends StatelessWidget {
   const _CategoryField({
     required this.l10n,
@@ -287,51 +315,40 @@ class _CategoryField extends StatelessWidget {
     );
   }
 
-  Future<void> _openPicker(BuildContext context) {
-    return showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: HomeColors.card(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+  Future<void> _openPicker(BuildContext context) async {
+    // Drop the options right below this field on every layout — mobile
+    // included — instead of covering the page with a bottom sheet.
+    final result = await _showAnchoredPicker<AccountCategory>(
+      context,
+      [
+        for (final category in AccountCategory.values)
+          PopupMenuItem<AccountCategory>(
+            value: category,
+            child: Row(
               children: [
-                for (final category in AccountCategory.values)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      _label(category),
-                      style: TextStyle(
-                        fontWeight: category == selected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: HomeColors.textPrimary(sheetContext),
-                      ),
+                Expanded(
+                  child: Text(
+                    _label(category),
+                    style: TextStyle(
+                      fontWeight: category == selected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: HomeColors.textPrimary(context),
                     ),
-                    trailing: category == selected
-                        ? Icon(
-                            Icons.check_circle,
-                            size: 18,
-                            color: HomeColors.brand(sheetContext),
-                          )
-                        : null,
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      if (category != selected) onSelected(category);
-                    },
+                  ),
+                ),
+                if (category == selected)
+                  Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: HomeColors.brand(context),
                   ),
               ],
             ),
           ),
-        );
-      },
+      ],
     );
+    if (result != null && result != selected) onSelected(result);
   }
 }
 
@@ -403,70 +420,58 @@ class _AccountNumberField extends StatelessWidget {
     );
   }
 
-  Future<void> _openPicker(BuildContext context) {
-    return showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: HomeColors.card(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+  Future<void> _openPicker(BuildContext context) async {
+    // Drop the account list right below this field on every layout —
+    // mobile included — instead of covering the page with a bottom sheet.
+    final result = await _showAnchoredPicker<String>(
+      context,
+      [
+        for (final account in accounts)
+          PopupMenuItem<String>(
+            value: account.id,
+            child: Row(
               children: [
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: accounts.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 1,
-                      color: HomeColors.divider(sheetContext),
-                    ),
-                    itemBuilder: (context, index) {
-                      final account = accounts[index];
-                      final selected = account.id == selectedAccountId;
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          account.title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: HomeColors.textPrimary(context),
-                          ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        account.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: HomeColors.textPrimary(context),
                         ),
-                        subtitle: Text(
-                          account.subtitle,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: HomeColors.textSecondary(context),
-                          ),
+                      ),
+                      Text(
+                        account.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: HomeColors.textSecondary(context),
                         ),
-                        trailing: selected
-                            ? Icon(
-                                Icons.check_circle,
-                                size: 18,
-                                color: HomeColors.brand(context),
-                              )
-                            : null,
-                        onTap: () {
-                          Navigator.of(sheetContext).pop();
-                          onSelected(account.id);
-                        },
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
+                if (account.id == selectedAccountId) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: HomeColors.brand(context),
+                  ),
+                ],
               ],
             ),
           ),
-        );
-      },
+      ],
     );
+    if (result != null && result != selectedAccountId) onSelected(result);
   }
 }
 

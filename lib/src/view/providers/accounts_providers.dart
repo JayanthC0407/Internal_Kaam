@@ -56,9 +56,21 @@ class CasaAccountsNotifier extends StateNotifier<CasaAccountsState> {
   final Ref _ref;
   bool _loadedOnce = false;
 
-  Future<void> ensureLoaded() async {
-    if (_loadedOnce || state.isLoading) return;
-    await refresh();
+  // Concurrent `ensureLoaded()` callers (e.g. the dashboard's own
+  // post-frame preload racing the Recent Transactions widget's own
+  // preload) used to just check `state.isLoading` and bail out
+  // immediately if a fetch was already in flight — the second caller
+  // would then read the still-empty `state` before the first fetch had
+  // resolved, which is why "Recent Transactions" could render empty on
+  // the very first load. Sharing the in-flight future instead makes
+  // every caller await the *same* completed load.
+  Future<void>? _pendingLoad;
+
+  Future<void> ensureLoaded() {
+    if (_loadedOnce) return Future.value();
+    return _pendingLoad ??= refresh().whenComplete(() {
+      _pendingLoad = null;
+    });
   }
 
   /// API-03 — silently refreshes the cached account list to include CLOSED

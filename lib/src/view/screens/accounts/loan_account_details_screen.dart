@@ -30,9 +30,22 @@ class LoanAccountDetailsArgs {
 /// grid, and a Schedule / Disbursements segmented list — all in a single
 /// scroll, matching the provided design.
 class LoanAccountDetailsScreen extends ConsumerStatefulWidget {
-  const LoanAccountDetailsScreen({super.key, required this.args});
+  const LoanAccountDetailsScreen({
+    super.key,
+    required this.args,
+    this.embedded = false,
+    this.onBack,
+  });
 
   final LoanAccountDetailsArgs args;
+
+  /// When `true`, this screen is rendered inline inside the desktop/wide
+  /// dashboard shell (next to the persistent [WebNavigationSidebar]) rather
+  /// than pushed as its own route.
+  final bool embedded;
+
+  /// Back handler used by the embedded header; ignored when not embedded.
+  final VoidCallback? onBack;
 
   @override
   ConsumerState<LoanAccountDetailsScreen> createState() =>
@@ -91,6 +104,7 @@ class _LoanAccountDetailsScreenState
               child: CasaScreenHeader(
                 title: widget.args.loan.title,
                 wide: wide,
+                onBack: widget.onBack,
               ),
             ),
             Expanded(
