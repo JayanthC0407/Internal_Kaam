@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:ubci_bank/src/core/models/account_transaction.dart';
 import 'package:ubci_bank/src/view/providers/loan_transactions_screen_provider.dart';
 import 'package:ubci_bank/src/view/providers/recent_transactions_widget_providers.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/account_picker_field.dart';
 import 'package:ubci_bank/src/view/screens/transactions/widgets/transaction_tile.dart';
+import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
+
+/// How many transactions the "View All" screen shows per page.
+const int _pageSize = 10;
 
 /// Route arguments for [LoanTransactionsScreen].
 class LoanTransactionsArgs {
@@ -34,6 +39,9 @@ class LoanTransactionsScreen extends ConsumerStatefulWidget {
 
 class _LoanTransactionsScreenState
     extends ConsumerState<LoanTransactionsScreen> {
+  final _pager = ListPager<AccountTransaction>(pageSize: _pageSize);
+  String? _pagedForAccountId;
+
   @override
   void initState() {
     super.initState();
@@ -142,13 +150,31 @@ class _LoanTransactionsScreenState
       );
     }
 
-    return ListView.separated(
+    // A fresh account load should always land on page 1 rather than
+    // keeping whatever page the previous account happened to be on.
+    if (_pagedForAccountId != state.selectedAccountId) {
+      _pagedForAccountId = state.selectedAccountId;
+      _pager.reset();
+    }
+    final currentPage = _pager.clamp(state.transactions.length);
+    final pageItems = _pager.slice(state.transactions);
+    final pageCount = _pager.pageCount(state.transactions.length);
+
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: state.transactions.length,
-      separatorBuilder: (_, __) =>
-          Divider(height: 1, color: HomeColors.divider(context)),
-      itemBuilder: (context, index) =>
-          TransactionTile(transaction: state.transactions[index]),
+      children: [
+        for (var i = 0; i < pageItems.length; i++) ...[
+          if (i > 0) Divider(height: 1, color: HomeColors.divider(context)),
+          TransactionTile(transaction: pageItems[i]),
+        ],
+        PaginatedListControls(
+          currentPage: currentPage,
+          pageCount: pageCount,
+          totalItems: state.transactions.length,
+          pageSize: _pageSize,
+          onPageChanged: (page) => setState(() => _pager.goTo(page)),
+        ),
+      ],
     );
   }
 }
