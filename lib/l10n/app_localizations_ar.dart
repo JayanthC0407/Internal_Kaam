@@ -1312,6 +1312,64 @@ class AppLocalizationsAr extends AppLocalizations {
       'A new verification code has been sent.';
 
   @override
+  String get registrationCredentialsTitle => 'Create your credentials';
+
+  @override
+  String get registrationCredentialsSubtitle =>
+      'Choose a username and password to sign in to your account from now on.';
+
+  @override
+  String get registrationUsername => 'Username';
+
+  @override
+  String get registrationUsernameHint => 'Choose a username';
+
+  @override
+  String get registrationUsernameInvalid =>
+      'Use 6-50 letters, numbers, or . _ -, starting with a letter or number';
+
+  @override
+  String get registrationPassword => 'Password';
+
+  @override
+  String get registrationPasswordHint => 'Create a password';
+
+  @override
+  String get registrationConfirmPasswordHint => 'Re-enter your password';
+
+  @override
+  String get registrationPasswordPolicyTitle => 'Your password must have:';
+
+  @override
+  String get registrationPasswordRuleMinLength => '8-20 characters';
+
+  @override
+  String get registrationPasswordRuleUppercase => 'An uppercase letter';
+
+  @override
+  String get registrationPasswordRuleLowercase => 'A lowercase letter';
+
+  @override
+  String get registrationPasswordRuleNumber => 'A number';
+
+  @override
+  String get registrationPasswordRuleSpecialChar => 'A special character';
+
+  @override
+  String get registrationPasswordRuleNoUsername =>
+      'Does not contain your username';
+
+  @override
+  String get registrationCredentialsSubmit => 'Create Account';
+
+  @override
+  String get registrationCredentialsSubmitting => 'Creating your account...';
+
+  @override
+  String get registrationCredentialsFailed =>
+      'Could not create your credentials. Please try again.';
+
+  @override
   String get errorUserAlreadyExists =>
       'An account with this username already exists.';
 
@@ -1520,4 +1578,306 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get casaStatementFormatTitle => 'Choose a format';
+
+  @override
+  String get amountAndRateTitle => 'Amount & Rate';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
+  String get calculatedAmount => 'Calculated Amount';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get chargesDebitedFromDebitAccount =>
+      'Charges to be debited from Debit Account';
+
+  @override
+  String get creditAccountCurrency => 'Credit Account Currency';
+
+  @override
+  String get currencyRatesIndicative =>
+      'Currency conversion rates are indicative';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get exchangeRate => 'Exchange Rate';
+
+  @override
+  String get exchangeRateDetailsCard =>
+      'Exchange Rate Details - Card / Preferential Rate';
+
+  @override
+  String get exchangeRateDetailsTitle => 'Exchange Rate Details';
+
+  @override
+  String get existing => 'Existing';
+
+  @override
+  String get existingPayer => 'Existing Payer';
+
+  @override
+  String get hostReferenceNumber => 'رقم المرجع لدى المضيف';
+
+  @override
+  String get immediate => 'Immediate';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get lfwAccept => 'قبول';
+
+  @override
+  String get lfwAcceptTerms => 'أوافق على الشروط والأحكام';
+
+  @override
+  String get lfwAnswerLabel => 'الإجابة';
+
+  @override
+  String get lfwDuplicateQuestion => 'يرجى اختيار سؤال مختلف لكل صف.';
+
+  @override
+  String get lfwEnterAnswer => 'الإجابة';
+
+  @override
+  String get lfwFieldRequired => 'مطلوب';
+
+  @override
+  String get lfwGateErrorTitle => 'تعذر فتح لوحة التحكم';
+
+  @override
+  String get lfwLimitsChannel => 'القناة';
+
+  @override
+  String get lfwLimitsEmptyAssigned =>
+      'لا توجد حالياً حدود معيّنة لهذه المعاملة. يرجى الاتصال بالمسؤول لمزيد من التفاصيل.';
+
+  @override
+  String get lfwLimitsSubtitle => 'راجع حدود معاملاتك ثم تابع.';
+
+  @override
+  String get lfwLimitsTitle => 'حدود المعاملات';
+
+  @override
+  String get lfwLimitsTransactions => 'المعاملات';
+
+  @override
+  String get lfwMustAcceptTerms => 'يرجى قبول الشروط والأحكام للمتابعة.';
+
+  @override
+  String get lfwNoProfileData => 'لا توجد تفاصيل ملف شخصي لعرضها.';
+
+  @override
+  String get lfwProfileDateOfBirth => 'تاريخ الميلاد';
+
+  @override
+  String get lfwProfilePersonalInfo => 'المعلومات الشخصية';
+
+  @override
+  String get lfwProfileSubtitle => 'راجع تفاصيل ملفك الشخصي ثم تابع.';
+
+  @override
+  String get lfwProfileTitle => 'الملف الشخصي';
+
+  @override
+  String get lfwSaveAndContinue => 'إرسال';
+
+  @override
+  String get lfwSecurityNoteBody =>
+      'تعمل أسئلة الأمان كطبقة حماية إضافية تساعد في حماية حسابك من الأنشطة الاحتيالية.';
+
+  @override
+  String get lfwSecurityNoteBullet1 => 'اختيار إجابات يصعب على الآخرين تخمينها';
+
+  @override
+  String get lfwSecurityNoteBullet2 =>
+      'اختيار أسئلة لم تجب عنها في المواقع العامة أو وسائل التواصل الاجتماعي';
+
+  @override
+  String get lfwSecurityNoteMust => 'يجب عليك:';
+
+  @override
+  String get lfwSecurityNoteTitle => 'ملاحظة';
+
+  @override
+  String get lfwSecurityQuestionLabel => 'سؤال الأمان';
+
+  @override
+  String get lfwSecurityQuestionsNotSetup =>
+      'لم يتم إعداد أسئلة أمان المستخدم بعد.';
+
+  @override
+  String get lfwSecurityQuestionsSection => 'أسئلة أمان المستخدم';
+
+  @override
+  String get lfwSecurityQuestionsSetupNow => 'إعداد الآن';
+
+  @override
+  String get lfwSecurityQuestionsSubtitle =>
+      'اختر أسئلة الأمان وأجب عنها. قد تُستخدم لاحقاً للتحقق.';
+
+  @override
+  String get lfwSecurityQuestionsTitle => 'تعيين سؤال الأمان';
+
+  @override
+  String get lfwSelectChannel => 'اختر القناة';
+
+  @override
+  String get lfwSelectQuestion => 'اختر سؤالاً';
+
+  @override
+  String get lfwSelectTransaction => 'اختر المعاملة';
+
+  @override
+  String lfwStepOf(int current, int total) {
+    return 'الخطوة $current من $total';
+  }
+
+  @override
+  String get lfwSubtitle => 'أكمل الخطوات التالية للوصول إلى لوحة التحكم.';
+
+  @override
+  String get lfwTermsSubtitle => 'يرجى قراءة الشروط والأحكام وقبولها للمتابعة.';
+
+  @override
+  String get lfwTermsTitle => 'الشروط والأحكام';
+
+  @override
+  String get lfwTitle => 'إعداد أول مرة';
+
+  @override
+  String get lfwUnknownStep => 'يرجى إكمال خطوة الإعداد هذه للمتابعة.';
+
+  @override
+  String get myAccounts => 'My Accounts';
+
+  @override
+  String get newPayer => 'New Payer';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get note => 'Note';
+
+  @override
+  String get now => 'Now';
+
+  @override
+  String get pay => 'Pay';
+
+  @override
+  String get rateApplied => 'Rate Applied';
+
+  @override
+  String get review => 'Review';
+
+  @override
+  String get scheduled => 'Scheduled';
+
+  @override
+  String get selectCreditAccount => 'Select credit account';
+
+  @override
+  String get selectDebitAccount => 'Select debit account';
+
+  @override
+  String get stationaryCharges => 'Stationary Charges';
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get theyReceive => 'They Receive';
+
+  @override
+  String get timing => 'Timing';
+
+  @override
+  String get transferAmount => 'Transfer Amount';
+
+  @override
+  String get transferAmountRequired => 'Please enter a valid transfer amount.';
+
+  @override
+  String get transferCurrencyLabel => 'Currency';
+
+  @override
+  String get transferFixedRate => 'Fixed';
+
+  @override
+  String get transferFrom => 'Transfer From';
+
+  @override
+  String get transferInsufficientBalance => 'Amount exceeds available balance.';
+
+  @override
+  String get transferLimitsComingSoon =>
+      'Transfer limits will be available soon.';
+
+  @override
+  String get transferMoney => 'Transfer Money';
+
+  @override
+  String get transferOtpSubtitle =>
+      'Enter the verification code to confirm this transfer.';
+
+  @override
+  String get transferSameAccountError =>
+      'Debit and credit accounts must be different.';
+
+  @override
+  String get transferSelectBothAccounts =>
+      'Please select debit and credit accounts.';
+
+  @override
+  String get transferSelectDate => 'Select date';
+
+  @override
+  String get transferSubmitFailed =>
+      'Transfer could not be completed. Please try again.';
+
+  @override
+  String get transferSuccessMessage =>
+      'Your transfer has been submitted successfully.';
+
+  @override
+  String get transferSuccessTitle => 'Transfer successful';
+
+  @override
+  String get transferSummary => 'Transfer Summary';
+
+  @override
+  String get transferSummaryFrom => 'From';
+
+  @override
+  String get transferSummaryTo => 'To';
+
+  @override
+  String get transferTo => 'Transfer To';
+
+  @override
+  String get transferType => 'Transfer Type';
+
+  @override
+  String get transferValidateFailed =>
+      'Unable to validate transfer. Please check the details and try again.';
+
+  @override
+  String get transferWhen => 'Transfer When';
+
+  @override
+  String get viewLimits => 'View Limits';
+
+  @override
+  String get youSend => 'You Send';
 }

@@ -4,6 +4,9 @@ class RoutesConst {
   static const String registrationScreen = '/registration_screen';
   static const String forgotCredentialsScreen = '/forgot_credentials_screen';
   static const String otpLoginScreen = '/otp_login_screen';
+
+  /// First-time Login Flow Wizard (LFW) — ported from vendor branch.
+  static const String loginWizardScreen = '/login_wizard_screen';
   static const String homeScreen = '/home_screen';
   static const String biometricUnlockScreen = '/biometric_unlock_screen';
   static const String biometricSetupScreen = '/biometric_setup_screen';
@@ -25,4 +28,9 @@ class RoutesConst {
   static const String transfersModuleScreen = '/transfers_module_screen';
   static const String transferMoneyScreen = '/transfer_money_screen';
   static const String adhocPayeeTransferScreen = '/adhoc_payee_transfer_screen';
+
+  /// Own-account transfer — ported from vendor branch. Distinct from the
+  /// existing Payments module ([transfersModuleScreen] / [transferMoneyScreen]).
+  static const String ownAccountTransferScreen = '/own_account_transfer_screen';
+  static const String transferSuccessScreen = '/transfer_success_screen';
 }

@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/core/models/registration_request.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/utils/date_of_birth_format.dart';
 import 'package:ubci_bank/src/core/utils/email_validator.dart';
+import 'package:ubci_bank/src/core/utils/password_policy.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
@@ -19,10 +20,11 @@ import 'package:ubci_bank/src/view/widgets/auth/auth_flow_success_panel.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_labeled_field.dart';
 import 'package:ubci_bank/src/view/widgets/auth/otp_challenge_body.dart';
+import 'package:ubci_bank/src/view/widgets/auth/password_policy_checklist.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
 import 'package:ubci_bank/src/view/widgets/terms_and_conditions_sheet.dart';
 
-enum _RegistrationStep { details, verification, success }
+enum _RegistrationStep { details, verification, credentials, success }
 
 class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
@@ -42,6 +44,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _debitCardController = TextEditingController();
   final _codeController = TextEditingController();
   final _codeFocusNode = FocusNode();
+  final _credentialsFormKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   _RegistrationStep _step = _RegistrationStep.details;
   DateTime? _dateOfBirth;
@@ -49,6 +55,15 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   String? _selectedAccountType;
   List<AccountTypeOption> _accountTypes = [];
   bool _loadingAccountTypes = false;
+
+  /// Whether OTP verification is required before credentials can be
+  /// created. Driven by `tokenValid` on the `startRegistration` response —
+  /// when the admin disables registration OTP, OBDX returns `tokenValid:
+  /// true` immediately and the verification step is skipped.
+  bool _otpRequired = true;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  String? _createdUsername;
 
   @override
   void initState() {
@@ -92,6 +107,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     _debitCardController.dispose();
     _codeController.dispose();
     _codeFocusNode.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -145,7 +163,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
     if (!mounted || start == null) return;
     setState(() {
-      _step = _RegistrationStep.verification;
+      _otpRequired = !start.tokenValid;
+      _step = _otpRequired
+          ? _RegistrationStep.verification
+          : _RegistrationStep.credentials;
       _codeController.clear();
     });
   }
@@ -171,6 +192,22 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       _codeFocusNode.requestFocus();
       return;
     }
+    setState(() => _step = _RegistrationStep.credentials);
+  }
+
+  Future<void> _submitCredentials() async {
+    final l10n = AppLocalizations.of(context);
+    if (!(_credentialsFormKey.currentState?.validate() ?? false)) return;
+
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+
+    final createdUsername = await ref
+        .read(registrationScreenVmProvider)
+        .createCredentials(username: username, password: password, l10n: l10n);
+
+    if (!mounted || createdUsername == null) return;
+    _createdUsername = createdUsername;
     setState(() => _step = _RegistrationStep.success);
   }
 
@@ -193,7 +230,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   }
 
   void _goToLogin() {
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(_createdUsername);
   }
 
   void _onBack() {
@@ -201,6 +238,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     if (isLoading) return;
     if (_step == _RegistrationStep.verification) {
       setState(() => _step = _RegistrationStep.details);
+      return;
+    }
+    if (_step == _RegistrationStep.credentials) {
+      setState(() {
+        _step = _otpRequired
+            ? _RegistrationStep.verification
+            : _RegistrationStep.details;
+      });
       return;
     }
     if (_step == _RegistrationStep.success) {
@@ -235,6 +280,12 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           _RegistrationStep.verification => AuthFormShell(
               onBack: isLoading ? null : _onBack,
               child: _buildVerificationBody(l10n, isLoading, errorMessage),
+            ),
+          _RegistrationStep.credentials => AuthFormShell(
+              onBack: isLoading ? null : _onBack,
+              title: l10n.registrationCredentialsTitle,
+              subtitle: l10n.registrationCredentialsSubtitle,
+              child: _buildCredentialsForm(l10n, colors, isLoading, errorMessage),
             ),
           _RegistrationStep.success => AuthFlowSuccessPanel(
               title: l10n.registrationSuccess,
@@ -497,6 +548,143 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       verifyingLabel: l10n.registrationSubmitting,
       didntReceiveLabel: l10n.registrationDidNotGetCode,
       resendLabel: l10n.registrationResendCode,
+    );
+  }
+
+  Widget _buildCredentialsForm(
+    AppLocalizations l10n,
+    AppColors colors,
+    bool isLoading,
+    String? errorMessage,
+  ) {
+    return Form(
+      key: _credentialsFormKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AuthLabeledField(
+            label: l10n.registrationUsername,
+            hint: l10n.registrationUsernameHint,
+            controller: _usernameController,
+            required: true,
+            enabled: !isLoading,
+            autocorrect: false,
+            textInputAction: TextInputAction.next,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            onChanged: (_) => setState(() {}),
+            validator: (value) {
+              final trimmed = value?.trim() ?? '';
+              if (trimmed.isEmpty) {
+                return l10n.registrationUsernameRequired;
+              }
+              if (!PasswordPolicy.isUsernameValid(trimmed)) {
+                return l10n.registrationUsernameInvalid;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          AuthLabeledField(
+            label: l10n.registrationPassword,
+            hint: l10n.registrationPasswordHint,
+            controller: _passwordController,
+            required: true,
+            enabled: !isLoading,
+            obscureText: _obscurePassword,
+            autocorrect: false,
+            textInputAction: TextInputAction.next,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            onChanged: (_) => setState(() {}),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: colors.textSecondary,
+                size: 20,
+              ),
+              onPressed: isLoading
+                  ? null
+                  : () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            validator: (value) {
+              final password = value ?? '';
+              if (password.isEmpty) {
+                return l10n.registrationPasswordRequired;
+              }
+              if (!PasswordPolicy.isPasswordValid(
+                password,
+                username: _usernameController.text,
+              )) {
+                return l10n.registrationPasswordTooShort;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 10),
+          // Rebuilds on every keystroke via the setState calls above/below so
+          // the checklist stays live while typing.
+          PasswordPolicyChecklist(
+            password: _passwordController.text,
+            username: _usernameController.text,
+            title: l10n.registrationPasswordPolicyTitle,
+            minLengthLabel: l10n.registrationPasswordRuleMinLength,
+            uppercaseLabel: l10n.registrationPasswordRuleUppercase,
+            lowercaseLabel: l10n.registrationPasswordRuleLowercase,
+            numberLabel: l10n.registrationPasswordRuleNumber,
+            specialCharLabel: l10n.registrationPasswordRuleSpecialChar,
+            noUsernameLabel: l10n.registrationPasswordRuleNoUsername,
+          ),
+          const SizedBox(height: 12),
+          AuthLabeledField(
+            label: l10n.registrationConfirmPassword,
+            hint: l10n.registrationConfirmPasswordHint,
+            controller: _confirmPasswordController,
+            required: true,
+            enabled: !isLoading,
+            obscureText: _obscureConfirmPassword,
+            autocorrect: false,
+            textInputAction: TextInputAction.done,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            onFieldSubmitted: (_) => _submitCredentials(),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: colors.textSecondary,
+                size: 20,
+              ),
+              onPressed: isLoading
+                  ? null
+                  : () => setState(
+                        () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
+            ),
+            validator: (value) {
+              if ((value ?? '').isEmpty) {
+                return l10n.registrationConfirmPasswordRequired;
+              }
+              if (value != _passwordController.text) {
+                return l10n.registrationPasswordMismatch;
+              }
+              return null;
+            },
+          ),
+          if (errorMessage != null && errorMessage.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            AuthFormErrorBanner(message: errorMessage),
+          ],
+          const SizedBox(height: 22),
+          AuthFormPrimaryButton(
+            label: isLoading
+                ? l10n.registrationCredentialsSubmitting
+                : l10n.registrationCredentialsSubmit,
+            isLoading: isLoading,
+            onPressed: _submitCredentials,
+          ),
+        ],
+      ),
     );
   }
 }

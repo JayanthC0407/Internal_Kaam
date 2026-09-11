@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:ubci_bank/src/core/models/own_account_transfer.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/infra/security/device_security_models.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_account_details_screen.dart';
@@ -16,6 +17,7 @@ import 'package:ubci_bank/src/view/screens/device_blocked_screen.dart';
 import 'package:ubci_bank/src/view/screens/forgot_credentials_screen.dart';
 import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/login_screen.dart';
+import 'package:ubci_bank/src/view/screens/login_wizard_screen.dart';
 import 'package:ubci_bank/src/view/screens/otp_login_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/add_bank_account_payee_screen.dart';
 import 'package:ubci_bank/src/view/screens/payees/add_demand_draft_payee_screen.dart';
@@ -29,6 +31,9 @@ import 'package:ubci_bank/src/view/screens/payments/transfer_money_screen.dart';
 import 'package:ubci_bank/src/view/screens/payments/transfers_module_screen.dart';
 import 'package:ubci_bank/src/view/screens/registration_screen.dart';
 import 'package:ubci_bank/src/view/screens/splash_screen.dart';
+import 'package:ubci_bank/src/view/screens/transfer/own_account_transfer_screen.dart';
+import 'package:ubci_bank/src/view/screens/transfer/transfer_success_screen.dart';
+import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
 import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
 
 class Routes {
@@ -94,6 +99,18 @@ class Routes {
           return PageTransition(
             settings: routeSettings,
             child: OtpLoginScreen(pending: args.pending),
+            type: PageTransitionType.rightToLeft,
+            duration: pageAnimDuration,
+          );
+        }
+        return _splashFallback(routeSettings);
+      case RoutesConst.loginWizardScreen:
+        // First-time Login Flow Wizard (LFW) — ported from vendor branch.
+        final wizardArgs = routeSettings.arguments;
+        if (wizardArgs is LoginWizardArgs) {
+          return PageTransition(
+            settings: routeSettings,
+            child: LoginWizardScreen(args: wizardArgs),
             type: PageTransitionType.rightToLeft,
             duration: pageAnimDuration,
           );
@@ -307,6 +324,57 @@ class Routes {
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,
         );
+      case RoutesConst.ownAccountTransferScreen:
+        // Own-account transfer — ported from vendor branch. Distinct from
+        // the Payments module above (transfersModuleScreen/transferMoneyScreen).
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: OwnAccountTransferScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.transferSuccessScreen:
+        final successArgs = routeSettings.arguments;
+        if (successArgs is TransferConfirmationSnapshot) {
+          return PageTransition(
+            settings: routeSettings,
+            child: AuthenticatedSessionGate(
+              child: SecureScreen(
+                child: TransferSuccessScreen(snapshot: successArgs),
+              ),
+            ),
+            type: PageTransitionType.fade,
+            duration: pageAnimDuration,
+          );
+        }
+        if (successArgs is TransferSubmitResult) {
+          return PageTransition(
+            settings: routeSettings,
+            child: AuthenticatedSessionGate(
+              child: SecureScreen(
+                child: TransferSuccessScreen(
+                  snapshot: TransferConfirmationSnapshot(
+                    result: successArgs,
+                    toMask: '',
+                    toMeta: '',
+                    fromMask: '',
+                    fromMeta: '',
+                    payBy: '',
+                    amountText: '',
+                    whenText: '',
+                    chargesMask: '',
+                    chargesMeta: '',
+                  ),
+                ),
+              ),
+            ),
+            type: PageTransitionType.fade,
+            duration: pageAnimDuration,
+          );
+        }
+        return _splashFallback(routeSettings);
       case RoutesConst.deviceBlockedScreen:
         final threat = routeSettings.arguments;
         if (threat is DeviceThreatType) {
