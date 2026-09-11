@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/infra/repositories/auth_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/biometric_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/forgot_credentials_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/login_wizard_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/registration_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/payee_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/payment_repository.dart';
@@ -50,3 +51,13 @@ final payeeRepositoryProvider = Provider(
 /// See [PaymentRepository] — currently a local mock; no `ObdxPaymentApi`
 /// exists in this codebase yet.
 final paymentRepositoryProvider = Provider((ref) => PaymentRepository());
+
+/// First-time Login Flow Wizard (LFW) — ported from vendor branch.
+final loginWizardRepositoryProvider = Provider(
+  (ref) => LoginWizardRepository(api: ref.watch(obdxLoginWizardApiProvider)),
+);
+
+// Note: `transferRepositoryProvider` (own-account transfer, ported from the
+// vendor branch) is defined in transfer_providers.dart alongside the rest of
+// that feature's Riverpod state — matching the vendor's own file layout —
+// rather than here, to avoid a duplicate top-level declaration.

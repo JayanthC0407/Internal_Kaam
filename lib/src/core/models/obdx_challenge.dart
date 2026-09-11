@@ -35,6 +35,19 @@ class ObdxChallenge {
     });
   }
 
+  /// Payment step-up uses only `X-Challenge.referenceNo`.
+  ///
+  /// Do not fall back to `status.referenceNumber` — on `pay/network` that value
+  /// is a different id than the OTP challenge reference.
+  ///
+  /// Ported from vendor branch — used by [TransferSubmitOutcome.tryParse]
+  /// (own-account transfer).
+  static ObdxChallenge? fromPaymentChallengeHeaders(dynamic headers) {
+    final challenge = fromResponseHeaders(headers);
+    if (challenge == null || challenge.referenceNo.isEmpty) return null;
+    return challenge;
+  }
+
   /// Parses `X-Challenge` from a wrapped OBDX HTTP response `headers` map.
   static ObdxChallenge? fromResponseHeaders(dynamic headers) {
     final raw = _headerValue(headers, 'X-Challenge');
