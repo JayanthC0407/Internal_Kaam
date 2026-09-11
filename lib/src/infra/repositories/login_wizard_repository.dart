@@ -22,37 +22,24 @@ class LoginWizardRepository {
 
   /// Decide whether home is allowed or LFW must run.
   ///
-  /// Primary signal: `GET /sms/v1/loginFlow` pending enabled steps.
-  /// Secondary signal: dashboard modules **428** / `DIGX_CMN_0096`.
+  /// Per "First-Time Login (LFW) Flow — API Reference" §2 "Flow Trigger":
+  /// the *only* trigger is `GET dashboards/modules` returning
+  /// **428 Precondition Required** with code `DIGX_CMN_0096`. Wizard step
+  /// definitions (`steps?wizardType=LFW`) and this user's progress
+  /// (`GET /sms/v1/loginFlow`) are loaded only *after* that signal — never
+  /// as a first probe. This must be checked first, every time, not just on
+  /// first login: once all mandatory steps are completed, `loginFlow.status`
+  /// moves to `COMPLETED` and modules stops returning 428 (doc §6), which
+  /// is what makes this a no-op for a returning user without needing any
+  /// local "already done" flag.
+  ///
+  /// (Previously this called `fetchProgress()` — which hits
+  /// `steps?wizardType=LFW` + `loginFlow` — as the *first* check on every
+  /// gate, regardless of the modules response. That's why the wizard-steps
+  /// API kept firing on every login, including after the wizard was fully
+  /// completed: fixed by only ever reaching `fetchProgress()` below a
+  /// confirmed 428.)
   Future<LfwGateResult> checkGate() async {
-    final progressResult = await fetchProgress();
-    LfwProgress? progress;
-    if (progressResult is Success<LfwProgress> && progressResult.data != null) {
-      progress = progressResult.data!;
-      adLog(
-        'LFW gate: progress status=${progress.status} '
-        'steps=${progress.steps.length} pending=${progress.pendingSteps.length}',
-      );
-      if (progress.pendingSteps.isNotEmpty) {
-        adLog('LFW gate: REQUIRED (pending loginFlow steps)');
-        return LfwGateRequired(progress);
-      }
-      if (progress.isCompleted) {
-        adLog('LFW gate: ALLOWED (loginFlow completed)');
-        return const LfwGateAllowed();
-      }
-      // Steps present but none pending and not marked completed — allow home.
-      if (progress.steps.isNotEmpty) {
-        adLog('LFW gate: ALLOWED (no pending enabled steps)');
-        return const LfwGateAllowed();
-      }
-    } else {
-      adLog(
-        'LFW gate: loginFlow progress unavailable '
-        '(${progressResult.runtimeType}) — probing modules',
-      );
-    }
-
     final modules = await _api.fetchDashboardModules();
     if (modules is! Success<Map<String, dynamic>> || modules.data == null) {
       adLog('LFW gate: modules probe failed — ALLOWED (fail open)');
@@ -70,25 +57,34 @@ class LoginWizardRepository {
     final isLfwRequired = statusCode == ApiConst.preconditionRequired ||
         code == ApiConst.firstTimeLoginFlowNotCompleted;
 
-    if (isLfwRequired) {
-      adLog('LFW gate: REQUIRED (modules 428 / DIGX_CMN_0096)');
-      if (progress != null && progress.pendingSteps.isNotEmpty) {
-        return LfwGateRequired(progress);
-      }
-      // Re-fetch progress once more in case first call raced.
-      final retry = await fetchProgress();
-      if (retry is Success<LfwProgress> &&
-          retry.data != null &&
-          retry.data!.pendingSteps.isNotEmpty) {
-        return LfwGateRequired(retry.data!);
-      }
-      return LfwGateRequired(
-        progress ?? const LfwProgress(status: 'NOTSTARTED', steps: []),
-      );
+    if (!isLfwRequired) {
+      adLog('LFW gate: ALLOWED (modules did not signal 428/DIGX_CMN_0096)');
+      return const LfwGateAllowed();
     }
 
-    adLog('LFW gate: ALLOWED');
-    return const LfwGateAllowed();
+    adLog('LFW gate: modules signaled 428/DIGX_CMN_0096 — loading wizard progress');
+    final progressResult = await fetchProgress();
+    if (progressResult is Success<LfwProgress> && progressResult.data != null) {
+      final progress = progressResult.data!;
+      adLog(
+        'LFW gate: progress status=${progress.status} '
+        'steps=${progress.steps.length} pending=${progress.pendingSteps.length}',
+      );
+      if (progress.isCompleted) {
+        // Modules said 428 but loginFlow already reports COMPLETED — treat
+        // as a transient mismatch rather than looping the user back in.
+        adLog('LFW gate: modules said 428 but loginFlow already COMPLETED — ALLOWED');
+        return const LfwGateAllowed();
+      }
+      adLog('LFW gate: REQUIRED (${progress.pendingSteps.length} pending step(s))');
+      return LfwGateRequired(progress);
+    }
+
+    adLog(
+      'LFW gate: REQUIRED (428 confirmed) but progress unavailable '
+      '(${progressResult.runtimeType}) — wizard will retry on entry',
+    );
+    return const LfwGateRequired(LfwProgress(status: 'NOTSTARTED', steps: []));
   }
 
   Future<ResponseHandler<LfwProgress>> fetchProgress() async {
