@@ -10,8 +10,7 @@ class AuthLogoHeader extends StatelessWidget {
   });
 
   //static const _logoAsset = 'assets/images/demobank_logo.png';
-  static const _logoLightAsset = 'assets/images/logo-light.png';
-static const _logoDarkAsset = 'assets/images/logo-dark.png';
+  static const _logoAsset = 'assets/images/demobank_logo.png';
 
   final VoidCallback? onBack;
   final Widget? trailing;
@@ -33,9 +32,7 @@ static const _logoDarkAsset = 'assets/images/logo-dark.png';
           const SizedBox(width: 4),
         ],
         Image.asset(
-         Theme.of(context).brightness == Brightness.dark
-? _logoDarkAsset
-: _logoLightAsset,
+          _logoAsset,
           height: 32,
           fit: BoxFit.contain,
           errorBuilder: (_, __, ___) => Text(

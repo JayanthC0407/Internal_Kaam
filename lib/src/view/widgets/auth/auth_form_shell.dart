@@ -26,8 +26,7 @@ class AuthFormShell extends StatelessWidget {
   final String? subtitle;
   final double? maxWidth;
   final double bottomInset;
-  static const _logoLightAsset = 'assets/images/logo-light.png';
-  static const _logoDarkAsset = 'assets/images/logo-dark.png';
+  static const _logoAsset = 'assets/images/demobank_logo.png';
 
   @override
 Widget build(BuildContext context) {
@@ -103,11 +102,7 @@ Widget build(BuildContext context) {
     );
   }
 
-  final isDark =
-      Theme.of(context).brightness == Brightness.dark;
-
-  final logoAsset =
-      isDark ? _logoDarkAsset : _logoLightAsset;
+  const logoAsset = _logoAsset;
 
   return Container(
     width: double.infinity,
@@ -306,16 +301,12 @@ class AuthBrandSidePanel extends StatelessWidget {
   const AuthBrandSidePanel({super.key});
 
   //static const _logoAsset = 'assets/images/demobank_logo.png';
-static const _logoLightAsset = 'assets/images/logo-light.png';
-static const _logoDarkAsset = 'assets/images/logo-dark.png';
+  static const _logoAsset = 'assets/images/demobank_logo.png';
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final compact = Responsive.of(context).isCompactHeight;
-final isDark = Theme.of(context).brightness == Brightness.dark;
-final logoAsset = isDark
-? _logoDarkAsset
-: _logoLightAsset;
+  const logoAsset = _logoAsset;
     return Container(
       decoration: BoxDecoration(
         gradient: AppGradients.primary(context),

@@ -13,6 +13,7 @@ import 'package:ubci_bank/src/view/providers/loan_detail_providers.dart';
 import 'package:ubci_bank/src/view/providers/loan_repayment_providers.dart';
 import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_shared_widgets.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/widgets/auth/otp_pin_input.dart';
 import 'package:ubci_bank/src/view/widgets/settlement_account_picker_sheet.dart';
 
 /// Route arguments for [LoanRepaymentScreen].
@@ -1469,12 +1470,14 @@ class _OtpVerificationSheet extends ConsumerStatefulWidget {
 class _OtpVerificationSheetState
     extends ConsumerState<_OtpVerificationSheet> {
   final _otpController = TextEditingController();
+  final _otpFocusNode = FocusNode();
   String? _localError;
   bool _poppedForSuccess = false;
 
   @override
   void dispose() {
     _otpController.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
@@ -1552,33 +1555,22 @@ class _OtpVerificationSheetState
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
+            OtpPinInput(
               controller: _otpController,
-              autofocus: true,
-              obscureText: true,
-              obscuringCharacter: '●',
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 6,
-                color: HomeColors.textPrimary(context),
-              ),
-              decoration: InputDecoration(
-                hintText: l10n.loanRepaymentOtpHint,
-                errorText: inlineError,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+              focusNode: _otpFocusNode,
+              obscuringCharacter: '*',
+            ),
+            if (inlineError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                inlineError,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: HomeColors.error(context),
                 ),
               ),
-              onChanged: (_) {
-                if (_localError != null) {
-                  setState(() => _localError = null);
-                }
-              },
-              onSubmitted: (_) => _submit(),
-            ),
+            ],
             if (attemptsLeft != null) ...[
               const SizedBox(height: 8),
               Text(
