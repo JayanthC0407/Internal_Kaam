@@ -8,6 +8,7 @@ import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
+import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
 import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
 
 class RegistrationRepository {
@@ -26,10 +27,6 @@ class RegistrationRepository {
   String? get activeRegistrationId => _registrationId;
 
   Future<ResponseHandler<List<AccountTypeOption>>> loadAccountTypes() async {
-    final bootstrap = await _ensureAnonymousSession();
-    if (bootstrap is! Success<void>) {
-      return _mapFailure(bootstrap);
-    }
     return _registrationApi.fetchAccountTypes();
   }
 
@@ -41,11 +38,6 @@ class RegistrationRepository {
 
     try {
       await _authApi.initSession();
-
-      final tokenResult = await _authApi.getAnonymousToken();
-      if (tokenResult is! Success<Map<String, dynamic>>) {
-        return _mapFailure(tokenResult);
-      }
 
       var registrationRequest = request;
       if (registrationRequest.accountType.isEmpty) {
@@ -109,13 +101,6 @@ class RegistrationRepository {
     }
 
     try {
-      if (RegistrationSessionHolder.instance.anonymousAuth == null) {
-        final bootstrap = await _ensureAnonymousSession(preserveFlow: true);
-        if (bootstrap is! Success<void>) {
-          return _mapFailure(bootstrap);
-        }
-      }
-
       final authResult = await _registrationApi.authenticateRegistration(
         registrationId: registrationId,
         verificationCode: verificationCode.trim(),
@@ -170,6 +155,68 @@ class RegistrationRepository {
     }
   }
 
+  /// Step 3 — creates the login username/password for the verified
+  /// registration (digx-ui "Setup credentials" step). Runs after either the
+  /// OTP challenge is passed, or immediately after [startRegistration] when
+  /// admin config leaves OTP disabled (`tokenValid: true` on start).
+  ///
+  /// Returns the created username on success so the caller can prefill the
+  /// login screen.
+  Future<ResponseHandler<String>> createCredentials({
+    required String username,
+    required String password,
+  }) async {
+    final registrationId = _registrationId;
+    if (registrationId == null || registrationId.isEmpty) {
+      return ResponseHandler.exceptionError();
+    }
+
+    try {
+      final cryptoService = ObdxPasswordCryptoService(_authApi);
+      final encryptedResult = await cryptoService.encryptForUser(
+        userName: username,
+        plainPassword: password,
+      );
+      if (encryptedResult is! Success<String> || encryptedResult.data == null) {
+        return _mapFailure(encryptedResult);
+      }
+
+      final credentialsResult = await _registrationApi.submitCredentials(
+        registrationId: registrationId,
+        username: username,
+        encryptedPassword: encryptedResult.data!,
+      );
+      if (credentialsResult is! Success<Map<String, dynamic>> ||
+          credentialsResult.data == null) {
+        return _mapFailure(credentialsResult);
+      }
+
+      final statusCode = credentialsResult.data!['statusCode'] as int? ?? 0;
+      final body = ObdxApiUtils.asMap(credentialsResult.data!['body']);
+
+      if (!_isHttpOk(statusCode) || !_isSuccessful(body)) {
+        final obdxError = ObdxErrorMapper.fromHttpResponse(
+          statusCode == 0 ? StatusCode.BAD_REQUEST : statusCode,
+          credentialsResult.data!['body'] ??
+              credentialsResult.data!['rawBody'],
+        );
+        return ResponseHandler.error(
+          obdxError.httpStatusCode ?? statusCode,
+          obdxError.userMessage,
+          obdxError: obdxError,
+        );
+      }
+
+      // Credentials are set — this registration attempt is complete. Drop the
+      // ephemeral anonymous session/flow state so a later screen dispose (or
+      // an accidental resend) can't reuse it.
+      await _clearRegistrationState();
+      return ResponseHandler.success(username);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
   /// Best-effort resend: re-runs start with the same lookup payload.
   Future<ResponseHandler<RegistrationStartResult>> resendVerificationCode() async {
     final pending = _pendingRequest;
@@ -188,24 +235,6 @@ class RegistrationRepository {
     }
     RegistrationSessionHolder.instance.clear();
     await PreferenceHelper.getInstance().clearSession();
-  }
-
-  Future<ResponseHandler<void>> _ensureAnonymousSession({
-    bool preserveFlow = false,
-  }) async {
-    final pending = _pendingRequest;
-    final id = _registrationId;
-    await _clearRegistrationState(keepFlow: preserveFlow);
-    if (preserveFlow) {
-      _pendingRequest = pending;
-      _registrationId = id;
-    }
-    await _authApi.initSession();
-    final tokenResult = await _authApi.getAnonymousToken();
-    if (tokenResult is! Success<Map<String, dynamic>>) {
-      return _mapFailure(tokenResult);
-    }
-    return ResponseHandler.success(null);
   }
 
   static bool _isHttpOk(int statusCode) {

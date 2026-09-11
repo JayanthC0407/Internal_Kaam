@@ -3,7 +3,9 @@ import 'package:ubci_bank/src/infra/network/apis/obdx_accounts_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_auth_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_credentials_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_loan_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/obdx_login_wizard_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_payee_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/obdx_payments_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_mobile_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_registration_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_user_api.dart';
@@ -44,4 +46,14 @@ final obdxMobileApiProvider = Provider(
 
 final obdxPayeeApiProvider = Provider(
   (ref) => ObdxPayeeApi(ref.watch(obdxDioClientProvider)),
+);
+
+/// First-time Login Flow Wizard (LFW) — ported from vendor branch.
+final obdxLoginWizardApiProvider = Provider(
+  (ref) => ObdxLoginWizardApi(ref.watch(obdxDioClientProvider)),
+);
+
+/// Own-account transfer — ported from vendor branch.
+final obdxPaymentsApiProvider = Provider(
+  (ref) => ObdxPaymentsApi(ref.watch(obdxDioClientProvider)),
 );

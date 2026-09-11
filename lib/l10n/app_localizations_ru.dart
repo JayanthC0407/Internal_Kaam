@@ -1313,6 +1313,64 @@ class AppLocalizationsRu extends AppLocalizations {
       'A new verification code has been sent.';
 
   @override
+  String get registrationCredentialsTitle => 'Create your credentials';
+
+  @override
+  String get registrationCredentialsSubtitle =>
+      'Choose a username and password to sign in to your account from now on.';
+
+  @override
+  String get registrationUsername => 'Username';
+
+  @override
+  String get registrationUsernameHint => 'Choose a username';
+
+  @override
+  String get registrationUsernameInvalid =>
+      'Use 6-50 letters, numbers, or . _ -, starting with a letter or number';
+
+  @override
+  String get registrationPassword => 'Password';
+
+  @override
+  String get registrationPasswordHint => 'Create a password';
+
+  @override
+  String get registrationConfirmPasswordHint => 'Re-enter your password';
+
+  @override
+  String get registrationPasswordPolicyTitle => 'Your password must have:';
+
+  @override
+  String get registrationPasswordRuleMinLength => '8-20 characters';
+
+  @override
+  String get registrationPasswordRuleUppercase => 'An uppercase letter';
+
+  @override
+  String get registrationPasswordRuleLowercase => 'A lowercase letter';
+
+  @override
+  String get registrationPasswordRuleNumber => 'A number';
+
+  @override
+  String get registrationPasswordRuleSpecialChar => 'A special character';
+
+  @override
+  String get registrationPasswordRuleNoUsername =>
+      'Does not contain your username';
+
+  @override
+  String get registrationCredentialsSubmit => 'Create Account';
+
+  @override
+  String get registrationCredentialsSubmitting => 'Creating your account...';
+
+  @override
+  String get registrationCredentialsFailed =>
+      'Could not create your credentials. Please try again.';
+
+  @override
   String get errorUserAlreadyExists =>
       'An account with this username already exists.';
 
@@ -1522,4 +1580,313 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get casaStatementFormatTitle => 'Choose a format';
+
+  @override
+  String get amountAndRateTitle => 'Amount & Rate';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
+  String get calculatedAmount => 'Calculated Amount';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get chargesDebitedFromDebitAccount =>
+      'Charges to be debited from Debit Account';
+
+  @override
+  String get creditAccountCurrency => 'Credit Account Currency';
+
+  @override
+  String get currencyRatesIndicative =>
+      'Currency conversion rates are indicative';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get exchangeRate => 'Exchange Rate';
+
+  @override
+  String get exchangeRateDetailsCard =>
+      'Exchange Rate Details - Card / Preferential Rate';
+
+  @override
+  String get exchangeRateDetailsTitle => 'Exchange Rate Details';
+
+  @override
+  String get existing => 'Existing';
+
+  @override
+  String get existingPayer => 'Existing Payer';
+
+  @override
+  String get hostReferenceNumber => 'Номер ссылки хоста';
+
+  @override
+  String get immediate => 'Immediate';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get lfwAccept => 'Accept';
+
+  @override
+  String get lfwAcceptTerms => 'I accept the Terms & Conditions';
+
+  @override
+  String get lfwAnswerLabel => 'Answer';
+
+  @override
+  String get lfwDuplicateQuestion =>
+      'Please select a different question for each row.';
+
+  @override
+  String get lfwEnterAnswer => 'Answer';
+
+  @override
+  String get lfwFieldRequired => 'Required';
+
+  @override
+  String get lfwGateErrorTitle => 'Unable to open your dashboard';
+
+  @override
+  String get lfwLimitsChannel => 'Channel';
+
+  @override
+  String get lfwLimitsEmptyAssigned =>
+      'Currently no limits are assigned to this transaction. Please contact administrator for further details.';
+
+  @override
+  String get lfwLimitsSubtitle =>
+      'Review your transaction limits, then continue.';
+
+  @override
+  String get lfwLimitsTitle => 'Transaction limits';
+
+  @override
+  String get lfwLimitsTransactions => 'Transactions';
+
+  @override
+  String get lfwMustAcceptTerms =>
+      'Please accept the Terms & Conditions to continue.';
+
+  @override
+  String get lfwNoProfileData => 'No profile details are available to display.';
+
+  @override
+  String get lfwProfileDateOfBirth => 'Date of Birth';
+
+  @override
+  String get lfwProfilePersonalInfo => 'Personal Information';
+
+  @override
+  String get lfwProfileSubtitle =>
+      'Please review your profile details, then continue.';
+
+  @override
+  String get lfwProfileTitle => 'Profile';
+
+  @override
+  String get lfwSaveAndContinue => 'Submit';
+
+  @override
+  String get lfwSecurityNoteBody =>
+      'Security questions works as an added layer of security that helps in protecting your account against fraudulent activities.';
+
+  @override
+  String get lfwSecurityNoteBullet1 =>
+      'Choose answers that are difficult for others to guess';
+
+  @override
+  String get lfwSecurityNoteBullet2 =>
+      'Choose questions which you have not answered on public or on social media sites';
+
+  @override
+  String get lfwSecurityNoteMust => 'You must:';
+
+  @override
+  String get lfwSecurityNoteTitle => 'Note';
+
+  @override
+  String get lfwSecurityQuestionLabel => 'Security Question';
+
+  @override
+  String get lfwSecurityQuestionsNotSetup =>
+      'User Security Questions have not been setup yet.';
+
+  @override
+  String get lfwSecurityQuestionsSection => 'User Security Questions';
+
+  @override
+  String get lfwSecurityQuestionsSetupNow => 'Set up now';
+
+  @override
+  String get lfwSecurityQuestionsSubtitle =>
+      'Choose security questions and provide your answers. These may be used for verification later.';
+
+  @override
+  String get lfwSecurityQuestionsTitle => 'Set Security Question';
+
+  @override
+  String get lfwSelectChannel => 'Select channel';
+
+  @override
+  String get lfwSelectQuestion => 'Select Question';
+
+  @override
+  String get lfwSelectTransaction => 'Select transaction';
+
+  @override
+  String lfwStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get lfwSubtitle =>
+      'Complete the following steps to access your dashboard.';
+
+  @override
+  String get lfwTermsSubtitle =>
+      'Please read and accept the Terms & Conditions to continue.';
+
+  @override
+  String get lfwTermsTitle => 'Terms & Conditions';
+
+  @override
+  String get lfwTitle => 'First-time setup';
+
+  @override
+  String get lfwUnknownStep => 'Please complete this setup step to continue.';
+
+  @override
+  String get myAccounts => 'My Accounts';
+
+  @override
+  String get newPayer => 'New Payer';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get note => 'Note';
+
+  @override
+  String get now => 'Now';
+
+  @override
+  String get pay => 'Pay';
+
+  @override
+  String get rateApplied => 'Rate Applied';
+
+  @override
+  String get review => 'Review';
+
+  @override
+  String get scheduled => 'Scheduled';
+
+  @override
+  String get selectCreditAccount => 'Select credit account';
+
+  @override
+  String get selectDebitAccount => 'Select debit account';
+
+  @override
+  String get stationaryCharges => 'Stationary Charges';
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get theyReceive => 'They Receive';
+
+  @override
+  String get timing => 'Timing';
+
+  @override
+  String get transferAmount => 'Transfer Amount';
+
+  @override
+  String get transferAmountRequired => 'Please enter a valid transfer amount.';
+
+  @override
+  String get transferCurrencyLabel => 'Currency';
+
+  @override
+  String get transferFixedRate => 'Fixed';
+
+  @override
+  String get transferFrom => 'Transfer From';
+
+  @override
+  String get transferInsufficientBalance => 'Amount exceeds available balance.';
+
+  @override
+  String get transferLimitsComingSoon =>
+      'Transfer limits will be available soon.';
+
+  @override
+  String get transferMoney => 'Transfer Money';
+
+  @override
+  String get transferOtpSubtitle =>
+      'Enter the verification code to confirm this transfer.';
+
+  @override
+  String get transferSameAccountError =>
+      'Debit and credit accounts must be different.';
+
+  @override
+  String get transferSelectBothAccounts =>
+      'Please select debit and credit accounts.';
+
+  @override
+  String get transferSelectDate => 'Select date';
+
+  @override
+  String get transferSubmitFailed =>
+      'Transfer could not be completed. Please try again.';
+
+  @override
+  String get transferSuccessMessage =>
+      'Your transfer has been submitted successfully.';
+
+  @override
+  String get transferSuccessTitle => 'Transfer successful';
+
+  @override
+  String get transferSummary => 'Transfer Summary';
+
+  @override
+  String get transferSummaryFrom => 'From';
+
+  @override
+  String get transferSummaryTo => 'To';
+
+  @override
+  String get transferTo => 'Transfer To';
+
+  @override
+  String get transferType => 'Transfer Type';
+
+  @override
+  String get transferValidateFailed =>
+      'Unable to validate transfer. Please check the details and try again.';
+
+  @override
+  String get transferWhen => 'Transfer When';
+
+  @override
+  String get viewLimits => 'View Limits';
+
+  @override
+  String get youSend => 'You Send';
 }

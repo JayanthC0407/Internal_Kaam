@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:ubci_bank/src/core/models/lfw_progress.dart';
 import 'package:ubci_bank/src/core/utils/user_type_resolver.dart';
 import 'package:ubci_bank/src/infra/security/biometric_service.dart';
 import 'package:ubci_bank/src/infra/service/navigation_service.dart';
@@ -8,6 +10,7 @@ import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corporate_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/login_wizard_screen.dart';
 
 /// Records user activity and enforces idle session timeout on resume.
 class SessionActivityScope extends ConsumerStatefulWidget {
@@ -95,6 +98,11 @@ class _SessionActivityScopeState extends ConsumerState<SessionActivityScope>
 }
 
 /// Ensures only authenticated users can view the home dashboard.
+///
+/// Also runs the first-time Login Flow Wizard (LFW) check (ported from the
+/// vendor branch). Returning users (HTTP 200 on dashboard modules) are
+/// unchanged; first-time users are diverted to [LoginWizardScreen] before
+/// the dashboard is resolved/built.
 class AuthenticatedHomeGate extends ConsumerStatefulWidget {
   const AuthenticatedHomeGate({super.key, required this.args});
 
@@ -106,8 +114,79 @@ class AuthenticatedHomeGate extends ConsumerStatefulWidget {
 }
 
 class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
+  bool _checkingLfw = true;
+  String? _lfwError;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkLfw());
+  }
+
+  Future<void> _checkLfw() async {
+    setState(() {
+      _checkingLfw = true;
+      _lfwError = null;
+    });
+
+    final result = await ref.read(loginWizardRepositoryProvider).checkGate();
+    if (!mounted) return;
+
+    switch (result) {
+      case LfwGateAllowed():
+        setState(() => _checkingLfw = false);
+      case LfwGateRequired(:final progress):
+        Navigator.of(context).pushReplacementNamed(
+          RoutesConst.loginWizardScreen,
+          arguments: LoginWizardArgs(
+            homeArgs: widget.args,
+            initialProgress: progress.steps.isEmpty ? null : progress,
+          ),
+        );
+      case LfwGateError(:final message):
+        setState(() {
+          _checkingLfw = false;
+          _lfwError = message;
+        });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_checkingLfw) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_lfwError != null) {
+      final l10n = AppLocalizations.of(context);
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.lfwGateErrorTitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                Text(_lfwError!, textAlign: TextAlign.center),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: _checkLfw,
+                  child: Text(l10n.accountsRetry),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return AuthenticatedSessionGate(
       child: _resolveDashboard(),
     );

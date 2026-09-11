@@ -25,6 +25,7 @@ class AppNavContent extends StatefulWidget {
     this.onAccountsSelected,
     this.showLogo = true,
     this.collapsed = false,
+    this.toggleButton,
   });
 
   final int selectedIndex;
@@ -42,6 +43,13 @@ class AppNavContent extends StatefulWidget {
   /// Never `true` for the mobile [Drawer] — a collapsed drawer defeats the
   /// point of a drawer.
   final bool collapsed;
+
+  /// Desktop sidebar's collapse/expand control. Laid out inline — next to
+  /// the logo when expanded, centered above the nav icons when collapsed —
+  /// rather than floated on top of the content, so it never looks stranded
+  /// in a corner. `null` (the default) omits it entirely, which is what the
+  /// mobile/tablet [Drawer] wants.
+  final Widget? toggleButton;
 
   static const _logoAsset = 'assets/images/demobank_logo.png';
 
@@ -95,32 +103,56 @@ class _AppNavContentState extends State<AppNavContent> {
                   if (widget.showLogo && !collapsed) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset(
-                            AppNavContent._logoAsset,
-                            width: 166,
-                            height: 72,
-                            alignment: Alignment.centerLeft,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.home,
-                            style: TextStyle(
-                              color: HomeColors.textSecondary(context),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.asset(
+                                  AppNavContent._logoAsset,
+                                  width: 166,
+                                  height: 72,
+                                  alignment: Alignment.centerLeft,
+                                  fit: BoxFit.contain,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.home,
+                                  style: TextStyle(
+                                    color: HomeColors.textSecondary(context),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          if (widget.toggleButton != null) ...[
+                            const SizedBox(width: 8),
+                            // Centered against the logo image's own height
+                            // (not the taller column with the caption text
+                            // below it) so it reads as sitting next to the
+                            // wordmark rather than floating above it.
+                            SizedBox(
+                              height: 72,
+                              child: Center(child: widget.toggleButton),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                     const SizedBox(height: 30),
                   ],
-                  if (collapsed) const SizedBox(height: 44),
-                  for (var i = 0; i < destinations.length; i++) ...[
+                  if (collapsed) ...[
+                    if (widget.toggleButton != null) ...[
+                      Center(child: widget.toggleButton),
+                      const SizedBox(height: 14),
+                    ] else
+                      const SizedBox(height: 44),
+                  ],
+                  for (var i = 0; i < destinations.length - 1; i++) ...[
                     _NavDestination(
                       label: destinations[i].$1,
                       icon: destinations[i].$2,
@@ -233,6 +265,18 @@ class _AppNavContentState extends State<AppNavContent> {
                     ],
                     const SizedBox(height: 6),
                   ],
+                  // "More" renders last — after Accounts/Payee — rather than
+                  // inline with Home/Insights/Transfer/Rewards, matching
+                  // where a catch-all destination reads best in a side nav.
+                  // Index (destinations.length - 1) is unchanged, so this
+                  // still maps to the same tab as the bottom nav's "More".
+                  _NavDestination(
+                    label: destinations.last.$1,
+                    icon: destinations.last.$2,
+                    selected: widget.selectedIndex == destinations.length - 1,
+                    collapsed: collapsed,
+                    onTap: () => widget.onSelected(destinations.length - 1),
+                  ),
                 ],
               ),
             ),
