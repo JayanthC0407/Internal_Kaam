@@ -204,4 +204,31 @@ class ObdxAccountsApi extends ObdxApiBase {
       return getExceptionErrorResponse(exc, stack);
     }
   }
+
+  /// Accounts eligible for own-account transfer debit — ported from vendor
+  /// branch to support [ObdxPaymentsApi] / `TransferRepository`.
+  ///
+  /// OBDX API Reference V1.1 — Get Accounts Eligible for Debit.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchTransferEligibleAccounts({
+    List<String> accountTypes = const ['CSA'],
+    String taskCode = ApiConst.selfTransferTaskCode,
+  }) async {
+    try {
+      final response = await dio.get(
+        ObdxApiUtils.appendLocaleQuery(ApiConst.transferAccountsApi),
+        queryParameters: {
+          'accountType': accountTypes,
+          'taskCode': taskCode,
+        },
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
 }
