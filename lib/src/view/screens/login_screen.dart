@@ -31,11 +31,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   //static const _logoAsset = 'assets/images/demobank_logo.png';
   String get _logoAsset {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return isDark
-        ? 'assets/images/logo-dark.png'
-        : 'assets/images/logo-light.png';
+    return 'assets/images/demobank_logo.png';
   }
 
   final _usernameController = TextEditingController();

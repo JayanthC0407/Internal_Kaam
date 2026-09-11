@@ -13,6 +13,7 @@ class OtpPinInput extends StatefulWidget {
     this.length = 4,
     this.onCompleted,
     this.enabled = true,
+    this.obscuringCharacter = '•',
   });
 
   final TextEditingController controller;
@@ -20,6 +21,7 @@ class OtpPinInput extends StatefulWidget {
   final int length;
   final ValueChanged<String>? onCompleted;
   final bool enabled;
+  final String obscuringCharacter;
 
   @override
   State<OtpPinInput> createState() => _OtpPinInputState();
@@ -117,7 +119,7 @@ class _OtpPinInputState extends State<OtpPinInput> {
                       child: char.isEmpty
                           ? null
                           : Text(
-                              '•',
+                              widget.obscuringCharacter,
                               style: TextStyle(
                                 fontSize: (boxSize * 0.46).clamp(16.0, 22.0),
                                 fontWeight: FontWeight.w600,
