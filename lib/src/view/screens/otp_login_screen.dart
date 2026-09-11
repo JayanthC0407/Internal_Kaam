@@ -37,11 +37,7 @@ class OtpLoginScreen extends ConsumerStatefulWidget {
 
 class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
   String get _logoAsset {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return isDark
-        ? 'assets/images/logo-dark.png'
-        : 'assets/images/logo-light.png';
+    return 'assets/images/demobank_logo.png';
   }
 
   final _otpController = TextEditingController();
