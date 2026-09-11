@@ -124,6 +124,19 @@ class TransferTabScreen extends StatelessWidget {
                     contentPadding: const EdgeInsets.all(AppSpacing.lg),
                     leading: CircleAvatar(
                       backgroundColor: brand.withValues(alpha: 0.1),
+                      child: Icon(Icons.sync_alt_rounded, color: brand),
+                    ),
+                    title: const Text('Between My Accounts'),
+                    subtitle: const Text('Quick own-account transfer'),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(RoutesConst.ownAccountTransferScreen),
+                  ),
+                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
+                  ListTile(
+                    contentPadding: const EdgeInsets.all(AppSpacing.lg),
+                    leading: CircleAvatar(
+                      backgroundColor: brand.withValues(alpha: 0.1),
                       child: Icon(Icons.people_alt_outlined, color: brand),
                     ),
                     title: const Text('Payee'),

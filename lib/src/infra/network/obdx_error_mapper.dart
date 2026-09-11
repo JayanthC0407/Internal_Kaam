@@ -17,6 +17,13 @@ class ObdxErrorMapper {
     'DIGX_AUTH_0002': ('errorAccountLocked', 'Your account is locked. Please contact the bank.'),
     'DIGX_AUTH_0003': ('errorPasswordExpired', 'Your password has expired. Please reset your password.'),
     'DIGX_AUTH_0004': ('errorTooManyAttempts', 'Too many failed attempts. Please try again later.'),
+    // Ported from vendor branch — first-time Login Flow Wizard incomplete.
+    // Normally handled by LoginWizardRepository.checkGate() before this
+    // code would reach a generic error path; kept here as a safety net.
+    'DIGX_CMN_0096': (
+      'lfwRequired',
+      'Please complete first-time login setup before continuing.',
+    ),
     'DIGX_AUTH_0005': (
       'errorSessionExpired',
       'For your security, you have been signed out. Please sign in again.',
@@ -216,6 +223,12 @@ class ObdxErrorMapper {
     dynamic body, {
     String? requestId,
   }) {
+    // Ported from vendor branch — a raw HTML body (gateway/WAF error page)
+    // skips payload parsing entirely and goes straight to the generic,
+    // status-code-derived error.
+    if (_isHtmlBody(body)) {
+      return _fromStatusCodeOnly(statusCode, requestId: requestId);
+    }
     final parsed = fromPayload(body, statusCode: statusCode, requestId: requestId);
     if (parsed != null) return parsed;
     return _fromStatusCodeOnly(statusCode, requestId: requestId);
@@ -246,11 +259,15 @@ class ObdxErrorMapper {
 
     if (detail != null && detail.isNotEmpty) {
       final sanitized = _sanitizeServerDetail(detail);
+      // Ported from vendor branch: an HTML-only detail sanitizes to null —
+      // fall through to the generic status-code-based error instead of a
+      // null/blank user message.
+      if (sanitized == null) return null;
       return ObdxError(
         category: _categoryForStatus(statusCode, obdxCode),
         httpStatusCode: statusCode,
         obdxCode: obdxCode,
-        detail: detail,
+        detail: sanitized,
         userMessage: sanitized,
         requestId: requestId,
       );
@@ -304,14 +321,34 @@ class ObdxErrorMapper {
     if (body is Map<String, dynamic>) return body;
     if (body is Map) return Map<String, dynamic>.from(body);
     if (body is String && body.trim().isNotEmpty) {
+      // Ported from vendor branch: a gateway/WAF error page (HTML, not JSON)
+      // must never be wrapped as {'message': <raw html>} — that would surface
+      // the whole page source as the user-facing error message below.
+      if (_isHtmlBody(body)) return {};
       try {
         final decoded = jsonDecode(body);
         return ObdxApiUtils.asMap(decoded);
       } catch (_) {
+        if (_isHtmlBody(body)) return {};
         return {'message': body.trim()};
       }
     }
     return {};
+  }
+
+  /// Ported from vendor branch — detects an HTML error page (e.g. a load
+  /// balancer/WAF block page) so it's never surfaced as a user-facing
+  /// error message or stored as the parsed error "detail".
+  static bool _isHtmlBody(dynamic body) {
+    if (body is! String) return false;
+    final trimmed = body.trimLeft();
+    if (trimmed.isEmpty || !trimmed.startsWith('<')) return false;
+    final lower = trimmed.toLowerCase();
+    return lower.startsWith('<!doctype') ||
+        lower.startsWith('<html') ||
+        lower.contains('<html') ||
+        lower.contains('</html>') ||
+        lower.contains('<body');
   }
 
   static String? _extractObdxCode(Map<String, dynamic> json) {
@@ -441,7 +478,11 @@ class ObdxErrorMapper {
     return from(json['message']) ?? from(json);
   }
 
-  static String _sanitizeServerDetail(String detail) {
+  static String? _sanitizeServerDetail(String detail) {
+    // Ported from vendor branch — never surface an HTML fragment embedded
+    // in an otherwise-valid JSON error body (e.g. a "message" field that
+    // itself contains a gateway's HTML snippet) as the user-facing message.
+    if (_isHtmlBody(detail)) return null;
     final lower = detail.toLowerCase();
     if (lower.contains('cannot construct instance') ||
         lower.contains('deserialize from string value') ||
