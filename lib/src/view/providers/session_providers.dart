@@ -11,5 +11,6 @@ final sessionManagerProvider = Provider(
   (ref) => SessionManager(
     ref.watch(preferenceHelperProvider),
     authApi: ref.watch(obdxAuthApiProvider),
+    userApi: ref.watch(obdxUserApiProvider),
   ),
 );

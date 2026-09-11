@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:ubci_bank/src/core/config/lfw_config.dart';
 import 'package:ubci_bank/src/core/models/lfw_progress.dart';
 import 'package:ubci_bank/src/core/utils/user_type_resolver.dart';
 import 'package:ubci_bank/src/infra/security/biometric_service.dart';
@@ -124,6 +125,16 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
   }
 
   Future<void> _checkLfw() async {
+    // Escape hatch — see lfw_config.dart. Off by --dart-define skips even
+    // the dashboards/modules probe; on (the default), checkGate() itself
+    // only calls steps?wizardType=LFW / loginFlow after that probe
+    // confirms a 428, so a flow whose backend never returns one (e.g.
+    // Corporate, per its own API-flow doc) never triggers them either.
+    if (!LfwConfig.isEnabled) {
+      setState(() => _checkingLfw = false);
+      return;
+    }
+
     setState(() {
       _checkingLfw = true;
       _lfwError = null;
@@ -187,9 +198,19 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
       );
     }
 
-    return AuthenticatedSessionGate(
+    final home = AuthenticatedSessionGate(
       child: _resolveDashboard(),
     );
+
+    // Web: once the dashboard is showing, browser Back must not step the
+    // in-app Navigator back to splash/login (which then has to re-resolve
+    // the dashboard from whatever it has on hand — see buildHomeArgs's
+    // doc comment for the corporate/retail mix-up that caused). Mobile
+    // keeps the system back button so a root dashboard can still leave the
+    // app the normal way. Ported from vendor branch (flagged but not
+    // applied in the original merge — see MERGE_REPORT.md §4).
+    if (!kIsWeb) return home;
+    return PopScope(canPop: false, child: home);
   }
 
   /// Picks Retail vs Corporate dashboard from the `me` response captured on
