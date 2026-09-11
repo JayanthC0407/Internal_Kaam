@@ -56,6 +56,11 @@ class ApiConst {
   static String registrationAuthenticationApi(String registrationId) =>
       '$registrationApi/$registrationId/authentication';
 
+  /// Step 3 — creates the login username/password for a verified
+  /// registration: `POST .../registration/{id}/credentials`.
+  static String registrationCredentialsApi(String registrationId) =>
+      '$registrationApi/$registrationId/credentials';
+
   static const String profileApi = '/digx-common/user/v1/me';
   static const String mobileClientApi = '/digx-infra/mobile/v1/mobileClient';
   static const String jwtSetupApi = '/digx-admin/sms/v1/jwt';
@@ -129,6 +134,13 @@ class ApiConst {
     saltApi,
     loginApi,
     anonymousTokenApi,
+    // Self-registration is fully anonymous end-to-end (keyed only by
+    // registrationId) — the real digx-ui never sends an Authorization
+    // header for POST registration, PUT .../authentication, or
+    // POST .../credentials. `registrationApi` as a substring covers all
+    // three via the `requestPath.contains(path)` check below.
+    registrationApi,
+    accountTypesApi,
     '/digx-ui/',
   ];
 

@@ -2524,6 +2524,114 @@ abstract class AppLocalizations {
   /// **'A new verification code has been sent.'**
   String get registrationResendSuccess;
 
+  /// No description provided for @registrationCredentialsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your credentials'**
+  String get registrationCredentialsTitle;
+
+  /// No description provided for @registrationCredentialsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username and password to sign in to your account from now on.'**
+  String get registrationCredentialsSubtitle;
+
+  /// No description provided for @registrationUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get registrationUsername;
+
+  /// No description provided for @registrationUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username'**
+  String get registrationUsernameHint;
+
+  /// No description provided for @registrationUsernameInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 6-50 letters, numbers, or . _ -, starting with a letter or number'**
+  String get registrationUsernameInvalid;
+
+  /// No description provided for @registrationPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get registrationPassword;
+
+  /// No description provided for @registrationPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password'**
+  String get registrationPasswordHint;
+
+  /// No description provided for @registrationConfirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get registrationConfirmPasswordHint;
+
+  /// No description provided for @registrationPasswordPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password must have:'**
+  String get registrationPasswordPolicyTitle;
+
+  /// No description provided for @registrationPasswordRuleMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'8-20 characters'**
+  String get registrationPasswordRuleMinLength;
+
+  /// No description provided for @registrationPasswordRuleUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'An uppercase letter'**
+  String get registrationPasswordRuleUppercase;
+
+  /// No description provided for @registrationPasswordRuleLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'A lowercase letter'**
+  String get registrationPasswordRuleLowercase;
+
+  /// No description provided for @registrationPasswordRuleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'A number'**
+  String get registrationPasswordRuleNumber;
+
+  /// No description provided for @registrationPasswordRuleSpecialChar.
+  ///
+  /// In en, this message translates to:
+  /// **'A special character'**
+  String get registrationPasswordRuleSpecialChar;
+
+  /// No description provided for @registrationPasswordRuleNoUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not contain your username'**
+  String get registrationPasswordRuleNoUsername;
+
+  /// No description provided for @registrationCredentialsSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get registrationCredentialsSubmit;
+
+  /// No description provided for @registrationCredentialsSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating your account...'**
+  String get registrationCredentialsSubmitting;
+
+  /// No description provided for @registrationCredentialsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create your credentials. Please try again.'**
+  String get registrationCredentialsFailed;
+
   /// No description provided for @errorUserAlreadyExists.
   ///
   /// In en, this message translates to:

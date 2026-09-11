@@ -49,6 +49,7 @@ class AuthLabeledField extends StatelessWidget {
     this.autovalidateMode,
     this.suffixIcon,
     this.onFieldSubmitted,
+    this.onChanged,
     this.autocorrect = true,
   });
 
@@ -68,6 +69,7 @@ class AuthLabeledField extends StatelessWidget {
   final AutovalidateMode? autovalidateMode;
   final Widget? suffixIcon;
   final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<String>? onChanged;
   final bool autocorrect;
 
   @override
@@ -91,6 +93,7 @@ class AuthLabeledField extends StatelessWidget {
           validator: validator,
           autovalidateMode: autovalidateMode,
           onFieldSubmitted: onFieldSubmitted,
+          onChanged: onChanged,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 14,

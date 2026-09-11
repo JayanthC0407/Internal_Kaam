@@ -83,6 +83,30 @@ class RegistrationScreenVm {
     return false;
   }
 
+  /// Step 3 — creates the username/password. Returns the username on
+  /// success so the caller can prefill the login screen and pop back to it.
+  Future<String?> createCredentials({
+    required String username,
+    required String password,
+    required AppLocalizations l10n,
+  }) async {
+    _ref.read(registrationIsLoadingProvider.notifier).state = true;
+    _ref.read(registrationErrorMessageProvider.notifier).state = null;
+
+    final result = await _ref
+        .read(registrationRepositoryProvider)
+        .createCredentials(username: username, password: password);
+
+    _ref.read(registrationIsLoadingProvider.notifier).state = false;
+
+    if (result is Success<String>) {
+      return result.data;
+    }
+
+    await _assignError(result, l10n.registrationCredentialsFailed);
+    return null;
+  }
+
   Future<RegistrationStartResult?> resendCode({
     required AppLocalizations l10n,
   }) async {

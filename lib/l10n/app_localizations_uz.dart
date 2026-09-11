@@ -1314,6 +1314,64 @@ class AppLocalizationsUz extends AppLocalizations {
       'A new verification code has been sent.';
 
   @override
+  String get registrationCredentialsTitle => 'Create your credentials';
+
+  @override
+  String get registrationCredentialsSubtitle =>
+      'Choose a username and password to sign in to your account from now on.';
+
+  @override
+  String get registrationUsername => 'Username';
+
+  @override
+  String get registrationUsernameHint => 'Choose a username';
+
+  @override
+  String get registrationUsernameInvalid =>
+      'Use 6-50 letters, numbers, or . _ -, starting with a letter or number';
+
+  @override
+  String get registrationPassword => 'Password';
+
+  @override
+  String get registrationPasswordHint => 'Create a password';
+
+  @override
+  String get registrationConfirmPasswordHint => 'Re-enter your password';
+
+  @override
+  String get registrationPasswordPolicyTitle => 'Your password must have:';
+
+  @override
+  String get registrationPasswordRuleMinLength => '8-20 characters';
+
+  @override
+  String get registrationPasswordRuleUppercase => 'An uppercase letter';
+
+  @override
+  String get registrationPasswordRuleLowercase => 'A lowercase letter';
+
+  @override
+  String get registrationPasswordRuleNumber => 'A number';
+
+  @override
+  String get registrationPasswordRuleSpecialChar => 'A special character';
+
+  @override
+  String get registrationPasswordRuleNoUsername =>
+      'Does not contain your username';
+
+  @override
+  String get registrationCredentialsSubmit => 'Create Account';
+
+  @override
+  String get registrationCredentialsSubmitting => 'Creating your account...';
+
+  @override
+  String get registrationCredentialsFailed =>
+      'Could not create your credentials. Please try again.';
+
+  @override
   String get errorUserAlreadyExists =>
       'An account with this username already exists.';
 
