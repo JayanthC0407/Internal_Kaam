@@ -56,6 +56,11 @@ class ApiConst {
   static String registrationAuthenticationApi(String registrationId) =>
       '$registrationApi/$registrationId/authentication';
 
+  /// Step 3 — creates the login username/password for a verified
+  /// registration: `POST .../registration/{id}/credentials`.
+  static String registrationCredentialsApi(String registrationId) =>
+      '$registrationApi/$registrationId/credentials';
+
   static const String profileApi = '/digx-common/user/v1/me';
   static const String mobileClientApi = '/digx-infra/mobile/v1/mobileClient';
   static const String jwtSetupApi = '/digx-admin/sms/v1/jwt';
@@ -121,6 +126,95 @@ class ApiConst {
   static String loanRepaymentsApi(String loanId) =>
       '/digx-common/loan/v1/loan/${Uri.encodeComponent(loanId)}/repayments';
 
+  // ── First-time Login Flow Wizard (LFW) — ported from vendor branch ──────
+
+  /// OBDX returns this when first-time Login Flow Wizard (LFW) is incomplete.
+  /// Body code: [firstTimeLoginFlowNotCompleted].
+  static const int preconditionRequired = 428;
+
+  /// Signal that routes the client into the Login Flow Wizard instead of home.
+  static const String firstTimeLoginFlowNotCompleted = 'DIGX_CMN_0096';
+
+  /// Dashboard modules — **428 + DIGX_CMN_0096** when LFW is incomplete.
+  static const String dashboardModulesApi =
+      '/digx-admin/config/v1/dashboards/modules';
+
+  static const String wizardTypesApi =
+      '/digx-admin/wizard/v1/enumerations/wizardType';
+
+  static const String wizardStepsApi = '/digx-admin/wizard/v1/steps';
+
+  static const String loginFlowApi = '/digx-admin/sms/v1/loginFlow';
+
+  static String loginFlowStepApi(String stepId) =>
+      '$loginFlowApi/step/${Uri.encodeComponent(stepId)}';
+
+  static const String securityQuestionsMasterApi =
+      '/digx-admin/security/v1/securityQuestion';
+
+  static const String userSecurityQuestionsApi =
+      '/digx-admin/security/v1/userSecurityQuestion';
+
+  static const String userSecurityQuestionsCountApi =
+      '/digx-admin/security/v1/userSecurityQuestion/noOfQuestions';
+
+  static const String partyMeApi = '/digx-common/user/v1/me/party';
+
+  static const String profileConfigApi = '/digx-common/user/v1/profileConfig';
+
+  static const String countryEnumerationApi =
+      '/digx-retail/origination/v1/enumerations/country';
+
+  static const String accessPointsApi = '/digx-admin/sms/v1/accessPoints';
+
+  static const String limitPackagesEffectiveTodayApi =
+      '/digx-admin/finlimit/v1/limitPackages/config/effectiveToday';
+
+  static const String partyLimitsApi = '/digx-admin/finlimit/v1/partyLimits';
+
+  static const String financialLimitUtilizationApi =
+      '/digx-admin/finlimit/v1/financialLimitUtilization';
+
+  static const String myCustomLimitsApi =
+      '/digx-admin/finlimit/v1/myCustomLimits';
+
+  static const String limitTaskGroupsApi =
+      '/digx-admin/security/v1/taskGroups';
+
+  static const String limitResourceTasksApi =
+      '/digx-admin/security/v1/resourceTasks';
+
+  // ── Own-account transfer (payments) — ported from vendor branch ────────
+
+  /// Own-account transfer — OBDX API Reference V1.1 + payments module.
+  static const String paymentsFetchNetworkApi =
+      '/digx-payments/payment/v1/payments/fetchNetwork';
+
+  static const String paymentsMaintenanceApi =
+      '/digx-payments/payment/v1/payments/maintenance';
+
+  static const String paymentsCurrentDateApi =
+      '/digx-payments/payment/v1/payments/currentDate';
+
+  static const String paymentsCurrenciesApi =
+      '/digx-payments/payment/v1/payments/currencies';
+
+  static const String paymentsChargesApi =
+      '/digx-payments/payment/v1/payments/charges';
+
+  static const String paymentsGenericPaymentDateApi =
+      '/digx-payments/payment/v1/payments/genericPaymentDate';
+
+  static const String paymentsPayNetworkApi =
+      '/digx-payments/payment/v1/payments/pay/network';
+
+  /// Transfer-eligible accounts (digx-ui task code for self transfer).
+  static const String transferAccountsApi = '/digx-common/account/v1/accounts';
+
+  static const String selfTransferTaskCode = 'PC_F_CRNSFT';
+  static const String selfTransferNetwork = 'SELF';
+  static const String selfTransferType = 'SELFFT';
+
   /// @deprecated Prefer [accountsApiDemandDeposit].
   static const String accountsApi = accountsApiDemandDeposit;
 
@@ -129,6 +223,13 @@ class ApiConst {
     saltApi,
     loginApi,
     anonymousTokenApi,
+    // Self-registration is fully anonymous end-to-end (keyed only by
+    // registrationId) — the real digx-ui never sends an Authorization
+    // header for POST registration, PUT .../authentication, or
+    // POST .../credentials. `registrationApi` as a substring covers all
+    // three via the `requestPath.contains(path)` check below.
+    registrationApi,
+    accountTypesApi,
     '/digx-ui/',
   ];
 

@@ -1,5 +1,8 @@
+import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/config/session_config.dart';
 import 'package:ubci_bank/src/infra/network/apis/obdx_auth_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/obdx_user_api.dart';
+import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
 import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
 import 'package:ubci_bank/src/infra/pref/pref_const.dart';
@@ -15,10 +18,13 @@ class SessionManager {
   SessionManager(
     this._preferenceHelper, {
     ObdxAuthApi? authApi,
-  }) : _authApi = authApi;
+    ObdxUserApi? userApi,
+  })  : _authApi = authApi,
+        _userApi = userApi;
 
   final PreferenceHelper _preferenceHelper;
   final ObdxAuthApi? _authApi;
+  final ObdxUserApi? _userApi;
   final SecureStorageService _secure = SecureStorageService.instance;
 
   Future<bool> isAuthenticated() async {
@@ -75,14 +81,59 @@ class SessionManager {
     );
   }
 
+  /// Rebuilds [HomeDashboardArgs] for a *restored* session — splash resolving
+  /// an already-authenticated user (app relaunch, browser back/refresh
+  /// landing back on splash, biometric unlock), as opposed to a fresh login
+  /// where the real `login`/`me` trace is already in hand.
+  ///
+  /// Login itself never loses `profileResponse` — see [LoginTrace] and its
+  /// callers in `auth_repository.dart`. The bug this guards against is
+  /// specific to *restoring* a session without repeating login: this used to
+  /// return `loginTrace` with only `displayName`, so
+  /// `session_activity_scope.dart`'s dashboard resolver had no
+  /// `dashboardResponse` to read and silently fell back to the Retail
+  /// dashboard — even for a corporate user (e.g. browser Back → splash →
+  /// re-enter home). Re-fetching `me` here restores the same
+  /// `dashboardClassValue` data a fresh login would have provided, per the
+  /// API Flow & Implementation doc §6/§19-20.
   Future<HomeDashboardArgs> buildHomeArgs() async {
     final userName =
         await _secure.read(PrefConst.lastUserName) ?? 'User';
     final displayName = await _secure.read(PrefConst.lastDisplayName);
+
+    final profileResponse = await _fetchProfileForRestore();
+
+    final loginTrace = <String, dynamic>{
+      if (displayName != null) 'displayName': displayName,
+      if (profileResponse != null) 'profileResponse': profileResponse,
+    };
+
     return HomeDashboardArgs(
       userName: userName,
-      loginTrace: displayName != null ? {'displayName': displayName} : null,
+      loginTrace: loginTrace.isEmpty ? null : loginTrace,
     );
+  }
+
+  /// Best-effort `me` refresh for [buildHomeArgs]. Returns `null` (never
+  /// throws) on any failure — callers must keep working the way they always
+  /// did when `profileResponse` is unavailable (falls back to Retail; see
+  /// `_resolveDashboard` in `session_activity_scope.dart`), just without
+  /// silently mis-resolving a corporate user because of a stale/missing
+  /// trace.
+  Future<Map<String, dynamic>?> _fetchProfileForRestore() async {
+    final api = _userApi;
+    if (api == null) return null;
+    try {
+      final result = await api.fetchProfile();
+      if (result is! Success<Map<String, dynamic>> || result.data == null) {
+        return null;
+      }
+      final profileResponse = result.data!;
+      if (profileResponse['statusCode'] != StatusCode.OK) return null;
+      return profileResponse;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Returns [RoutesConst.homeScreen], [RoutesConst.biometricUnlockScreen], or [RoutesConst.loginScreen].

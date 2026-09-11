@@ -306,6 +306,12 @@ class _SummaryCards extends StatefulWidget {
   State<_SummaryCards> createState() => _SummaryCardsState();
 }
 
+/// Single merged "Loan Summary" card — replaces the old side-by-side
+/// Total Outstanding (gradient) + Total Borrowing (bordered) pair with one
+/// card that leads with the outstanding balance, shows total borrowing as
+/// a secondary stat, and ties the two together with a repayment-progress
+/// bar so it's obvious at a glance how much of the borrowed amount is
+/// still owed.
 class _SummaryCardsState extends State<_SummaryCards> {
   bool _hidden = true;
 
@@ -314,8 +320,13 @@ class _SummaryCardsState extends State<_SummaryCards> {
     final l10n = AppLocalizations.of(context);
     final currency = widget.currency ?? widget.summary.primaryCurrency ?? '';
     final loanCount = widget.summary.loansFor(currency).length;
+    final outstandingAmount = widget.summary.totalOutstandingFor(currency);
+    final borrowingAmount = widget.summary.totalBorrowingFor(currency);
+    final outstandingRatio = borrowingAmount > 0
+        ? (outstandingAmount / borrowingAmount).clamp(0.0, 1.0)
+        : 0.0;
 
-    final outstanding = Container(
+    return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
@@ -326,93 +337,45 @@ class _SummaryCardsState extends State<_SummaryCards> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                l10n.loanTotalOutstanding,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            InkWell(
-              onTap: () => setState(() => _hidden = !_hidden),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  _hidden
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  size: 16,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          MoneyFormat.format(
-            widget.summary.totalOutstandingFor(currency),
-            currencyCode: currency,
-            hidden: _hidden,
-          ),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          '$loanCount Loan${loanCount == 1 ? '' : 's'}',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 11,
-          ),
-        ),
-        ],
-      ),
-    );
-
-    final totalLoan = Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-      decoration: BoxDecoration(
-        color: HomeColors.card(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HomeColors.divider(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
-                  color: HomeColors.brand(context).withValues(alpha: 0.12),
+                  color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.account_balance_wallet_outlined,
-                  size: 17,
-                  color: HomeColors.brand(context),
+                  size: 16,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  l10n.loanTotalBorrowing,
+                  'Loan Summary',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: HomeColors.textSecondary(context),
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$loanCount Loan${loanCount == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -420,63 +383,117 @@ class _SummaryCardsState extends State<_SummaryCards> {
                 onTap: () => setState(() => _hidden = !_hidden),
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.only(left: 6),
                   child: Icon(
                     _hidden
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                     size: 16,
-                    color: HomeColors.textSecondary(context),
+                    color: Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
-            MoneyFormat.format(
-              widget.summary.totalBorrowingFor(currency),
-              currencyCode: currency,
-              hidden: _hidden,
-            ),
+            l10n.loanTotalOutstanding,
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: HomeColors.textPrimary(context),
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'Approved',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: HomeColors.brand(context),
+            MoneyFormat.format(
+              outstandingAmount,
+              currencyCode: currency,
+              hidden: _hidden,
             ),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: outstandingRatio,
+              minHeight: 6,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.loanTotalBorrowing,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      MoneyFormat.format(
+                        borrowingAmount,
+                        currencyCode: currency,
+                        hidden: _hidden,
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12),
+                width: 1,
+                height: 30,
+                color: Colors.white.withValues(alpha: 0.22),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Status',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Approved',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
-    );
-
-    if (widget.wide) {
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(flex: 3, child: outstanding),
-            const SizedBox(width: 14),
-            Expanded(flex: 2, child: totalLoan),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        outstanding,
-        const SizedBox(height: 12),
-        totalLoan,
-      ],
     );
   }
 }

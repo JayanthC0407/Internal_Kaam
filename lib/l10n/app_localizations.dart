@@ -2524,6 +2524,114 @@ abstract class AppLocalizations {
   /// **'A new verification code has been sent.'**
   String get registrationResendSuccess;
 
+  /// No description provided for @registrationCredentialsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your credentials'**
+  String get registrationCredentialsTitle;
+
+  /// No description provided for @registrationCredentialsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username and password to sign in to your account from now on.'**
+  String get registrationCredentialsSubtitle;
+
+  /// No description provided for @registrationUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get registrationUsername;
+
+  /// No description provided for @registrationUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username'**
+  String get registrationUsernameHint;
+
+  /// No description provided for @registrationUsernameInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 6-50 letters, numbers, or . _ -, starting with a letter or number'**
+  String get registrationUsernameInvalid;
+
+  /// No description provided for @registrationPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get registrationPassword;
+
+  /// No description provided for @registrationPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password'**
+  String get registrationPasswordHint;
+
+  /// No description provided for @registrationConfirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get registrationConfirmPasswordHint;
+
+  /// No description provided for @registrationPasswordPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password must have:'**
+  String get registrationPasswordPolicyTitle;
+
+  /// No description provided for @registrationPasswordRuleMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'8-20 characters'**
+  String get registrationPasswordRuleMinLength;
+
+  /// No description provided for @registrationPasswordRuleUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'An uppercase letter'**
+  String get registrationPasswordRuleUppercase;
+
+  /// No description provided for @registrationPasswordRuleLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'A lowercase letter'**
+  String get registrationPasswordRuleLowercase;
+
+  /// No description provided for @registrationPasswordRuleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'A number'**
+  String get registrationPasswordRuleNumber;
+
+  /// No description provided for @registrationPasswordRuleSpecialChar.
+  ///
+  /// In en, this message translates to:
+  /// **'A special character'**
+  String get registrationPasswordRuleSpecialChar;
+
+  /// No description provided for @registrationPasswordRuleNoUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not contain your username'**
+  String get registrationPasswordRuleNoUsername;
+
+  /// No description provided for @registrationCredentialsSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get registrationCredentialsSubmit;
+
+  /// No description provided for @registrationCredentialsSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating your account...'**
+  String get registrationCredentialsSubmitting;
+
+  /// No description provided for @registrationCredentialsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create your credentials. Please try again.'**
+  String get registrationCredentialsFailed;
+
   /// No description provided for @errorUserAlreadyExists.
   ///
   /// In en, this message translates to:
@@ -2901,6 +3009,576 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a format'**
   String get casaStatementFormatTitle;
+
+  /// No description provided for @amountAndRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount & Rate'**
+  String get amountAndRateTitle;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// No description provided for @calculatedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated Amount'**
+  String get calculatedAmount;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @chargesDebitedFromDebitAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Charges to be debited from Debit Account'**
+  String get chargesDebitedFromDebitAccount;
+
+  /// No description provided for @creditAccountCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Account Currency'**
+  String get creditAccountCurrency;
+
+  /// No description provided for @currencyRatesIndicative.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency conversion rates are indicative'**
+  String get currencyRatesIndicative;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @exchangeRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange Rate'**
+  String get exchangeRate;
+
+  /// No description provided for @exchangeRateDetailsCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange Rate Details - Card / Preferential Rate'**
+  String get exchangeRateDetailsCard;
+
+  /// No description provided for @exchangeRateDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange Rate Details'**
+  String get exchangeRateDetailsTitle;
+
+  /// No description provided for @existing.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing'**
+  String get existing;
+
+  /// No description provided for @existingPayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing Payer'**
+  String get existingPayer;
+
+  /// No description provided for @hostReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Host Reference Number'**
+  String get hostReferenceNumber;
+
+  /// No description provided for @immediate.
+  ///
+  /// In en, this message translates to:
+  /// **'Immediate'**
+  String get immediate;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @lfwAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get lfwAccept;
+
+  /// No description provided for @lfwAcceptTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'I accept the Terms & Conditions'**
+  String get lfwAcceptTerms;
+
+  /// No description provided for @lfwAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get lfwAnswerLabel;
+
+  /// No description provided for @lfwDuplicateQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a different question for each row.'**
+  String get lfwDuplicateQuestion;
+
+  /// No description provided for @lfwEnterAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get lfwEnterAnswer;
+
+  /// No description provided for @lfwFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get lfwFieldRequired;
+
+  /// No description provided for @lfwGateErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open your dashboard'**
+  String get lfwGateErrorTitle;
+
+  /// No description provided for @lfwLimitsChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get lfwLimitsChannel;
+
+  /// No description provided for @lfwLimitsEmptyAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently no limits are assigned to this transaction. Please contact administrator for further details.'**
+  String get lfwLimitsEmptyAssigned;
+
+  /// No description provided for @lfwLimitsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review your transaction limits, then continue.'**
+  String get lfwLimitsSubtitle;
+
+  /// No description provided for @lfwLimitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction limits'**
+  String get lfwLimitsTitle;
+
+  /// No description provided for @lfwLimitsTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get lfwLimitsTransactions;
+
+  /// No description provided for @lfwMustAcceptTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Please accept the Terms & Conditions to continue.'**
+  String get lfwMustAcceptTerms;
+
+  /// No description provided for @lfwNoProfileData.
+  ///
+  /// In en, this message translates to:
+  /// **'No profile details are available to display.'**
+  String get lfwNoProfileData;
+
+  /// No description provided for @lfwProfileDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get lfwProfileDateOfBirth;
+
+  /// No description provided for @lfwProfilePersonalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get lfwProfilePersonalInfo;
+
+  /// No description provided for @lfwProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please review your profile details, then continue.'**
+  String get lfwProfileSubtitle;
+
+  /// No description provided for @lfwProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get lfwProfileTitle;
+
+  /// No description provided for @lfwSaveAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get lfwSaveAndContinue;
+
+  /// No description provided for @lfwSecurityNoteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Security questions works as an added layer of security that helps in protecting your account against fraudulent activities.'**
+  String get lfwSecurityNoteBody;
+
+  /// No description provided for @lfwSecurityNoteBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose answers that are difficult for others to guess'**
+  String get lfwSecurityNoteBullet1;
+
+  /// No description provided for @lfwSecurityNoteBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose questions which you have not answered on public or on social media sites'**
+  String get lfwSecurityNoteBullet2;
+
+  /// No description provided for @lfwSecurityNoteMust.
+  ///
+  /// In en, this message translates to:
+  /// **'You must:'**
+  String get lfwSecurityNoteMust;
+
+  /// No description provided for @lfwSecurityNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get lfwSecurityNoteTitle;
+
+  /// No description provided for @lfwSecurityQuestionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Question'**
+  String get lfwSecurityQuestionLabel;
+
+  /// No description provided for @lfwSecurityQuestionsNotSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'User Security Questions have not been setup yet.'**
+  String get lfwSecurityQuestionsNotSetup;
+
+  /// No description provided for @lfwSecurityQuestionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'User Security Questions'**
+  String get lfwSecurityQuestionsSection;
+
+  /// No description provided for @lfwSecurityQuestionsSetupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up now'**
+  String get lfwSecurityQuestionsSetupNow;
+
+  /// No description provided for @lfwSecurityQuestionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose security questions and provide your answers. These may be used for verification later.'**
+  String get lfwSecurityQuestionsSubtitle;
+
+  /// No description provided for @lfwSecurityQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Security Question'**
+  String get lfwSecurityQuestionsTitle;
+
+  /// No description provided for @lfwSelectChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select channel'**
+  String get lfwSelectChannel;
+
+  /// No description provided for @lfwSelectQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Question'**
+  String get lfwSelectQuestion;
+
+  /// No description provided for @lfwSelectTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select transaction'**
+  String get lfwSelectTransaction;
+
+  /// No description provided for @lfwStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String lfwStepOf(int current, int total);
+
+  /// No description provided for @lfwSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the following steps to access your dashboard.'**
+  String get lfwSubtitle;
+
+  /// No description provided for @lfwTermsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please read and accept the Terms & Conditions to continue.'**
+  String get lfwTermsSubtitle;
+
+  /// No description provided for @lfwTermsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get lfwTermsTitle;
+
+  /// No description provided for @lfwTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First-time setup'**
+  String get lfwTitle;
+
+  /// No description provided for @lfwUnknownStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Please complete this setup step to continue.'**
+  String get lfwUnknownStep;
+
+  /// No description provided for @myAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'My Accounts'**
+  String get myAccounts;
+
+  /// No description provided for @newPayer.
+  ///
+  /// In en, this message translates to:
+  /// **'New Payer'**
+  String get newPayer;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get note;
+
+  /// No description provided for @now.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get now;
+
+  /// No description provided for @pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get pay;
+
+  /// No description provided for @rateApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Applied'**
+  String get rateApplied;
+
+  /// No description provided for @review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get review;
+
+  /// No description provided for @scheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get scheduled;
+
+  /// No description provided for @selectCreditAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select credit account'**
+  String get selectCreditAccount;
+
+  /// No description provided for @selectDebitAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select debit account'**
+  String get selectDebitAccount;
+
+  /// No description provided for @stationaryCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Stationary Charges'**
+  String get stationaryCharges;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// No description provided for @theyReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'They Receive'**
+  String get theyReceive;
+
+  /// No description provided for @timing.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing'**
+  String get timing;
+
+  /// No description provided for @transferAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Amount'**
+  String get transferAmount;
+
+  /// No description provided for @transferAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid transfer amount.'**
+  String get transferAmountRequired;
+
+  /// No description provided for @transferCurrencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get transferCurrencyLabel;
+
+  /// No description provided for @transferFixedRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed'**
+  String get transferFixedRate;
+
+  /// No description provided for @transferFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer From'**
+  String get transferFrom;
+
+  /// No description provided for @transferInsufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount exceeds available balance.'**
+  String get transferInsufficientBalance;
+
+  /// No description provided for @transferLimitsComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer limits will be available soon.'**
+  String get transferLimitsComingSoon;
+
+  /// No description provided for @transferMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Money'**
+  String get transferMoney;
+
+  /// No description provided for @transferOtpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code to confirm this transfer.'**
+  String get transferOtpSubtitle;
+
+  /// No description provided for @transferSameAccountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit and credit accounts must be different.'**
+  String get transferSameAccountError;
+
+  /// No description provided for @transferSelectBothAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select debit and credit accounts.'**
+  String get transferSelectBothAccounts;
+
+  /// No description provided for @transferSelectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get transferSelectDate;
+
+  /// No description provided for @transferSubmitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer could not be completed. Please try again.'**
+  String get transferSubmitFailed;
+
+  /// No description provided for @transferSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your transfer has been submitted successfully.'**
+  String get transferSuccessMessage;
+
+  /// No description provided for @transferSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer successful'**
+  String get transferSuccessTitle;
+
+  /// No description provided for @transferSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Summary'**
+  String get transferSummary;
+
+  /// No description provided for @transferSummaryFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get transferSummaryFrom;
+
+  /// No description provided for @transferSummaryTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get transferSummaryTo;
+
+  /// No description provided for @transferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer To'**
+  String get transferTo;
+
+  /// No description provided for @transferType.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Type'**
+  String get transferType;
+
+  /// No description provided for @transferValidateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to validate transfer. Please check the details and try again.'**
+  String get transferValidateFailed;
+
+  /// No description provided for @transferWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer When'**
+  String get transferWhen;
+
+  /// No description provided for @viewLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'View Limits'**
+  String get viewLimits;
+
+  /// No description provided for @youSend.
+  ///
+  /// In en, this message translates to:
+  /// **'You Send'**
+  String get youSend;
 }
 
 class _AppLocalizationsDelegate

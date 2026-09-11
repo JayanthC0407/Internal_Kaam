@@ -20,7 +20,11 @@ import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_transaction_til
 import 'package:ubci_bank/src/view/screens/accounts/widgets/casa_transactions_table.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
+import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+
+/// How many transactions the "View All" screen shows per page.
+const int _pageSize = 10;
 
 /// Statements are always offered in this order/set when the host's
 /// `dda/v1/enumerations/mediatype` call is unavailable — mirrors the
@@ -54,6 +58,8 @@ class _CasaTransactionsScreenState
   late String _selectedAccountId;
   CasaTransactionQuery _query = const CasaTransactionQuery();
   bool _downloadingStatement = false;
+  final _pager = ListPager<CasaTransaction>(pageSize: _pageSize);
+  String? _pagedForAccountId;
 
   @override
   void initState() {
@@ -68,6 +74,7 @@ class _CasaTransactionsScreenState
   void _loadSelected() {
     final id = _selectedAccountId.trim();
     if (id.isEmpty) return;
+    _pager.reset();
     ref.read(casaAccountDetailProvider(id).notifier).load();
     ref.read(casaTransactionsProvider(id).notifier).load(query: _query);
   }
@@ -343,13 +350,11 @@ class _CasaTransactionsScreenState
                         const _TransactionsCard(
                           transactions: <CasaTransaction>[],
                         )
-                      else if (wide)
-                        CasaTransactionsTable(
-                          transactions: result!.transactions,
-                        )
                       else
-                        _TransactionsCard(
-                          transactions: result!.transactions,
+                        _buildPaginatedTransactions(
+                          context,
+                          result!.transactions,
+                          wide,
                         ),
                     ],
                   ),
@@ -359,6 +364,36 @@ class _CasaTransactionsScreenState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPaginatedTransactions(
+    BuildContext context,
+    List<CasaTransaction> transactions,
+    bool wide,
+  ) {
+    if (_pagedForAccountId != _selectedAccountId) {
+      _pagedForAccountId = _selectedAccountId;
+      _pager.reset();
+    }
+    final currentPage = _pager.clamp(transactions.length);
+    final pageItems = _pager.slice(transactions);
+    final pageCount = _pager.pageCount(transactions.length);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        wide
+            ? CasaTransactionsTable(transactions: pageItems)
+            : _TransactionsCard(transactions: pageItems),
+        PaginatedListControls(
+          currentPage: currentPage,
+          pageCount: pageCount,
+          totalItems: transactions.length,
+          pageSize: _pageSize,
+          onPageChanged: (page) => setState(() => _pager.goTo(page)),
+        ),
+      ],
     );
   }
 

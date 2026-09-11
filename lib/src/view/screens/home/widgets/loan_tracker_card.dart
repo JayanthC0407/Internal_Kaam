@@ -149,11 +149,12 @@ class _LoanTrackerBody extends StatelessWidget {
 Widget build(BuildContext context) {
   final l10n = AppLocalizations.of(context);
 
-  final completedRatio =
-      (1 - summary.outstandingRatioFor(currency)).clamp(0.0, 1.0);
-
-  final completedPercent =
-      (completedRatio * 100).round();
+  // "Remaining", stated the way a bank statement would: the outstanding
+  // (still-owed) balance and what fraction of the total borrowing that
+  // represents — rather than an "% completed" framing.
+  final outstandingRatio = summary.outstandingRatioFor(currency);
+  final outstandingPercent = summary.outstandingPercentFor(currency);
+  final outstandingAmount = summary.totalOutstandingFor(currency);
 
   return SizedBox(
     height: 110,
@@ -162,17 +163,35 @@ Widget build(BuildContext context) {
 Expanded(
   flex: 3,
   child: Padding(
-    padding: const EdgeInsets.only(left: 32,bottom: 16),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        l10n.loanTrackerTitle,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: HomeColors.textPrimary(context),
+    padding: const EdgeInsets.only(left: 32, bottom: 16),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.loanTrackerTitle,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: HomeColors.textPrimary(context),
+          ),
         ),
-      ),
+        const SizedBox(height: 6),
+        Text(
+          '${MoneyFormat.format(
+            outstandingAmount,
+            currencyCode: currency ?? '',
+            hidden: hideBalance,
+          )} outstanding',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: HomeColors.textSecondary(context),
+          ),
+        ),
+      ],
     ),
   ),
 ),
@@ -180,8 +199,8 @@ Expanded(
         Expanded(
           flex: 4,
           child: _AnimatedLoanGauge(
-            percent: completedPercent,
-            progress: completedRatio,
+            percent: outstandingPercent,
+            progress: outstandingRatio,
           ),
         ),
       ],
@@ -396,7 +415,11 @@ class _AnimatedLoanGaugeState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = _loanRiskColor(context, widget.progress);
+    // widget.progress is the *outstanding* fraction (what's still owed),
+    // but the risk color should track health — i.e. how much has been
+    // repaid — so it's inverted here rather than changing what the color
+    // helper itself means.
+    final color = _loanRiskColor(context, 1 - widget.progress);
     return AnimatedBuilder(
       animation: _controller,
       builder: (_, __) {
@@ -430,7 +453,7 @@ class _AnimatedLoanGaugeState
                         ),
                       ),
                        Text(
-                        'Completed',
+                        'Outstanding',
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.white70 : Colors.black54,

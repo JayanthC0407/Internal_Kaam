@@ -110,4 +110,50 @@ class ObdxRegistrationApi extends ObdxApiBase {
       return getExceptionErrorResponse(exc, stack);
     }
   }
+
+  /// Step 3 — creates the login username/password for a verified
+  /// registration.
+  ///
+  /// Matches digx-ui: `POST .../registration/{id}/credentials` with a body of
+  /// `{username, password, registrationId}` where `password` is the
+  /// RSA-encrypted + URL-encoded value from [RsaCryptoUtils.encryptPassword]
+  /// (see [ObdxPasswordCryptoService]).
+  Future<ResponseHandler<Map<String, dynamic>>> submitCredentials({
+    required String registrationId,
+    required String username,
+    required String encryptedPassword,
+  }) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(
+          ApiConst.registrationCredentialsApi(registrationId),
+        ),
+        data: jsonEncode({
+          'username': username,
+          'password': encryptedPassword,
+          'registrationId': registrationId,
+        }),
+        options: Options(
+          headers: {ApiConst.contentTypeKey: 'application/json'},
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      return ResponseHandler.success(
+        ObdxApiUtils.wrapHttpResponse(response),
+        code: response.statusCode ?? 0,
+      );
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        return ResponseHandler.success(
+          ObdxApiUtils.wrapHttpResponse(response),
+          code: response.statusCode ?? 0,
+        );
+      }
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
 }
