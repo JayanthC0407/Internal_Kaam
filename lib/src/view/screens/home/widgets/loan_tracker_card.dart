@@ -440,7 +440,7 @@ class _AnimatedLoanGaugeState
               ),
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 18),
+                  padding: const EdgeInsets.only(top: 32),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
