@@ -5,6 +5,7 @@ import 'package:ubci_bank/src/core/theme/app_spacing.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
 
 /// Payments Home. Cross-checked against the real OBDX Payments menu:
@@ -21,7 +22,33 @@ import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
 ///   Transfers → Transfer Money → Adhoc Payee (beneficiary type:
 ///   International), not from a shortcut on this screen.
 class TransferTabScreen extends StatelessWidget {
-  const TransferTabScreen({super.key});
+  const TransferTabScreen({
+    super.key,
+    this.onOwnAccountTransferTap,
+    this.onTransfersTap,
+    this.onPayeeHubTap,
+    this.onTransferMoneyTap,
+  });
+
+  /// Opens "Between My Accounts" as an embedded Home tab instead of a
+  /// pushed full screen, so the drawer (mobile/tablet) / persistent
+  /// sidebar (desktop) stays visible there instead of being covered by a
+  /// full-page route. Falls back to the old push-a-route behavior if not
+  /// supplied (e.g. if this screen is ever used outside Home's tabs).
+  final VoidCallback? onOwnAccountTransferTap;
+
+  /// Same idea for "Transfers" (the pre-existing Transfer Money / Adhoc
+  /// Payee module) — opens it embedded instead of pushed.
+  final VoidCallback? onTransfersTap;
+
+  /// Same idea for "Payee" — opens [PayeeHubScreen] embedded instead of
+  /// pushed. Used by both the Quick Actions "Payee" button and the
+  /// Payment Services "Payee" list item below.
+  final VoidCallback? onPayeeHubTap;
+
+  /// Same idea for the Quick Actions "Transfer" button — opens
+  /// [TransferMoneyScreen] embedded instead of pushed.
+  final VoidCallback? onTransferMoneyTap;
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +68,27 @@ class TransferTabScreen extends StatelessWidget {
         ),
         child: ListView(
           children: [
-            Text(
-              'Payments',
-              style: TextStyle(
-                color: textPrimary,
-                fontSize: responsive.fontScale(phone: 28, tablet: 32),
-                fontWeight: FontWeight.w700,
-              ),
+            Row(
+              children: [
+                // Desktop always shows the persistent sidebar, so it has no
+                // need for this — only mobile/tablet needs a way to reach
+                // the drawer from a tab that (unlike Home) has no header of
+                // its own.
+                if (!responsive.isDesktop) ...[
+                  HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
+                  const SizedBox(width: AppSpacing.md),
+                ],
+                Expanded(
+                  child: Text(
+                    'Payments',
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: responsive.fontScale(phone: 28, tablet: 32),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -65,8 +106,9 @@ class TransferTabScreen extends StatelessWidget {
                   child: _QuickActionButton(
                     icon: Icons.send_rounded,
                     label: 'Transfer',
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(RoutesConst.transferMoneyScreen),
+                    onTap: onTransferMoneyTap ??
+                        () => Navigator.of(context)
+                            .pushNamed(RoutesConst.transferMoneyScreen),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -74,8 +116,9 @@ class TransferTabScreen extends StatelessWidget {
                   child: _QuickActionButton(
                     icon: Icons.people_alt_outlined,
                     label: 'Payee',
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(RoutesConst.payeeHubScreen),
+                    onTap: onPayeeHubTap ??
+                        () => Navigator.of(context)
+                            .pushNamed(RoutesConst.payeeHubScreen),
                   ),
                 ),
               ],
@@ -116,8 +159,9 @@ class TransferTabScreen extends StatelessWidget {
                     ),
                     title: const Text('Transfers'),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(RoutesConst.transfersModuleScreen),
+                    onTap: onTransfersTap ??
+                        () => Navigator.of(context)
+                            .pushNamed(RoutesConst.transfersModuleScreen),
                   ),
                   Divider(height: 1, color: HomeColors.divider(context), indent: 68),
                   ListTile(
@@ -129,8 +173,9 @@ class TransferTabScreen extends StatelessWidget {
                     title: const Text('Between My Accounts'),
                     subtitle: const Text('Quick own-account transfer'),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(RoutesConst.ownAccountTransferScreen),
+                    onTap: onOwnAccountTransferTap ??
+                        () => Navigator.of(context)
+                            .pushNamed(RoutesConst.ownAccountTransferScreen),
                   ),
                   Divider(height: 1, color: HomeColors.divider(context), indent: 68),
                   ListTile(
@@ -142,8 +187,9 @@ class TransferTabScreen extends StatelessWidget {
                     title: const Text('Payee'),
                     subtitle: const Text('Manage payees, add account/draft/P2P payees'),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(RoutesConst.payeeHubScreen),
+                    onTap: onPayeeHubTap ??
+                        () => Navigator.of(context)
+                            .pushNamed(RoutesConst.payeeHubScreen),
                   ),
                   Divider(height: 1, color: HomeColors.divider(context), indent: 68),
                   const ComingSoonTile(

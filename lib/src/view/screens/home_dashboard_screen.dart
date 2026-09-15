@@ -19,6 +19,10 @@ import 'home/tabs/insights_tab_screen.dart';
 import 'home/tabs/more_tab_screen.dart';
 import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
+import 'payments/transfers_module_screen.dart';
+import 'payments/transfer_money_screen.dart';
+import 'payees/payee_hub_screen.dart';
+import 'transfer/own_account_transfer_screen.dart';
 import 'home/widgets/app_nav_content.dart';
 import 'home/widgets/bottom_nav.dart';
 import 'home/widgets/dashboard_header_bar.dart';
@@ -72,6 +76,20 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   LoanAccount? _selectedLoanAccount;
 
   bool _addPayeeOpenedFromManage = false;
+
+  /// Tab to return to once the Manage/Add-Payee flow (indices 5-8) is
+  /// exited without landing back on Manage Payees — i.e. the tab that
+  /// launched "Manage Payees" or an "Add ... Payee" screen directly. Set
+  /// right before switching into that flow; defaults to the Dashboard for
+  /// any caller that doesn't set it explicitly.
+  int _payeeFlowHomeIndex = 0;
+
+  /// Tab to return to when "Transfer Money" (index 13) is closed — it has
+  /// two entry points (the Transfer tab's own "Transfer" Quick Action, and
+  /// the "Transfers" module's "Transfer Money" tile), so this records
+  /// which one was actually used. Set right before switching to 13.
+  int _transferMoneyReturnIndex = 2;
+
   bool _hideTotalBalance = true;
   final Set<String> _revealedAccountIds = <String>{};
 
@@ -131,7 +149,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 children: [
                   WebNavigationSidebar(
                     selectedIndex: _selectedBottomNavIndex,
-                    selectedPayeeDestination: _selectedPayeeDestination,
                     selectedAccountsDestination: _selectedAccountsDestination,
                     onSelected: (index) => setState(() {
                       _selectedBottomNavIndex = index;
@@ -139,18 +156,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                       _selectedAccountsDestination = null;
                       _selectedCasaAccountId = null;
                     }),
-                    onPayeeSelected: (destination) => setState(() {
-                      _selectedPayeeDestination = destination;
-
-                      if (destination != WebPayeeDestination.manage) {
-                        // Any "Add ..." destination opened directly from the
-                        // sidebar (not via Manage Payee).
-                        _addPayeeOpenedFromManage = false;
-                      }
-
-                      _selectedBottomNavIndex =
-                          _navIndexForPayeeDestination(destination);
-                    }),
+                    // No onPayeeSelected: Payee already has its own entry
+                    // point on the Transfer tab (and now stays embedded from
+                    // there too, see case 14 below), so the separate Payee
+                    // accordion in the nav is removed to avoid the same
+                    // destinations being reachable two different ways.
                     onAccountsSelected: _openAccountsDestination,
                   ),
                   Expanded(child: content),
@@ -274,22 +284,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               _selectedLoanAccount = null;
             });
           },
-          selectedPayeeDestination: _selectedPayeeDestination,
-          onPayeeSelected: (destination) {
-            Navigator.of(context).pop();
-            setState(() {
-              _selectedPayeeDestination = destination;
-
-              if (destination != WebPayeeDestination.manage) {
-                // Any "Add ..." destination opened directly from the
-                // navigation drawer (not via Manage Payee).
-                _addPayeeOpenedFromManage = false;
-              }
-
-              _selectedBottomNavIndex =
-                  _navIndexForPayeeDestination(destination);
-            });
-          },
+          // No selectedPayeeDestination/onPayeeSelected: Payee already has
+          // its own entry point on the Transfer tab (see case 14 below), so
+          // the separate Payee accordion in the nav drawer is removed.
           onAccountsSelected: (destination) {
             Navigator.of(context).pop();
             _openAccountsDestination(destination);
@@ -304,7 +301,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 1:
         return const InsightsTabScreen();
       case 2:
-        return const TransferTabScreen();
+        return TransferTabScreen(
+          onOwnAccountTransferTap: () =>
+              setState(() => _selectedBottomNavIndex = 11),
+          onTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 12),
+          onPayeeHubTap: () =>
+              setState(() => _selectedBottomNavIndex = 14),
+          onTransferMoneyTap: () => setState(() {
+            _transferMoneyReturnIndex = 2;
+            _selectedBottomNavIndex = 13;
+          }),
+        );
       case 3:
         return const RewardsTabScreen();
       case 4:
@@ -327,7 +335,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           }),
           onBack: () => setState(() {
             _selectedPayeeDestination = null;
-            _selectedBottomNavIndex = 0;
+            _selectedBottomNavIndex = _payeeFlowHomeIndex;
           }),
         );
       case 6:
@@ -349,6 +357,76 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           onBack: () => setState(() => _returnFromAddPayee()),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
+      case 11:
+        // "Between My Accounts" — embedded (per the widget's own
+        // "Push on top of home (embedded tab)" / "Never replace" comments,
+        // this was clearly meant to run this way) so the drawer/sidebar
+        // stays visible instead of a pushed full screen covering it.
+        return OwnAccountTransferScreen(
+          embedded: true,
+          onClose: () => setState(() => _selectedBottomNavIndex = 2),
+        );
+      case 12:
+        // "Transfers" (Transfer Money / Adhoc Payee module) — same reasoning
+        // as case 11. "Transfer Money" itself is now also embedded (case 13);
+        // deeper steps reached from there (Adhoc/Existing Payee, Review, OTP,
+        // Success) still push their own full screens with a normal back
+        // arrow.
+        return TransfersModuleScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onTransferMoneyTap: () => setState(() {
+            _transferMoneyReturnIndex = 12;
+            _selectedBottomNavIndex = 13;
+          }),
+        );
+      case 13:
+        // "Transfer Money" (Existing/Adhoc Payee chooser) — same reasoning
+        // as case 12. Reachable from two places (the Transfer tab's
+        // "Transfer" Quick Action, and the "Transfers" module's own
+        // "Transfer Money" tile) so it returns to whichever one was
+        // actually used (see [_transferMoneyReturnIndex]) instead of a
+        // fixed tab.
+        return TransferMoneyScreen(
+          embedded: true,
+          onBack: () =>
+              setState(() => _selectedBottomNavIndex = _transferMoneyReturnIndex),
+        );
+      case 14:
+        // "Payee" hub — reached directly from the Transfer tab (Quick
+        // Actions and Payment Services), now embedded the same way. The
+        // separate Payee accordion in the nav drawer/sidebar was removed
+        // since this is already reachable from here.
+        //
+        // Its four items (Manage Payees / Add Account / Add Draft / Add
+        // Peer To Peer) route into the existing embedded tabs 5-8 instead
+        // of pushing a route, so they keep the hamburger/sidebar too.
+        // _payeeFlowHomeIndex records that they were opened from here (14)
+        // rather than Manage Payees itself, so their own back/complete
+        // handlers return to this hub instead of the Dashboard.
+        return PayeeHubScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onManagePayeesTap: () => setState(() {
+            _payeeFlowHomeIndex = 14;
+            _selectedBottomNavIndex = 5;
+          }),
+          onAddAccountPayeeTap: () => setState(() {
+            _payeeFlowHomeIndex = 14;
+            _addPayeeOpenedFromManage = false;
+            _selectedBottomNavIndex = 6;
+          }),
+          onAddDraftPayeeTap: () => setState(() {
+            _payeeFlowHomeIndex = 14;
+            _addPayeeOpenedFromManage = false;
+            _selectedBottomNavIndex = 7;
+          }),
+          onAddPeerToPeerPayeeTap: () => setState(() {
+            _payeeFlowHomeIndex = 14;
+            _addPayeeOpenedFromManage = false;
+            _selectedBottomNavIndex = 8;
+          }),
+        );
       case 0:
       default:
         return _buildHomeBody(accountsState);
@@ -357,14 +435,15 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   /// Shared back/complete handler for the three "Add Payee" screens
   /// (Bank Account / Demand Draft / Peer To Peer): returns to Manage Payee
-  /// when opened from there, otherwise back to the Dashboard.
+  /// when opened from there, otherwise back to whichever tab launched the
+  /// Add-Payee screen directly (see [_payeeFlowHomeIndex]).
   void _returnFromAddPayee() {
     if (_addPayeeOpenedFromManage) {
       _selectedPayeeDestination = WebPayeeDestination.manage;
       _selectedBottomNavIndex = 5;
     } else {
       _selectedPayeeDestination = null;
-      _selectedBottomNavIndex = 0;
+      _selectedBottomNavIndex = _payeeFlowHomeIndex;
     }
     _addPayeeOpenedFromManage = false;
   }

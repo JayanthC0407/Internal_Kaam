@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/theme/app_spacing.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
 
 /// Transfers module. Consolidates transfer choices into user-oriented
@@ -16,13 +17,37 @@ import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
 /// Adhoc Payee Transfer (beneficiary type: Internal / Domestic /
 /// International), not via this module.
 class TransfersModuleScreen extends StatelessWidget {
-  const TransfersModuleScreen({super.key});
+  const TransfersModuleScreen({
+    super.key,
+    this.embedded = false,
+    this.onBack,
+    this.onTransferMoneyTap,
+  });
+
+  /// When true, runs as a Home tab (see [HomeDashboardScreen]) instead of a
+  /// pushed full screen, so the drawer (mobile/tablet) / persistent sidebar
+  /// (desktop) stays visible instead of being covered by a full-page route.
+  final bool embedded;
+
+  /// Returns to the Transfer tab. Only meaningful (and only supplied) when
+  /// [embedded] — a pushed route just pops normally instead.
+  final VoidCallback? onBack;
+
+  /// Opens Transfer Money as another embedded Home tab instead of pushing
+  /// a route. Only meaningful (and only supplied) when [embedded] — a
+  /// pushed route just pushes [TransferMoneyScreen] normally instead.
+  final VoidCallback? onTransferMoneyTap;
 
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final textPrimary = HomeColors.textPrimary(context);
     final brand = HomeColors.brand(context);
+
+    // Grabbed before building this screen's own Scaffold below, so it
+    // resolves to the ambient Home Scaffold (drawer) when embedded — the
+    // Scaffold being built here would otherwise shadow it.
+    final homeScaffold = embedded ? Scaffold.maybeOf(context) : null;
 
     return Scaffold(
       backgroundColor: HomeColors.bg(context),
@@ -31,6 +56,22 @@ class TransfersModuleScreen extends StatelessWidget {
         backgroundColor: HomeColors.bg(context),
         foregroundColor: textPrimary,
         elevation: 0,
+        // A plain AppBar only auto-adds a back arrow when there's a route
+        // to pop — embedded swaps tab content instead of pushing a route,
+        // so without this, embedded left no way back to the Transfer tab.
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: embedded ? onBack : () => Navigator.of(context).maybePop(),
+        ),
+        actions: [
+          if (embedded && !responsive.isDesktop)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: HomeMenuButton(
+                onTap: () => homeScaffold?.openDrawer(),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: ResponsiveBody(
@@ -41,8 +82,7 @@ class TransfersModuleScreen extends StatelessWidget {
             responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
             AppSpacing.xxxl,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: ListView(
             children: [
               Card(
                 child: ListTile(
@@ -54,9 +94,10 @@ class TransfersModuleScreen extends StatelessWidget {
                   title: const Text('Transfer Money'),
                   subtitle: const Text('Existing or adhoc payee — internal, domestic or international'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    RoutesConst.transferMoneyScreen,
-                  ),
+                  onTap: onTransferMoneyTap ??
+                      () => Navigator.of(context).pushNamed(
+                            RoutesConst.transferMoneyScreen,
+                          ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
