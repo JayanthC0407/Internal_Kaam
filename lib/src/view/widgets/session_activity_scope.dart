@@ -9,7 +9,7 @@ import 'package:ubci_bank/src/infra/security/biometric_service.dart';
 import 'package:ubci_bank/src/infra/service/navigation_service.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corporate_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/login_wizard_screen.dart';
 
@@ -231,23 +231,17 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
     final userType = resolveUserType(profileResponse);
 
     if (userType == UserType.corporate) {
-      return CorporateDashboardScreen(args: widget.args);
+      // Corporate keeps its own args type so nothing under `screens/corp/`
+      // has to import the Retail dashboard — see [CorpDashboardArgs].
+      return CorpDashboardScreen(
+        args: CorpDashboardArgs(
+          userName: widget.args.userName,
+          loginTrace: widget.args.loginTrace,
+        ),
+      );
     }
     return HomeDashboardScreen(args: widget.args);
   }
-
-  /// Picks Retail vs Corporate dashboard from the `me` response captured on
-  /// login: matches `dashboardResponse.dashboardDTOs[].dashboardClassValue`
-  /// against `userProfile.roles` (not just `dashboardDTOs[0]` — a user can
-  /// have multiple dashboard DTOs, e.g. a factory `Customer` dashboard
-  /// alongside `retailuser`), falling back to `userProfile.roles` directly
-  /// only when `dashboardDTOs` is empty. See API Flow & Implementation doc,
-  /// §6 "Dashboard Selection Logic" and §19–20 "Critical Dashboard Selection
-  /// Rule" / "Updated User-Type Resolution Algorithm".
-  ///
-  /// Username/email is never used to decide the dashboard. When resolution
-  /// is unavailable or the type is unrecognized, this falls back to the
-  /// existing Retail dashboard so current behavior is preserved. }
 }
 
 /// Blocks protected screens until the session is authenticated and not idle-expired.
