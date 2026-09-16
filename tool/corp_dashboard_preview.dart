@@ -4,7 +4,14 @@
 // fakes that return the exact payloads captured in the "LOGIN to DASHBOARD"
 // HAR, so the layout can be checked without a live host or a login:
 //
-//   flutter run -d web-server --web-port 8080 -t tool/corp_dashboard_preview.dart
+//   flutter run -d web-server --web-port 8080 \
+//     --dart-define=OBDX_BASE_URL=http://localhost \
+//     -t tool/corp_dashboard_preview.dart
+//
+// OBDX_BASE_URL is required only because constructing the API objects the
+// fake repositories extend also constructs the shared Dio client, which
+// validates the host at startup (see EnvConfig.requireBaseUrl). No request
+// is ever issued, so the value is not used — any valid URL will do.
 //
 // Not part of the app — nothing under lib/ imports this.
 import 'package:flutter/material.dart';
