@@ -10,6 +10,7 @@
   "enterPassword": "أدخل كلمة المرور",
   "forgotPassword": "هل نسيت كلمة المرور؟",
   "forgotUsername": "هل نسيت اسم المستخدم؟",
+  "forgotUsernameOrPassword": "هل نسيت اسم المستخدم أو كلمة المرور؟",
   "forgotUsernameTitle": "نسيت اسم المستخدم",
   "forgotPasswordTitle": "نسيت كلمة المرور",
   "forgotUsernameSubtitle": "لاسترجاع اسم المستخدم، يرجى إدخال عنوان البريد الإلكتروني وتاريخ الميلاد المسجلين في حسابك البنكي.",
@@ -364,6 +365,14 @@
   "casaClosingBalance": "رصيد الإغلاق",
   "casaRecentTransactions": "المعاملات الأخيرة",
   "casaTransactionsEmpty": "لم يتم العثور على معاملات.",
+  "casaTransactionsPageIndicator": "الصفحة {page} من {pageCount} · {total} معاملة",
+  "@casaTransactionsPageIndicator": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "pageCount": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "casaTransactionRef": "المرجع: {reference}",
   "@casaTransactionRef": {
     "placeholders": {

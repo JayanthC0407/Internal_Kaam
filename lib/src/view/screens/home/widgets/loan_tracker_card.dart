@@ -48,14 +48,13 @@ decoration: BoxDecoration(
         : const Color(0xFFE5E7EB),
   ),
   boxShadow: [
-    BoxShadow(
-      color: isDark
-          ? const Color(0x2207D5FF)
-          : Colors.black.withOpacity(0.06),
-      blurRadius: 10,
-      offset: const Offset(0, 2),
-    ),
-  ],
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
 ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

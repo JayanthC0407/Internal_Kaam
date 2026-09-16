@@ -10,6 +10,7 @@
   "enterPassword": "Parolni kiriting",
   "forgotPassword": "Parolni unutdingizmi?",
   "forgotUsername": "Foydalanuvchi nomini unutdingizmi?",
+  "forgotUsernameOrPassword": "Foydalanuvchi nomi yoki parolni unutdingizmi?",
   "forgotUsernameTitle": "Foydalanuvchi nomi unutilgan",
   "forgotPasswordTitle": "Parol unutilgan",
   "forgotUsernameSubtitle": "Foydalanuvchi nomini olish uchun bank hisobingizda ro‘yxatdan o‘tgan email va tug‘ilgan sanani kiriting.",
@@ -364,6 +365,14 @@
   "casaClosingBalance": "Yopilish balansi",
   "casaRecentTransactions": "So‘nggi tranzaksiyalar",
   "casaTransactionsEmpty": "Tranzaksiyalar topilmadi.",
+  "casaTransactionsPageIndicator": "{page}-sahifa, jami {pageCount} tadan · Jami {total} ta tranzaksiya",
+  "@casaTransactionsPageIndicator": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "pageCount": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "casaTransactionRef": "Ref: {reference}",
   "@casaTransactionRef": {
     "placeholders": {

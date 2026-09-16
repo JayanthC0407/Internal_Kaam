@@ -60,6 +60,10 @@ class AppLocalizationsUz extends AppLocalizations {
   String get forgotUsername => 'Foydalanuvchi nomini unutdingizmi?';
 
   @override
+  String get forgotUsernameOrPassword =>
+      'Foydalanuvchi nomi yoki parolni unutdingizmi?';
+
+  @override
   String get forgotUsernameTitle => 'Foydalanuvchi nomi unutilgan';
 
   @override
@@ -926,6 +930,11 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get casaTransactionsEmpty => 'Tranzaksiyalar topilmadi.';
+
+  @override
+  String casaTransactionsPageIndicator(int page, int pageCount, int total) {
+    return '$page-sahifa, jami $pageCount tadan · Jami $total ta tranzaksiya';
+  }
 
   @override
   String casaTransactionRef(String reference) {

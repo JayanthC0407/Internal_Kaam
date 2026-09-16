@@ -73,7 +73,7 @@ class CorporateDashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'You are signed in as a corporate user.',
+                  'The Corporate dashboard is coming soon.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
