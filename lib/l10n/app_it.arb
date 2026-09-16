@@ -10,6 +10,7 @@
   "enterPassword": "Inserisci password",
   "forgotPassword": "Password dimenticata?",
   "forgotUsername": "Nome utente dimenticato?",
+  "forgotUsernameOrPassword": "Nome utente o password dimenticati?",
   "forgotUsernameTitle": "Nome utente dimenticato",
   "forgotPasswordTitle": "Password dimenticata",
   "forgotUsernameSubtitle": "Per recuperare il nome utente, inserisci l'indirizzo email e la data di nascita registrati nel tuo conto bancario.",
@@ -364,6 +365,14 @@
   "casaClosingBalance": "Saldo di chiusura",
   "casaRecentTransactions": "Transazioni recenti",
   "casaTransactionsEmpty": "Nessuna transazione trovata.",
+  "casaTransactionsPageIndicator": "Pagina {page} di {pageCount} · {total} transazioni",
+  "@casaTransactionsPageIndicator": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "pageCount": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "casaTransactionRef": "Rif: {reference}",
   "@casaTransactionRef": {
     "placeholders": {

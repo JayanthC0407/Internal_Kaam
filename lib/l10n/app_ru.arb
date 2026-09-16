@@ -10,6 +10,7 @@
   "enterPassword": "Введите пароль",
   "forgotPassword": "Забыли пароль?",
   "forgotUsername": "Забыли имя пользователя?",
+  "forgotUsernameOrPassword": "Забыли имя пользователя или пароль?",
   "forgotUsernameTitle": "Забыли имя пользователя",
   "forgotPasswordTitle": "Забыли пароль",
   "forgotUsernameSubtitle": "Чтобы получить имя пользователя, введите адрес электронной почты и дату рождения, зарегистрированные в вашем банковском счёте.",
@@ -364,6 +365,14 @@
   "casaClosingBalance": "Исходящий остаток",
   "casaRecentTransactions": "Недавние операции",
   "casaTransactionsEmpty": "Операции не найдены.",
+  "casaTransactionsPageIndicator": "Страница {page} из {pageCount} · Всего операций: {total}",
+  "@casaTransactionsPageIndicator": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "pageCount": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "casaTransactionRef": "Реф.: {reference}",
   "@casaTransactionRef": {
     "placeholders": {

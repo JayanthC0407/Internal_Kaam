@@ -17,6 +17,7 @@ import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/otp_login_screen.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
 import 'package:ubci_bank/src/view/widgets/login_help_dialog.dart';
+import 'package:ubci_bank/src/view/widgets/simple_option_picker_sheet.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
 import 'package:ubci_bank/src/view/widgets/virtual_keyboard_dialog.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
@@ -71,6 +72,87 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       RoutesConst.forgotCredentialsScreen,
       arguments: ForgotCredentialsArgs(kind: kind),
     );
+  }
+
+  /// Web/desktop layout: two separate links, e.g.
+  /// "Forgot password? | Forgot username"
+  Widget _buildDesktopForgotLinks(AppLocalizations l10n, AppColors colors) {
+    final linkStyle = TextStyle(
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      decoration: TextDecoration.underline,
+    );
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        InkWell(
+  mouseCursor: SystemMouseCursors.click,
+  onTap: () => _openForgotCredentials(
+    ForgotCredentialsKind.password,
+  ),
+  child: Text(
+    l10n.forgotPassword,
+    style: linkStyle,
+  ),
+),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            '|',
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        InkWell(
+  mouseCursor: SystemMouseCursors.click,
+  onTap: () => _openForgotCredentials(
+    ForgotCredentialsKind.username,
+  ),
+  child: Text(
+    l10n.forgotUsername,
+    style: linkStyle,
+  ),
+),
+      ],
+    );
+  }
+
+  /// Mobile layout: a single combined link that opens a picker letting the
+  /// user choose which of the two flows they want.
+  Widget _buildMobileForgotLink(AppLocalizations l10n, AppColors colors) {
+    return TextButton(
+      onPressed: () => _showForgotCredentialsPicker(l10n),
+      child: Text(
+        l10n.forgotUsernameOrPassword,
+        style: TextStyle(
+          color: colors.textPrimary,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showForgotCredentialsPicker(AppLocalizations l10n) async {
+    final kind = await SimpleOptionPickerSheet.show<ForgotCredentialsKind>(
+      context,
+      title: l10n.forgotUsernameOrPassword,
+      options: const [
+        ForgotCredentialsKind.username,
+        ForgotCredentialsKind.password,
+      ],
+      labelBuilder: (option) => option == ForgotCredentialsKind.username
+          ? l10n.forgotUsernameTitle
+          : l10n.forgotPasswordTitle,
+    );
+    if (kind == null || !mounted) return;
+    await _openForgotCredentials(kind);
   }
 
   Future<void> _loginWithBiometrics() async {
@@ -677,18 +759,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 8),
         Center(
-          child: TextButton(
-            onPressed: () =>
-                _openForgotCredentials(ForgotCredentialsKind.password),
-            child: Text(
-              "Forgot Username or Password?",
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          child: desktopMode
+              ? _buildDesktopForgotLinks(l10n, colors)
+              : _buildMobileForgotLink(l10n, colors),
         ),
         if (_canBiometricLogin) ...[
           const SizedBox(height: 12),

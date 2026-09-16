@@ -77,6 +77,12 @@ class _CasaAccountDetailsScreenState
   bool _downloadingStatement = false;
   CasaTransactionQuery _query = const CasaTransactionQuery();
 
+  // Client-side pagination — API-06 returns the whole filtered result set in
+  // one call (no page/size params on the wire), so paging is done here
+  // rather than re-fetching per page.
+  static const int _transactionsPageSize = 10;
+  int _transactionsPage = 0;
+
   @override
   void initState() {
     super.initState();
@@ -123,7 +129,10 @@ class _CasaAccountDetailsScreenState
       return;
     }
 
-    setState(() => _query = result.query);
+    setState(() {
+      _query = result.query;
+      _transactionsPage = 0;
+    });
     _loadSelected();
   }
 
@@ -335,12 +344,62 @@ class _CasaAccountDetailsScreenState
                         message: txState.errorMessage!,
                         onRetry: _loadSelected,
                       )
-                      else
-                        _TransactionsCard(
-                          transactions: txState.result?.transactions ??
-                              const <CasaTransaction>[],
-                          wide: wide,
-                        ),
+                      else ...[
+                        Builder(builder: (context) {
+                          final allTransactions =
+                              txState.result?.transactions ??
+                                  const <CasaTransaction>[];
+                          final pageCount = allTransactions.isEmpty
+                              ? 1
+                              : (allTransactions.length /
+                                      _transactionsPageSize)
+                                  .ceil();
+                          // Avoid num.clamp() here — int.clamp() returns
+                          // num, not int, which List.sublist() rejects.
+                          final int page = _transactionsPage < 0
+                              ? 0
+                              : (_transactionsPage > pageCount - 1
+                                  ? pageCount - 1
+                                  : _transactionsPage);
+                          final int pageStart = page * _transactionsPageSize;
+                          final int pageEndRaw =
+                              pageStart + _transactionsPageSize;
+                          final int pageEnd = pageEndRaw > allTransactions.length
+                              ? allTransactions.length
+                              : pageEndRaw;
+                          final pagedTransactions = allTransactions.sublist(
+                            pageStart,
+                            pageEnd,
+                          );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _TransactionsCard(
+                                transactions: pagedTransactions,
+                                wide: wide,
+                              ),
+                              if (allTransactions.length >
+                                  _transactionsPageSize) ...[
+                                const SizedBox(height: 12),
+                                _TransactionsPaginationBar(
+                                  page: page,
+                                  pageCount: pageCount,
+                                  totalCount: allTransactions.length,
+                                  onPrevious: page > 0
+                                      ? () => setState(
+                                          () => _transactionsPage = page - 1)
+                                      : null,
+                                  onNext: page < pageCount - 1
+                                      ? () => setState(
+                                          () => _transactionsPage = page + 1)
+                                      : null,
+                                ),
+                              ],
+                            ],
+                          );
+                        }),
+                      ],
                     ],
                   ),
                 ),
@@ -922,6 +981,92 @@ class _TransactionsCard extends StatelessWidget {
             CasaTransactionTile(transaction: transactions[i]),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Prev/Next controls for the client-side paged transaction list — shown
+/// under [_TransactionsCard] whenever there's more than one page.
+class _TransactionsPaginationBar extends StatelessWidget {
+  const _TransactionsPaginationBar({
+    required this.page,
+    required this.pageCount,
+    required this.totalCount,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  /// Zero-based index of the page currently shown.
+  final int page;
+  final int pageCount;
+  final int totalCount;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = AppColors.of(context);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          l10n.casaTransactionsPageIndicator(page + 1, pageCount, totalCount),
+          style: TextStyle(fontSize: 12, color: colors.textSecondary),
+        ),
+        Row(
+          children: [
+            _PagerButton(
+              icon: Icons.chevron_left_rounded,
+              onTap: onPrevious,
+            ),
+            const SizedBox(width: 8),
+            _PagerButton(
+              icon: Icons.chevron_right_rounded,
+              onTap: onNext,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PagerButton extends StatelessWidget {
+  const _PagerButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final enabled = onTap != null;
+
+    return Material(
+      color: colors.inputBackground,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: colors.divider),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: enabled
+                ? colors.textPrimary
+                : colors.textSecondary.withValues(alpha: 0.4),
+          ),
+        ),
       ),
     );
   }

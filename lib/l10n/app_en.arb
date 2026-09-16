@@ -16,6 +16,7 @@
   "enterPassword": "Enter password",
   "forgotPassword": "Forgot password?",
   "forgotUsername": "Forgot username?",
+  "forgotUsernameOrPassword": "Forgot username or password?",
   "forgotUsernameTitle": "Forgot Username",
   "forgotPasswordTitle": "Forgot Password",
   "forgotUsernameSubtitle": "To retrieve your Username, please enter your email address and date of birth registered in your bank account.",
@@ -322,6 +323,14 @@
   "casaClosingBalance": "Closing Balance",
   "casaRecentTransactions": "Recent transactions",
   "casaTransactionsEmpty": "No transactions found.",
+  "casaTransactionsPageIndicator": "Page {page} of {pageCount} · {total} transactions",
+  "@casaTransactionsPageIndicator": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "pageCount": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "casaTransactionRef": "Ref: {reference}",
   "@casaTransactionRef": {
     "placeholders": {

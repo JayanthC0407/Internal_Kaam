@@ -4,7 +4,6 @@ import 'package:ubci_bank/src/core/theme/app_spacing.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 
 /// Payee module hub — mirrors the real OBDX "Payee" submenu: Manage
 /// Payees, Add Account Payee, Add Draft Payee, Add Peer To Peer Payee.
@@ -43,11 +42,6 @@ class PayeeHubScreen extends StatelessWidget {
     final responsive = Responsive.of(context);
     final textPrimary = HomeColors.textPrimary(context);
     final brand = HomeColors.brand(context);
-
-    // Grabbed before building this screen's own Scaffold below, so it
-    // resolves to the ambient Home Scaffold (drawer) when embedded — the
-    // Scaffold being built here would otherwise shadow it.
-    final homeScaffold = embedded ? Scaffold.maybeOf(context) : null;
 
     final items = <_PayeeHubItem>[
       _PayeeHubItem(
@@ -94,15 +88,6 @@ class PayeeHubScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: embedded ? onBack : () => Navigator.of(context).maybePop(),
         ),
-        actions: [
-          if (embedded && !responsive.isDesktop)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.md),
-              child: HomeMenuButton(
-                onTap: () => homeScaffold?.openDrawer(),
-              ),
-            ),
-        ],
       ),
       body: SafeArea(
         child: ResponsiveBody(

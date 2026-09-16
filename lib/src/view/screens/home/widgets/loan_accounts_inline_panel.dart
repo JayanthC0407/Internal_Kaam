@@ -16,7 +16,13 @@ import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
 /// without the standalone `Scaffold`/`AppBar` (this is embedded content,
 /// not a pushed page).
 class LoanAccountsInlinePanel extends ConsumerStatefulWidget {
-  const LoanAccountsInlinePanel({super.key});
+  const LoanAccountsInlinePanel({super.key, this.onLoanTap});
+
+  /// Invoked when a loan tile is tapped. Falls back to pushing
+  /// [LoanAccountDetailsScreen] directly when not supplied — see
+  /// [HomeDashboardScreen], which supplies this on wide/desktop layouts so
+  /// the loan opens next to the persistent sidebar instead of covering it.
+  final ValueChanged<LoanAccount>? onLoanTap;
 
   @override
   ConsumerState<LoanAccountsInlinePanel> createState() =>
@@ -77,6 +83,7 @@ class _LoanAccountsInlinePanelState
             loan: loans[i],
             revealed: _revealedLoanIds.contains(_loanKey(loans[i])),
             onToggleVisibility: () => _toggleRevealed(_loanKey(loans[i])),
+            onTap: widget.onLoanTap,
           ),
         ],
       ],
@@ -94,11 +101,13 @@ class _LoanTile extends StatelessWidget {
     required this.loan,
     required this.revealed,
     required this.onToggleVisibility,
+    this.onTap,
   });
 
   final LoanAccount loan;
   final bool revealed;
   final VoidCallback onToggleVisibility;
+  final ValueChanged<LoanAccount>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +129,10 @@ class _LoanTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () {
           HapticFeedback.selectionClick();
+          if (onTap != null) {
+            onTap!(loan);
+            return;
+          }
           Navigator.of(context).pushNamed(
             RoutesConst.loanAccountDetailsScreen,
             arguments: LoanAccountDetailsArgs(loan: loan),
