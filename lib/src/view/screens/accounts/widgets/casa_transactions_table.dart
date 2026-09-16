@@ -29,7 +29,7 @@ class CasaTransactionsTable extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.cardBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colors.divider),
       ),
@@ -44,7 +44,7 @@ class CasaTransactionsTable extends StatelessWidget {
             headingRowHeight: 44,
             dataRowMinHeight: 48,
             dataRowMaxHeight: 56,
-            headingRowColor: const WidgetStatePropertyAll(Colors.white),
+            headingRowColor: WidgetStatePropertyAll(colors.cardBg),
             dividerThickness: 0.6,
             headingTextStyle: headerStyle,
             dataTextStyle: cellStyle,

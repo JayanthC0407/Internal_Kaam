@@ -202,6 +202,12 @@ abstract class AppLocalizations {
   /// **'Forgot username?'**
   String get forgotUsername;
 
+  /// No description provided for @forgotUsernameOrPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot username or password?'**
+  String get forgotUsernameOrPassword;
+
   /// No description provided for @forgotUsernameTitle.
   ///
   /// In en, this message translates to:
@@ -1827,6 +1833,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transactions found.'**
   String get casaTransactionsEmpty;
+
+  /// No description provided for @casaTransactionsPageIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {pageCount} · {total} transactions'**
+  String casaTransactionsPageIndicator(int page, int pageCount, int total);
 
   /// No description provided for @casaTransactionRef.
   ///

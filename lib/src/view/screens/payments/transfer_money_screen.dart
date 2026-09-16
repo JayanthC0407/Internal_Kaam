@@ -4,7 +4,6 @@ import 'package:ubci_bank/src/core/theme/app_spacing.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 
 /// "Transfer Money → Who are you sending money to?" Both branches
 /// converge on the same Payment Details → Review → Authentication →
@@ -15,7 +14,13 @@ import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 /// [AdhocPayeeTransferScreen]), separate from the "International Low
 /// Value Payment" product under Transfers.
 class TransferMoneyScreen extends StatelessWidget {
-  const TransferMoneyScreen({super.key, this.embedded = false, this.onBack});
+  const TransferMoneyScreen({
+    super.key,
+    this.embedded = false,
+    this.onBack,
+    this.onExistingPayeeTap,
+    this.onAdhocPayeeTap,
+  });
 
   /// When true, runs as a Home tab (see [HomeDashboardScreen]) instead of a
   /// pushed full screen, so the drawer (mobile/tablet) / persistent sidebar
@@ -26,17 +31,21 @@ class TransferMoneyScreen extends StatelessWidget {
   /// [embedded] — a pushed route just pops normally instead.
   final VoidCallback? onBack;
 
+  /// Opens "Existing Payee" ([InternalPaymentScreen]) as another embedded
+  /// Home tab instead of pushing a route, so the drawer/sidebar stays
+  /// visible there too. Falls back to the old push-a-route behavior if not
+  /// supplied.
+  final VoidCallback? onExistingPayeeTap;
+
+  /// Same idea for "Adhoc Payee" ([AdhocPayeeTransferScreen]).
+  final VoidCallback? onAdhocPayeeTap;
+
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final textPrimary = HomeColors.textPrimary(context);
     final textSecondary = HomeColors.textSecondary(context);
     final brand = HomeColors.brand(context);
-
-    // Grabbed before building this screen's own Scaffold below, so it
-    // resolves to the ambient Home Scaffold (drawer) when embedded — the
-    // Scaffold being built here would otherwise shadow it.
-    final homeScaffold = embedded ? Scaffold.maybeOf(context) : null;
 
     return Scaffold(
       backgroundColor: HomeColors.bg(context),
@@ -52,15 +61,6 @@ class TransferMoneyScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: embedded ? onBack : () => Navigator.of(context).maybePop(),
         ),
-        actions: [
-          if (embedded && !responsive.isDesktop)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.md),
-              child: HomeMenuButton(
-                onTap: () => homeScaffold?.openDrawer(),
-              ),
-            ),
-        ],
       ),
       body: SafeArea(
         child: ResponsiveBody(
@@ -97,9 +97,10 @@ class TransferMoneyScreen extends StatelessWidget {
                   title: const Text('Existing Payee'),
                   subtitle: const Text('Send to a payee you\'ve already added'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    RoutesConst.internalPaymentScreen,
-                  ),
+                  onTap: onExistingPayeeTap ??
+                      () => Navigator.of(context).pushNamed(
+                            RoutesConst.internalPaymentScreen,
+                          ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -113,9 +114,10 @@ class TransferMoneyScreen extends StatelessWidget {
                   title: const Text('Adhoc Payee'),
                   subtitle: const Text('Internal, domestic or international — enter beneficiary details for a one-time transfer'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    RoutesConst.adhocPayeeTransferScreen,
-                  ),
+                  onTap: onAdhocPayeeTap ??
+                      () => Navigator.of(context).pushNamed(
+                            RoutesConst.adhocPayeeTransferScreen,
+                          ),
                 ),
               ),
             ],

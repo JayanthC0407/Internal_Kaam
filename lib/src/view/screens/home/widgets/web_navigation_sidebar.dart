@@ -57,6 +57,14 @@ class _WebNavigationSidebarState extends State<WebNavigationSidebar> {
         border: Border(
           right: BorderSide(color: HomeColors.divider(context)),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Stack(

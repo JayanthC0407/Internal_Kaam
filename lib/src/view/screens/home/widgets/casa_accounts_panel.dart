@@ -17,6 +17,7 @@ class CasaAccountsPanel extends StatelessWidget {
     required this.isLoading,
     this.errorMessage,
     this.onRetry,
+    this.onAccountTap,
   });
 
   final List<CasaAccount> accounts;
@@ -25,6 +26,13 @@ class CasaAccountsPanel extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;
   final VoidCallback? onRetry;
+
+  /// Invoked when an account tile is tapped. Falls back to pushing
+  /// [CasaAccountDetailsScreen] directly when not supplied — see
+  /// [HomeDashboardScreen], which supplies this on wide/desktop layouts so
+  /// the account opens next to the persistent sidebar instead of covering
+  /// it.
+  final ValueChanged<CasaAccount>? onAccountTap;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +66,7 @@ class CasaAccountsPanel extends StatelessWidget {
             revealed: revealedAccountIds.contains(_accountKey(accounts[i])),
             onToggleVisibility: () =>
                 onToggleAccountVisibility(_accountKey(accounts[i])),
+            onTap: onAccountTap,
           ),
         ],
       ],
@@ -75,14 +84,20 @@ class _AccountTile extends StatelessWidget {
     required this.account,
     required this.revealed,
     required this.onToggleVisibility,
+    this.onTap,
   });
 
   final CasaAccount account;
   final bool revealed;
   final VoidCallback onToggleVisibility;
+  final ValueChanged<CasaAccount>? onTap;
 
   void _openDetails(BuildContext context) {
     if (account.id.isEmpty) return;
+    if (onTap != null) {
+      onTap!(account);
+      return;
+    }
     Navigator.of(context).pushNamed(
       RoutesConst.casaAccountDetailsScreen,
       arguments: CasaAccountDetailsArgs(accountId: account.id),

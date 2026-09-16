@@ -26,7 +26,22 @@ import 'package:ubci_bank/src/view/widgets/simple_option_picker_sheet.dart';
 /// destination-country / currency / exchange-rate / charges / purpose
 /// fields that are specific to cross-border transfers.
 class InternationalPaymentScreen extends ConsumerStatefulWidget {
-  const InternationalPaymentScreen({super.key});
+  const InternationalPaymentScreen({
+    super.key,
+    this.embedded = false,
+    this.onBack,
+  });
+
+  /// When true, runs as an embedded Home tab (see [HomeDashboardScreen])
+  /// instead of a pushed full screen, so the persistent desktop sidebar /
+  /// mobile drawer stays visible instead of being covered by a full-page
+  /// route.
+  final bool embedded;
+
+  /// Returns to the Transfers module's "International Low Value Payment"
+  /// tile. Only meaningful (and only supplied) when [embedded] — a pushed
+  /// route just pops normally instead.
+  final VoidCallback? onBack;
 
   @override
   ConsumerState<InternationalPaymentScreen> createState() =>
@@ -81,6 +96,23 @@ class _InternationalPaymentScreenState
         setState(() => _debouncedAmount = parsed);
       }
     });
+  }
+
+  /// Leaves the screen — via [widget.onBack] when [widget.embedded]
+  /// (there's no pushed route to pop in that case), otherwise a normal
+  /// pop. [result] is only meaningful in pushed mode (nothing currently
+  /// reads it, but it's preserved for parity with the pre-embedded
+  /// behavior).
+  void _leaveScreen([bool? result]) {
+    if (widget.embedded) {
+      widget.onBack?.call();
+      return;
+    }
+    if (result != null) {
+      Navigator.of(context).pop(result);
+    } else {
+      Navigator.of(context).maybePop();
+    }
   }
 
   void _showOtpSheet(BuildContext context) {
@@ -195,13 +227,18 @@ class _InternationalPaymentScreenState
         backgroundColor: HomeColors.bg(context),
         foregroundColor: HomeColors.textPrimary(context),
         elevation: 0,
-        automaticallyImplyLeading: _step != 2,
-        leading: _step == 1
-            ? IconButton(
+        // Always explicit rather than relying on Flutter's auto-imply
+        // (which only fires when there's a route to pop) — needed since
+        // [embedded] has no route of its own to pop.
+        automaticallyImplyLeading: false,
+        leading: _step == 2
+            ? null
+            : IconButton(
                 icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: () => setState(() => _step = 0),
-              )
-            : null,
+                onPressed: _step == 1
+                    ? () => setState(() => _step = 0)
+                    : () => _leaveScreen(),
+              ),
       ),
       body: SafeArea(
         child: switch (_step) {
@@ -657,7 +694,7 @@ class _InternationalPaymentScreenState
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(!isFailure),
+              onPressed: () => _leaveScreen(!isFailure),
               style: FilledButton.styleFrom(
                 backgroundColor: HomeColors.brand(context),
                 padding: const EdgeInsets.symmetric(vertical: 16),

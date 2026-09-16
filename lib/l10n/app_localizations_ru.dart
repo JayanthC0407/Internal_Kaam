@@ -59,6 +59,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get forgotUsername => 'Забыли имя пользователя?';
 
   @override
+  String get forgotUsernameOrPassword => 'Забыли имя пользователя или пароль?';
+
+  @override
   String get forgotUsernameTitle => 'Забыли имя пользователя';
 
   @override
@@ -925,6 +928,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get casaTransactionsEmpty => 'Операции не найдены.';
+
+  @override
+  String casaTransactionsPageIndicator(int page, int pageCount, int total) {
+    return 'Страница $page из $pageCount · Всего операций: $total';
+  }
 
   @override
   String casaTransactionRef(String reference) {

@@ -107,6 +107,14 @@ class _RecentTransactionsCardState
           color: HomeColors.brand(context).withValues(alpha: 0.15),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
