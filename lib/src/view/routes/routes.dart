@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:ubci_bank/src/core/models/own_account_transfer.dart';
+import 'package:ubci_bank/src/view/routes/corp/corp_routes.dart';
+import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/infra/security/device_security_models.dart';
 import 'package:ubci_bank/src/view/screens/accounts/casa_account_details_screen.dart';
@@ -59,6 +61,15 @@ class Routes {
       _splashFallback(routeSettings);
 
   static Route<dynamic>? onGenerateRoutes(RouteSettings routeSettings) {
+    // Corporate routes live in their own table (see [CorpRoutes]); a null
+    // result there means "needs arguments it wasn't given", which gets the
+    // same splash fallback every argument-taking route below uses.
+    final name = routeSettings.name;
+    if (name != null && CorpRoutesConst.all.contains(name)) {
+      return CorpRoutes.onGenerateRoute(routeSettings) ??
+          _splashFallback(routeSettings);
+    }
+
     switch (routeSettings.name) {
       case '/':
       case RoutesConst.splashScreen:

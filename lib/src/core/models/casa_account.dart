@@ -1,42 +1,10 @@
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:ubci_bank/src/core/models/money_amount.dart';
 
-/// Monetary amount as returned by OBDX (number or `{ amount, currency }`).
-class MoneyAmount {
-  const MoneyAmount({
-    required this.amount,
-    this.currency,
-  });
-
-  final double amount;
-  final String? currency;
-
-  factory MoneyAmount.fromJson(dynamic json, {String? fallbackCurrency}) {
-    if (json == null) {
-      return MoneyAmount(amount: 0, currency: fallbackCurrency);
-    }
-    if (json is num) {
-      return MoneyAmount(amount: json.toDouble(), currency: fallbackCurrency);
-    }
-    if (json is String) {
-      final parsed = double.tryParse(json.replaceAll(',', '')) ?? 0;
-      return MoneyAmount(amount: parsed, currency: fallbackCurrency);
-    }
-    if (json is Map) {
-      final map = Map<String, dynamic>.from(json);
-      final raw = map['amount'] ?? map['value'] ?? map['availableBalance'] ?? 0;
-      final amount = raw is num
-          ? raw.toDouble()
-          : double.tryParse(raw.toString().replaceAll(',', '')) ?? 0;
-      final currency = (map['currency'] ??
-              map['currencyCode'] ??
-              map['currencyId'] ??
-              fallbackCurrency)
-          ?.toString();
-      return MoneyAmount(amount: amount, currency: currency);
-    }
-    return MoneyAmount(amount: 0, currency: fallbackCurrency);
-  }
-}
+// `MoneyAmount` moved to money_amount.dart so the Corporate model layer can
+// share the same parser; re-exported here so existing Retail imports of
+// `casa_account.dart` continue to resolve it.
+export 'package:ubci_bank/src/core/models/money_amount.dart';
 
 /// CASA demand-deposit account from `GET /digx-common/dda/v1/demandDeposit`.
 ///
