@@ -235,6 +235,19 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
     }
     return HomeDashboardScreen(args: widget.args);
   }
+
+  /// Picks Retail vs Corporate dashboard from the `me` response captured on
+  /// login: matches `dashboardResponse.dashboardDTOs[].dashboardClassValue`
+  /// against `userProfile.roles` (not just `dashboardDTOs[0]` — a user can
+  /// have multiple dashboard DTOs, e.g. a factory `Customer` dashboard
+  /// alongside `retailuser`), falling back to `userProfile.roles` directly
+  /// only when `dashboardDTOs` is empty. See API Flow & Implementation doc,
+  /// §6 "Dashboard Selection Logic" and §19–20 "Critical Dashboard Selection
+  /// Rule" / "Updated User-Type Resolution Algorithm".
+  ///
+  /// Username/email is never used to decide the dashboard. When resolution
+  /// is unavailable or the type is unrecognized, this falls back to the
+  /// existing Retail dashboard so current behavior is preserved. }
 }
 
 /// Blocks protected screens until the session is authenticated and not idle-expired.

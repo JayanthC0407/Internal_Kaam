@@ -41,7 +41,21 @@ class WebDashboardHeaderBar extends ConsumerWidget {
     final isDark = themeMode == ThemeMode.dark;
     final menuTap = onMenuTap;
 
-    return Row(
+    return Container(
+  width: double.infinity,
+  decoration: BoxDecoration(
+    color: HomeColors.card(context),
+    boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
+          ),
+        ],
+  ),
+
+    child:  Row(
       children: [
         if (menuTap != null) ...[
           _HeaderIconButton(
@@ -98,6 +112,7 @@ class WebDashboardHeaderBar extends ConsumerWidget {
         // Static for now — dropdown menu / navigation to be wired up later.
         const _ProfileMenuTrigger(),
       ],
+    ),
     );
   }
 }

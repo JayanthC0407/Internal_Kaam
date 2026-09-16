@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/casa_account.dart';
+import 'package:ubci_bank/src/core/models/loan_account.dart';
 import 'package:ubci_bank/src/core/utils/money_format.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/accounts_tab_card.dart';
 import 'package:ubci_bank/src/view/screens/home/widgets/casa_accounts_panel.dart';
@@ -33,6 +34,8 @@ class HomeContent extends StatelessWidget {
     this.isWide = false,
     this.displayName = '',
     this.onTransferTap,
+    this.onCasaAccountTap,
+    this.onLoanAccountTap,
   });
 
   final int selectedTopTabIndex;
@@ -57,11 +60,23 @@ class HomeContent extends StatelessWidget {
   final String displayName;
   final VoidCallback? onTransferTap;
 
+  /// Invoked when a CASA account is tapped, on either the Overview tab's
+  /// account preview or the Accounts tab's Current & Savings list. Falls
+  /// back to pushing [CasaAccountDetailsScreen] directly when not supplied
+  /// (mobile) — see [HomeDashboardScreen], which supplies this on
+  /// wide/desktop layouts so the account opens next to the persistent
+  /// sidebar instead of covering it.
+  final ValueChanged<CasaAccount>? onCasaAccountTap;
+
+  /// Same idea for a loan, tapped on the Overview tab's Loans inner tab or
+  /// the Accounts tab's Loan & Finance list.
+  final ValueChanged<LoanAccount>? onLoanAccountTap;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final content = Container(
-      clipBehavior: Clip.antiAlias,
+     // clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: HomeColors.bg(context),
         borderRadius: isWide
@@ -104,6 +119,8 @@ class HomeContent extends StatelessWidget {
           accountsLoading: accountsLoading,
           accountsError: accountsError,
           onRetryAccounts: onRetryAccounts,
+          onCasaAccountTap: onCasaAccountTap,
+          onLoanAccountTap: onLoanAccountTap,
         );
       case 2:
         return Column(
@@ -131,6 +148,7 @@ class HomeContent extends StatelessWidget {
           onTransferTap: onTransferTap,
           onViewAllAccountsTap: onViewAllAccountsTap ?? () => onTopTabSelected(1),
           onViewAllLoans: onViewAllLoans,
+          onLoanAccountTap: onLoanAccountTap,
         );
     }
   }
@@ -151,6 +169,8 @@ class _AccountsSectionContent extends StatefulWidget {
     required this.accountsLoading,
     this.accountsError,
     this.onRetryAccounts,
+    this.onCasaAccountTap,
+    this.onLoanAccountTap,
   });
 
   final List<CasaAccount> accounts;
@@ -159,6 +179,8 @@ class _AccountsSectionContent extends StatefulWidget {
   final bool accountsLoading;
   final String? accountsError;
   final VoidCallback? onRetryAccounts;
+  final ValueChanged<CasaAccount>? onCasaAccountTap;
+  final ValueChanged<LoanAccount>? onLoanAccountTap;
 
   @override
   State<_AccountsSectionContent> createState() =>
@@ -206,9 +228,10 @@ class _AccountsSectionContentState extends State<_AccountsSectionContent> {
           isLoading: widget.accountsLoading,
           errorMessage: widget.accountsError,
           onRetry: widget.onRetryAccounts,
+          onAccountTap: widget.onCasaAccountTap,
         );
       case _AccountCategory.loan:
-        return const LoanAccountsInlinePanel();
+        return LoanAccountsInlinePanel(onLoanTap: widget.onLoanAccountTap);
       case _AccountCategory.termDeposit:
         return _FeaturePlaceholder(
           icon: Icons.savings_outlined,
@@ -323,6 +346,7 @@ class _OverviewContent extends StatelessWidget {
     this.onTransferTap,
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
+    this.onLoanAccountTap,
   });
 
   final bool isWide;
@@ -333,6 +357,7 @@ class _OverviewContent extends StatelessWidget {
   final VoidCallback? onTransferTap;
   final VoidCallback? onViewAllAccountsTap;
   final VoidCallback? onViewAllLoans;
+  final ValueChanged<LoanAccount>? onLoanAccountTap;
 
   void _comingSoon(BuildContext context, String label) {
     final l10n = AppLocalizations.of(context);
@@ -352,6 +377,7 @@ class _OverviewContent extends StatelessWidget {
       onToggleAccountVisibility: onToggleAccountVisibility,
       onViewAllAccountsTap: onViewAllAccountsTap,
       onViewAllLoans: onViewAllLoans,
+      onLoanTap: onLoanAccountTap,
     );
     final quickActions = QuickActionsGrid(
       title: isWide ? 'Activity Centre' : l10n.quickActions,

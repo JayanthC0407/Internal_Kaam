@@ -12,7 +12,6 @@ import 'package:ubci_bank/src/view/providers/accounts_providers.dart';
 import 'package:ubci_bank/src/view/providers/transfer_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 import 'package:ubci_bank/src/view/screens/transfer/transfer_theme.dart';
 import 'package:ubci_bank/src/view/screens/transfer/widgets/transfer_account_widgets.dart';
 import 'package:ubci_bank/src/view/screens/transfer/widgets/transfer_shared_widgets.dart';
@@ -487,10 +486,9 @@ class _OwnAccountTransferScreenState
                     children: [
                       // The web branch is reached first (see the
                       // `if (kIsWeb)` check at the top of build()), so when
-                      // embedded, the native branch's back/hamburger header
-                      // below is otherwise unreachable — without this,
-                      // embedded web builds had no way back to the
-                      // Transfer tab and no way to open the drawer.
+                      // embedded, the native branch's back header below is
+                      // otherwise unreachable — without this, embedded web
+                      // builds had no way back to the Transfer tab.
                       if (widget.embedded)
                         Row(
                           children: [
@@ -514,13 +512,6 @@ class _OwnAccountTransferScreenState
                                 style: TransferTheme.pageTitle(context),
                               ),
                             ),
-                            if (!Responsive.of(context).isDesktop)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 12),
-                                child: HomeMenuButton(
-                                  onTap: () => Scaffold.maybeOf(context)?.openDrawer(),
-                                ),
-                              ),
                           ],
                         )
                       else

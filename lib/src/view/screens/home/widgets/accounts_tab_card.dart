@@ -35,6 +35,7 @@ class AccountsTabCard extends ConsumerStatefulWidget {
     this.displayName = '',
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
+    this.onLoanTap,
   });
 
   final List<CasaAccount> accounts;
@@ -49,6 +50,13 @@ class AccountsTabCard extends ConsumerStatefulWidget {
 
   /// Invoked when "View all loans" is tapped on the Loans inner tab.
   final VoidCallback? onViewAllLoans;
+
+  /// Invoked when a loan card in the Loans inner tab is tapped. Falls back
+  /// to pushing [LoanAccountDetailsScreen] directly when not supplied (e.g.
+  /// if this card is ever used outside Home's tabs) — see
+  /// [HomeDashboardScreen], which supplies this on wide/desktop layouts so
+  /// the loan opens next to the persistent sidebar instead of covering it.
+  final ValueChanged<LoanAccount>? onLoanTap;
 
   @override
   ConsumerState<AccountsTabCard> createState() => _AccountsTabCardState();
@@ -88,6 +96,10 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
 
   void _openLoanDetails(BuildContext context, LoanAccount loan) {
     HapticFeedback.selectionClick();
+    if (widget.onLoanTap != null) {
+      widget.onLoanTap!(loan);
+      return;
+    }
     Navigator.of(context).pushNamed(
       RoutesConst.loanAccountDetailsScreen,
       arguments: LoanAccountDetailsArgs(loan: loan),
@@ -107,6 +119,14 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
         color: HomeColors.card(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: HomeColors.divider(context)),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -374,6 +394,7 @@ class _LoanHeroCard extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: AppGradients.primary(context),
             borderRadius: BorderRadius.circular(20),
+            
           ),
           clipBehavior: Clip.antiAlias,
           child: Stack(
@@ -662,6 +683,7 @@ class _HeroAccountCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: AppGradients.primary(context),
         borderRadius: BorderRadius.circular(20),
+        
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(

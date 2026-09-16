@@ -21,6 +21,9 @@ import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
 import 'payments/transfers_module_screen.dart';
 import 'payments/transfer_money_screen.dart';
+import 'payments/internal_payment_screen.dart';
+import 'payments/adhoc_payee_transfer_screen.dart';
+import 'payments/international_payment_screen.dart';
 import 'payees/payee_hub_screen.dart';
 import 'transfer/own_account_transfer_screen.dart';
 import 'home/widgets/app_nav_content.dart';
@@ -250,6 +253,47 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }
 }
 
+  /// Opens a CASA account's details from a Home-tab preview tap. On the
+  /// wide/desktop shell it embeds next to the persistent sidebar (index 9,
+  /// same destination [_openAccountsDestination] uses) so the sidebar never
+  /// disappears; on phones it pushes [CasaAccountDetailsScreen] directly.
+  void _openCasaAccountDetails(CasaAccount account) {
+    if (Responsive.of(context).useWideHome) {
+      setState(() {
+        _selectedAccountsDestination = WebAccountsDestination.casa;
+        _selectedCasaAccountId = account.id;
+        _selectedPayeeDestination = null;
+        _selectedLoanAccount = null;
+        _selectedBottomNavIndex = 9;
+      });
+    } else {
+      Navigator.of(context).pushNamed(
+        RoutesConst.casaAccountDetailsScreen,
+        arguments: CasaAccountDetailsArgs(accountId: account.id),
+      );
+    }
+  }
+
+  /// Same idea for a Loan account tapped from a Home-tab preview — embeds
+  /// at index 10 on wide/desktop, otherwise pushes
+  /// [LoanAccountDetailsScreen] directly.
+  void _openLoanAccountDetails(LoanAccount loan) {
+    if (Responsive.of(context).useWideHome) {
+      setState(() {
+        _selectedAccountsDestination = WebAccountsDestination.loans;
+        _selectedLoanAccount = loan;
+        _selectedPayeeDestination = null;
+        _selectedCasaAccountId = null;
+        _selectedBottomNavIndex = 10;
+      });
+    } else {
+      Navigator.of(context).pushNamed(
+        RoutesConst.loanAccountDetailsScreen,
+        arguments: LoanAccountDetailsArgs(loan: loan),
+      );
+    }
+  }
+
   /// Bottom-nav index that renders the given Payee destination.
   int _navIndexForPayeeDestination(WebPayeeDestination destination) {
     switch (destination) {
@@ -368,10 +412,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         );
       case 12:
         // "Transfers" (Transfer Money / Adhoc Payee module) — same reasoning
-        // as case 11. "Transfer Money" itself is now also embedded (case 13);
-        // deeper steps reached from there (Adhoc/Existing Payee, Review, OTP,
-        // Success) still push their own full screens with a normal back
-        // arrow.
+        // as case 11. "Transfer Money" itself is now also embedded (case 13),
+        // and so are the deeper steps reached from there and from here
+        // (Existing Payee 15, Adhoc Payee 16, International Low Value
+        // Payment 17) — all embedded so the sidebar/drawer stays visible
+        // all the way through.
         return TransfersModuleScreen(
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 2),
@@ -379,6 +424,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             _transferMoneyReturnIndex = 12;
             _selectedBottomNavIndex = 13;
           }),
+          onInternationalPaymentTap: () =>
+              setState(() => _selectedBottomNavIndex = 17),
         );
       case 13:
         // "Transfer Money" (Existing/Adhoc Payee chooser) — same reasoning
@@ -391,6 +438,30 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           embedded: true,
           onBack: () =>
               setState(() => _selectedBottomNavIndex = _transferMoneyReturnIndex),
+          onExistingPayeeTap: () => setState(() => _selectedBottomNavIndex = 15),
+          onAdhocPayeeTap: () => setState(() => _selectedBottomNavIndex = 16),
+        );
+      case 15:
+        // "Existing Payee" transfer, reached from Transfer Money (13) —
+        // embedded so the sidebar/drawer never disappears here either.
+        return InternalPaymentScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 13),
+        );
+      case 16:
+        // "Adhoc Payee" transfer, reached from Transfer Money (13) — same
+        // reasoning as case 15.
+        return AdhocPayeeTransferScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 13),
+        );
+      case 17:
+        // "International Low Value Payment", reached from the Transfers
+        // module (12) directly (not via Transfer Money) — same reasoning
+        // as case 15/16.
+        return InternationalPaymentScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 12),
         );
       case 14:
         // "Payee" hub — reached directly from the Transfer tab (Quick
@@ -491,6 +562,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 _openAccountsDestination(WebAccountsDestination.loans),
             onViewAllAccountsTap: () =>
                 _openAccountsDestination(WebAccountsDestination.casa),
+            onCasaAccountTap: _openCasaAccountDetails,
+            onLoanAccountTap: _openLoanAccountDetails,
             displayName: displayName,
             onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
           ),
@@ -520,73 +593,59 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               width < 900 ? 20 : 30,
               32,
             ),
-            child: ResponsiveBody(
-              maxWidth: 1400,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  WebDashboardHeaderBar(
-                    onMenuTap:
-                        Responsive.of(context).isDesktop ? null : _openMenu,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header — full available width
+                Transform.translate(
+                  offset: const Offset(-30, 0),
+                  child: SizedBox(
+                    width: width - 30,
+                    child: WebDashboardHeaderBar(
+                      onMenuTap:
+                          Responsive.of(context).isDesktop ? null : _openMenu,
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  // if (stackHero) ...[
-                  //   _buildWebBalanceCard(
-                  //     l10n: l10n,
-                  //     summary: summary,
-                  //     balanceText: balanceText,
-                  //   ),
-                  //   const SizedBox(height: 16),
-                  //   _buildWebAccountsPreview(
-                  //     accountsState: accountsState,
-                  //     accounts: accounts,
-                  //   ),
-                  // ] else
-                  //   Row(
-                  //     crossAxisAlignment: CrossAxisAlignment.start,
-                  //     children: [
-                  //       Expanded(
-                  //         flex: 6,
-                  //         child: _buildWebBalanceCard(
-                  //           l10n: l10n,
-                  //           summary: summary,
-                  //           balanceText: balanceText,
-                  //         ),
-                  //       ),
-                  //       const SizedBox(width: 18),
-                  //       Expanded(
-                  //         flex: 5,
-                  //         child: _buildWebAccountsPreview(
-                  //           accountsState: accountsState,
-                  //           accounts: accounts,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // const SizedBox(height: 20),
-                  const SizedBox(height: 12),
-                  HomeContent(
-                    selectedTopTabIndex: _selectedTopTabIndex,
-                    onTopTabSelected: (index) =>
-                        setState(() => _selectedTopTabIndex = index),
-                    revealedAccountIds: _revealedAccountIds,
-                    onToggleAccountVisibility: _toggleAccountVisibility,
-                    accounts: accounts,
-                    accountsLoading: accountsState.isLoading,
-                    accountsError: accountsState.errorMessage,
-                    onRetryAccounts: () =>
-                        ref.read(casaAccountsProvider.notifier).refresh(),
-                    onViewAllLoans: () =>
-                        _openAccountsDestination(WebAccountsDestination.loans),
-                    onViewAllAccountsTap: () =>
-                        _openAccountsDestination(WebAccountsDestination.casa),
-                    isWide: true,
-                    displayName: displayName,
-                    onTransferTap: () =>
-                        setState(() => _selectedBottomNavIndex = 2),
+                ),
+
+                const SizedBox(height: 20),
+
+                const SizedBox(height: 20),
+
+                // Dashboard content — keep max width 1400
+                ResponsiveBody(
+                  maxWidth: 1400,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 12),
+
+                      HomeContent(
+                        selectedTopTabIndex: _selectedTopTabIndex,
+                        onTopTabSelected: (index) =>
+                            setState(() => _selectedTopTabIndex = index),
+                        revealedAccountIds: _revealedAccountIds,
+                        onToggleAccountVisibility: _toggleAccountVisibility,
+                        accounts: accounts,
+                        accountsLoading: accountsState.isLoading,
+                        accountsError: accountsState.errorMessage,
+                        onRetryAccounts: () =>
+                            ref.read(casaAccountsProvider.notifier).refresh(),
+                        onViewAllLoans: () =>
+                            _openAccountsDestination(WebAccountsDestination.loans),
+                        onViewAllAccountsTap: () =>
+                            _openAccountsDestination(WebAccountsDestination.casa),
+                        onCasaAccountTap: _openCasaAccountDetails,
+                        onLoanAccountTap: _openLoanAccountDetails,
+                        isWide: true,
+                        displayName: displayName,
+                        onTransferTap: () =>
+                            setState(() => _selectedBottomNavIndex = 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },

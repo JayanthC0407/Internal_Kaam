@@ -4,7 +4,6 @@ import 'package:ubci_bank/src/core/theme/app_spacing.dart';
 import 'package:ubci_bank/src/core/utils/responsive.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/home/widgets/home_menu_button.dart';
 import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
 
 /// Transfers module. Consolidates transfer choices into user-oriented
@@ -22,6 +21,7 @@ class TransfersModuleScreen extends StatelessWidget {
     this.embedded = false,
     this.onBack,
     this.onTransferMoneyTap,
+    this.onInternationalPaymentTap,
   });
 
   /// When true, runs as a Home tab (see [HomeDashboardScreen]) instead of a
@@ -38,16 +38,17 @@ class TransfersModuleScreen extends StatelessWidget {
   /// pushed route just pushes [TransferMoneyScreen] normally instead.
   final VoidCallback? onTransferMoneyTap;
 
+  /// Opens "International Low Value Payment" ([InternationalPaymentScreen])
+  /// as another embedded Home tab instead of pushing a route. Only
+  /// meaningful (and only supplied) when [embedded] — a pushed route just
+  /// pushes [InternationalPaymentScreen] normally instead.
+  final VoidCallback? onInternationalPaymentTap;
+
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final textPrimary = HomeColors.textPrimary(context);
     final brand = HomeColors.brand(context);
-
-    // Grabbed before building this screen's own Scaffold below, so it
-    // resolves to the ambient Home Scaffold (drawer) when embedded — the
-    // Scaffold being built here would otherwise shadow it.
-    final homeScaffold = embedded ? Scaffold.maybeOf(context) : null;
 
     return Scaffold(
       backgroundColor: HomeColors.bg(context),
@@ -63,15 +64,6 @@ class TransfersModuleScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: embedded ? onBack : () => Navigator.of(context).maybePop(),
         ),
-        actions: [
-          if (embedded && !responsive.isDesktop)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.md),
-              child: HomeMenuButton(
-                onTap: () => homeScaffold?.openDrawer(),
-              ),
-            ),
-        ],
       ),
       body: SafeArea(
         child: ResponsiveBody(
@@ -119,9 +111,10 @@ class TransfersModuleScreen extends StatelessWidget {
                   title: const Text('International Low Value Payment'),
                   subtitle: const Text('Low-value cross-border payment'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    RoutesConst.internationalPaymentScreen,
-                  ),
+                  onTap: onInternationalPaymentTap ??
+                      () => Navigator.of(context).pushNamed(
+                            RoutesConst.internationalPaymentScreen,
+                          ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),

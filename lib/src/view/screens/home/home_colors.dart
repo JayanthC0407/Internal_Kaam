@@ -17,6 +17,8 @@ class HomeColors {
   static Color textSecondary(BuildContext context) => of(context).textSecondary;
 
   static Color brand(BuildContext context) => of(context).brand;
+  
+  static Color brandLight(BuildContext context) => of(context).brandLight;
 
   static Color brandDark(BuildContext context) => of(context).brandDark;
 
