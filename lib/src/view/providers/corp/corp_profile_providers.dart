@@ -71,8 +71,16 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
   bool _loadedOnce = false;
   Future<void>? _pendingLoad;
 
-  /// Seeds [CorpProfileState.profile] from the login trace's `me` response.
-  /// Safe to call on every build — it no-ops once a profile is present.
+  /// Seeds [CorpProfileState.profile] from the login trace's `me` response,
+  /// so the header shows the real user without waiting on a network call.
+  ///
+  /// Never call this from a widget life-cycle method (`build`, `initState`,
+  /// `dispose`, …) — Riverpod forbids mutating a provider while the tree is
+  /// building. [ensureLoaded] takes the response and applies the seed from
+  /// a post-frame callback instead, which is how the dashboard uses it.
+  ///
+  /// No-ops once a profile is present, so a rebuild cannot clobber a
+  /// profile already confirmed by the network.
   void seedFromProfileResponse(dynamic profileResponse) {
     if (state.profile != null) return;
     final profile = CorpUserProfile.fromProfileResponse(profileResponse);
@@ -80,7 +88,14 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
     state = state.copyWith(profile: profile);
   }
 
-  Future<void> ensureLoaded() {
+  /// Seeds from [profileResponse] (when given) and then fetches the party /
+  /// bank configuration / mailbox count, once per session.
+  ///
+  /// The seed is applied here rather than by a separate caller so it can
+  /// never run inside a widget life-cycle: the dashboard invokes this from
+  /// a post-frame callback.
+  Future<void> ensureLoaded({dynamic profileResponse}) {
+    if (profileResponse != null) seedFromProfileResponse(profileResponse);
     if (_loadedOnce) return Future.value();
     return _pendingLoad ??= refresh().whenComplete(() {
       _pendingLoad = null;

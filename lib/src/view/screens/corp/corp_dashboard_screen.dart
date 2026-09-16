@@ -80,17 +80,20 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     super.initState();
     _destination = widget.args.initialDestination;
 
-    // The `me` response is already in hand from login — seed the profile
-    // synchronously so the header's name and initials are correct on the
-    // first frame, then confirm the party / bank configuration.
-    ref
-        .read(corpProfileProvider.notifier)
-        .seedFromProfileResponse(widget.args.profileResponse);
-
+    // Both of these mutate providers, so they have to run after the first
+    // frame — Riverpod throws if a provider is modified while the widget
+    // tree is building, `initState` included.
+    //
+    // The `me` response captured at login is handed to the profile
+    // notifier here so it can seed the header's name and initials without
+    // waiting on the network; `CorpDashboardHeaderBar` renders
+    // `args.fallbackDisplayName` for the one frame before that lands.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(corpAccountsProvider.notifier).ensureLoaded();
-      ref.read(corpProfileProvider.notifier).ensureLoaded();
+      ref
+          .read(corpProfileProvider.notifier)
+          .ensureLoaded(profileResponse: widget.args.profileResponse);
     });
   }
 
