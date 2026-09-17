@@ -132,7 +132,12 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
         return Padding(
           padding: EdgeInsets.fromLTRB(
             isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-            AppSpacing.lg,
+            // Top offset matches AppNavContent's top padding (22) around
+            // the sidebar logo, and the dashboard header's top padding —
+            // so the back arrow + title sit on the same line as the
+            // Demobank logo instead of floating above it (phones keep
+            // AppSpacing.lg).
+            isPhone ? AppSpacing.lg : 22,
             isPhone ? AppSpacing.lg : AppSpacing.xxxl,
             isPhone ? AppSpacing.lg : AppSpacing.xxxl,
           ),
@@ -374,6 +379,14 @@ class _PayeeContentCard extends StatelessWidget {
         color: HomeColors.card(context),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: divider),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [

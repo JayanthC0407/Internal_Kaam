@@ -234,9 +234,13 @@ class _CasaAccountDetailsScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
+                // Top offset matches AppNavContent's top padding (22) around
+                // the sidebar logo, and the dashboard header's top padding —
+                // so "‹ Accounts" sits on the same line as the Demobank
+                // logo instead of floating above it.
                 padding: EdgeInsets.fromLTRB(
                   wide ? 28 : 16,
-                  wide ? 8 : 12,
+                  wide ? 36 : 24,
                   wide ? 28 : 16,
                   8,
                 ),
@@ -274,6 +278,30 @@ class _CasaAccountDetailsScreenState
                       28,
                     ),
                     children: [
+                      // Outermost card — same chrome (bg, radius, border,
+                      // bluish shadow) as the dashboard's cards, so the
+                      // account detail + recent transactions read as one
+                      // elevated card instead of loose items on the page.
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: HomeColors.card(context),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: HomeColors.divider(context)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: HomeColors.brandLight(context)
+                                  .withValues(alpha: 0.30),
+                              blurRadius: 15,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                       if (detailState.isLoading && detail == null)
                       _AccountDetailContainer(
                         child: const Padding(
@@ -400,6 +428,9 @@ class _CasaAccountDetailsScreenState
                           );
                         }),
                       ],
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
