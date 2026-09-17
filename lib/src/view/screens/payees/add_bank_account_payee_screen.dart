@@ -375,6 +375,14 @@ class _AddBankAccountPayeeScreenState
         color: HomeColors.card(context),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: HomeColors.divider(context)),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -958,6 +966,14 @@ class _InfoPanel extends StatelessWidget {
         color: HomeColors.card(context),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: HomeColors.divider(context)),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
