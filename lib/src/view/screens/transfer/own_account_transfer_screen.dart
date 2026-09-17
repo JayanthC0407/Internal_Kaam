@@ -489,36 +489,46 @@ class _OwnAccountTransferScreenState
                       // embedded, the native branch's back header below is
                       // otherwise unreachable — without this, embedded web
                       // builds had no way back to the Transfer tab.
-                      if (widget.embedded)
-                        Row(
-                          children: [
-                            Material(
-                              color: AppColors.of(context).secondaryButtonBg,
-                              borderRadius: BorderRadius.circular(6),
-                              child: InkWell(
-                                onTap: () => _onWizardBack(state),
-                                borderRadius: BorderRadius.circular(6),
-                                child: const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: Icon(Icons.chevron_left_rounded, size: 16),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
+                      // On desktop the content pane's own left padding (30)
+                      // is wider than the sidebar logo's left inset (20),
+                      // so the row is nudged left to match it — keeping the
+                      // back button + title aligned with the logo above.
+                      Transform.translate(
+                        offset: Offset(-(pad > 20 ? pad - 20 : 0.0), 0),
+                        child: widget.embedded
+                            ? Row(
+                                children: [
+                                  Material(
+                                    color:
+                                        AppColors.of(context).secondaryButtonBg,
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: InkWell(
+                                      onTap: () => _onWizardBack(state),
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: Icon(
+                                          Icons.chevron_left_rounded,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      l10n.transferMoney,
+                                      style: TransferTheme.pageTitle(context),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Text(
                                 l10n.transferMoney,
                                 style: TransferTheme.pageTitle(context),
                               ),
-                            ),
-                          ],
-                        )
-                      else
-                        Text(
-                          l10n.transferMoney,
-                          style: TransferTheme.pageTitle(context),
-                        ),
+                      ),
                       const SizedBox(height: 16),
                       Container(
                         width: double.infinity,
@@ -529,11 +539,13 @@ class _OwnAccountTransferScreenState
                           border: Border.all(
                             color: HomeColors.divider(context),
                           ),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
-                              color: Color(0x0D000000),
-                              blurRadius: 18,
-                              offset: Offset(0, 8),
+                              color: HomeColors.brandLight(context)
+                                  .withValues(alpha: 0.30),
+                              blurRadius: 15,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 0),
                             ),
                           ],
                         ),

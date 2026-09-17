@@ -388,6 +388,10 @@ class _AdhocPayeeTransferScreenState
         backgroundColor: HomeColors.bg(context),
         foregroundColor: HomeColors.textPrimary(context),
         elevation: 0,
+        // A little taller than the default 56 so the back arrow + title
+        // sit further from the very top edge — closer to the sidebar
+        // logo's line instead of hugging the top.
+        toolbarHeight: 64,
         // Always explicit rather than relying on Flutter's auto-imply
         // (which only fires when there's a route to pop) — needed since
         // [embedded] has no route of its own to pop.
@@ -468,6 +472,14 @@ class _AdhocPayeeTransferScreenState
                     color: HomeColors.card(context),
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(color: HomeColors.divider(context)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+                        blurRadius: 15,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

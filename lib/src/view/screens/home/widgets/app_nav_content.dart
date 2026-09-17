@@ -102,7 +102,7 @@ class _AppNavContentState extends State<AppNavContent> {
                 children: [
                   if (widget.showLogo && !collapsed) ...[
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -365,11 +365,11 @@ class _SubDestination extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.only(left: 28, right: 12, top: 9, bottom: 9),
+          padding: const EdgeInsets.only(left: 22, right: 8, top: 9, bottom: 9),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: foreground),
-              const SizedBox(width: 10),
+              Icon(icon, size: 16, color: foreground),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   label,

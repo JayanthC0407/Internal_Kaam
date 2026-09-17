@@ -589,23 +589,17 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
               width < 900 ? 20 : 30,
-              22,
+              36,
               width < 900 ? 20 : 30,
               32,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header — full available width
-                Transform.translate(
-                  offset: const Offset(-30, 0),
-                  child: SizedBox(
-                    width: width - 30,
-                    child: WebDashboardHeaderBar(
-                      onMenuTap:
-                          Responsive.of(context).isDesktop ? null : _openMenu,
-                    ),
-                  ),
+                // Header — sits inside the same padding as the content
+                // below it (no more manual left-shift), so both line up.
+                WebDashboardHeaderBar(
+                  onMenuTap: Responsive.of(context).isDesktop ? null : _openMenu,
                 ),
 
                 const SizedBox(height: 20),
