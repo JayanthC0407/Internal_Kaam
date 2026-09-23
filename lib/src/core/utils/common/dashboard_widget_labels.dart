@@ -11,8 +11,8 @@
 /// Reconciliation), so an unknown component must still get a readable name.
 /// OBDX does the same — its own Personalize screen shows bare component
 /// names such as `trade-dashboard-listing` where no translation exists.
-class CorpWidgetLabels {
-  CorpWidgetLabels._();
+class DashboardWidgetLabels {
+  DashboardWidgetLabels._();
 
   /// Labels confirmed against the real corporate Personalize screen where
   /// they differ from the derived form. Everything not listed here derives

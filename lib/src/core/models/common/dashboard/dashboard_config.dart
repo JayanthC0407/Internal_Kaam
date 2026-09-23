@@ -4,13 +4,13 @@ import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 ///
 /// `defaultLayout` is stored alongside the three sized layouts and is empty
 /// in every capture we have, but it round-trips like the rest.
-enum CorpLayoutBreakpoint {
+enum DashboardBreakpoint {
   defaultLayout('defaultLayout'),
   large('large'),
   medium('medium'),
   small('small');
 
-  const CorpLayoutBreakpoint(this.key);
+  const DashboardBreakpoint(this.key);
 
   /// The key this layout sits under in `layout.layout`.
   final String key;
@@ -21,16 +21,16 @@ enum CorpLayoutBreakpoint {
   /// `md` below 1024, `lg` at or above it. Both mobile and desktop are
   /// supported, so the app reads — and saves — the layout matching the
   /// screen the user is actually personalizing on.
-  static CorpLayoutBreakpoint forWidth(double width) {
-    if (width < 768) return CorpLayoutBreakpoint.small;
-    if (width < 1024) return CorpLayoutBreakpoint.medium;
-    return CorpLayoutBreakpoint.large;
+  static DashboardBreakpoint forWidth(double width) {
+    if (width < 768) return DashboardBreakpoint.small;
+    if (width < 1024) return DashboardBreakpoint.medium;
+    return DashboardBreakpoint.large;
   }
 }
 
 /// One widget placed on a dashboard layout.
-class CorpDashboardLayoutItem {
-  const CorpDashboardLayoutItem({
+class DashboardLayoutItem {
+  const DashboardLayoutItem({
     required this.componentName,
     required this.module,
     this.style,
@@ -56,8 +56,8 @@ class CorpDashboardLayoutItem {
   /// Nested panels. Always empty in the captures; preserved verbatim.
   final List<dynamic> childPanel;
 
-  CorpDashboardLayoutItem copyWith({String? style}) {
-    return CorpDashboardLayoutItem(
+  DashboardLayoutItem copyWith({String? style}) {
+    return DashboardLayoutItem(
       componentName: componentName,
       module: module,
       style: style ?? this.style,
@@ -66,9 +66,9 @@ class CorpDashboardLayoutItem {
     );
   }
 
-  factory CorpDashboardLayoutItem.fromJson(Map<String, dynamic> json) {
+  factory DashboardLayoutItem.fromJson(Map<String, dynamic> json) {
     final childPanel = json['childPanel'];
-    return CorpDashboardLayoutItem(
+    return DashboardLayoutItem(
       componentName: (json['componentName'] ?? '').toString().trim(),
       module: (json['module'] ?? '').toString().trim(),
       style: _trimmed(json['style']),
@@ -113,8 +113,8 @@ class CorpDashboardLayoutItem {
 /// That is why this model keeps [layoutsByBreakpoint] whole and offers
 /// [withLayout] to replace exactly one — callers cannot accidentally drop
 /// the layouts they did not look at.
-class CorpDashboardConfig {
-  const CorpDashboardConfig({
+class DashboardConfig {
+  const DashboardConfig({
     required this.dashboardId,
     required this.dashboardName,
     required this.dashboardDescription,
@@ -133,7 +133,7 @@ class CorpDashboardConfig {
   final String dashboardName;
   final String dashboardDescription;
 
-  final Map<CorpLayoutBreakpoint, List<CorpDashboardLayoutItem>>
+  final Map<DashboardBreakpoint, List<DashboardLayoutItem>>
       layoutsByBreakpoint;
 
   final String? enterpriseRole;
@@ -143,7 +143,7 @@ class CorpDashboardConfig {
   /// A factory dashboard is the bank's default, not the user's own copy.
   final bool isFactory;
 
-  List<CorpDashboardLayoutItem> layoutFor(CorpLayoutBreakpoint breakpoint) =>
+  List<DashboardLayoutItem> layoutFor(DashboardBreakpoint breakpoint) =>
       layoutsByBreakpoint[breakpoint] ?? const [];
 
   /// Distinct component names selected at [breakpoint], in first-seen
@@ -152,7 +152,7 @@ class CorpDashboardConfig {
   /// De-duplicates deliberately: the captured `small` layout holds 13
   /// entries for 7 distinct widgets (`approval-transactions-widget` three
   /// times), which would otherwise render the same widget repeatedly.
-  List<String> selectedComponentsAt(CorpLayoutBreakpoint breakpoint) {
+  List<String> selectedComponentsAt(DashboardBreakpoint breakpoint) {
     final seen = <String>{};
     final ordered = <String>[];
     for (final item in layoutFor(breakpoint)) {
@@ -163,16 +163,16 @@ class CorpDashboardConfig {
   }
 
   /// True when [breakpoint] stores the same widget more than once.
-  bool hasDuplicatesAt(CorpLayoutBreakpoint breakpoint) =>
+  bool hasDuplicatesAt(DashboardBreakpoint breakpoint) =>
       layoutFor(breakpoint).length != selectedComponentsAt(breakpoint).length;
 
   /// Replaces exactly one breakpoint's layout, leaving every other
   /// breakpoint's items untouched so they round-trip unchanged.
-  CorpDashboardConfig withLayout(
-    CorpLayoutBreakpoint breakpoint,
-    List<CorpDashboardLayoutItem> items,
+  DashboardConfig withLayout(
+    DashboardBreakpoint breakpoint,
+    List<DashboardLayoutItem> items,
   ) {
-    return CorpDashboardConfig(
+    return DashboardConfig(
       dashboardId: dashboardId,
       dashboardName: dashboardName,
       dashboardDescription: dashboardDescription,
@@ -195,7 +195,7 @@ class CorpDashboardConfig {
       'dashboardDescription': dashboardDescription,
       'layout': {
         'layout': {
-          for (final breakpoint in CorpLayoutBreakpoint.values)
+          for (final breakpoint in DashboardBreakpoint.values)
             breakpoint.key: [
               for (final item in layoutFor(breakpoint)) item.toJson(),
             ],
@@ -204,7 +204,7 @@ class CorpDashboardConfig {
     };
   }
 
-  static CorpDashboardConfig? fromPayload(dynamic data) {
+  static DashboardConfig? fromPayload(dynamic data) {
     final root = _unwrap(data);
     if (root == null) return null;
 
@@ -226,17 +226,17 @@ class CorpDashboardConfig {
     final layoutWrapper = ObdxApiUtils.asMap(dto['layout']);
     final layouts = ObdxApiUtils.asMap(layoutWrapper['layout']);
 
-    final parsed = <CorpLayoutBreakpoint, List<CorpDashboardLayoutItem>>{};
-    for (final breakpoint in CorpLayoutBreakpoint.values) {
+    final parsed = <DashboardBreakpoint, List<DashboardLayoutItem>>{};
+    for (final breakpoint in DashboardBreakpoint.values) {
       final raw = layouts[breakpoint.key];
       if (raw is! List) {
         parsed[breakpoint] = const [];
         continue;
       }
-      final items = <CorpDashboardLayoutItem>[];
+      final items = <DashboardLayoutItem>[];
       for (final entry in raw) {
         if (entry is! Map) continue;
-        final item = CorpDashboardLayoutItem.fromJson(
+        final item = DashboardLayoutItem.fromJson(
           Map<String, dynamic>.from(entry),
         );
         if (item.componentName.isEmpty) continue;
@@ -245,7 +245,7 @@ class CorpDashboardConfig {
       parsed[breakpoint] = items;
     }
 
-    return CorpDashboardConfig(
+    return DashboardConfig(
       dashboardId: dashboardId,
       dashboardName: (dto['dashboardName'] ?? '').toString(),
       dashboardDescription: (dto['dashboardDescription'] ?? '').toString(),

@@ -5,8 +5,8 @@
 /// whether a given user may use it (that is `authorizedUIComponents`) or
 /// whether they currently have it (that is the dashboard configuration).
 /// Those three are separate concepts and must not be collapsed.
-class CorpWidgetDefinition {
-  const CorpWidgetDefinition({
+class DashboardWidgetDefinition {
+  const DashboardWidgetDefinition({
     required this.componentName,
     required this.module,
     required this.segments,
@@ -65,7 +65,7 @@ class CorpWidgetDefinition {
   /// Column width for [breakpoint], when the catalog specifies one.
   String? widthFor(String breakpoint) => widths[breakpoint];
 
-  factory CorpWidgetDefinition.fromJson(Map<String, dynamic> json) {
+  factory DashboardWidgetDefinition.fromJson(Map<String, dynamic> json) {
     final segmentRaw = json['segment'];
     final segments = segmentRaw is List
         ? segmentRaw
@@ -98,7 +98,7 @@ class CorpWidgetDefinition {
       }
     }
 
-    return CorpWidgetDefinition(
+    return DashboardWidgetDefinition(
       componentName: (json['componentName'] ?? '').toString().trim(),
       module: (json['module'] ?? '').toString().trim(),
       segments: segments,
@@ -121,16 +121,16 @@ class CorpWidgetDefinition {
 }
 
 /// The parsed `moduleComponents.json` catalog.
-class CorpWidgetCatalog {
-  const CorpWidgetCatalog({required this.definitions});
+class DashboardWidgetCatalog {
+  const DashboardWidgetCatalog({required this.definitions});
 
-  static const empty = CorpWidgetCatalog(definitions: <CorpWidgetDefinition>[]);
+  static const empty = DashboardWidgetCatalog(definitions: <DashboardWidgetDefinition>[]);
 
-  final List<CorpWidgetDefinition> definitions;
+  final List<DashboardWidgetDefinition> definitions;
 
   bool get isEmpty => definitions.isEmpty;
 
-  CorpWidgetDefinition? byName(String componentName) {
+  DashboardWidgetDefinition? byName(String componentName) {
     for (final definition in definitions) {
       if (definition.componentName == componentName) return definition;
     }
@@ -145,7 +145,7 @@ class CorpWidgetCatalog {
   /// dashboard can legitimately hold components this catalog has never
   /// heard of (5 of the 10 on the captured dashboard), because the catalog
   /// ships with the web app and can lag the environment.
-  List<CorpWidgetDefinition> availableFor({
+  List<DashboardWidgetDefinition> availableFor({
     required String userSegment,
     required Set<String> authorizedComponents,
   }) {
@@ -157,21 +157,21 @@ class CorpWidgetCatalog {
         .toList();
   }
 
-  static CorpWidgetCatalog fromPayload(dynamic data) {
+  static DashboardWidgetCatalog fromPayload(dynamic data) {
     final root = _unwrap(data);
     if (root == null) return empty;
     final raw = root['components'];
     if (raw is! List) return empty;
 
-    final definitions = <CorpWidgetDefinition>[];
+    final definitions = <DashboardWidgetDefinition>[];
     for (final item in raw) {
       if (item is! Map) continue;
       final definition =
-          CorpWidgetDefinition.fromJson(Map<String, dynamic>.from(item));
+          DashboardWidgetDefinition.fromJson(Map<String, dynamic>.from(item));
       if (definition.componentName.isEmpty) continue;
       definitions.add(definition);
     }
-    return CorpWidgetCatalog(definitions: definitions);
+    return DashboardWidgetCatalog(definitions: definitions);
   }
 
   static Map<String, dynamic>? _unwrap(dynamic data) {
@@ -189,13 +189,13 @@ class CorpWidgetCatalog {
 /// `authorizedUIComponents` is a flat list of ~2500 UI component names
 /// covering the whole application, not just dashboard widgets, so it is an
 /// authorization set to check against — never a widget list in itself.
-class CorpAuthorizedComponents {
-  const CorpAuthorizedComponents({
+class DashboardAuthorizedComponents {
+  const DashboardAuthorizedComponents({
     required this.authorized,
     this.defaultDashboards = const <String>[],
   });
 
-  static const empty = CorpAuthorizedComponents(authorized: <String>{});
+  static const empty = DashboardAuthorizedComponents(authorized: <String>{});
 
   final Set<String> authorized;
   final List<String> defaultDashboards;
@@ -209,7 +209,7 @@ class CorpAuthorizedComponents {
   /// latter must not silently hide every widget.
   bool get isNotEmpty => authorized.isNotEmpty;
 
-  static CorpAuthorizedComponents fromPayload(dynamic data) {
+  static DashboardAuthorizedComponents fromPayload(dynamic data) {
     final root = _unwrap(data);
     if (root == null) return empty;
 
@@ -231,7 +231,7 @@ class CorpAuthorizedComponents {
       }
     }
 
-    return CorpAuthorizedComponents(
+    return DashboardAuthorizedComponents(
       authorized: authorized,
       defaultDashboards: dashboards,
     );

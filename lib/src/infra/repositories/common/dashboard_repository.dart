@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:ubci_bank/src/core/models/corp/corp_dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_widget_definition.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_dashboard_api.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
 import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
@@ -11,30 +11,30 @@ import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart'
 /// Where a loaded widget catalog came from. Surfaced so the UI can say so
 /// when it is running on the shipped copy, which is known to lag the
 /// environment.
-enum CorpCatalogSource { environment, bundledAsset, none }
+enum DashboardCatalogSource { environment, bundledAsset, none }
 
-class CorpCatalogResult {
-  const CorpCatalogResult({required this.catalog, required this.source});
+class DashboardCatalogResult {
+  const DashboardCatalogResult({required this.catalog, required this.source});
 
-  final CorpWidgetCatalog catalog;
-  final CorpCatalogSource source;
+  final DashboardWidgetCatalog catalog;
+  final DashboardCatalogSource source;
 
-  bool get isStale => source == CorpCatalogSource.bundledAsset;
+  bool get isStale => source == DashboardCatalogSource.bundledAsset;
 }
 
 /// Personalized-dashboard data: the saved configuration, the authorization
 /// set, and the widget catalog.
-class CorpDashboardRepository extends CorpRepositoryBase {
-  CorpDashboardRepository({required ObdxCorpDashboardApi dashboardApi})
+class DashboardRepository extends CorpRepositoryBase {
+  DashboardRepository({required ObdxDashboardApi dashboardApi})
       : _api = dashboardApi;
 
-  final ObdxCorpDashboardApi _api;
+  final ObdxDashboardApi _api;
 
   /// The user's saved dashboard.
   ///
   /// [dashboardClass] / [dashboardClassValue] must come from the caller's
   /// `me` response — see `resolveDashboardDto`.
-  Future<ResponseHandler<CorpDashboardConfig>> fetchConfig({
+  Future<ResponseHandler<DashboardConfig>> fetchConfig({
     required String dashboardClass,
     required String dashboardClassValue,
   }) async {
@@ -44,7 +44,7 @@ class CorpDashboardRepository extends CorpRepositoryBase {
         dashboardClassValue: dashboardClassValue,
       );
       return parseBody(result, (body) {
-        final config = CorpDashboardConfig.fromPayload(body);
+        final config = DashboardConfig.fromPayload(body);
         if (config == null) throw StateError('No dashboardDTO in response');
         return config;
       });
@@ -56,7 +56,7 @@ class CorpDashboardRepository extends CorpRepositoryBase {
   /// Saves [config] in full, then re-reads it from the host.
   ///
   /// [config] must be one that was loaded and then edited via
-  /// `CorpDashboardConfig.withLayout` — never assembled from scratch, or
+  /// `DashboardConfig.withLayout` — never assembled from scratch, or
   /// the breakpoints the user did not touch would be wiped.
   ///
   /// **The PUT response carries no layout.** It returns a `dashboardDTO`
@@ -66,8 +66,8 @@ class CorpDashboardRepository extends CorpRepositoryBase {
   /// client avoids this by re-fetching after saving (GET → PUT → GET in
   /// the capture), which is what this does; the config we sent is the
   /// fallback if that re-fetch fails, since the host just accepted it.
-  Future<ResponseHandler<CorpDashboardConfig>> saveConfig(
-    CorpDashboardConfig config,
+  Future<ResponseHandler<DashboardConfig>> saveConfig(
+    DashboardConfig config,
   ) async {
     try {
       final result = await _api.saveDashboardConfig(
@@ -79,14 +79,14 @@ class CorpDashboardRepository extends CorpRepositoryBase {
       // re-fetch, or a rejected save would look like it worked.
       final saved = await parseBody(result, (body) => body);
       if (saved is! Success<Map<String, dynamic>>) {
-        return mapFailure<CorpDashboardConfig>(saved);
+        return mapFailure<DashboardConfig>(saved);
       }
 
       final refreshed = await fetchConfig(
         dashboardClass: config.dashboardClass ?? 'CUSTOM',
         dashboardClassValue: config.dashboardClassValue ?? 'custom',
       );
-      if (refreshed is Success<CorpDashboardConfig> && refreshed.data != null) {
+      if (refreshed is Success<DashboardConfig> && refreshed.data != null) {
         return refreshed;
       }
       return ResponseHandler.success(config, code: 200);
@@ -95,11 +95,11 @@ class CorpDashboardRepository extends CorpRepositoryBase {
     }
   }
 
-  Future<ResponseHandler<CorpAuthorizedComponents>>
+  Future<ResponseHandler<DashboardAuthorizedComponents>>
       fetchAuthorizedComponents() async {
     try {
       final result = await _api.fetchAuthorizedComponents();
-      return parseBody(result, CorpAuthorizedComponents.fromPayload);
+      return parseBody(result, DashboardAuthorizedComponents.fromPayload);
     } catch (_) {
       return ResponseHandler.exceptionError();
     }
@@ -113,18 +113,18 @@ class CorpDashboardRepository extends CorpRepositoryBase {
   /// as the source of truth would hide widgets users actually have.
   ///
   /// Never fails outright — a catalog that cannot be loaded at all returns
-  /// an empty one with [CorpCatalogSource.none], which callers render as
+  /// an empty one with [DashboardCatalogSource.none], which callers render as
   /// "no widgets available to add" rather than an error.
-  Future<CorpCatalogResult> fetchCatalog() async {
+  Future<DashboardCatalogResult> fetchCatalog() async {
     try {
       final result = await _api.fetchModuleComponents();
-      final parsed = await parseBody(result, CorpWidgetCatalog.fromPayload);
-      if (parsed is Success<CorpWidgetCatalog> &&
+      final parsed = await parseBody(result, DashboardWidgetCatalog.fromPayload);
+      if (parsed is Success<DashboardWidgetCatalog> &&
           parsed.data != null &&
           !parsed.data!.isEmpty) {
-        return CorpCatalogResult(
+        return DashboardCatalogResult(
           catalog: parsed.data!,
-          source: CorpCatalogSource.environment,
+          source: DashboardCatalogSource.environment,
         );
       }
     } catch (_) {
@@ -135,20 +135,20 @@ class CorpDashboardRepository extends CorpRepositoryBase {
       final raw = await rootBundle.loadString(
         CorpApiConst.moduleComponentsAsset,
       );
-      final catalog = CorpWidgetCatalog.fromPayload(jsonDecode(raw));
+      final catalog = DashboardWidgetCatalog.fromPayload(jsonDecode(raw));
       if (!catalog.isEmpty) {
-        return CorpCatalogResult(
+        return DashboardCatalogResult(
           catalog: catalog,
-          source: CorpCatalogSource.bundledAsset,
+          source: DashboardCatalogSource.bundledAsset,
         );
       }
     } catch (_) {
       // Fall through to empty.
     }
 
-    return const CorpCatalogResult(
-      catalog: CorpWidgetCatalog.empty,
-      source: CorpCatalogSource.none,
+    return const DashboardCatalogResult(
+      catalog: DashboardWidgetCatalog.empty,
+      source: DashboardCatalogSource.none,
     );
   }
 }

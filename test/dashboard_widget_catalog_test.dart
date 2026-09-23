@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_widget_definition.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 
 /// A faithful slice of the real `moduleComponents.json`, chosen to cover
 /// every shape the file actually contains:
@@ -105,9 +105,9 @@ const _authorized = {
 };
 
 void main() {
-  group('CorpWidgetDefinition', () {
+  group('DashboardWidgetDefinition', () {
     test('parses a full catalog entry', () {
-      final catalog = CorpWidgetCatalog.fromPayload(_catalogSlice());
+      final catalog = DashboardWidgetCatalog.fromPayload(_catalogSlice());
       final definition = catalog.byName('account-financial-summary')!;
 
       expect(definition.module, 'corporateDashboard');
@@ -122,7 +122,7 @@ void main() {
       // The regression this guards: 10 corporate-eligible catalog entries
       // omit both flags, and `currency-exposure` is one of them — reading a
       // missing flag as false would drop a widget users really have.
-      final catalog = CorpWidgetCatalog.fromPayload(_catalogSlice());
+      final catalog = DashboardWidgetCatalog.fromPayload(_catalogSlice());
       final definition = catalog.byName('currency-exposure')!;
 
       expect(definition.isVisible, isNull);
@@ -131,7 +131,7 @@ void main() {
     });
 
     test('excludes entries either flag explicitly turns off', () {
-      final catalog = CorpWidgetCatalog.fromPayload(_catalogSlice());
+      final catalog = DashboardWidgetCatalog.fromPayload(_catalogSlice());
 
       expect(catalog.byName('trade-finance-links')!.isSelectable, isFalse);
       // isWidget true but isVisible false — still not offered.
@@ -139,7 +139,7 @@ void main() {
     });
 
     test('segment matching honours the common wildcard', () {
-      final catalog = CorpWidgetCatalog.fromPayload(_catalogSlice());
+      final catalog = DashboardWidgetCatalog.fromPayload(_catalogSlice());
 
       expect(
         catalog.byName('currency-exposure')!.appliesToSegment('corporateuser'),
@@ -156,7 +156,7 @@ void main() {
     });
 
     test('keeps input variants so one component can serve several', () {
-      final catalog = CorpWidgetCatalog.fromPayload(_catalogSlice());
+      final catalog = DashboardWidgetCatalog.fromPayload(_catalogSlice());
       expect(
         catalog.byName('dashboard-quick-links')!.inputOptions['type'],
         contains('payments-quick-links'),
@@ -164,9 +164,9 @@ void main() {
     });
   });
 
-  group('CorpWidgetCatalog.availableFor', () {
+  group('DashboardWidgetCatalog.availableFor', () {
     test('applies segment AND authorization AND the catalog flags', () {
-      final available = CorpWidgetCatalog.fromPayload(_catalogSlice())
+      final available = DashboardWidgetCatalog.fromPayload(_catalogSlice())
           .availableFor(
             userSegment: 'corporateuser',
             authorizedComponents: _authorized,
@@ -195,7 +195,7 @@ void main() {
 
     test('a retail segment gets a different set from the same catalog', () {
       // Proves the rule is configuration-driven rather than role-hardcoded.
-      final available = CorpWidgetCatalog.fromPayload(_catalogSlice())
+      final available = DashboardWidgetCatalog.fromPayload(_catalogSlice())
           .availableFor(
             userSegment: 'retailuser',
             authorizedComponents: _authorized,
@@ -209,7 +209,7 @@ void main() {
     });
 
     test('returns nothing when the authorization set is empty', () {
-      final available = CorpWidgetCatalog.fromPayload(_catalogSlice())
+      final available = DashboardWidgetCatalog.fromPayload(_catalogSlice())
           .availableFor(
             userSegment: 'corporateuser',
             authorizedComponents: const <String>{},
@@ -223,14 +223,14 @@ void main() {
       // cash-flow-summary, notification-widget, pickup-point-collections,
       // view-cash-flow-widget) are absent from this catalog yet authorized
       // in that environment. Rendering must not depend on a catalog hit.
-      final catalog = CorpWidgetCatalog.fromPayload(_catalogSlice());
+      final catalog = DashboardWidgetCatalog.fromPayload(_catalogSlice());
       expect(catalog.byName('pickup-point-collections'), isNull);
     });
   });
 
-  group('CorpAuthorizedComponents', () {
+  group('DashboardAuthorizedComponents', () {
     test('parses the me/components response', () {
-      final parsed = CorpAuthorizedComponents.fromPayload({
+      final parsed = DashboardAuthorizedComponents.fromPayload({
         'statusCode': 200,
         'body': {
           'status': {'result': 'SUCCESSFUL'},
@@ -250,8 +250,8 @@ void main() {
     });
 
     test('degrades to empty rather than throwing on a bad payload', () {
-      expect(CorpAuthorizedComponents.fromPayload(null).isEmpty, isTrue);
-      expect(CorpAuthorizedComponents.fromPayload({'body': {}}).isEmpty, isTrue);
+      expect(DashboardAuthorizedComponents.fromPayload(null).isEmpty, isTrue);
+      expect(DashboardAuthorizedComponents.fromPayload({'body': {}}).isEmpty, isTrue);
     });
   });
 }

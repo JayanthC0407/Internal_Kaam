@@ -8,8 +8,8 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 
 /// Personalized-dashboard APIs: the user's saved configuration, the
 /// authorization set it is filtered against, and the widget catalog.
-class ObdxCorpDashboardApi extends ObdxApiBase {
-  ObdxCorpDashboardApi([ObdxDioClient? client])
+class ObdxDashboardApi extends ObdxApiBase {
+  ObdxDashboardApi([ObdxDioClient? client])
       : super(client ?? ObdxDioClient.instance);
 
   /// `GET /digx-admin/config/v1/dashboards/modules?class=…&value=…`
@@ -45,7 +45,7 @@ class ObdxCorpDashboardApi extends ObdxApiBase {
   ///
   /// [payload] must be a complete configuration — the host replaces the
   /// whole layout object rather than merging, so every breakpoint has to be
-  /// present. `CorpDashboardConfig.toUpdatePayload()` guarantees that.
+  /// present. `DashboardConfig.toUpdatePayload()` guarantees that.
   Future<ResponseHandler<Map<String, dynamic>>> saveDashboardConfig({
     required String dashboardId,
     required Map<String, dynamic> payload,
