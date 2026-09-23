@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/casa_account.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 
 void main() {
   group('CasaAccount', () {

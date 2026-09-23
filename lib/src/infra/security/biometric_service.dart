@@ -2,7 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/core/models/alternate_login_method.dart';
+import 'package:ubci_bank/src/core/models/common/alternate_login_method.dart';
 
 enum BiometricAvailability {
   available,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/responsive.dart';
+import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_form_styles.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_screen_header.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';

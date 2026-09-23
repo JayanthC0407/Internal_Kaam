@@ -1,4 +1,5 @@
-import 'package:ubci_bank/src/core/utils/profile_initials.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
 /// The authenticated corporate user, parsed from `GET /digx-common/user/v1/me`.
@@ -26,6 +27,7 @@ class CorpUserProfile {
     this.lastLoginTime,
     this.isCorpAdmin = false,
     this.inactiveSessionTimeoutMs,
+    this.dashboards = const <DashboardDescriptor>[],
   });
 
   final String userName;
@@ -57,6 +59,14 @@ class CorpUserProfile {
 
   /// `inactiveSessionTimeout` from the `me` response (milliseconds).
   final int? inactiveSessionTimeoutMs;
+
+  /// `dashboardResponse.dashboardDTOs[]`.
+  final List<DashboardDescriptor> dashboards;
+
+  /// The dashboard personalization reads and writes — see
+  /// [DashboardDescriptor.personalizableFrom], which both user types share.
+  DashboardDescriptor? get personalizableDashboard =>
+      DashboardDescriptor.personalizableFrom(dashboards);
 
   /// `Pooja Jha` — falls back to the login username.
   String get fullName {
@@ -115,6 +125,18 @@ class CorpUserProfile {
             .toList()
         : const <String>[];
 
+    final dashboardResponse = ObdxApiUtils.asMap(body['dashboardResponse']);
+    final dashboardRaw = dashboardResponse['dashboardDTOs'];
+    final dashboards = <DashboardDescriptor>[];
+    if (dashboardRaw is List) {
+      for (final entry in dashboardRaw) {
+        if (entry is! Map) continue;
+        dashboards.add(
+          DashboardDescriptor.fromJson(Map<String, dynamic>.from(entry)),
+        );
+      }
+    }
+
     final timeoutRaw = body['inactiveSessionTimeout'];
 
     return CorpUserProfile(
@@ -134,6 +156,7 @@ class CorpUserProfile {
       lastLoginTime:
           DateTime.tryParse(userProfile['lastLoginTime']?.toString() ?? ''),
       isCorpAdmin: userProfile['corpAdmin'] == true,
+      dashboards: dashboards,
       inactiveSessionTimeoutMs: timeoutRaw is num
           ? timeoutRaw.toInt()
           : int.tryParse(timeoutRaw?.toString() ?? ''),

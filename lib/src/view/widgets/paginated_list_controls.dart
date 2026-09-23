@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Small helper that slices a full list into pages of [pageSize] and keeps
 /// the current page clamped in range whenever the underlying list length
