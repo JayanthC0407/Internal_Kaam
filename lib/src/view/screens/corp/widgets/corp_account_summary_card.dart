@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
 import 'package:ubci_bank/src/core/utils/corp/corp_money_format.dart';
-import 'package:ubci_bank/src/core/utils/statement_file_saver.dart';
+import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';

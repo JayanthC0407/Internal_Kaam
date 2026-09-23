@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/responsive.dart';
-import 'package:ubci_bank/src/view/screens/auth/auth_colors.dart';
+import 'package:ubci_bank/src/core/utils/common/responsive.dart';
+import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_primary_button.dart';
 import 'package:ubci_bank/src/view/widgets/auth/otp_pin_input.dart';
 

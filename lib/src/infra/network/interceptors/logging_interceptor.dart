@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/core/utils/log_redactor.dart';
+import 'package:ubci_bank/src/core/utils/common/log_redactor.dart';
 
 /// Debug-only HTTP logging for all Dio traffic.
 ///

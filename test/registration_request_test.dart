@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/registration_flow_result.dart';
-import 'package:ubci_bank/src/core/models/registration_request.dart';
+import 'package:ubci_bank/src/core/models/common/registration_flow_result.dart';
+import 'package:ubci_bank/src/core/models/common/registration_request.dart';
 
 void main() {
   test('RegistrationRequest maps digx-ui lookup fields', () {

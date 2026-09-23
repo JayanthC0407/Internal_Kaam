@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/core/utils/responsive.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/providers/session_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_accounts_card.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_dashboard_header_bar.dart';
@@ -73,6 +81,10 @@ class CorpDashboardScreen extends ConsumerStatefulWidget {
 class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Which `componentName`s this dashboard can draw. The Retail dashboard
+  /// supplies its own — see [RetailWidgetRegistry].
+  static const _registry = CorpWidgetRegistry();
+
   late CorpNavDestination _destination;
 
   @override
@@ -94,6 +106,11 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       ref
           .read(corpProfileProvider.notifier)
           .ensureLoaded(profileResponse: widget.args.profileResponse);
+      // Personalization needs the profile's dashboard descriptors, which
+      // the seed above has just parsed from the login trace.
+      ref.read(personalizationProvider.notifier).ensureLoaded(
+            ref.read(corpProfileProvider).profile?.personalizableDashboard,
+          );
     });
   }
 
@@ -120,10 +137,31 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     }
   }
 
-  void _showUnavailable(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label is not available yet.')),
-    );
+  /// Opens the Personalize panel as a side sheet rather than a full page,
+  /// so the dashboard stays visible behind it and updates live as widgets
+  /// are saved.
+  void _openPersonalize() => _scaffoldKey.currentState?.openEndDrawer();
+
+  /// §17's segment half. `corporateuser` is the role that routed us to this
+  /// dashboard, so it is the segment the catalog is filtered against.
+  String get _userSegment {
+    final roles = ref.read(corpProfileProvider).profile?.roles ?? const [];
+    for (final role in roles) {
+      if (role.toLowerCase() == 'corporateuser') return role;
+    }
+    return 'corporateuser';
+  }
+
+  /// Side-sheet width — just the module headings.
+  ///
+  /// The widget flyout is not sized for here: it renders in the app
+  /// overlay, to the *left* of this panel over the dashboard, so the panel
+  /// stays narrow instead of reserving a column that is empty whenever no
+  /// heading is open.
+  static double _personalizePanelWidth(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 600) return width * 0.92;
+    return 320;
   }
 
   /// "View all …" and account taps land on the Accounts destination for
@@ -150,6 +188,13 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           onMenuTap: isDesktop
               ? null
               : () => _scaffoldKey.currentState?.openDrawer(),
+          // Hidden when `me` resolved no personalizable dashboard, rather
+          // than opening a screen with nothing to save to.
+          onPersonalizeDashboard:
+              ref.watch(personalizationProvider).isUnavailable ||
+                      _destination != CorpNavDestination.home
+                  ? null
+                  : _openPersonalize,
         ),
         Expanded(
           child: RefreshIndicator(
@@ -174,6 +219,20 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                 ),
               ),
             ),
+      // Personalize opens as a side sheet so the dashboard stays on screen
+      // behind it and re-renders the moment a change is saved.
+      endDrawer: ref.watch(personalizationProvider).isUnavailable
+          ? null
+          : Drawer(
+              backgroundColor: CorpColors.card(context),
+              width: _personalizePanelWidth(context),
+              shape: const RoundedRectangleBorder(),
+              child: PersonalizePanel(
+                userSegment: _userSegment,
+                registry: _registry,
+                onClose: () => Navigator.of(context).pop(),
+              ),
+            ),
       body: SafeArea(
         child: isDesktop
             ? Row(
@@ -188,6 +247,88 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
             : shell,
       ),
     );
+  }
+
+  /// The dashboard body below the accounts hero, rendered from the user's
+  /// saved configuration for the current breakpoint.
+  ///
+  /// Falls back to the designed default arrangement whenever personalization
+  /// is unavailable — still loading, failed to load, or the user has no
+  /// personalizable dashboard — so the dashboard is never blank.
+  ///
+  /// Note the render path filters on *authorization* and the registry, not
+  /// on the catalog: a saved layout can legitimately hold components the
+  /// catalog has never listed (5 of the 10 on the captured dashboard), and
+  /// dropping those would silently gut a dashboard the user built.
+  List<_DashboardTile> _buildPersonalizedTiles(bool sideBySide) {
+    final state = ref.watch(personalizationProvider);
+    final items = state.selectedItems;
+
+    if (!state.isReady || items.isEmpty) {
+      return _buildDefaultTiles(sideBySide);
+    }
+
+    final authorized = state.authorized;
+    final tiles = <_DashboardTile>[];
+    for (final item in items) {
+      if (authorized.isNotEmpty && !authorized.contains(item.componentName)) {
+        continue;
+      }
+      // Width comes from the item's own stored `style` first, then the
+      // catalog's width for this breakpoint — so a dashboard arranged on
+      // the web keeps its proportions here.
+      final span = sideBySide
+          ? DashboardGridSpan.resolve(
+              style: item.style,
+              catalogWidth: state.catalog
+                  .byName(item.componentName)
+                  ?.widthFor(_catalogWidthKey(state.breakpoint)),
+            )
+          : DashboardGridSpan.columns;
+      tiles.add(
+        _DashboardTile(
+          span: span,
+          child: _registry.build(item.componentName),
+        ),
+      );
+    }
+
+    if (tiles.isEmpty) return _buildDefaultTiles(sideBySide);
+    return tiles;
+  }
+
+  static String _catalogWidthKey(DashboardBreakpoint breakpoint) {
+    switch (breakpoint) {
+      case DashboardBreakpoint.small:
+        return 'small';
+      case DashboardBreakpoint.medium:
+        return 'medium';
+      case DashboardBreakpoint.large:
+      case DashboardBreakpoint.defaultLayout:
+        return 'large';
+    }
+  }
+
+  /// The designed arrangement, used when there is no saved configuration to
+  /// render — so the dashboard is never blank.
+  List<_DashboardTile> _buildDefaultTiles(bool sideBySide) {
+    final half = sideBySide ? 6 : DashboardGridSpan.columns;
+    return [
+      _DashboardTile(
+        span: sideBySide ? 6 : DashboardGridSpan.columns,
+        child: const CorpQuickLinksCard(),
+      ),
+      _DashboardTile(
+        span: DashboardGridSpan.columns,
+        child: const CorpFinancialSummaryWidget(),
+      ),
+      _DashboardTile(span: half, child: const CorpCurrencyExposureWidget()),
+      _DashboardTile(span: half, child: const CorpPickupPointsWidget()),
+      _DashboardTile(
+        span: DashboardGridSpan.columns,
+        child: CorpAccountSummaryCard(onAccountTap: _openAccount),
+      ),
+    ];
   }
 
   Widget _buildDestination(Responsive responsive) {
@@ -207,11 +348,18 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         final sideBySide = width >= 900;
         final horizontalPadding = width < 600 ? 16.0 : 24.0;
 
-        final accountsCard = CorpAccountsCard(
-          onViewAll: _openAccounts,
-          onAccountTap: _openAccount,
+        // Both mobile and desktop are supported, so the layout the user
+        // reads and personalizes is the one matching the screen they are
+        // actually on — the same mapping the web client uses.
+        final breakpoint = DashboardBreakpoint.forWidth(
+          MediaQuery.of(context).size.width,
         );
-        final quickLinks = CorpQuickLinksCard(onUnavailable: _showUnavailable);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ref
+              .read(personalizationProvider.notifier)
+              .setBreakpoint(breakpoint);
+        });
 
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -223,30 +371,78 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           ),
           child: ResponsiveBody(
             maxWidth: 1400,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (sideBySide)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 5, child: accountsCard),
-                      const SizedBox(width: 20),
-                      Expanded(flex: 6, child: quickLinks),
-                    ],
-                  )
-                else ...[
-                  accountsCard,
-                  const SizedBox(height: 20),
-                  quickLinks,
-                ],
-                const SizedBox(height: 20),
-                CorpAccountSummaryCard(onAccountTap: _openAccount),
-              ],
+            child: LayoutBuilder(
+              builder: (context, inner) {
+                // The accounts hero is not personalizable — it is the
+                // account context selector, and OBDX has no component name
+                // that maps to it — so it leads the grid at a fixed span.
+                // Quick Links is NOT placed here: it is the catalog's
+                // `account-quick-links`, so it arrives through the saved
+                // configuration like any other widget. Hard-coding it here
+                // as well is what made it render twice.
+                final tiles = <_DashboardTile>[
+                  _DashboardTile(
+                    span: sideBySide ? 5 : DashboardGridSpan.columns,
+                    child: CorpAccountsCard(
+                      onViewAll: _openAccounts,
+                      onAccountTap: _openAccount,
+                    ),
+                  ),
+                  ..._buildPersonalizedTiles(sideBySide),
+                ];
+
+                return _DashboardGrid(
+                  tiles: tiles,
+                  available: inner.maxWidth,
+                );
+              },
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// One widget on the dashboard, with the number of grid columns it spans.
+class _DashboardTile {
+  const _DashboardTile({required this.span, required this.child});
+
+  /// Columns out of [DashboardGridSpan.columns].
+  final int span;
+  final Widget child;
+}
+
+/// Lays dashboard tiles out on OBDX's 12-column grid.
+///
+/// Uses a [Wrap] rather than a fixed Row/Column so a row fills up and
+/// overflows naturally — matching how the web grid reflows, and meaning the
+/// dashboard never overflows horizontally however the user arranges it.
+class _DashboardGrid extends StatelessWidget {
+  const _DashboardGrid({required this.tiles, required this.available});
+
+  final List<_DashboardTile> tiles;
+  final double available;
+
+  static const double _gap = 20;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: _gap,
+      runSpacing: _gap,
+      crossAxisAlignment: WrapCrossAlignment.start,
+      children: [
+        for (final tile in tiles)
+          SizedBox(
+            width: DashboardGridSpan.widthFor(
+              span: tile.span,
+              available: available,
+              gap: _gap,
+            ),
+            child: tile.child,
+          ),
+      ],
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/token_response.dart';
+import 'package:ubci_bank/src/core/models/common/token_response.dart';
 
 /// Ephemeral anonymous JWT used only during self-registration API calls.
 /// Must never be treated as a completed user login session.

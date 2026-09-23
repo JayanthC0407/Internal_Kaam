@@ -1,0 +1,2011 @@
+{
+    "components": [
+        {
+            "componentName": "financial-summary",
+            "module": "accounts",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "recent-account-transactions",
+            "module": "accounts",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "my-bills",
+            "module": "bill-payments",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "forex-calculator",
+            "module": "calculators",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-calculator",
+            "module": "calculators",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-eligibility-calculator",
+            "module": "calculators",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "td-calculator",
+            "module": "calculators",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "module": "cash-management",
+            "type": "cash-flow-forecast",
+            "componentName": "cash-flow-forecast",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "12",
+                "medium": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "module": "cash-management",
+            "componentName": "cash-flow-snapshot",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "12",
+                "medium": "12"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "account-financial-summary",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "516",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "account-quick-links",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "bulk-file-upload",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "202",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "credit-line",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "289",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "currency-exposure",
+            "module": "corporateDashboard",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "financial-overview",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "289",
+            "icon": "",
+            "image": "",
+            "template": "",
+            "type": "",
+            "staticData": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "financial-position-currency",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "289",
+            "icon": "",
+            "image": "",
+            "template": "",
+            "type": "",
+            "staticData": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "latest-pending-approvals",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "8"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "limits-widget",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "851",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "USER",
+                        "PARTY"
+                    ]
+                }
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "my-approved-list",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "6"
+            },
+            "height": "",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "notification",
+            "module": "corporateDashboard",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "274",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "payable-receivable-bills",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "289",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "pending-for-action-mail-box",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "107",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "pending-for-action-viewer",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "107",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "pending-for-action",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "263",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "recent-payments",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "181",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "reports",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "181",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "trade-finance-links",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "",
+                "medium": ""
+            },
+            "height": "",
+            "icon": "",
+            "image": "",
+            "template": "",
+            "type": "",
+            "staticData": "",
+            "isVisible": false,
+            "isWidget": false
+        },
+        {
+            "componentName": "trade-instruments",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "300",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "work-box-maker",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "305",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "work-box-viewer",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "305",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "work-snapshot",
+            "module": "corporateDashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "149",
+            "icon": "",
+            "data": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "collateral-allocation",
+            "module": "credit-facility",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "collateral-synopsis",
+            "module": "credit-facility",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "facility-allocation",
+            "module": "credit-facility",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "facility-synopsis",
+            "module": "credit-facility",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "activity-log",
+            "module": "dashboard",
+            "segment": [
+                "administrator"
+            ],
+            "width": {
+                "large": "12",
+                "medium": "12"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "admin-activities",
+            "module": "dashboard",
+            "segment": [
+                "administrator"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "bank-promotional-offers",
+            "module": "dashboard",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "dashboard-admin-action-card",
+            "module": "dashboard",
+            "segment": [
+                "administrator"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "onboarding",
+                        "communications",
+                        "security",
+                        "templates",
+                        "limits",
+                        "commonServices",
+                        "payments",
+                        "accessPolicies",
+                        "userExp",
+                        "pfm",
+                        "controlMonitor"
+                    ]
+                }
+            },
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "dashboard-quick-links",
+            "module": "dashboard",
+            "segment": [
+                "corporateuser",
+                "retailuser",
+                "administrator"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "payments-quick-links",
+                        "quick-access",
+                        "mutual-funds",
+                        "liquidity-management"
+                    ]
+                }
+            },
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "link-account",
+            "module": "dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "net-worth-graph",
+            "module": "dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "offers",
+            "module": "dashboard",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "pending-for-approvals",
+            "module": "dashboard",
+            "segment": [
+                "administrator"
+            ],
+            "width": {
+                "large": "12",
+                "medium": "12"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "personalized-offers",
+            "module": "dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "quick-links",
+            "module": "dashboard",
+            "segment": [
+                "retailuser",
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "default",
+                        "term-deposits-details",
+                        "term-deposits",
+                        "demand-deposits",
+                        "loans"
+                    ]
+                }
+            },
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "rewards",
+            "module": "dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "224",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "service-advisors",
+            "module": "dashboard",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "supply-chain-finance-banner",
+            "module": "dashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "Promotion1",
+                        "Promotion2"
+                    ]
+                }
+            },
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "system-admin",
+            "module": "dashboard",
+            "segment": [
+                "administrator"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "wallet-widget",
+            "module": "dashboard",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "wealth-management-promotional-offers",
+            "module": "dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "Promotion1",
+                        "Promotion2",
+                        "Promotion3"
+                    ]
+                }
+            },
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "account-summary",
+            "module": "demand-deposits",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "373",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "currency-rate-view",
+            "module": "dashboard",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "373",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "savings-snapshot",
+            "module": "snapshot",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12",
+                "small": "12"
+            },
+            "height": "373",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "dd-action-card",
+            "module": "demand-deposits",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "105",
+            "icon": "",
+            "template": "",
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "demand-deposit-analysis",
+            "module": "demand-deposits",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "demand-deposit-list",
+            "module": "demand-deposits",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "669",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "demand-deposit-service-request",
+            "module": "demand-deposits",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "118",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "demand-deposits-overview",
+            "module": "demand-deposits",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "external-accounts-net-worth-graph",
+            "module": "link-account-dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "external-financial-summary",
+            "module": "link-account-dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "link-account-payment",
+            "module": "link-account-dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "link-customer-account",
+            "module": "link-account-dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "recent-account-activity",
+            "module": "link-account-dashboard",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "assets-and-liabilities",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "cross-border-sweeps",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "notification-details",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "position-by-currency",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "position-by-region",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "8"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "sweep-log",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "8"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "top-five-sweeps",
+            "module": "liquidity-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-accounts-overview",
+            "module": "loans",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "image": {
+                "large": "accounts-overview.png"
+            },
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-analysis",
+            "module": "loans",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "3",
+                "medium": "6"
+            },
+            "height": "310",
+            "icon": "",
+            "template": "",
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-application-tracker",
+            "module": "loans",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "6",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-installments-due",
+            "module": "loans",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "6"
+            },
+            "height": "289",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-portfolio",
+            "module": "loans",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "loan-summary",
+            "module": "loans",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "loans-overview",
+            "module": "loans",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "6",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "fund-reports-widget",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "investment-allocation-widget",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "investment-details-widget",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "mutual-funds-news",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "performance-analysis-widget",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "portfolio-summary-widget",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "top-bottom-funds-widget",
+            "module": "mutual-funds",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "scheduled-payments-widget",
+            "module": "payments",
+            "segment": [
+                "corporateuser",
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "275",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "budgets-dashboard-card",
+            "module": "personal-finance-management",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "130",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "goals-dashboard-card",
+            "module": "personal-finance-management",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "130",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "spend-summary",
+            "module": "personal-finance-management",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "input": {
+                "options": [
+                    "type"
+                ],
+                "values": {
+                    "type": [
+                        "cards",
+                        "graph"
+                    ]
+                }
+            },
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "application-tracker-landing",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "bank-products",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "banking",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "chat-bot",
+            "module": "pre-login",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "company-links",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "create-bundle-landing",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "goals",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "login-form",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "page-banner",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "secured-banking",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "tools-and-calculators",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "wallet",
+            "module": "pre-login",
+            "segment": [],
+            "width": {
+                "large": "12",
+                "medium": "12",
+                "small": "12"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "finance-maturing-widget",
+            "module": "supply-chain-finance",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "invoices-timeline-widget",
+            "module": "supply-chain-finance",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "8"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "overdue-finances-widget",
+            "module": "supply-chain-finance",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "overdue-invoices-widget",
+            "module": "supply-chain-finance",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "top-programs-widget",
+            "module": "supply-chain-finance",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "upcoming-repayment",
+            "module": "supply-chain-finance",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "height": "220",
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "td-accounts-overview",
+            "module": "term-deposits",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "12"
+            },
+            "height": "320",
+            "icon": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "td-analysis",
+            "module": "term-deposits",
+            "segment": [
+                "retailuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "340",
+            "icon": "",
+            "template": "",
+            "isVisible": false,
+            "isWidget": true
+        },
+        {
+            "componentName": "td-summary",
+            "module": "term-deposits",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "12"
+            },
+            "height": "224",
+            "icon": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "term-deposits-overview",
+            "module": "term-deposits",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6"
+            },
+            "height": "251",
+            "icon": "",
+            "template": "",
+            "type": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "bills-maturing",
+            "module": "trade-finance",
+            "segment": [
+                "common"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "6",
+                "small": "12"
+            }
+        },
+        {
+            "componentName": "remittance-identifier-information",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-balance-trends",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-balance",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-balances-top-four",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-cash-position",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-move-money",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-position-by-currency",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-account-structure",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "8",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        },
+        {
+            "componentName": "virtual-entity-summary",
+            "module": "virtual-account-management",
+            "segment": [
+                "corporateuser"
+            ],
+            "width": {
+                "large": "4",
+                "medium": "4"
+            },
+            "icon": "",
+            "template": "",
+            "isVisible": true,
+            "isWidget": true
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/obdx_phone.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_phone.dart';
 
 void main() {
   test('ObdxPhone.fromPlainInput uses default country code for local numbers', () {
