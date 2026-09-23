@@ -208,10 +208,12 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // A flyout needs room beside the headings. Below that, fall back to
-        // headings that expand in place — a pop-out on a phone would have
-        // nowhere to pop to, and there is no hover there anyway.
-        final canFlyOut = constraints.maxWidth >= 520;
+        // The flyout renders beside this panel, over the dashboard, so what
+        // matters is the room on *screen*, not in the panel — the panel is
+        // only as wide as the headings. Below phone width, fall back to
+        // headings that expand in place: a pop-out would have nowhere to
+        // pop to, and there is no hover there anyway.
+        final canFlyOut = MediaQuery.of(context).size.width >= 600;
 
         if (!canFlyOut) {
           return _ModuleAccordion(
@@ -290,11 +292,20 @@ class _ModuleFlyout extends StatefulWidget {
 
 class _ModuleFlyoutState extends State<_ModuleFlyout> {
   static const double _rowHeight = 46;
-  static const double _listWidth = 208;
   static const double _flyoutWidth = 300;
   static const double _rowEntryHeight = 52;
 
+  /// Gap between the flyout and the headings it belongs to.
+  static const double _gap = 8;
+
   final ScrollController _scroll = ScrollController();
+
+  /// Anchors the flyout to the headings list, so it can be positioned
+  /// *outside* the panel — the panel is a right-edge drawer, so the only
+  /// direction with room is left, over the dashboard.
+  final LayerLink _link = LayerLink();
+
+  final OverlayPortalController _portal = OverlayPortalController();
 
   int? _hoveredIndex;
   bool _pointerInFlyout = false;
@@ -302,6 +313,10 @@ class _ModuleFlyoutState extends State<_ModuleFlyout> {
   /// A heading the user tapped, which stays open until they tap elsewhere.
   /// Without this the panel would be unusable on a touch screen.
   int? _pinnedIndex;
+
+  /// Height available to the headings list, used to keep the flyout on
+  /// screen when a heading near the bottom is opened.
+  double _listHeight = 0;
 
   @override
   void initState() {
@@ -325,9 +340,22 @@ class _ModuleFlyoutState extends State<_ModuleFlyout> {
   /// A pinned heading wins; otherwise whichever the pointer is over.
   int? get _openIndex => _pinnedIndex ?? _hoveredIndex;
 
+  /// Keeps the overlay in step with [_openIndex]. Called after every
+  /// state change rather than from build, since toggling the portal
+  /// during a build would mutate the overlay mid-frame.
+  void _syncPortal() {
+    final shouldShow = _openIndex != null;
+    if (shouldShow && !_portal.isShowing) {
+      _portal.show();
+    } else if (!shouldShow && _portal.isShowing) {
+      _portal.hide();
+    }
+  }
+
   void _hover(int? index) {
     if (_hoveredIndex == index) return;
     setState(() => _hoveredIndex = index);
+    _syncPortal();
   }
 
   /// Closes only when the pointer has left both the heading and the flyout,
@@ -336,117 +364,138 @@ class _ModuleFlyoutState extends State<_ModuleFlyout> {
     if (_pointerInFlyout || _pinnedIndex != null) return;
     if (_hoveredIndex == null) return;
     setState(() => _hoveredIndex = null);
+    _syncPortal();
   }
 
   void _togglePin(int index) {
     setState(() {
       _pinnedIndex = _pinnedIndex == index ? null : index;
-      _hoveredIndex = index;
+      _hoveredIndex = _pinnedIndex == null ? null : index;
     });
+    _syncPortal();
+  }
+
+  void _dismiss() {
+    if (_pinnedIndex == null && _hoveredIndex == null) return;
+    setState(() {
+      _pinnedIndex = null;
+      _hoveredIndex = null;
+    });
+    _syncPortal();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final openIndex = _openIndex;
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final openModule =
-            openIndex == null ? null : widget.modules[openIndex];
-        final definitions = openModule == null
-            ? const <DashboardWidgetDefinition>[]
-            : (widget.groups[openModule] ??
-                const <DashboardWidgetDefinition>[]);
+        _listHeight = constraints.maxHeight;
 
-        // Anchor the flyout to its heading, then keep it on screen.
-        double? top;
-        double? height;
-        if (openIndex != null) {
-          final offset = _scroll.hasClients ? _scroll.offset : 0.0;
-          final raw = (openIndex * _rowHeight) - offset + 6;
-          height = (definitions.length * _rowEntryHeight + 16)
-              .clamp(0.0, constraints.maxHeight - 12);
-          top = raw.clamp(6.0, (constraints.maxHeight - height - 6).clamp(6.0, double.infinity));
-        }
-
-        return Stack(
-          children: [
-            Positioned.fill(
-              // Tapping the empty area unpins, matching how menus dismiss.
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () => setState(() {
-                  _pinnedIndex = null;
-                  _hoveredIndex = null;
-                }),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: _listWidth,
-              child: MouseRegion(
-                onExit: (_) => _maybeClose(),
-                child: ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  itemCount: widget.modules.length,
-                  itemExtent: _rowHeight,
-                  itemBuilder: (context, index) {
-                    final module = widget.modules[index];
-                    return _ModuleHeading(
-                      label: DashboardWidgetLabels.forModule(module),
-                      selectedCount: _selectedCount(
-                        module,
-                        widget.groups,
-                        widget.selection,
-                      ),
-                      isOpen: index == openIndex,
-                      isPinned: index == _pinnedIndex,
-                      onHover: () => _hover(index),
-                      onTap: () => _togglePin(index),
-                    );
-                  },
-                ),
-              ),
-            ),
-            if (openIndex != null && definitions.isNotEmpty)
-              Positioned(
-                left: _listWidth + 8,
-                top: top,
-                width: _flyoutWidth,
-                height: height,
-                child: MouseRegion(
-                  onEnter: (_) => setState(() => _pointerInFlyout = true),
-                  onExit: (_) {
-                    setState(() => _pointerInFlyout = false);
-                    _maybeClose();
-                  },
-                  child: Material(
-                    elevation: 8,
-                    borderRadius: BorderRadius.circular(12),
-                    color: theme.cardColor,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: theme.dividerColor),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _WidgetChecklist(
-                        definitions: definitions,
-                        selection: widget.selection,
-                        registry: widget.registry,
-                        onToggle: widget.onToggle,
-                      ),
+        return OverlayPortal(
+          controller: _portal,
+          overlayChildBuilder: _buildFlyout,
+          child: CompositedTransformTarget(
+            link: _link,
+            child: MouseRegion(
+              onExit: (_) => _maybeClose(),
+              child: ListView.builder(
+                controller: _scroll,
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                itemCount: widget.modules.length,
+                itemExtent: _rowHeight,
+                itemBuilder: (context, index) {
+                  final module = widget.modules[index];
+                  return _ModuleHeading(
+                    label: DashboardWidgetLabels.forModule(module),
+                    selectedCount: _selectedCount(
+                      module,
+                      widget.groups,
+                      widget.selection,
                     ),
+                    isOpen: index == _openIndex,
+                    isPinned: index == _pinnedIndex,
+                    onHover: () => _hover(index),
+                    onTap: () => _togglePin(index),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// The pop-out, rendered in the app overlay so it can sit *outside* the
+  /// drawer — to the left of the headings, floating over the dashboard.
+  /// Keeping it inside the drawer would mean sizing the drawer for both
+  /// columns, which leaves a dead area whenever nothing is open.
+  Widget _buildFlyout(BuildContext context) {
+    final openIndex = _openIndex;
+    if (openIndex == null) return const SizedBox.shrink();
+
+    final module = widget.modules[openIndex];
+    final definitions =
+        widget.groups[module] ?? const <DashboardWidgetDefinition>[];
+    if (definitions.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final scrollOffset = _scroll.hasClients ? _scroll.offset : 0.0;
+
+    final height = (definitions.length * _rowEntryHeight + 16)
+        .clamp(0.0, _listHeight <= 0 ? 320.0 : _listHeight);
+    final rawTop = (openIndex * _rowHeight) - scrollOffset + 6;
+    final maxTop = (_listHeight - height - 6).clamp(0.0, double.infinity);
+    final top = rawTop.clamp(0.0, maxTop);
+
+    return Stack(
+      children: [
+        // Tapping anywhere else dismisses, the way a menu does. Only while
+        // pinned — a hover-opened flyout closes on its own.
+        if (_pinnedIndex != null)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _dismiss,
+            ),
+          ),
+        CompositedTransformFollower(
+          link: _link,
+          // Attach the flyout's top-right to the headings' top-left, so it
+          // grows leftwards away from the panel.
+          targetAnchor: Alignment.topLeft,
+          followerAnchor: Alignment.topRight,
+          offset: Offset(-_gap, top),
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _pointerInFlyout = true),
+            onExit: (_) {
+              setState(() => _pointerInFlyout = false);
+              _maybeClose();
+            },
+            child: SizedBox(
+              width: _flyoutWidth,
+              height: height,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                color: theme.cardColor,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _WidgetChecklist(
+                    definitions: definitions,
+                    selection: widget.selection,
+                    registry: widget.registry,
+                    onToggle: widget.onToggle,
                   ),
                 ),
               ),
-          ],
-        );
-      },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
