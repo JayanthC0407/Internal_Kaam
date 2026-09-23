@@ -152,12 +152,15 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     return 'corporateuser';
   }
 
-  /// Side-sheet width: a comfortable fixed panel on desktop, near-full
-  /// width on a phone where a 400px sheet would leave a useless sliver.
+  /// Side-sheet width.
+  ///
+  /// Wide enough on desktop for the module headings plus the flyout that
+  /// pops out beside them (208 + 8 + 300 + padding); near-full width on a
+  /// phone, where the panel falls back to headings that expand in place.
   static double _personalizePanelWidth(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (width < 600) return width * 0.92;
-    return 420;
+    return width < 1100 ? width * 0.62 : 560;
   }
 
   /// "View all …" and account taps land on the Accounts destination for
