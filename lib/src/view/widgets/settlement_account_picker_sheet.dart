@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:ubci_bank/src/core/models/casa_account.dart';
-import 'package:ubci_bank/src/core/utils/money_format.dart';
-import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
+import 'package:ubci_bank/src/core/utils/common/money_format.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Native-feeling account picker — a swipe-to-dismiss bottom sheet that
 /// shows each account's balance and masked number (not just a name), with

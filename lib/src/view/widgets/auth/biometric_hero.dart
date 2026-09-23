@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/auth/auth_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 
 /// Circular fingerprint hero used on biometric setup and unlock screens.
 class BiometricHero extends StatelessWidget {

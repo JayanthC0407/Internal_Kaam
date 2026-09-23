@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/obdx_api_base.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
 import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';

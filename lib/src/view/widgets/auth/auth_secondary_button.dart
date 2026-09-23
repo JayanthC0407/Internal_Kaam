@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/auth/auth_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 
 /// Pill-shaped secondary action (e.g. "Skip for now" on biometric setup).
 class AuthSecondaryButton extends StatelessWidget {

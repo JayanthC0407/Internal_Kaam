@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/profile_initials.dart';
+import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
 
 /// Circular profile photo, or initials when [imageUrl] is missing / fails.
 class ProfileAvatar extends StatelessWidget {

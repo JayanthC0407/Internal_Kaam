@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/profile_initials.dart';
-import 'package:ubci_bank/src/view/providers/app_settings_providers.dart';
+import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
+import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 

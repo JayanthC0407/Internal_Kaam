@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:ubci_bank/src/core/models/payment/payment_models.dart';
-import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/core/models/common/payment/payment_models.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Beneficiary picker bottom sheet — shared by Internal and International
 /// payments (functional flow doc §19, "Common Payment Components").

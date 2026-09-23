@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:ubci_bank/src/core/models/alternate_login_method.dart';
-import 'package:ubci_bank/src/core/models/cookie_model.dart';
-import 'package:ubci_bank/src/core/models/token_response.dart';
+import 'package:ubci_bank/src/core/models/common/alternate_login_method.dart';
+import 'package:ubci_bank/src/core/models/common/cookie_model.dart';
+import 'package:ubci_bank/src/core/models/common/token_response.dart';
 import 'package:ubci_bank/src/infra/pref/base_preferences.dart';
 import 'package:ubci_bank/src/infra/pref/pref_const.dart';
 import 'package:ubci_bank/src/infra/pref/secure_storage_service.dart';
