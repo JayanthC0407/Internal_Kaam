@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/config/lfw_config.dart';
-import 'package:ubci_bank/src/core/models/lfw_progress.dart';
-import 'package:ubci_bank/src/core/utils/user_type_resolver.dart';
+import 'package:ubci_bank/src/core/models/common/lfw_progress.dart';
+import 'package:ubci_bank/src/core/utils/common/user_type_resolver.dart';
 import 'package:ubci_bank/src/infra/security/biometric_service.dart';
 import 'package:ubci_bank/src/infra/service/navigation_service.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/screens/login_wizard_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/auth/login_wizard_screen.dart';
 
 /// Records user activity and enforces idle session timeout on resume.
 class SessionActivityScope extends ConsumerStatefulWidget {

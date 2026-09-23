@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/password_policy.dart';
+import 'package:ubci_bank/src/core/utils/common/password_policy.dart';
 
 /// Live-updating list of password rules with a check/cross per rule.
 /// Rebuilds cheaply on every keystroke — keep it a `StatelessWidget` driven

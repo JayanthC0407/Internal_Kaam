@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ubci_bank/src/view/screens/auth/auth_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 
 /// Four-digit OTP entry matching corporate banking pin-box layouts.
 class OtpPinInput extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/obdx_challenge.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 
 void main() {
   group('ObdxChallenge', () {

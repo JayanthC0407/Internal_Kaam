@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/money_amount.dart';
+import 'package:ubci_bank/src/core/models/common/money_amount.dart';
 
 /// One entry of `GET /digx-common/common/v1/currency` (Home widgets
 /// capture, entry #39) — the bank's currency master.

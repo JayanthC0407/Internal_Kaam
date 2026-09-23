@@ -8,7 +8,7 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
-import 'package:ubci_bank/src/view/providers/network_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
 final obdxCorpDashboardApiProvider = Provider(
   (ref) => ObdxCorpDashboardApi(ref.watch(obdxDioClientProvider)),

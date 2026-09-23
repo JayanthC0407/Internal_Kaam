@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/utils/profile_initials.dart';
+import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
 /// One entry of `me`'s `dashboardResponse.dashboardDTOs[]`.
