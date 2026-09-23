@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_dashboard_config.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_dashboard_api.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_dashboard_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 
 /// Stands in for the host. Records what was PUT and serves the GET, so the
 /// test can assert on the exact payload the repository sends.
-class _FakeDashboardApi implements ObdxCorpDashboardApi {
+class _FakeDashboardApi implements ObdxDashboardApi {
   _FakeDashboardApi({required this.stored});
 
   /// The layout the "host" currently holds, in GET response shape.
@@ -117,22 +117,22 @@ List<String> _names(dynamic array) {
 }
 
 void main() {
-  group('CorpDashboardRepository.saveConfig', () {
+  group('DashboardRepository.saveConfig', () {
     test('editing large leaves medium and small untouched on the host',
         () async {
       // The exact scenario reported: personalize on a desktop screen, and
       // the phone and tablet layouts come back empty.
       final api = _FakeDashboardApi(stored: _storedDashboard());
-      final repository = CorpDashboardRepository(dashboardApi: api);
+      final repository = DashboardRepository(dashboardApi: api);
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
         dashboardClassValue: 'custom',
       );
-      final config = (loaded as Success<CorpDashboardConfig>).data!;
+      final config = (loaded as Success<DashboardConfig>).data!;
 
-      final edited = config.withLayout(CorpLayoutBreakpoint.large, [
-        const CorpDashboardLayoutItem(
+      final edited = config.withLayout(DashboardBreakpoint.large, [
+        const DashboardLayoutItem(
           componentName: 'currency-exposure',
           module: 'corporateDashboard',
           style: 'oj-lg-4',
@@ -154,24 +154,24 @@ void main() {
       // layout-less PUT response replaced in-memory state with empties, so
       // the *second* save blanked medium and small.
       final api = _FakeDashboardApi(stored: _storedDashboard());
-      final repository = CorpDashboardRepository(dashboardApi: api);
+      final repository = DashboardRepository(dashboardApi: api);
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
         dashboardClassValue: 'custom',
       );
-      var config = (loaded as Success<CorpDashboardConfig>).data!;
+      var config = (loaded as Success<DashboardConfig>).data!;
 
       for (final component in ['currency-exposure', 'account-quick-links']) {
-        final edited = config.withLayout(CorpLayoutBreakpoint.large, [
-          CorpDashboardLayoutItem(
+        final edited = config.withLayout(DashboardBreakpoint.large, [
+          DashboardLayoutItem(
             componentName: component,
             module: 'corporateDashboard',
             style: 'oj-lg-4',
           ),
         ]);
         final result = await repository.saveConfig(edited);
-        config = (result as Success<CorpDashboardConfig>).data!;
+        config = (result as Success<DashboardConfig>).data!;
       }
 
       expect(api.puts, hasLength(2));
@@ -184,21 +184,21 @@ void main() {
     test('re-reads the configuration after saving, as the web client does',
         () async {
       final api = _FakeDashboardApi(stored: _storedDashboard());
-      final repository = CorpDashboardRepository(dashboardApi: api);
+      final repository = DashboardRepository(dashboardApi: api);
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
         dashboardClassValue: 'custom',
       );
-      final config = (loaded as Success<CorpDashboardConfig>).data!;
+      final config = (loaded as Success<DashboardConfig>).data!;
 
       final result = await repository.saveConfig(config);
 
       // GET → PUT → GET, matching widgets(corp).har entries #3, #4, #5.
       expect(api.getCount, 2);
-      final returned = (result as Success<CorpDashboardConfig>).data!;
+      final returned = (result as Success<DashboardConfig>).data!;
       expect(
-        returned.layoutFor(CorpLayoutBreakpoint.medium).single.componentName,
+        returned.layoutFor(DashboardBreakpoint.medium).single.componentName,
         'work-snapshot',
       );
     });
@@ -208,19 +208,19 @@ void main() {
       // far better than a config with empty layouts.
       final api = _FakeDashboardApi(stored: _storedDashboard())
         ..failRefetch = true;
-      final repository = CorpDashboardRepository(dashboardApi: api);
+      final repository = DashboardRepository(dashboardApi: api);
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
         dashboardClassValue: 'custom',
       );
-      final config = (loaded as Success<CorpDashboardConfig>).data!;
+      final config = (loaded as Success<DashboardConfig>).data!;
 
       final result = await repository.saveConfig(config);
-      final returned = (result as Success<CorpDashboardConfig>).data!;
+      final returned = (result as Success<DashboardConfig>).data!;
 
       expect(
-        returned.layoutFor(CorpLayoutBreakpoint.small).single.componentName,
+        returned.layoutFor(DashboardBreakpoint.small).single.componentName,
         'bulk-file-upload',
       );
     });

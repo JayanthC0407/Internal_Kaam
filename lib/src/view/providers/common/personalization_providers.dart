@@ -1,22 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_user_profile.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_widget_definition.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_dashboard_api.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_dashboard_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
-final obdxCorpDashboardApiProvider = Provider(
-  (ref) => ObdxCorpDashboardApi(ref.watch(obdxDioClientProvider)),
+final obdxDashboardApiProvider = Provider(
+  (ref) => ObdxDashboardApi(ref.watch(obdxDioClientProvider)),
 );
 
-final corpDashboardRepositoryProvider = Provider(
-  (ref) => CorpDashboardRepository(
-    dashboardApi: ref.watch(obdxCorpDashboardApiProvider),
+final dashboardRepositoryProvider = Provider(
+  (ref) => DashboardRepository(
+    dashboardApi: ref.watch(obdxDashboardApiProvider),
   ),
 );
 
@@ -26,15 +26,15 @@ final corpDashboardRepositoryProvider = Provider(
 ///
 /// Holds a *draft* selection separate from the saved [config] so the
 /// Personalize screen can toggle freely and only commit on Save.
-class CorpPersonalizationState {
-  const CorpPersonalizationState({
+class PersonalizationState {
+  const PersonalizationState({
     this.isLoading = false,
     this.isSaving = false,
     this.config,
-    this.catalog = CorpWidgetCatalog.empty,
-    this.catalogSource = CorpCatalogSource.none,
-    this.authorized = CorpAuthorizedComponents.empty,
-    this.breakpoint = CorpLayoutBreakpoint.large,
+    this.catalog = DashboardWidgetCatalog.empty,
+    this.catalogSource = DashboardCatalogSource.none,
+    this.authorized = DashboardAuthorizedComponents.empty,
+    this.breakpoint = DashboardBreakpoint.large,
     this.draftSelection,
     this.errorMessage,
     this.saveErrorMessage,
@@ -46,7 +46,7 @@ class CorpPersonalizationState {
   /// opposed to simply not having loaded yet.
   ///
   /// Lives on the state rather than the notifier so widgets that
-  /// `ref.watch(corpPersonalizationProvider)` rebuild when it resolves —
+  /// `ref.watch(personalizationProvider)` rebuild when it resolves —
   /// watching `.notifier` would never rebuild, since the notifier instance
   /// never changes.
   final bool isUnavailable;
@@ -56,16 +56,16 @@ class CorpPersonalizationState {
 
   /// The configuration as last loaded or saved. Null until the first load
   /// succeeds, or when the user has no personalizable dashboard.
-  final CorpDashboardConfig? config;
+  final DashboardConfig? config;
 
-  final CorpWidgetCatalog catalog;
-  final CorpCatalogSource catalogSource;
-  final CorpAuthorizedComponents authorized;
+  final DashboardWidgetCatalog catalog;
+  final DashboardCatalogSource catalogSource;
+  final DashboardAuthorizedComponents authorized;
 
   /// Which breakpoint's layout is being read and written. Set from the
   /// viewport so a phone edits `small` and a desktop edits `large`, exactly
   /// as the web client does.
-  final CorpLayoutBreakpoint breakpoint;
+  final DashboardBreakpoint breakpoint;
 
   /// Uncommitted selection from the Personalize screen. Null when no edit
   /// is in progress.
@@ -79,7 +79,7 @@ class CorpPersonalizationState {
 
   /// Whether the catalog in use is the shipped fallback, which is known to
   /// lag the environment.
-  bool get isCatalogStale => catalogSource == CorpCatalogSource.bundledAsset;
+  bool get isCatalogStale => catalogSource == DashboardCatalogSource.bundledAsset;
 
   /// Components currently on the dashboard at [breakpoint], de-duplicated.
   List<String> get selectedComponents =>
@@ -90,10 +90,10 @@ class CorpPersonalizationState {
   ///
   /// Returns items rather than names so the dashboard can honour each
   /// widget's stored `style` (`oj-lg-4`, `oj-sm-12`, …) when sizing it.
-  List<CorpDashboardLayoutItem> get selectedItems {
+  List<DashboardLayoutItem> get selectedItems {
     final items = config?.layoutFor(breakpoint) ?? const [];
     final seen = <String>{};
-    final deduped = <CorpDashboardLayoutItem>[];
+    final deduped = <DashboardLayoutItem>[];
     for (final item in items) {
       if (item.componentName.isEmpty) continue;
       if (!seen.add(item.componentName)) continue;
@@ -115,21 +115,21 @@ class CorpPersonalizationState {
 
   /// Widgets the user may add, per §17. Rendering does **not** use this —
   /// the environment can hold components this catalog never listed.
-  List<CorpWidgetDefinition> availableWidgets(String userSegment) {
+  List<DashboardWidgetDefinition> availableWidgets(String userSegment) {
     return catalog.availableFor(
       userSegment: userSegment,
       authorizedComponents: authorized.authorized,
     );
   }
 
-  CorpPersonalizationState copyWith({
+  PersonalizationState copyWith({
     bool? isLoading,
     bool? isSaving,
-    CorpDashboardConfig? config,
-    CorpWidgetCatalog? catalog,
-    CorpCatalogSource? catalogSource,
-    CorpAuthorizedComponents? authorized,
-    CorpLayoutBreakpoint? breakpoint,
+    DashboardConfig? config,
+    DashboardWidgetCatalog? catalog,
+    DashboardCatalogSource? catalogSource,
+    DashboardAuthorizedComponents? authorized,
+    DashboardBreakpoint? breakpoint,
     Set<String>? draftSelection,
     String? errorMessage,
     String? saveErrorMessage,
@@ -139,7 +139,7 @@ class CorpPersonalizationState {
     bool clearSaveError = false,
     bool clearDraft = false,
   }) {
-    return CorpPersonalizationState(
+    return PersonalizationState(
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       config: config ?? this.config,
@@ -157,10 +157,10 @@ class CorpPersonalizationState {
   }
 }
 
-class CorpPersonalizationNotifier
-    extends StateNotifier<CorpPersonalizationState> {
-  CorpPersonalizationNotifier(this._ref)
-      : super(const CorpPersonalizationState());
+class PersonalizationNotifier
+    extends StateNotifier<PersonalizationState> {
+  PersonalizationNotifier(this._ref)
+      : super(const PersonalizationState());
 
   final Ref _ref;
   bool _loadedOnce = false;
@@ -168,13 +168,19 @@ class CorpPersonalizationNotifier
 
   /// Which dashboard to read and write, resolved from `me`. Null means the
   /// user has no personalizable dashboard and the feature is unavailable.
-  CorpDashboardDescriptor? _descriptor;
+  DashboardDescriptor? _descriptor;
 
-  CorpDashboardDescriptor? get descriptor => _descriptor;
+  DashboardDescriptor? get descriptor => _descriptor;
 
-  Future<void> ensureLoaded(CorpUserProfile? profile) {
+  /// Loads once for [descriptor], which the caller resolves from its own
+  /// `me` response — Corporate via `CorpUserProfile.personalizableDashboard`,
+  /// Retail via `DashboardDescriptor.personalizableFromProfileResponse`.
+  ///
+  /// Taking a descriptor rather than a typed profile is what lets one
+  /// engine serve both user types.
+  Future<void> ensureLoaded(DashboardDescriptor? descriptor) {
     if (_loadedOnce) return Future.value();
-    return _pendingLoad ??= load(profile).whenComplete(() {
+    return _pendingLoad ??= load(descriptor).whenComplete(() {
       _pendingLoad = null;
     });
   }
@@ -182,15 +188,14 @@ class CorpPersonalizationNotifier
   /// Sets which breakpoint's layout is in play. Called from the dashboard
   /// as the viewport changes, so both mobile and desktop read and write
   /// their own layout.
-  void setBreakpoint(CorpLayoutBreakpoint breakpoint) {
+  void setBreakpoint(DashboardBreakpoint breakpoint) {
     if (state.breakpoint == breakpoint) return;
     // An in-flight draft belongs to the old breakpoint; drop it rather than
     // applying a phone selection to the desktop layout.
     state = state.copyWith(breakpoint: breakpoint, clearDraft: true);
   }
 
-  Future<void> load(CorpUserProfile? profile) async {
-    final descriptor = profile?.personalizableDashboard;
+  Future<void> load(DashboardDescriptor? descriptor) async {
     _descriptor = descriptor;
 
     if (descriptor == null) {
@@ -208,7 +213,7 @@ class CorpPersonalizationNotifier
       isUnavailable: false,
       clearError: true,
     );
-    final repository = _ref.read(corpDashboardRepositoryProvider);
+    final repository = _ref.read(dashboardRepositoryProvider);
 
     // The catalog and authorization set are independent of the config, so
     // fetch all three together.
@@ -227,13 +232,13 @@ class CorpPersonalizationNotifier
     final configResult = results[0];
     final authorizedResult = results[1];
 
-    if (configResult is Success<CorpDashboardConfig>) {
+    if (configResult is Success<DashboardConfig>) {
       state = state.copyWith(
         isLoading: false,
         config: configResult.data,
         catalog: catalogResult.catalog,
         catalogSource: catalogResult.source,
-        authorized: authorizedResult is Success<CorpAuthorizedComponents>
+        authorized: authorizedResult is Success<DashboardAuthorizedComponents>
             ? authorizedResult.data
             : null,
         clearError: true,
@@ -280,7 +285,7 @@ class CorpPersonalizationNotifier
   ///
   /// Only the current breakpoint's layout is rewritten; every other
   /// breakpoint round-trips untouched, so personalizing on a phone cannot
-  /// wipe the desktop dashboard (`CorpDashboardConfig.withLayout`).
+  /// wipe the desktop dashboard (`DashboardConfig.withLayout`).
   Future<bool> save() async {
     final config = state.config;
     final draft = state.draftSelection;
@@ -289,7 +294,7 @@ class CorpPersonalizationNotifier
     state = state.copyWith(isSaving: true, clearSaveError: true);
 
     final existing = config.layoutFor(state.breakpoint);
-    final items = <CorpDashboardLayoutItem>[];
+    final items = <DashboardLayoutItem>[];
     final seen = <String>{};
 
     // Keep the stored item for anything still selected — preserving its
@@ -307,7 +312,7 @@ class CorpPersonalizationNotifier
       if (seen.contains(componentName)) continue;
       seen.add(componentName);
       items.add(
-        CorpDashboardLayoutItem(
+        DashboardLayoutItem(
           componentName: componentName,
           module: _moduleFor(componentName),
           data: '{}',
@@ -317,12 +322,12 @@ class CorpPersonalizationNotifier
     }
 
     final result = await _ref
-        .read(corpDashboardRepositoryProvider)
+        .read(dashboardRepositoryProvider)
         .saveConfig(config.withLayout(state.breakpoint, items));
 
     if (!mounted) return false;
 
-    if (result is Success<CorpDashboardConfig>) {
+    if (result is Success<DashboardConfig>) {
       state = state.copyWith(
         isSaving: false,
         config: result.data,
@@ -357,20 +362,20 @@ class CorpPersonalizationNotifier
   /// Oracle JET grid class for a newly added item. Flutter derives its own
   /// layout, but the value round-trips to the web client, so it has to be
   /// one the web grid understands.
-  static String _styleFor(CorpLayoutBreakpoint breakpoint) {
+  static String _styleFor(DashboardBreakpoint breakpoint) {
     switch (breakpoint) {
-      case CorpLayoutBreakpoint.small:
+      case DashboardBreakpoint.small:
         return 'oj-sm-12';
-      case CorpLayoutBreakpoint.medium:
+      case DashboardBreakpoint.medium:
         return 'oj-md-12';
-      case CorpLayoutBreakpoint.large:
-      case CorpLayoutBreakpoint.defaultLayout:
+      case DashboardBreakpoint.large:
+      case DashboardBreakpoint.defaultLayout:
         return 'oj-lg-12';
     }
   }
 }
 
-final corpPersonalizationProvider = StateNotifierProvider<
-    CorpPersonalizationNotifier, CorpPersonalizationState>(
-  (ref) => CorpPersonalizationNotifier(ref),
+final personalizationProvider = StateNotifierProvider<
+    PersonalizationNotifier, PersonalizationState>(
+  (ref) => PersonalizationNotifier(ref),
 );

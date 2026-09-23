@@ -6,8 +6,8 @@
 /// Flutter does not use those classes, but the *intent* — "this widget
 /// occupies N of 12 columns" — is exactly what we need, and honouring it
 /// keeps a dashboard personalized on the web looking the same here.
-class CorpGridSpan {
-  CorpGridSpan._();
+class DashboardGridSpan {
+  DashboardGridSpan._();
 
   /// Total columns in the Oracle JET grid.
   static const int columns = 12;

@@ -22,7 +22,13 @@ class WebDashboardHeaderBar extends ConsumerWidget {
     this.onLanguageTap,
     this.onHelpTap,
     this.onNotificationsTap,
+    this.onPersonalizeDashboard,
   });
+
+  /// Opens the Personalize Dashboard panel from the settings menu.
+  /// `null` omits the menu entirely — used when `me` gave this user no
+  /// personalizable dashboard.
+  final VoidCallback? onPersonalizeDashboard;
 
   /// Opens the hamburger drawer. Only passed on tablet — desktop has the
   /// persistent `WebNavigationSidebar` instead, so this is `null` there and
@@ -108,6 +114,10 @@ class WebDashboardHeaderBar extends ConsumerWidget {
           tooltip: 'Notifications',
           onTap: onNotificationsTap,
         ),
+        if (onPersonalizeDashboard != null) ...[
+          const SizedBox(width: 8),
+          _SettingsMenu(onPersonalizeDashboard: onPersonalizeDashboard!),
+        ],
         const SizedBox(width: 10),
         // Static for now — dropdown menu / navigation to be wired up later.
         const _ProfileMenuTrigger(),
@@ -219,6 +229,65 @@ class MobileDashboardHeaderRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Settings gear holding the Personalize Dashboard action — the same entry
+/// point the Corporate header uses, so the two dashboards are consistent.
+class _SettingsMenu extends StatelessWidget {
+  const _SettingsMenu({required this.onPersonalizeDashboard});
+
+  final VoidCallback onPersonalizeDashboard;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'Settings',
+      position: PopupMenuPosition.under,
+      color: HomeColors.card(context),
+      onSelected: (value) {
+        if (value == 'personalize') onPersonalizeDashboard();
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          value: 'personalize',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.dashboard_customize_outlined,
+                size: 18,
+                color: HomeColors.brand(context),
+              ),
+              const SizedBox(width: 10),
+              // Flexible: popup menus are width-constrained, and a plain
+              // Row overflows on this label.
+              const Flexible(
+                child: Text(
+                  'Personalize Dashboard',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: HomeColors.divider(context)),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          Icons.settings_outlined,
+          size: 20,
+          color: HomeColors.navInactive(context),
+        ),
+      ),
     );
   }
 }

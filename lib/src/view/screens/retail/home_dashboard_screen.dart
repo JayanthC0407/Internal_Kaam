@@ -19,6 +19,11 @@ import 'home/tabs/insights_tab_screen.dart';
 import 'home/tabs/more_tab_screen.dart';
 import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
+import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
+
 import 'home/widgets/app_nav_content.dart';
 import 'home/widgets/bottom_nav.dart';
 import 'home/widgets/dashboard_header_bar.dart';
@@ -113,9 +118,78 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     super.initState();
     _selectedBottomNavIndex = widget.args.initialTab;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ref.read(casaAccountsProvider.notifier).ensureLoaded();
       ref.read(loanAccountsProvider.notifier).ensureLoaded();
+      // Retail reads its dashboard descriptor straight off the `me`
+      // response on the login trace — it has no typed profile model the
+      // way Corporate does, and does not need one.
+      ref.read(personalizationProvider.notifier).ensureLoaded(
+            DashboardDescriptor.personalizableFromProfileResponse(
+              widget.args.loginTrace?['profileResponse'],
+            ),
+          );
     });
+  }
+
+  /// Which `componentName`s the Retail dashboard can draw.
+  static const _registry = RetailWidgetRegistry();
+
+  /// §17's segment half for Retail.
+  static const _userSegment = 'retailuser';
+
+  void _openPersonalize() => _scaffoldKey.currentState?.openEndDrawer();
+
+  /// Widgets the user has personalized onto their Retail dashboard,
+  /// rendered under the fixed content.
+  ///
+  /// Additive rather than replacing: the Retail dashboard's own layout is a
+  /// designed, tabbed experience, and the OBDX catalog has no component
+  /// names for most of it — swapping it wholesale for the saved layout
+  /// would throw away more than it gained. Corporate replaces its body
+  /// because its widgets map onto catalog components almost one to one.
+  ///
+  /// Filters on *authorization* and the registry, never the catalog: a
+  /// saved layout can hold components the catalog has never listed.
+  List<Widget> _buildPersonalizedWidgets() {
+    final state = ref.watch(personalizationProvider);
+    if (!state.isReady) return const [];
+
+    final authorized = state.authorized;
+    final widgets = <Widget>[];
+    for (final item in state.selectedItems) {
+      if (authorized.isNotEmpty && !authorized.contains(item.componentName)) {
+        continue;
+      }
+      widgets
+        ..add(const SizedBox(height: 16))
+        ..add(_registry.build(item.componentName));
+    }
+    return widgets;
+  }
+
+  /// Side-sheet width: a comfortable fixed panel on desktop, near-full
+  /// width on a phone where a 420px sheet would leave a useless sliver.
+  double _personalizePanelWidth(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 600) return width * 0.92;
+    return 460;
+  }
+
+  /// The Personalize side sheet, or null when `me` resolved no
+  /// personalizable dashboard for this user.
+  Widget? _buildPersonalizeDrawer() {
+    if (ref.watch(personalizationProvider).isUnavailable) return null;
+    return Drawer(
+      backgroundColor: HomeColors.card(context),
+      width: _personalizePanelWidth(context),
+      shape: const RoundedRectangleBorder(),
+      child: PersonalizePanel(
+        userSegment: _userSegment,
+        registry: _registry,
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
   }
 
   @override
@@ -149,6 +223,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         key: _scaffoldKey,
         backgroundColor: bg,
         drawer: responsive.isDesktop ? null : _buildNavDrawer(),
+        endDrawer: _buildPersonalizeDrawer(),
         body: responsive.isDesktop
             ? Row(
                 children: [
@@ -186,6 +261,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       key: _scaffoldKey,
       backgroundColor: bg,
       drawer: _buildNavDrawer(),
+      endDrawer: _buildPersonalizeDrawer(),
       body: RefreshIndicator(
         onRefresh: _refreshHomeData,
         child: _buildCurrentBody(accountsState),
@@ -606,6 +682,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     child: WebDashboardHeaderBar(
                       onMenuTap:
                           Responsive.of(context).isDesktop ? null : _openMenu,
+                      onPersonalizeDashboard:
+                          ref.watch(personalizationProvider).isUnavailable
+                              ? null
+                              : _openPersonalize,
                     ),
                   ),
                 ),
@@ -644,6 +724,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                         onTransferTap: () =>
                             setState(() => _selectedBottomNavIndex = 2),
                       ),
+                      ..._buildPersonalizedWidgets(),
                     ],
                   ),
                 ),

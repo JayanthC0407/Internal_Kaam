@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 
 /// The real `GET /digx-admin/config/v1/dashboards/modules?class=CUSTOM&value=custom`
 /// response from `widgets(corp).har` (entry #3), trimmed only by dropping
@@ -111,9 +111,9 @@ List<String> _fingerprint(dynamic layoutArray) {
 }
 
 void main() {
-  group('CorpDashboardConfig parsing', () {
+  group('DashboardConfig parsing', () {
     test('reads the captured dashboard DTO', () {
-      final config = CorpDashboardConfig.fromPayload(_capturedConfig());
+      final config = DashboardConfig.fromPayload(_capturedConfig());
 
       expect(config, isNotNull);
       expect(config!.dashboardId, '25801');
@@ -129,7 +129,7 @@ void main() {
     });
 
     test('unwraps the wrapHttpResponse envelope', () {
-      final config = CorpDashboardConfig.fromPayload({
+      final config = DashboardConfig.fromPayload({
         'statusCode': 200,
         'headers': <String, dynamic>{},
         'body': _capturedConfig(),
@@ -138,31 +138,31 @@ void main() {
     });
 
     test('parses every breakpoint, including the empty defaultLayout', () {
-      final config = CorpDashboardConfig.fromPayload(_capturedConfig())!;
+      final config = DashboardConfig.fromPayload(_capturedConfig())!;
 
-      expect(config.layoutFor(CorpLayoutBreakpoint.defaultLayout), isEmpty);
-      expect(config.layoutFor(CorpLayoutBreakpoint.large), hasLength(2));
-      expect(config.layoutFor(CorpLayoutBreakpoint.medium), hasLength(2));
-      expect(config.layoutFor(CorpLayoutBreakpoint.small), hasLength(5));
+      expect(config.layoutFor(DashboardBreakpoint.defaultLayout), isEmpty);
+      expect(config.layoutFor(DashboardBreakpoint.large), hasLength(2));
+      expect(config.layoutFor(DashboardBreakpoint.medium), hasLength(2));
+      expect(config.layoutFor(DashboardBreakpoint.small), hasLength(5));
     });
 
     test('de-duplicates the selection the host stores with repeats', () {
-      final config = CorpDashboardConfig.fromPayload(_capturedConfig())!;
+      final config = DashboardConfig.fromPayload(_capturedConfig())!;
 
       // `small` holds 5 items for 3 distinct widgets.
-      expect(config.hasDuplicatesAt(CorpLayoutBreakpoint.small), isTrue);
+      expect(config.hasDuplicatesAt(DashboardBreakpoint.small), isTrue);
       expect(
-        config.selectedComponentsAt(CorpLayoutBreakpoint.small),
+        config.selectedComponentsAt(DashboardBreakpoint.small),
         ['work-snapshot', 'approval-transactions-widget',
           'account-financial-summary'],
       );
 
-      expect(config.hasDuplicatesAt(CorpLayoutBreakpoint.large), isFalse);
+      expect(config.hasDuplicatesAt(DashboardBreakpoint.large), isFalse);
     });
 
     test('returns null for a payload with no dashboardDTO', () {
-      expect(CorpDashboardConfig.fromPayload({'body': {}}), isNull);
-      expect(CorpDashboardConfig.fromPayload(null), isNull);
+      expect(DashboardConfig.fromPayload({'body': {}}), isNull);
+      expect(DashboardConfig.fromPayload(null), isNull);
     });
 
     test('refuses the metadata-only body the save endpoint returns', () {
@@ -172,7 +172,7 @@ void main() {
       // Regression: this used to parse into a config with every breakpoint
       // empty. Storing that as the current state and saving again wiped
       // `medium` and `small` on the host.
-      final putResponse = CorpDashboardConfig.fromPayload({
+      final putResponse = DashboardConfig.fromPayload({
         'status': {'result': 'SUCCESSFUL', 'message': {'type': 'INFO'}},
         'dashboardDTO': {
           'enterpriseRole': 'corporateuser',
@@ -194,7 +194,7 @@ void main() {
     test('still parses a dashboard whose layouts are genuinely empty', () {
       // The distinction the guard has to preserve: an empty layout *object*
       // is a real, parseable dashboard; a missing one is not.
-      final config = CorpDashboardConfig.fromPayload({
+      final config = DashboardConfig.fromPayload({
         'dashboardDTO': {
           'dashboardId': '25801',
           'dashboardName': 'n',
@@ -211,22 +211,22 @@ void main() {
       });
 
       expect(config, isNotNull);
-      expect(config!.layoutFor(CorpLayoutBreakpoint.large), isEmpty);
+      expect(config!.layoutFor(DashboardBreakpoint.large), isEmpty);
     });
   });
 
-  group('CorpLayoutBreakpoint.forWidth', () {
+  group('DashboardBreakpoint.forWidth', () {
     test('maps viewport width to the Oracle JET breakpoint', () {
-      expect(CorpLayoutBreakpoint.forWidth(390), CorpLayoutBreakpoint.small);
-      expect(CorpLayoutBreakpoint.forWidth(767), CorpLayoutBreakpoint.small);
-      expect(CorpLayoutBreakpoint.forWidth(768), CorpLayoutBreakpoint.medium);
-      expect(CorpLayoutBreakpoint.forWidth(1023), CorpLayoutBreakpoint.medium);
-      expect(CorpLayoutBreakpoint.forWidth(1024), CorpLayoutBreakpoint.large);
-      expect(CorpLayoutBreakpoint.forWidth(1440), CorpLayoutBreakpoint.large);
+      expect(DashboardBreakpoint.forWidth(390), DashboardBreakpoint.small);
+      expect(DashboardBreakpoint.forWidth(767), DashboardBreakpoint.small);
+      expect(DashboardBreakpoint.forWidth(768), DashboardBreakpoint.medium);
+      expect(DashboardBreakpoint.forWidth(1023), DashboardBreakpoint.medium);
+      expect(DashboardBreakpoint.forWidth(1024), DashboardBreakpoint.large);
+      expect(DashboardBreakpoint.forWidth(1440), DashboardBreakpoint.large);
     });
   });
 
-  group('CorpDashboardConfig save payload', () {
+  group('DashboardConfig save payload', () {
     test('round-trips every item of an untouched config', () {
       // Compared field-by-field rather than by raw map equality, because
       // the PUT shape legitimately differs from the GET: the captured save
@@ -234,13 +234,13 @@ void main() {
       // widgets(corp).har entry #4, where the GET has it on all items and
       // the PUT on none) and writes the keys in a different order.
       final source = _capturedConfig();
-      final config = CorpDashboardConfig.fromPayload(source)!;
+      final config = DashboardConfig.fromPayload(source)!;
       final rebuilt =
           (config.toUpdatePayload()['layout'] as Map)['layout'] as Map;
       final original = (((source['dashboardDTO'] as Map)['layout']
           as Map)['layout']) as Map;
 
-      for (final breakpoint in CorpLayoutBreakpoint.values) {
+      for (final breakpoint in DashboardBreakpoint.values) {
         expect(
           _fingerprint(rebuilt[breakpoint.key]),
           _fingerprint(original[breakpoint.key]),
@@ -255,10 +255,10 @@ void main() {
       // layout object, so a mobile edit that dropped `large` would wipe the
       // user's desktop dashboard.
       final source = _capturedConfig();
-      final config = CorpDashboardConfig.fromPayload(source)!;
+      final config = DashboardConfig.fromPayload(source)!;
 
-      final edited = config.withLayout(CorpLayoutBreakpoint.small, [
-        const CorpDashboardLayoutItem(
+      final edited = config.withLayout(DashboardBreakpoint.small, [
+        const DashboardLayoutItem(
           componentName: 'currency-exposure',
           module: 'corporateDashboard',
           data: '{}',
@@ -288,7 +288,7 @@ void main() {
     });
 
     test('strips childPanel on save, as the captured PUT does', () {
-      final config = CorpDashboardConfig.fromPayload(_capturedConfig())!;
+      final config = DashboardConfig.fromPayload(_capturedConfig())!;
       final rebuilt = config.toUpdatePayload();
       expect(rebuilt.toString().contains('childPanel'), isFalse);
     });
@@ -296,8 +296,8 @@ void main() {
     test('preserves an item that has no data key', () {
       // The captured config mixes items with and without `data`; writing
       // one in where the host had none would itself be a change.
-      final config = CorpDashboardConfig.fromPayload(_capturedConfig())!;
-      final small = config.layoutFor(CorpLayoutBreakpoint.small);
+      final config = DashboardConfig.fromPayload(_capturedConfig())!;
+      final small = config.layoutFor(DashboardBreakpoint.small);
 
       expect(small.first.data, isNull);
       expect(small.first.toJson().containsKey('data'), isFalse);
@@ -306,7 +306,7 @@ void main() {
     });
 
     test('omits waterfallLayout, matching the captured PUT', () {
-      final config = CorpDashboardConfig.fromPayload(_capturedConfig())!;
+      final config = DashboardConfig.fromPayload(_capturedConfig())!;
       final payload = config.toUpdatePayload();
 
       expect((payload['layout'] as Map).containsKey('waterfallLayout'), isFalse);

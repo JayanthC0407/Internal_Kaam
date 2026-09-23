@@ -6,21 +6,21 @@ import 'package:ubci_bank/src/core/config/locale_config.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_currency.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_widget_definition.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_pickup_point.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_accounts_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_cash_management_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_dashboard_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_profile_repository.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_personalization_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_personalize_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 
 /// The fakes `implements` (rather than `extends`) the repositories on
 /// purpose: extending would run the real constructor, which builds the
@@ -94,13 +94,13 @@ class _FakeCashManagementRepository implements CorpCashManagementRepository {
 /// the dashboard fall back to its designed default arrangement — the state
 /// the rest of these tests assert against. The personalized render path has
 /// its own tests.
-class _FakeDashboardRepository implements CorpDashboardRepository {
+class _FakeDashboardRepository implements DashboardRepository {
   _FakeDashboardRepository({this.config});
 
-  final CorpDashboardConfig? config;
+  final DashboardConfig? config;
 
-  static CorpDashboardConfig emptyConfig() =>
-      CorpDashboardConfig.fromPayload(const {
+  static DashboardConfig emptyConfig() =>
+      DashboardConfig.fromPayload(const {
         'dashboardDTO': {
           'dashboardId': '25801',
           'dashboardName': 'obdx-name',
@@ -120,22 +120,22 @@ class _FakeDashboardRepository implements CorpDashboardRepository {
       })!;
 
   @override
-  Future<ResponseHandler<CorpDashboardConfig>> fetchConfig({
+  Future<ResponseHandler<DashboardConfig>> fetchConfig({
     required String dashboardClass,
     required String dashboardClassValue,
   }) async =>
       ResponseHandler.success(config ?? emptyConfig(), code: 200);
 
   @override
-  Future<ResponseHandler<CorpDashboardConfig>> saveConfig(
-    CorpDashboardConfig config,
+  Future<ResponseHandler<DashboardConfig>> saveConfig(
+    DashboardConfig config,
   ) async =>
       ResponseHandler.success(config, code: 200);
 
   @override
-  Future<ResponseHandler<CorpAuthorizedComponents>>
+  Future<ResponseHandler<DashboardAuthorizedComponents>>
       fetchAuthorizedComponents() async => ResponseHandler.success(
-            const CorpAuthorizedComponents(
+            const DashboardAuthorizedComponents(
               authorized: {
                 'account-financial-summary',
                 'account-quick-links',
@@ -151,8 +151,8 @@ class _FakeDashboardRepository implements CorpDashboardRepository {
           );
 
   @override
-  Future<CorpCatalogResult> fetchCatalog() async => CorpCatalogResult(
-        catalog: CorpWidgetCatalog.fromPayload(const {
+  Future<DashboardCatalogResult> fetchCatalog() async => DashboardCatalogResult(
+        catalog: DashboardWidgetCatalog.fromPayload(const {
           'components': [
             {
               'componentName': 'account-financial-summary',
@@ -168,7 +168,7 @@ class _FakeDashboardRepository implements CorpDashboardRepository {
             },
           ],
         }),
-        source: CorpCatalogSource.environment,
+        source: DashboardCatalogSource.environment,
       );
 
   @override
@@ -225,7 +225,7 @@ class _FakeProfileRepository implements CorpProfileRepository {
 
 Future<void> _pumpDashboard(
   WidgetTester tester, {
-  CorpDashboardConfig? config,
+  DashboardConfig? config,
 }) async {
   // The design is a desktop layout; size the surface accordingly so the
   // persistent sidebar and the side-by-side panels are the ones exercised.
@@ -242,7 +242,7 @@ Future<void> _pumpDashboard(
             .overrideWithValue(_FakeProfileRepository()),
         corpCashManagementRepositoryProvider
             .overrideWithValue(_FakeCashManagementRepository()),
-        corpDashboardRepositoryProvider
+        dashboardRepositoryProvider
             .overrideWithValue(_FakeDashboardRepository(config: config)),
       ],
       child: MaterialApp(
@@ -371,7 +371,7 @@ void main() {
 
       // The panel is an end drawer, so the dashboard stays mounted behind
       // it — that is what lets a save show up immediately.
-      expect(find.byType(CorpPersonalizePanel), findsOneWidget);
+      expect(find.byType(PersonalizePanel), findsOneWidget);
       expect(find.text('Account Summary'), findsWidgets);
     });
 
@@ -381,7 +381,7 @@ void main() {
       // it drew the widget twice.
       await _pumpDashboard(
         tester,
-        config: CorpDashboardConfig.fromPayload(const {
+        config: DashboardConfig.fromPayload(const {
           'dashboardDTO': {
             'dashboardId': '25801',
             'dashboardName': 'obdx-name',
@@ -413,7 +413,7 @@ void main() {
       // accounts hero.
       await _pumpDashboard(
         tester,
-        config: CorpDashboardConfig.fromPayload(const {
+        config: DashboardConfig.fromPayload(const {
           'dashboardDTO': {
             'dashboardId': '25801',
             'dashboardName': 'obdx-name',
@@ -459,7 +459,7 @@ void main() {
       // saved dashboard but absent from authorizedUIComponents.
       await _pumpDashboard(
         tester,
-        config: CorpDashboardConfig.fromPayload(const {
+        config: DashboardConfig.fromPayload(const {
           'dashboardDTO': {
             'dashboardId': '25801',
             'dashboardName': 'obdx-name',
