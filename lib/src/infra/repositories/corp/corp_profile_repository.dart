@@ -1,4 +1,5 @@
 import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
+import 'package:ubci_bank/src/core/models/corp/corp_currency.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_profile_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
@@ -20,6 +21,17 @@ class CorpProfileRepository extends CorpRepositoryBase {
         if (party == null) throw StateError('Empty party payload');
         return party;
       });
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// Currency master for labelling exposure rows. Never fatal — the
+  /// Currency Exposure widget falls back to raw ISO codes.
+  Future<ResponseHandler<List<CorpCurrency>>> fetchCurrencies() async {
+    try {
+      final result = await _profileApi.fetchCurrencies();
+      return parseBody(result, CorpCurrency.listFromPayload);
     } catch (_) {
       return ResponseHandler.exceptionError();
     }

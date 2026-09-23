@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
+import 'package:ubci_bank/src/core/models/corp/corp_currency.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_user_profile.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
@@ -18,6 +19,7 @@ class CorpProfileState {
     this.party,
     this.bankConfiguration = CorpBankConfiguration.empty,
     this.unreadMessageCount = 0,
+    this.currencies = const <String, CorpCurrency>{},
     this.isLoading = false,
   });
 
@@ -25,7 +27,18 @@ class CorpProfileState {
   final CorpParty? party;
   final CorpBankConfiguration bankConfiguration;
   final int unreadMessageCount;
+
+  /// Currency master indexed by ISO code, for labelling amounts. Empty when
+  /// the lookup failed — callers fall back to the raw code.
+  final Map<String, CorpCurrency> currencies;
+
   final bool isLoading;
+
+  /// Display name for [code], falling back to the code itself.
+  String currencyLabel(String code) {
+    final normalized = code.trim().toUpperCase();
+    return currencies[normalized]?.label ?? normalized;
+  }
 
   /// Corporate entity name — `me/party` wins over the `me` response, which
   /// can carry a stale entity label.
@@ -52,6 +65,7 @@ class CorpProfileState {
     CorpParty? party,
     CorpBankConfiguration? bankConfiguration,
     int? unreadMessageCount,
+    Map<String, CorpCurrency>? currencies,
     bool? isLoading,
   }) {
     return CorpProfileState(
@@ -59,6 +73,7 @@ class CorpProfileState {
       party: party ?? this.party,
       bankConfiguration: bankConfiguration ?? this.bankConfiguration,
       unreadMessageCount: unreadMessageCount ?? this.unreadMessageCount,
+      currencies: currencies ?? this.currencies,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -115,6 +130,7 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
       repository.fetchParty(),
       repository.fetchBankConfiguration(),
       repository.fetchUnreadMessageCount(),
+      repository.fetchCurrencies(),
     ]);
 
     _loadedOnce = true;
@@ -123,6 +139,7 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
     final party = results[0];
     final bankConfig = results[1];
     final unread = results[2];
+    final currencies = results[3];
 
     state = state.copyWith(
       isLoading: false,
@@ -131,6 +148,9 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
           ? bankConfig.data
           : null,
       unreadMessageCount: unread is Success<int> ? (unread.data ?? 0) : null,
+      currencies: currencies is Success<List<CorpCurrency>>
+          ? CorpCurrency.indexByCode(currencies.data ?? const [])
+          : null,
     );
   }
 }

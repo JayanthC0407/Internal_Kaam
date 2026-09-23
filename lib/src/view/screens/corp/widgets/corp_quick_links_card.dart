@@ -76,7 +76,18 @@ class CorpQuickLinksCard extends StatelessWidget {
       Navigator.of(context).pushNamed(link.routeName!);
       return;
     }
-    onUnavailable?.call(link.label.replaceAll('\n', ' '));
+
+    final label = link.label.replaceAll('\n', ' ');
+    final handler = onUnavailable;
+    if (handler != null) {
+      handler(label);
+      return;
+    }
+    // Self-sufficient fallback: the widget registry builds this card with
+    // no arguments, so it has to be able to explain itself unaided.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$label is not available yet.')),
+    );
   }
 
   @override

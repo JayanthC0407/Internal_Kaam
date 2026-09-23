@@ -1,6 +1,52 @@
 import 'package:ubci_bank/src/core/utils/profile_initials.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
+/// One entry of `me`'s `dashboardResponse.dashboardDTOs[]`.
+///
+/// A corporate user typically has two: their own `CUSTOM`/`custom`
+/// dashboard (`factory: false`) and the bank's factory `USER_TYPE` one.
+/// These serve different purposes and must not be confused:
+///  - choosing *which dashboard screen to open* matches
+///    `dashboardClassValue` against the user's roles (`resolveUserType`),
+///    which selects the `USER_TYPE` entry;
+///  - *personalization* reads and writes the `CUSTOM` entry, whose
+///    `dashboardId` is the PUT target.
+class CorpDashboardDescriptor {
+  const CorpDashboardDescriptor({
+    required this.dashboardId,
+    required this.dashboardClass,
+    required this.dashboardClassValue,
+    this.enterpriseRole,
+    this.isFactory = false,
+  });
+
+  final String dashboardId;
+
+  /// e.g. `CUSTOM`, `USER_TYPE` — the `class` query parameter.
+  final String dashboardClass;
+
+  /// e.g. `custom`, `corporateuser` — the `value` query parameter.
+  final String dashboardClassValue;
+
+  final String? enterpriseRole;
+
+  /// A factory dashboard is the bank's default rather than the user's own.
+  final bool isFactory;
+
+  factory CorpDashboardDescriptor.fromJson(Map<String, dynamic> json) {
+    return CorpDashboardDescriptor(
+      dashboardId: (json['dashboardId'] ?? '').toString().trim(),
+      dashboardClass: (json['dashboardClass'] ?? '').toString().trim(),
+      dashboardClassValue:
+          (json['dashboardClassValue'] ?? '').toString().trim(),
+      enterpriseRole: (json['enterpriseRole'] ?? '').toString().trim().isEmpty
+          ? null
+          : json['enterpriseRole'].toString().trim(),
+      isFactory: json['factory'] == true,
+    );
+  }
+}
+
 /// The authenticated corporate user, parsed from `GET /digx-common/user/v1/me`.
 ///
 /// The `me` response is already captured during login and handed to the
@@ -26,6 +72,7 @@ class CorpUserProfile {
     this.lastLoginTime,
     this.isCorpAdmin = false,
     this.inactiveSessionTimeoutMs,
+    this.dashboards = const <CorpDashboardDescriptor>[],
   });
 
   final String userName;
@@ -57,6 +104,29 @@ class CorpUserProfile {
 
   /// `inactiveSessionTimeout` from the `me` response (milliseconds).
   final int? inactiveSessionTimeoutMs;
+
+  /// `dashboardResponse.dashboardDTOs[]`.
+  final List<CorpDashboardDescriptor> dashboards;
+
+  /// The dashboard personalization reads and writes.
+  ///
+  /// Prefers the user's own non-factory entry (the captured corporate user
+  /// has `CUSTOM`/`custom`, id 25801); falls back to the factory entry for
+  /// a user who has never personalized. Returns null when `me` carried no
+  /// dashboard DTOs at all, in which case personalization is unavailable
+  /// rather than guessed at.
+  CorpDashboardDescriptor? get personalizableDashboard {
+    if (dashboards.isEmpty) return null;
+    for (final dashboard in dashboards) {
+      if (!dashboard.isFactory && dashboard.dashboardId.isNotEmpty) {
+        return dashboard;
+      }
+    }
+    for (final dashboard in dashboards) {
+      if (dashboard.dashboardId.isNotEmpty) return dashboard;
+    }
+    return null;
+  }
 
   /// `Pooja Jha` — falls back to the login username.
   String get fullName {
@@ -115,6 +185,18 @@ class CorpUserProfile {
             .toList()
         : const <String>[];
 
+    final dashboardResponse = ObdxApiUtils.asMap(body['dashboardResponse']);
+    final dashboardRaw = dashboardResponse['dashboardDTOs'];
+    final dashboards = <CorpDashboardDescriptor>[];
+    if (dashboardRaw is List) {
+      for (final entry in dashboardRaw) {
+        if (entry is! Map) continue;
+        dashboards.add(
+          CorpDashboardDescriptor.fromJson(Map<String, dynamic>.from(entry)),
+        );
+      }
+    }
+
     final timeoutRaw = body['inactiveSessionTimeout'];
 
     return CorpUserProfile(
@@ -134,6 +216,7 @@ class CorpUserProfile {
       lastLoginTime:
           DateTime.tryParse(userProfile['lastLoginTime']?.toString() ?? ''),
       isCorpAdmin: userProfile['corpAdmin'] == true,
+      dashboards: dashboards,
       inactiveSessionTimeoutMs: timeoutRaw is num
           ? timeoutRaw.toInt()
           : int.tryParse(timeoutRaw?.toString() ?? ''),
