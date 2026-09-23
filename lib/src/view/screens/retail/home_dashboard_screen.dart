@@ -168,15 +168,15 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     return widgets;
   }
 
-  /// Side-sheet width.
+  /// Side-sheet width — just the module headings.
   ///
-  /// Wide enough on desktop for the module headings plus the flyout that
-  /// pops out beside them; near-full width on a phone, where the panel
-  /// falls back to headings that expand in place.
+  /// The widget flyout renders in the app overlay to the *left* of this
+  /// panel, over the dashboard, so the panel stays narrow rather than
+  /// reserving a column that is empty whenever no heading is open.
   double _personalizePanelWidth(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (width < 600) return width * 0.92;
-    return width < 1100 ? width * 0.62 : 560;
+    return 320;
   }
 
   /// The Personalize side sheet, or null when `me` resolved no
