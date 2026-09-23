@@ -85,6 +85,10 @@ flutter:
     - assets/legal/
     - assets/images/demobank_logo.png
     - assets/images/demobank_splash.png
+    # Fallback copy of the OBDX widget catalog. The environment's own copy
+    # is richer (it serves framework/json/moduleComponents.json), so this is
+    # only used when that fetch fails — see CorpCatalogRepository.
+    - assets/corp/module_components.json
 
   fonts:
     - family: Rubik

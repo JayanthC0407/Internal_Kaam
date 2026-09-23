@@ -25,6 +25,13 @@ class ObdxCorpProfileApi extends ObdxApiBase {
   Future<ResponseHandler<Map<String, dynamic>>> fetchBankConfiguration() =>
       _get(CorpApiConst.bankConfigurationApi);
 
+  /// `GET /digx-common/common/v1/currency` — the bank's currency master.
+  ///
+  /// Sits alongside `bankConfiguration` because both are session-level
+  /// `digx-common/common/v1` reference lookups the dashboard reads once.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchCurrencies() =>
+      _get(CorpApiConst.currencyApi);
+
   /// `GET /digx-common/collaboration/v1/mailbox/count?msgFlag=T`
   Future<ResponseHandler<Map<String, dynamic>>> fetchMailboxCount({
     String messageFlag = 'T',
