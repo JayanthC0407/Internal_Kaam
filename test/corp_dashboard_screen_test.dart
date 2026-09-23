@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -373,6 +374,53 @@ void main() {
       // it — that is what lets a save show up immediately.
       expect(find.byType(PersonalizePanel), findsOneWidget);
       expect(find.text('Account Summary'), findsWidgets);
+    });
+
+    testWidgets('hovering a module heading flies out its widgets',
+        (tester) async {
+      await _pumpDashboard(tester);
+
+      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Personalize Dashboard'));
+      await tester.pumpAndSettle();
+
+      // The fake catalog has one module, Corporate Dashboard, holding
+      // account-financial-summary and currency-exposure. Nothing from it is
+      // listed until the heading is pointed at.
+      expect(find.text('Corporate Dashboard'), findsOneWidget);
+      expect(find.text('Account Financial Summary'), findsNothing);
+
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      final heading = tester.getCenter(find.text('Corporate Dashboard'));
+      await tester.sendEventToBinding(pointer.hover(heading));
+      await tester.pumpAndSettle();
+
+      // Flown out beside the heading, which stays visible.
+      expect(find.text('Account Financial Summary'), findsOneWidget);
+      expect(find.text('Currency Exposure'), findsWidgets);
+      expect(find.text('Corporate Dashboard'), findsOneWidget);
+
+      // Moving the pointer away closes it again.
+      await tester.sendEventToBinding(pointer.hover(const Offset(5, 5)));
+      await tester.pumpAndSettle();
+      expect(find.text('Account Financial Summary'), findsNothing);
+    });
+
+    testWidgets('tapping a heading pins the flyout open for touch',
+        (tester) async {
+      // Without hover there would be no way to reach a checkbox at all.
+      await _pumpDashboard(tester);
+
+      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Personalize Dashboard'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Corporate Dashboard'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Account Financial Summary'), findsOneWidget);
     });
 
     testWidgets('Quick Links renders once, not twice', (tester) async {

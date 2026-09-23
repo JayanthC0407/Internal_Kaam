@@ -47,9 +47,6 @@ class PersonalizePanel extends ConsumerStatefulWidget {
 }
 
 class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
-  /// Module whose widgets are showing in the right pane.
-  String? _activeModule;
-
   @override
   void initState() {
     super.initState();
@@ -204,40 +201,36 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
       );
     }
 
-    // Keep the active module valid across rebuilds; default to the first.
     final moduleKeys = groups.keys.toList();
-    final active = moduleKeys.contains(_activeModule)
-        ? _activeModule!
-        : moduleKeys.first;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: 168,
-          child: _ModuleList(
+    void onToggle(String componentName) =>
+        ref.read(personalizationProvider.notifier).toggle(componentName);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // A flyout needs room beside the headings. Below that, fall back to
+        // headings that expand in place — a pop-out on a phone would have
+        // nowhere to pop to, and there is no hover there anyway.
+        final canFlyOut = constraints.maxWidth >= 520;
+
+        if (!canFlyOut) {
+          return _ModuleAccordion(
             modules: moduleKeys,
-            active: active,
-            selection: selection,
             groups: groups,
-            onActivate: (module) {
-              if (_activeModule == module) return;
-              setState(() => _activeModule = module);
-            },
-          ),
-        ),
-        VerticalDivider(width: 1, color: Theme.of(context).dividerColor),
-        Expanded(
-          child: _WidgetList(
-            definitions: groups[active] ?? const [],
             selection: selection,
             registry: widget.registry,
-            onToggle: (componentName) => ref
-                .read(personalizationProvider.notifier)
-                .toggle(componentName),
-          ),
-        ),
-      ],
+            onToggle: onToggle,
+          );
+        }
+
+        return _ModuleFlyout(
+          modules: moduleKeys,
+          groups: groups,
+          selection: selection,
+          registry: widget.registry,
+          onToggle: onToggle,
+        );
+      },
     );
   }
 
@@ -254,131 +247,390 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
   }
 }
 
-/// Left pane — module headings. Pointing at one reveals its widgets; tap
-/// does the same, so the panel works without a pointer.
-class _ModuleList extends StatelessWidget {
-  const _ModuleList({
+/// How many of [module]'s widgets are currently selected.
+int _selectedCount(
+  String module,
+  Map<String, List<DashboardWidgetDefinition>> groups,
+  Set<String> selection,
+) {
+  final definitions = groups[module] ?? const <DashboardWidgetDefinition>[];
+  var count = 0;
+  for (final definition in definitions) {
+    if (selection.contains(definition.componentName)) count++;
+  }
+  return count;
+}
+
+/// Module headings with a pop-out panel of that module's widgets, the way
+/// the bank's own navigation menus behave.
+///
+/// Pointing at a heading floats its widgets beside it; the flyout stays up
+/// while the pointer is over either the heading or the flyout, so you can
+/// travel across the gap to reach a checkbox. Tapping pins a heading open,
+/// which is what makes this usable on a touch screen where there is no
+/// hover at all.
+class _ModuleFlyout extends StatefulWidget {
+  const _ModuleFlyout({
     required this.modules,
-    required this.active,
-    required this.selection,
     required this.groups,
-    required this.onActivate,
+    required this.selection,
+    required this.registry,
+    required this.onToggle,
   });
 
   final List<String> modules;
-  final String active;
-  final Set<String> selection;
   final Map<String, List<DashboardWidgetDefinition>> groups;
-  final ValueChanged<String> onActivate;
+  final Set<String> selection;
+  final DashboardWidgetRegistry registry;
+  final ValueChanged<String> onToggle;
 
-  /// How many of this module's widgets are currently selected — shown so
-  /// the user can see where their dashboard is made up from without
-  /// opening every heading.
-  int _selectedIn(String module) {
-    final definitions = groups[module] ?? const <DashboardWidgetDefinition>[];
-    var count = 0;
-    for (final definition in definitions) {
-      if (selection.contains(definition.componentName)) count++;
-    }
-    return count;
+  @override
+  State<_ModuleFlyout> createState() => _ModuleFlyoutState();
+}
+
+class _ModuleFlyoutState extends State<_ModuleFlyout> {
+  static const double _rowHeight = 46;
+  static const double _listWidth = 208;
+  static const double _flyoutWidth = 300;
+  static const double _rowEntryHeight = 52;
+
+  final ScrollController _scroll = ScrollController();
+
+  int? _hoveredIndex;
+  bool _pointerInFlyout = false;
+
+  /// A heading the user tapped, which stays open until they tap elsewhere.
+  /// Without this the panel would be unusable on a touch screen.
+  int? _pinnedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // The flyout is positioned against the heading's on-screen offset, so
+    // it has to follow the list as it scrolls.
+    _scroll.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_openIndex != null) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// A pinned heading wins; otherwise whichever the pointer is over.
+  int? get _openIndex => _pinnedIndex ?? _hoveredIndex;
+
+  void _hover(int? index) {
+    if (_hoveredIndex == index) return;
+    setState(() => _hoveredIndex = index);
+  }
+
+  /// Closes only when the pointer has left both the heading and the flyout,
+  /// and nothing is pinned.
+  void _maybeClose() {
+    if (_pointerInFlyout || _pinnedIndex != null) return;
+    if (_hoveredIndex == null) return;
+    setState(() => _hoveredIndex = null);
+  }
+
+  void _togglePin(int index) {
+    setState(() {
+      _pinnedIndex = _pinnedIndex == index ? null : index;
+      _hoveredIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
+    final openIndex = _openIndex;
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      itemCount: modules.length,
-      itemBuilder: (context, index) {
-        final module = modules[index];
-        final isActive = module == active;
-        final selected = _selectedIn(module);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final openModule =
+            openIndex == null ? null : widget.modules[openIndex];
+        final definitions = openModule == null
+            ? const <DashboardWidgetDefinition>[]
+            : (widget.groups[openModule] ??
+                const <DashboardWidgetDefinition>[]);
 
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => onActivate(module),
-          child: InkWell(
-            onTap: () => onActivate(module),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 11, 8, 11),
-              decoration: BoxDecoration(
-                color: isActive
-                    ? accent.withValues(alpha: 0.10)
-                    : Colors.transparent,
-                border: Border(
-                  left: BorderSide(
-                    color: isActive ? accent : Colors.transparent,
-                    width: 3,
+        // Anchor the flyout to its heading, then keep it on screen.
+        double? top;
+        double? height;
+        if (openIndex != null) {
+          final offset = _scroll.hasClients ? _scroll.offset : 0.0;
+          final raw = (openIndex * _rowHeight) - offset + 6;
+          height = (definitions.length * _rowEntryHeight + 16)
+              .clamp(0.0, constraints.maxHeight - 12);
+          top = raw.clamp(6.0, (constraints.maxHeight - height - 6).clamp(6.0, double.infinity));
+        }
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              // Tapping the empty area unpins, matching how menus dismiss.
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => setState(() {
+                  _pinnedIndex = null;
+                  _hoveredIndex = null;
+                }),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: _listWidth,
+              child: MouseRegion(
+                onExit: (_) => _maybeClose(),
+                child: ListView.builder(
+                  controller: _scroll,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  itemCount: widget.modules.length,
+                  itemExtent: _rowHeight,
+                  itemBuilder: (context, index) {
+                    final module = widget.modules[index];
+                    return _ModuleHeading(
+                      label: DashboardWidgetLabels.forModule(module),
+                      selectedCount: _selectedCount(
+                        module,
+                        widget.groups,
+                        widget.selection,
+                      ),
+                      isOpen: index == openIndex,
+                      isPinned: index == _pinnedIndex,
+                      onHover: () => _hover(index),
+                      onTap: () => _togglePin(index),
+                    );
+                  },
+                ),
+              ),
+            ),
+            if (openIndex != null && definitions.isNotEmpty)
+              Positioned(
+                left: _listWidth + 8,
+                top: top,
+                width: _flyoutWidth,
+                height: height,
+                child: MouseRegion(
+                  onEnter: (_) => setState(() => _pointerInFlyout = true),
+                  onExit: (_) {
+                    setState(() => _pointerInFlyout = false);
+                    _maybeClose();
+                  },
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(12),
+                    color: theme.cardColor,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: theme.dividerColor),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _WidgetChecklist(
+                        definitions: definitions,
+                        selection: widget.selection,
+                        registry: widget.registry,
+                        onToggle: widget.onToggle,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      DashboardWidgetLabels.forModule(module),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 12.5,
-                        height: 1.25,
-                        fontWeight:
-                            isActive ? FontWeight.w700 : FontWeight.w500,
-                        color: isActive ? accent : null,
-                      ),
-                    ),
-                  ),
-                  if (selected > 0) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Text(
-                        '$selected',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: accent,
-                        ),
-                      ),
-                    ),
-                  ],
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 16,
-                    color: isActive ? accent : theme.hintColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
+          ],
         );
       },
     );
   }
 }
 
-/// Right pane — the active module's widgets.
-class _WidgetList extends StatelessWidget {
-  const _WidgetList({
+/// One heading row in the flyout list.
+class _ModuleHeading extends StatelessWidget {
+  const _ModuleHeading({
+    required this.label,
+    required this.selectedCount,
+    required this.isOpen,
+    required this.isPinned,
+    required this.onHover,
+    required this.onTap,
+  });
+
+  final String label;
+  final int selectedCount;
+  final bool isOpen;
+  final bool isPinned;
+  final VoidCallback onHover;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => onHover(),
+      onHover: (_) => onHover(),
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
+          alignment: Alignment.centerLeft,
+          decoration: BoxDecoration(
+            color: isOpen ? accent.withValues(alpha: 0.10) : Colors.transparent,
+            border: Border(
+              left: BorderSide(
+                color: isOpen ? accent : Colors.transparent,
+                width: 3,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: 12.5,
+                    height: 1.2,
+                    fontWeight: isOpen ? FontWeight.w700 : FontWeight.w500,
+                    color: isOpen ? accent : null,
+                  ),
+                ),
+              ),
+              if (selectedCount > 0) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Text(
+                    '$selectedCount',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: accent,
+                    ),
+                  ),
+                ),
+              ],
+              Icon(
+                isPinned
+                    ? Icons.push_pin_rounded
+                    : Icons.chevron_right_rounded,
+                size: isPinned ? 13 : 16,
+                color: isOpen ? accent : theme.hintColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Narrow fallback: headings that expand in place.
+///
+/// A pop-out needs somewhere to pop to, and a phone has neither the room
+/// nor a pointer to hover with.
+class _ModuleAccordion extends StatefulWidget {
+  const _ModuleAccordion({
+    required this.modules,
+    required this.groups,
+    required this.selection,
+    required this.registry,
+    required this.onToggle,
+  });
+
+  final List<String> modules;
+  final Map<String, List<DashboardWidgetDefinition>> groups;
+  final Set<String> selection;
+  final DashboardWidgetRegistry registry;
+  final ValueChanged<String> onToggle;
+
+  @override
+  State<_ModuleAccordion> createState() => _ModuleAccordionState();
+}
+
+class _ModuleAccordionState extends State<_ModuleAccordion> {
+  String? _expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      itemCount: widget.modules.length,
+      itemBuilder: (context, index) {
+        final module = widget.modules[index];
+        final definitions =
+            widget.groups[module] ?? const <DashboardWidgetDefinition>[];
+        final isExpanded = module == _expanded;
+        final count =
+            _selectedCount(module, widget.groups, widget.selection);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _ModuleHeading(
+              label: DashboardWidgetLabels.forModule(module),
+              selectedCount: count,
+              isOpen: isExpanded,
+              isPinned: false,
+              onHover: () {},
+              onTap: () => setState(
+                () => _expanded = isExpanded ? null : module,
+              ),
+            ),
+            if (isExpanded)
+              Container(
+                color: theme.colorScheme.primary.withValues(alpha: 0.04),
+                child: _WidgetChecklist(
+                  definitions: definitions,
+                  selection: widget.selection,
+                  registry: widget.registry,
+                  onToggle: widget.onToggle,
+                  shrinkWrap: true,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// The checkboxes for one module's widgets.
+class _WidgetChecklist extends StatelessWidget {
+  const _WidgetChecklist({
     required this.definitions,
     required this.selection,
     required this.registry,
     required this.onToggle,
+    this.shrinkWrap = false,
   });
 
   final List<DashboardWidgetDefinition> definitions;
   final Set<String> selection;
   final DashboardWidgetRegistry registry;
   final ValueChanged<String> onToggle;
+  final bool shrinkWrap;
 
   @override
   Widget build(BuildContext context) {
@@ -390,25 +642,29 @@ class _WidgetList extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(4, 6, 8, 16),
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+      padding: const EdgeInsets.symmetric(vertical: 6),
       itemCount: definitions.length,
       itemBuilder: (context, index) {
         final definition = definitions[index];
         final implemented = registry.isImplemented(definition.componentName);
+        final isSelected = selection.contains(definition.componentName);
 
         return CheckboxListTile(
-          value: selection.contains(definition.componentName),
+          value: isSelected,
           onChanged: (_) => onToggle(definition.componentName),
           dense: true,
           controlAffinity: ListTileControlAffinity.trailing,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
           title: Text(
             DashboardWidgetLabels.forComponent(definition.componentName),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: 13,
-                  fontWeight: selection.contains(definition.componentName)
-                      ? FontWeight.w600
-                      : FontWeight.w500,
+                  fontWeight:
+                      isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
           ),
           subtitle: implemented
