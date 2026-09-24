@@ -117,6 +117,68 @@ void main() {
     });
   });
 
+  group('DashboardDescriptorLookup.fromProfileResponse', () {
+    test('no `me` response is unknown, not "no dashboard"', () {
+      // What a session restore passes when its own `me` call failed.
+      expect(
+        DashboardDescriptorLookup.fromProfileResponse(null),
+        isA<DashboardDescriptorUnknown>(),
+      );
+      expect(
+        DashboardDescriptorLookup.fromProfileResponse(
+            const {'statusCode': 500}),
+        isA<DashboardDescriptorUnknown>(),
+      );
+    });
+
+    test('a `me` without a CUSTOM dashboard is absent', () {
+      expect(
+        DashboardDescriptorLookup.fromProfileResponse(const {
+          'statusCode': 200,
+          'body': {
+            'userProfile': {'userName': 'retail01'},
+            'dashboardResponse': {
+              'dashboardDTOs': [
+                {
+                  'dashboardId': '9',
+                  'dashboardClass': 'USER_TYPE',
+                  'dashboardClassValue': 'retailuser',
+                  'factory': true,
+                },
+              ],
+            },
+          },
+        }),
+        isA<DashboardDescriptorAbsent>(),
+      );
+    });
+
+    test('a `me` with a CUSTOM dashboard is found', () {
+      final lookup = DashboardDescriptorLookup.fromProfileResponse(const {
+        'statusCode': 200,
+        'body': {
+          'userProfile': {'userName': 'retail01'},
+          'dashboardResponse': {
+            'dashboardDTOs': [
+              {
+                'dashboardId': '25801',
+                'dashboardClass': 'CUSTOM',
+                'dashboardClassValue': 'custom',
+                'factory': false,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(lookup, isA<DashboardDescriptorFound>());
+      expect(
+        (lookup as DashboardDescriptorFound).descriptor.dashboardId,
+        '25801',
+      );
+    });
+  });
+
   group('DashboardWidgetRegistry', () {
     test('Corporate and Retail map different components', () {
       const corp = CorpWidgetRegistry();

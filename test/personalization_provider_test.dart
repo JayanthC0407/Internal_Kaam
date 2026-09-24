@@ -24,6 +24,19 @@ class _FakeRepo implements DashboardRepository {
   int configFetches = 0;
   int saveCalls = 0;
 
+  /// What reading `me` resolves to; null makes the read fail.
+  DashboardDescriptorLookup? me;
+  int meFetches = 0;
+
+  @override
+  Future<ResponseHandler<DashboardDescriptorLookup>>
+      fetchPersonalizableDashboard() async {
+    meFetches++;
+    final resolved = me;
+    if (resolved == null) return ResponseHandler.error(500, 'me failed');
+    return ResponseHandler.success(resolved, code: 200);
+  }
+
   @override
   Future<ResponseHandler<DashboardConfig>> fetchConfig({
     required String dashboardClass,
@@ -108,10 +121,13 @@ DashboardConfig _config({
   })!;
 }
 
-DashboardDescriptor _custom(String id) => DashboardDescriptor(
-      dashboardId: id,
-      dashboardClass: 'CUSTOM',
-      dashboardClassValue: 'custom',
+/// `me` lists [id] as the user's own CUSTOM dashboard.
+DashboardDescriptorLookup _custom(String id) => DashboardDescriptorFound(
+      DashboardDescriptor(
+        dashboardId: id,
+        dashboardClass: 'CUSTOM',
+        dashboardClassValue: 'custom',
+      ),
     );
 
 void main() {
@@ -166,7 +182,8 @@ void main() {
       expect(repo.configFetches, 2);
     });
 
-    test('a request in flight for one user never lands in the next user\'s '
+    test(
+        'a request in flight for one user never lands in the next user\'s '
         'state', () async {
       final aliceGate = Completer<void>();
       repo
@@ -236,7 +253,8 @@ void main() {
       expect(state().saveErrorMessage, isNotNull);
     });
 
-    test('refuses to save when the returned dashboard is not the one `me` '
+    test(
+        'refuses to save when the returned dashboard is not the one `me` '
         'described', () async {
       repo.next = _config(id: 'SOMEONE-ELSE', large: ['alice-widget']);
       await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
@@ -262,18 +280,22 @@ void main() {
       expect(repo.saveCalls, 1);
     });
 
-    test('no descriptor means personalization is unavailable', () async {
-      await notifier().ensureLoaded(null, userKey: 'alice');
+    test('`me` with no CUSTOM dashboard means personalization is unavailable',
+        () async {
+      await notifier().ensureLoaded(
+        const DashboardDescriptorAbsent(),
+        userKey: 'alice',
+      );
 
       expect(state().isUnavailable, isTrue);
       expect(state().bodyStatus, PersonalizedBodyStatus.unavailable);
       expect(repo.configFetches, 0);
+      expect(repo.meFetches, 0);
     });
   });
 
   group('body status', () {
-    test('the first frame, before any load, is loading — not the defaults',
-        () {
+    test('the first frame, before any load, is loading — not the defaults', () {
       // Showing the defaults here is what made the dashboard visibly swap
       // once the real configuration arrived.
       expect(state().hasStarted, isFalse);
@@ -297,11 +319,167 @@ void main() {
       expect(state().bodyStatus, PersonalizedBodyStatus.empty);
     });
 
-    test('a configuration that fails to load is unavailable', () async {
+    test('a configuration that fails to load is a failure, not unavailable',
+        () async {
+      // Unavailable would show the defaults — widgets the user may have
+      // removed — and be final for the session.
       repo.next = null;
       await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
 
+      expect(state().bodyStatus, PersonalizedBodyStatus.loadFailed);
+      expect(state().isUnavailable, isFalse);
+      expect(state().errorMessage, isNotNull);
+    });
+  });
+
+  group('configuration failure', () {
+    test('retry loads the configuration once it is back', () async {
+      repo.next = null;
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+      expect(state().bodyStatus, PersonalizedBodyStatus.loadFailed);
+
+      repo.next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().retry();
+
+      expect(repo.configFetches, 2);
+      expect(state().bodyStatus, PersonalizedBodyStatus.ready);
+      expect(state().configLoadFailed, isFalse);
+      expect(state().errorMessage, isNull);
+    });
+
+    test('a failed load does not settle, so ensureLoaded tries again',
+        () async {
+      // The original bug: `_loadedOnce` was set before the result was
+      // checked, so nothing after a failure ever loaded.
+      repo.next = null;
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      repo.next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      expect(repo.configFetches, 2);
+      expect(state().bodyStatus, PersonalizedBodyStatus.ready);
+    });
+
+    test('a successful load settles — retry does not refetch it', () async {
+      repo.next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      await notifier().retry();
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      expect(repo.configFetches, 1);
+    });
+
+    test('retry is a no-op once `me` has said there is no dashboard', () async {
+      await notifier().ensureLoaded(
+        const DashboardDescriptorAbsent(),
+        userKey: 'alice',
+      );
+
+      await notifier().retry();
+
+      expect(repo.meFetches, 0);
+      expect(repo.configFetches, 0);
       expect(state().bodyStatus, PersonalizedBodyStatus.unavailable);
+    });
+
+    test('a retry during a load joins it rather than starting another',
+        () async {
+      final gate = Completer<void>();
+      repo
+        ..next = _config(id: 'A', large: ['alice-widget'])
+        ..gate = gate;
+      final load = notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      final retried = notifier().retry();
+      gate.complete();
+      await Future.wait([load, retried]);
+
+      expect(repo.configFetches, 1);
+    });
+  });
+
+  group('no `me` in hand', () {
+    test('reads `me` itself and loads the dashboard it lists', () async {
+      repo
+        ..me = _custom('A')
+        ..next = _config(id: 'A', large: ['alice-widget']);
+
+      await notifier().ensureLoaded(
+        const DashboardDescriptorUnknown(),
+        userKey: 'alice',
+      );
+
+      expect(repo.meFetches, 1);
+      expect(state().bodyStatus, PersonalizedBodyStatus.ready);
+      expect(notifier().descriptor?.dashboardId, 'A');
+    });
+
+    test('a `me` it read with no dashboard is final', () async {
+      repo.me = const DashboardDescriptorAbsent();
+
+      await notifier().ensureLoaded(
+        const DashboardDescriptorUnknown(),
+        userKey: 'alice',
+      );
+
+      expect(state().bodyStatus, PersonalizedBodyStatus.unavailable);
+      expect(repo.configFetches, 0);
+    });
+
+    test('a failed `me` read is retryable, not "no dashboard"', () async {
+      // The session-restore hole: this used to be recorded as "no
+      // dashboard" for the rest of the session.
+      repo.me = null;
+      await notifier().ensureLoaded(
+        const DashboardDescriptorUnknown(),
+        userKey: 'alice',
+      );
+
+      expect(state().bodyStatus, PersonalizedBodyStatus.loadFailed);
+      expect(state().isUnavailable, isFalse);
+
+      repo
+        ..me = _custom('A')
+        ..next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().retry();
+
+      expect(repo.meFetches, 2);
+      expect(state().bodyStatus, PersonalizedBodyStatus.ready);
+    });
+
+    test('once `me` resolves, a retry does not read it again', () async {
+      // `me` worked; only the configuration after it failed.
+      repo
+        ..me = _custom('A')
+        ..next = null;
+      await notifier().ensureLoaded(
+        const DashboardDescriptorUnknown(),
+        userKey: 'alice',
+      );
+      expect(state().bodyStatus, PersonalizedBodyStatus.loadFailed);
+
+      repo.next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().retry();
+
+      expect(repo.meFetches, 1);
+      expect(repo.configFetches, 2);
+      expect(state().bodyStatus, PersonalizedBodyStatus.ready);
+    });
+
+    test('a newer `me` listing a dashboard overrides an earlier "none"',
+        () async {
+      await notifier().ensureLoaded(
+        const DashboardDescriptorAbsent(),
+        userKey: 'alice',
+      );
+      expect(state().bodyStatus, PersonalizedBodyStatus.unavailable);
+
+      repo.next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      expect(state().bodyStatus, PersonalizedBodyStatus.ready);
     });
   });
 
@@ -334,7 +512,7 @@ void main() {
       expect(repo.configFetches, 1);
 
       repo.failAuthorization = false;
-      await notifier().retryAuthorization();
+      await notifier().retry();
 
       expect(state().authorizationStatus, DashboardAuthorizationStatus.loaded);
       expect(state().bodyStatus, PersonalizedBodyStatus.ready);

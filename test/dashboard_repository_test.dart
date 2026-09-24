@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 
@@ -123,7 +125,8 @@ void main() {
       // The exact scenario reported: personalize on a desktop screen, and
       // the phone and tablet layouts come back empty.
       final api = _FakeDashboardApi(stored: _storedDashboard());
-      final repository = DashboardRepository(dashboardApi: api);
+      final repository =
+          DashboardRepository(dashboardApi: api, userApi: _FakeUserApi());
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
@@ -148,13 +151,13 @@ void main() {
       expect(_names(sent['small']), ['bulk-file-upload']);
     });
 
-    test('a second save does not wipe what the first one preserved',
-        () async {
+    test('a second save does not wipe what the first one preserved', () async {
       // The actual failure mode: the first save was fine, but the
       // layout-less PUT response replaced in-memory state with empties, so
       // the *second* save blanked medium and small.
       final api = _FakeDashboardApi(stored: _storedDashboard());
-      final repository = DashboardRepository(dashboardApi: api);
+      final repository =
+          DashboardRepository(dashboardApi: api, userApi: _FakeUserApi());
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
@@ -184,7 +187,8 @@ void main() {
     test('re-reads the configuration after saving, as the web client does',
         () async {
       final api = _FakeDashboardApi(stored: _storedDashboard());
-      final repository = DashboardRepository(dashboardApi: api);
+      final repository =
+          DashboardRepository(dashboardApi: api, userApi: _FakeUserApi());
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
@@ -208,7 +212,8 @@ void main() {
       // far better than a config with empty layouts.
       final api = _FakeDashboardApi(stored: _storedDashboard())
         ..failRefetch = true;
-      final repository = DashboardRepository(dashboardApi: api);
+      final repository =
+          DashboardRepository(dashboardApi: api, userApi: _FakeUserApi());
 
       final loaded = await repository.fetchConfig(
         dashboardClass: 'CUSTOM',
@@ -225,4 +230,108 @@ void main() {
       );
     });
   });
+
+  group('DashboardRepository.fetchPersonalizableDashboard', () {
+    DashboardRepository repositoryWith(
+      ResponseHandler<Map<String, dynamic>> me,
+    ) =>
+        DashboardRepository(
+          dashboardApi: _FakeDashboardApi(stored: _storedDashboard()),
+          userApi: _FakeUserApi(profile: me),
+        );
+
+    Map<String, dynamic> meWith(List<Map<String, dynamic>> dashboards) => {
+          'statusCode': 200,
+          'body': {
+            'userProfile': {'userName': 'retail01'},
+            'dashboardResponse': {'dashboardDTOs': dashboards},
+          },
+        };
+
+    test('finds the CUSTOM dashboard `me` lists', () async {
+      final result = await repositoryWith(
+        ResponseHandler.success(
+          meWith([
+            {
+              'dashboardId': '25801',
+              'dashboardClass': 'CUSTOM',
+              'dashboardClassValue': 'custom',
+              'factory': false,
+            },
+          ]),
+          code: 200,
+        ),
+      ).fetchPersonalizableDashboard();
+
+      final lookup = (result as Success<DashboardDescriptorLookup>).data;
+      expect(lookup, isA<DashboardDescriptorFound>());
+      expect(
+        (lookup as DashboardDescriptorFound).descriptor.dashboardId,
+        '25801',
+      );
+    });
+
+    test('a `me` it read with no CUSTOM dashboard is a definite "none"',
+        () async {
+      final result = await repositoryWith(
+        ResponseHandler.success(
+          meWith([
+            {
+              'dashboardId': '18',
+              'dashboardClass': 'USER_TYPE',
+              'dashboardClassValue': 'retailuser',
+              'factory': true,
+            },
+          ]),
+          code: 200,
+        ),
+      ).fetchPersonalizableDashboard();
+
+      expect(
+        (result as Success<DashboardDescriptorLookup>).data,
+        isA<DashboardDescriptorAbsent>(),
+      );
+    });
+
+    test('a failed `me` is a failure, never "none"', () async {
+      final result = await repositoryWith(
+        ResponseHandler.success(
+          const {'statusCode': 500, 'body': <String, dynamic>{}},
+          code: 500,
+        ),
+      ).fetchPersonalizableDashboard();
+
+      expect(result, isNot(isA<Success<DashboardDescriptorLookup>>()));
+    });
+
+    test('a 200 that is not a `me` body is a failure too', () async {
+      final result = await repositoryWith(
+        ResponseHandler.success(
+          const {'statusCode': 200, 'body': <String, dynamic>{}},
+          code: 200,
+        ),
+      ).fetchPersonalizableDashboard();
+
+      expect(result, isNot(isA<Success<DashboardDescriptorLookup>>()));
+    });
+  });
+}
+
+/// Serves a fixed `me` result. The default is only for the tests that never
+/// read `me`.
+class _FakeUserApi implements ObdxUserApi {
+  _FakeUserApi({ResponseHandler<Map<String, dynamic>>? profile})
+      : _profile = profile ?? ResponseHandler.error(500, 'not used');
+
+  final ResponseHandler<Map<String, dynamic>> _profile;
+
+  @override
+  Future<ResponseHandler<Map<String, dynamic>>> fetchProfile({
+    String? challengeResponseHeader,
+  }) async =>
+      _profile;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not faked');
 }

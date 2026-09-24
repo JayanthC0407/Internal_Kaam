@@ -133,9 +133,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       ref.read(loanAccountsProvider.notifier).ensureLoaded();
       // Retail reads its dashboard descriptor straight off the `me`
       // response on the login trace — it has no typed profile model the
-      // way Corporate does, and does not need one.
+      // way Corporate does, and does not need one. A restored session
+      // whose `me` call failed has no response here; that resolves as
+      // "unknown", and personalization reads `me` itself.
       ref.read(personalizationProvider.notifier).ensureLoaded(
-            DashboardDescriptor.personalizableFromProfileResponse(
+            DashboardDescriptorLookup.fromProfileResponse(
               widget.args.loginTrace?['profileResponse'],
             ),
             userKey: _signedInUserName(),
@@ -182,13 +184,15 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   /// The Retail dashboard's widget area.
   ///
-  /// Three distinct states, which matter because they look different:
+  /// Distinct states, which matter because they look different:
   ///
-  ///  - **No saved configuration** (not loaded, load failed, or the user has
-  ///    no personalizable dashboard): the original hand-built [HomeContent]
-  ///    layout, untouched. Its two-column arrangement and widget sizes are
-  ///    a designed thing, and approximating it on the 12-column grid
-  ///    changed proportions users were already used to.
+  ///  - **No personalizable dashboard**: the original hand-built
+  ///    [HomeContent] layout, untouched. Its two-column arrangement and
+  ///    widget sizes are a designed thing, and approximating it on the
+  ///    12-column grid changed proportions users were already used to.
+  ///  - **A dashboard that failed to load**: an error with Retry, not the
+  ///    original layout — the saved layout is unknown, and the original
+  ///    would put back widgets the user may have removed.
   ///  - **A saved configuration with widgets**: those widgets, on the grid,
   ///    at the sizes the configuration asks for.
   ///  - **A saved configuration with nothing selected**: empty, bar the
@@ -214,9 +218,19 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           child: Center(child: CircularProgressIndicator(strokeWidth: 2.4)),
         );
       case PersonalizedBodyStatus.unavailable:
-        // Nothing saved to render from — keep the dashboard exactly as it
+        // No personalizable dashboard — keep the dashboard exactly as it
         // was before personalization existed.
         return _buildOriginalLayout(accountsState, isWide);
+      case PersonalizedBodyStatus.loadFailed:
+        return _withStaticWidgets(
+          _buildBodyMessage(
+            icon: Icons.cloud_off_rounded,
+            title: "Couldn't load your dashboard",
+            message: state.errorMessage ??
+                'Your dashboard layout could not be loaded.',
+            onRetry: () => ref.read(personalizationProvider.notifier).retry(),
+          ),
+        );
       case PersonalizedBodyStatus.authorizationFailed:
         return _withStaticWidgets(
           _buildBodyMessage(
@@ -224,8 +238,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             title: "Couldn't load your widgets",
             message: state.authorizationError ??
                 'Your widget permissions could not be checked.',
-            onRetry: () =>
-                ref.read(personalizationProvider.notifier).retryAuthorization(),
+            onRetry: () => ref.read(personalizationProvider.notifier).retry(),
           ),
         );
       case PersonalizedBodyStatus.empty:

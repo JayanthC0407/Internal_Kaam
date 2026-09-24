@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
 import 'package:ubci_bank/src/infra/network/dashboard_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
@@ -25,10 +27,39 @@ class DashboardCatalogResult {
 /// Personalized-dashboard data: the saved configuration, the authorization
 /// set, and the widget catalog.
 class DashboardRepository extends ObdxRepositoryBase {
-  DashboardRepository({required ObdxDashboardApi dashboardApi})
-      : _api = dashboardApi;
+  DashboardRepository({
+    required ObdxDashboardApi dashboardApi,
+    required ObdxUserApi userApi,
+  })  : _api = dashboardApi,
+        _userApi = userApi;
 
   final ObdxDashboardApi _api;
+  final ObdxUserApi _userApi;
+
+  /// Reads `me` and resolves the user's personalizable dashboard from it.
+  ///
+  /// For when the caller has no `me` response of its own — a restored
+  /// session whose `me` call failed. Success is always a *resolved* lookup
+  /// ([DashboardDescriptorFound] or [DashboardDescriptorAbsent]): a `me`
+  /// this call read is authoritative even when it lists no dashboards.
+  Future<ResponseHandler<DashboardDescriptorLookup>>
+      fetchPersonalizableDashboard() async {
+    try {
+      final result = await _userApi.fetchProfile();
+      return parseBody(result, (body) {
+        // A 200 that is not a `me` body resolves nothing — fail it rather
+        // than read it as "no dashboard".
+        if (!DashboardDescriptor.isProfileResponse(body)) {
+          throw StateError('Not a me response');
+        }
+        return DashboardDescriptorLookup.resolved(
+          DashboardDescriptor.personalizableFromProfileResponse(body),
+        );
+      });
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
 
   /// The user's saved dashboard.
   ///
@@ -118,7 +149,8 @@ class DashboardRepository extends ObdxRepositoryBase {
   Future<DashboardCatalogResult> fetchCatalog() async {
     try {
       final result = await _api.fetchModuleComponents();
-      final parsed = await parseBody(result, DashboardWidgetCatalog.fromPayload);
+      final parsed =
+          await parseBody(result, DashboardWidgetCatalog.fromPayload);
       if (parsed is Success<DashboardWidgetCatalog> &&
           parsed.data != null &&
           !parsed.data!.isEmpty) {

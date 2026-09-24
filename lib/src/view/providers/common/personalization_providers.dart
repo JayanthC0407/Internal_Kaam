@@ -19,6 +19,7 @@ final obdxDashboardApiProvider = Provider(
 final dashboardRepositoryProvider = Provider(
   (ref) => DashboardRepository(
     dashboardApi: ref.watch(obdxDashboardApiProvider),
+    userApi: ref.watch(obdxUserApiProvider),
   ),
 );
 
@@ -41,10 +42,15 @@ enum PersonalizedBodyStatus {
   /// never the defaults, or the dashboard visibly swaps under the user.
   loading,
 
-  /// No saved configuration to render from: the user has no personalizable
-  /// dashboard, or the configuration failed to load. Render the designed
-  /// default layout.
+  /// `me` says the user has no personalizable dashboard. Render the designed
+  /// default layout. Final for the session.
   unavailable,
+
+  /// The user has a personalizable dashboard, but it could not be loaded —
+  /// its configuration, or the `me` response that locates it. Render an
+  /// error with a retry, **not** the defaults: the saved layout is unknown,
+  /// and the defaults would put back widgets the user may have removed.
+  loadFailed,
 
   /// A configuration loaded but authorization did not. Render an error with
   /// a retry, **not** the saved widgets: without the authorization set we
@@ -84,7 +90,14 @@ class PersonalizationState {
     this.saveErrorMessage,
     this.savedAt,
     this.isUnavailable = false,
+    this.configLoadFailed = false,
   });
+
+  /// True when the last load could not produce a configuration — the
+  /// configuration request failed, or `me` had to be read and could not
+  /// be. [errorMessage] says why; `PersonalizationNotifier.retry` tries
+  /// again.
+  final bool configLoadFailed;
 
   /// False until the first load begins. Distinguishes the very first frame
   /// — before the dashboard's post-frame load has run — from a settled
@@ -179,7 +192,13 @@ class PersonalizationState {
     if (isUnavailable) return PersonalizedBodyStatus.unavailable;
     if (!hasStarted) return PersonalizedBodyStatus.loading;
     if (isLoading && !isReady) return PersonalizedBodyStatus.loading;
-    if (!isReady) return PersonalizedBodyStatus.unavailable;
+    if (!isReady) {
+      // Otherwise the app is on its way to sign-in (session expired) and
+      // there is nothing to show or retry here.
+      return configLoadFailed
+          ? PersonalizedBodyStatus.loadFailed
+          : PersonalizedBodyStatus.loading;
+    }
 
     switch (authorizationStatus) {
       case DashboardAuthorizationStatus.notLoaded:
@@ -232,6 +251,7 @@ class PersonalizationState {
     String? saveErrorMessage,
     DateTime? savedAt,
     bool? isUnavailable,
+    bool? configLoadFailed,
     bool clearError = false,
     bool clearSaveError = false,
     bool clearDraft = false,
@@ -257,6 +277,7 @@ class PersonalizationState {
           clearSaveError ? null : (saveErrorMessage ?? this.saveErrorMessage),
       savedAt: savedAt ?? this.savedAt,
       isUnavailable: isUnavailable ?? this.isUnavailable,
+      configLoadFailed: configLoadFailed ?? this.configLoadFailed,
     );
   }
 }
@@ -265,6 +286,10 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   PersonalizationNotifier(this._ref) : super(const PersonalizationState());
 
   final Ref _ref;
+
+  /// True once a load has *settled*: the configuration loaded, or `me`
+  /// said there is no personalizable dashboard. A failed load leaves it
+  /// false, so [retry] — or a later [ensureLoaded] — tries again.
   bool _loadedOnce = false;
   Future<void>? _pendingLoad;
 
@@ -274,16 +299,21 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   /// Bumped whenever the owner changes. See [_isCurrent].
   int _ownerGeneration = 0;
 
-  /// Which dashboard to read and write, resolved from `me`. Null means the
-  /// user has no personalizable dashboard and the feature is unavailable.
+  /// What is known about the user's dashboard — as the caller passed it,
+  /// or as resolved from our own `me` read. Kept so a retry starts from the
+  /// most resolved answer rather than reading `me` again.
+  DashboardDescriptorLookup _lookup = const DashboardDescriptorUnknown();
+
+  /// Which dashboard to read and write, once resolved. Null until then, and
+  /// when the user has none.
   DashboardDescriptor? _descriptor;
 
   DashboardDescriptor? get descriptor => _descriptor;
 
-  /// Loads once per user for [descriptor], which the caller resolves from
-  /// its own `me` response — Corporate via
-  /// `CorpUserProfile.personalizableDashboard`, Retail via
-  /// `DashboardDescriptor.personalizableFromProfileResponse`.
+  /// Loads once per user from [lookup], which the caller builds from the
+  /// `me` response it holds — Corporate from its parsed profile, Retail via
+  /// `DashboardDescriptorLookup.fromProfileResponse`. When the caller has
+  /// no `me` ([DashboardDescriptorUnknown]), this reads `me` itself.
   ///
   /// [userKey] scopes the state to the signed-in user. If it differs from
   /// the user this state was loaded for, everything is discarded first:
@@ -295,19 +325,52 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   /// `autoDispose`; this check is the backstop for any path that reaches a
   /// different user without going through logout.
   Future<void> ensureLoaded(
-    DashboardDescriptor? descriptor, {
+    DashboardDescriptorLookup lookup, {
     required String userKey,
   }) {
     final owner = userKey.trim().toLowerCase();
     if (_owner != null && _owner != owner) _resetForNewOwner();
     _owner = owner;
 
+    // "No dashboard" is final — unless the caller now holds a `me` that
+    // does list one, which is newer information than what settled it.
+    if (_loadedOnce &&
+        _lookup is DashboardDescriptorAbsent &&
+        lookup is DashboardDescriptorFound) {
+      _loadedOnce = false;
+    }
+
     if (_loadedOnce) return Future.value();
     final pending = _pendingLoad;
     if (pending != null) return pending;
 
+    // Never let "we don't have `me`" overwrite something already resolved.
+    if (lookup is! DashboardDescriptorUnknown) _lookup = lookup;
+    return _startLoad();
+  }
+
+  /// Tries again after a failure — whichever part failed.
+  ///
+  /// With no configuration yet, everything is reloaded: `me` if it was
+  /// never resolved, then the configuration, authorization set and catalog.
+  /// With a configuration in hand only authorization can have failed, so
+  /// only that is re-requested, keeping the configuration and any unsaved
+  /// edit in the Personalize panel.
+  ///
+  /// Does nothing while a load is running (returns it), before the first
+  /// [ensureLoaded], or once `me` has said there is no dashboard.
+  Future<void> retry() {
+    final pending = _pendingLoad;
+    if (pending != null) return pending;
+    if (_owner == null || state.isUnavailable) return Future.value();
+    if (state.config != null) return _reloadAuthorization();
+    _loadedOnce = false;
+    return _startLoad();
+  }
+
+  Future<void> _startLoad() {
     late final Future<void> load;
-    load = _load(descriptor).whenComplete(() {
+    load = _load(_lookup).whenComplete(() {
       // Only clear our own marker — a reset may already have replaced it.
       if (identical(_pendingLoad, load)) _pendingLoad = null;
     });
@@ -319,6 +382,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     _ownerGeneration++;
     _loadedOnce = false;
     _pendingLoad = null;
+    _lookup = const DashboardDescriptorUnknown();
     _descriptor = null;
     state = PersonalizationState(breakpoint: state.breakpoint);
   }
@@ -351,30 +415,59 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     state = state.copyWith(breakpoint: breakpoint, clearDraft: true);
   }
 
-  Future<void> _load(DashboardDescriptor? descriptor) async {
+  Future<void> _load(DashboardDescriptorLookup lookup) async {
     final epoch = _epoch();
-    _descriptor = descriptor;
-
-    if (descriptor == null) {
-      _loadedOnce = true;
-      state = state.copyWith(
-        hasStarted: true,
-        isLoading: false,
-        isUnavailable: true,
-        clearError: true,
-      );
-      return;
-    }
+    final repository = _ref.read(dashboardRepositoryProvider);
 
     state = state.copyWith(
       hasStarted: true,
       isLoading: true,
       isUnavailable: false,
-      authorizationStatus: DashboardAuthorizationStatus.loading,
+      configLoadFailed: false,
       clearError: true,
+    );
+
+    // The caller had no `me` — a restored session whose own `me` call
+    // failed. Read it here rather than concluding there is no dashboard.
+    var resolved = lookup;
+    if (resolved is DashboardDescriptorUnknown) {
+      final result = await repository.fetchPersonalizableDashboard();
+      if (!_isCurrent(epoch)) return;
+      if (result is! Success<DashboardDescriptorLookup> ||
+          result.data == null) {
+        await _failLoad(
+          epoch,
+          result,
+          fallback: 'Could not load your dashboard.',
+        );
+        return;
+      }
+      resolved = result.data!;
+      _lookup = resolved;
+    }
+
+    if (resolved is DashboardDescriptorAbsent) {
+      _descriptor = null;
+      _loadedOnce = true;
+      state = state.copyWith(isLoading: false, isUnavailable: true);
+      return;
+    }
+    if (resolved is! DashboardDescriptorFound) {
+      // Unreachable: a `me` read always resolves. Fail rather than guess.
+      await _failLoad(
+        epoch,
+        null,
+        fallback: 'Could not load your dashboard.',
+      );
+      return;
+    }
+    final descriptor = resolved.descriptor;
+    _descriptor = descriptor;
+
+    state = state.copyWith(
+      authorizationStatus: DashboardAuthorizationStatus.loading,
       clearAuthorizationError: true,
     );
-    final repository = _ref.read(dashboardRepositoryProvider);
 
     // The catalog and authorization set are independent of the config, so
     // fetch them together.
@@ -388,14 +481,15 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     final catalogResult = await repository.fetchCatalog();
 
     if (!_isCurrent(epoch)) return;
-    _loadedOnce = true;
 
     final configResult = results[0];
     final authorizedResult = results[1];
     final authorization = await _authorizationFrom(authorizedResult);
     if (!_isCurrent(epoch)) return;
 
-    if (configResult is Success<DashboardConfig>) {
+    if (configResult is Success<DashboardConfig> && configResult.data != null) {
+      // Settled only now — a failed configuration must stay retryable.
+      _loadedOnce = true;
       state = state.copyWith(
         isLoading: false,
         config: configResult.data,
@@ -411,7 +505,31 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
       return;
     }
 
+    // Keep what did load, so a retry only has the configuration to fix.
+    state = state.copyWith(
+      catalog: catalogResult.catalog,
+      catalogSource: catalogResult.source,
+      authorized: authorization.authorized,
+      authorizationStatus: authorization.status,
+      authorizationError: authorization.error,
+      clearAuthorizationError: authorization.error == null,
+    );
+    await _failLoad(
+      epoch,
+      configResult,
+      fallback: 'Could not load your dashboard configuration.',
+    );
+  }
+
+  /// Settles a load that produced no configuration as failed and
+  /// retryable — [_loadedOnce] stays false.
+  Future<void> _failLoad(
+    _Epoch epoch,
+    ResponseHandler<dynamic>? result, {
+    required String fallback,
+  }) async {
     if (SessionExpiryCoordinator.instance.isHandling) {
+      // On its way to sign-in; nothing here is worth retrying.
       state = state.copyWith(isLoading: false, clearError: true);
       return;
     }
@@ -420,21 +538,15 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     if (!_isCurrent(epoch)) return;
     state = state.copyWith(
       isLoading: false,
-      catalog: catalogResult.catalog,
-      catalogSource: catalogResult.source,
-      authorized: authorization.authorized,
-      authorizationStatus: authorization.status,
-      authorizationError: authorization.error,
-      clearAuthorizationError: authorization.error == null,
-      errorMessage: configResult.resolveUserMessage(
-        l10n: l10n,
-        fallback: 'Could not load your dashboard configuration.',
-      ),
+      configLoadFailed: true,
+      errorMessage: result == null
+          ? fallback
+          : result.resolveUserMessage(l10n: l10n, fallback: fallback),
     );
   }
 
-  /// Re-requests only the authorization set, after it failed.
-  Future<void> retryAuthorization() async {
+  /// Re-requests only the authorization set, after it failed. See [retry].
+  Future<void> _reloadAuthorization() async {
     if (_descriptor == null) return;
     if (state.authorizationStatus == DashboardAuthorizationStatus.loading) {
       return;
@@ -445,8 +557,9 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
       authorizationStatus: DashboardAuthorizationStatus.loading,
       clearAuthorizationError: true,
     );
-    final result =
-        await _ref.read(dashboardRepositoryProvider).fetchAuthorizedComponents();
+    final result = await _ref
+        .read(dashboardRepositoryProvider)
+        .fetchAuthorizedComponents();
     if (!_isCurrent(epoch)) return;
 
     final authorization = await _authorizationFrom(result);
@@ -629,9 +742,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     final prefix = switch (breakpoint) {
       DashboardBreakpoint.small => 'oj-sm',
       DashboardBreakpoint.medium => 'oj-md',
-      DashboardBreakpoint.large ||
-      DashboardBreakpoint.defaultLayout =>
-        'oj-lg',
+      DashboardBreakpoint.large || DashboardBreakpoint.defaultLayout => 'oj-lg',
     };
     final widthKey = switch (breakpoint) {
       DashboardBreakpoint.small => 'small',
