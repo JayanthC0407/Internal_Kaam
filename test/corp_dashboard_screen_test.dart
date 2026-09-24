@@ -93,11 +93,12 @@ class _FakeCashManagementRepository implements CorpCashManagementRepository {
 /// Personalization drives the dashboard body, so the dashboard test needs
 /// this faked too.
 ///
-/// With no [config] it reports the configuration as unloadable, which is
-/// the one state that renders the designed default arrangement — the state
-/// most of these tests assert against. An *empty* config is deliberately
-/// not the default: an intentionally empty CUSTOM dashboard renders empty,
-/// not the defaults, and has its own test.
+/// With no [config] it reports the configuration as unloadable. Most tests
+/// never ask for it — `_pumpDashboard` gives them a user with no CUSTOM
+/// dashboard, the one state that renders the designed default arrangement.
+/// An *empty* config is deliberately not the default: an intentionally
+/// empty CUSTOM dashboard renders empty, not the defaults, and has its own
+/// test.
 class _FakeDashboardRepository implements DashboardRepository {
   _FakeDashboardRepository({this.config, this.failAuthorization = false});
 
@@ -106,8 +107,7 @@ class _FakeDashboardRepository implements DashboardRepository {
   /// Makes `me/components` fail, to exercise the fail-closed path.
   final bool failAuthorization;
 
-  static DashboardConfig emptyConfig() =>
-      DashboardConfig.fromPayload(const {
+  static DashboardConfig emptyConfig() => DashboardConfig.fromPayload(const {
         'dashboardDTO': {
           'dashboardId': '25801',
           'dashboardName': 'obdx-name',
@@ -147,20 +147,20 @@ class _FakeDashboardRepository implements DashboardRepository {
       fetchAuthorizedComponents() async {
     if (failAuthorization) return ResponseHandler.error(500, 'boom');
     return ResponseHandler.success(
-            const DashboardAuthorizedComponents(
-              authorized: {
-                'account-financial-summary',
-                'account-quick-links',
-                'currency-exposure',
-                'pickup-point-collections',
-                'account-summary',
-                // Authorized but not implemented here — the case the
-                // placeholder card exists for.
-                'bulk-file-upload',
-              },
-            ),
-            code: 200,
-          );
+      const DashboardAuthorizedComponents(
+        authorized: {
+          'account-financial-summary',
+          'account-quick-links',
+          'currency-exposure',
+          'pickup-point-collections',
+          'account-summary',
+          // Authorized but not implemented here — the case the
+          // placeholder card exists for.
+          'bulk-file-upload',
+        },
+      ),
+      code: 200,
+    );
   }
 
   @override
@@ -236,11 +236,20 @@ class _FakeProfileRepository implements CorpProfileRepository {
       throw UnimplementedError('${invocation.memberName} is not faked');
 }
 
+/// With no [config], the signed-in user has no CUSTOM dashboard, so the
+/// designed layout shows — the case most tests here are about. Pass
+/// [failConfig] instead for a user who has one whose configuration fails
+/// to load.
 Future<void> _pumpDashboard(
   WidgetTester tester, {
   DashboardConfig? config,
   bool failAuthorization = false,
+  bool failConfig = false,
 }) async {
+  final profileResponse = config == null && !failConfig
+      ? _meResponseWithoutCustomDashboard
+      : _meResponse;
+
   // The design is a desktop layout; size the surface accordingly so the
   // persistent sidebar and the side-by-side panels are the ones exercised.
   tester.view.physicalSize = const Size(1440, 1000);
@@ -256,11 +265,10 @@ Future<void> _pumpDashboard(
             .overrideWithValue(_FakeProfileRepository()),
         corpCashManagementRepositoryProvider
             .overrideWithValue(_FakeCashManagementRepository()),
-        dashboardRepositoryProvider
-            .overrideWithValue(_FakeDashboardRepository(
-              config: config,
-              failAuthorization: failAuthorization,
-            )),
+        dashboardRepositoryProvider.overrideWithValue(_FakeDashboardRepository(
+          config: config,
+          failAuthorization: failAuthorization,
+        )),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
@@ -269,7 +277,7 @@ Future<void> _pumpDashboard(
         home: CorpDashboardScreen(
           args: CorpDashboardArgs(
             userName: 'nazcorp',
-            loginTrace: const {'profileResponse': _meResponse},
+            loginTrace: {'profileResponse': profileResponse},
           ),
         ),
       ),
@@ -368,7 +376,11 @@ void main() {
     });
 
     testWidgets('settings menu offers Personalize Dashboard', (tester) async {
-      await _pumpDashboard(tester);
+      // Offered only to a user with a CUSTOM dashboard to save to.
+      await _pumpDashboard(
+        tester,
+        config: _FakeDashboardRepository.emptyConfig(),
+      );
 
       // The entry point: gear icon in the header.
       await tester.tap(find.byIcon(Icons.settings_outlined));
@@ -379,7 +391,10 @@ void main() {
 
     testWidgets('Personalize opens as a side panel, not a new page',
         (tester) async {
-      await _pumpDashboard(tester);
+      await _pumpDashboard(
+        tester,
+        config: _FakeDashboardRepository.emptyConfig(),
+      );
 
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
@@ -389,7 +404,17 @@ void main() {
       // The panel is an end drawer, so the dashboard stays mounted behind
       // it — that is what lets a save show up immediately.
       expect(find.byType(PersonalizePanel), findsOneWidget);
-      expect(find.text('Account Summary'), findsWidgets);
+      expect(find.text('No widgets on your dashboard'), findsOneWidget);
+    });
+
+    testWidgets('Personalize is not offered without a dashboard to save to',
+        (tester) async {
+      await _pumpDashboard(tester);
+
+      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Personalize Dashboard'), findsNothing);
     });
 
     testWidgets('hovering a module heading flies out its widgets',
@@ -562,10 +587,11 @@ void main() {
       expect(find.text('Work Snapshot'), findsNothing);
     });
 
-    testWidgets('uses the designed layout when no configuration loads',
+    testWidgets('uses the designed layout when the user has no own dashboard',
         (tester) async {
-      // No saved layout to render from at all, so the dashboard must not be
-      // blank — this is the only state that shows the defaults.
+      // `me` lists no CUSTOM dashboard, so there is no saved layout at all
+      // and the dashboard must not be blank — the only state that shows the
+      // defaults.
       await _pumpDashboard(tester);
 
       expect(find.text('Financial Summary'), findsOneWidget);
@@ -574,6 +600,18 @@ void main() {
       expect(find.text('Account Summary'), findsOneWidget);
       // Quick Links belongs to the default arrangement too — exactly once.
       expect(find.text('Quick Links'), findsOneWidget);
+    });
+
+    testWidgets('a failed configuration load offers Retry, not the defaults',
+        (tester) async {
+      // The user has a saved layout we could not read. The defaults would
+      // put back widgets they may have removed, so show the failure.
+      await _pumpDashboard(tester, failConfig: true);
+
+      expect(find.text("Couldn't load your dashboard"), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(find.text('Financial Summary'), findsNothing);
+      expect(find.text('Pickup Points'), findsNothing);
     });
 
     testWidgets('an intentionally empty CUSTOM dashboard stays empty',
@@ -666,8 +704,7 @@ void main() {
       expect(find.text('Financial Summary'), findsNothing);
     });
 
-    testWidgets('sorting the balance column reorders the rows',
-        (tester) async {
+    testWidgets('sorting the balance column reorders the rows', (tester) async {
       await _pumpDashboard(tester);
 
       Future<double> yOf(String text) async {
@@ -676,19 +713,22 @@ void main() {
 
       // Default sort is party name; all three rows share a party, so the
       // payload order stands and the overdrawn account is first.
-      expect(await yOf('-AED 1,000.00') < await yOf('AED 1,049,601.58'), isTrue);
+      expect(
+          await yOf('-AED 1,000.00') < await yOf('AED 1,049,601.58'), isTrue);
 
       await tester.tap(find.text('Balance'));
       await tester.pumpAndSettle();
 
       // Ascending by balance still puts the negative first...
-      expect(await yOf('-AED 1,000.00') < await yOf('AED 1,049,601.58'), isTrue);
+      expect(
+          await yOf('-AED 1,000.00') < await yOf('AED 1,049,601.58'), isTrue);
 
       await tester.tap(find.text('Balance'));
       await tester.pumpAndSettle();
 
       // ...and descending flips it.
-      expect(await yOf('-AED 1,000.00') > await yOf('AED 1,049,601.58'), isTrue);
+      expect(
+          await yOf('-AED 1,000.00') > await yOf('AED 1,049,601.58'), isTrue);
     });
   });
 }
@@ -719,6 +759,38 @@ const _meResponse = {
           'dashboardClassValue': 'custom',
           'factory': false,
         },
+        {
+          'enterpriseRole': 'corporateuser',
+          'dashboardId': '18',
+          'dashboardClass': 'USER_TYPE',
+          'dashboardClassValue': 'corporateuser',
+          'factory': true,
+        },
+      ],
+    },
+    'inactiveSessionTimeout': 600000,
+  },
+};
+
+/// [_meResponse] for a user with only the bank's factory dashboard — no
+/// CUSTOM one of their own, so personalization is unavailable.
+const _meResponseWithoutCustomDashboard = {
+  'statusCode': 200,
+  'body': {
+    'status': {'result': 'SUCCESSFUL', 'apiType': 'user'},
+    'userProfile': {
+      'userName': 'nazcorp',
+      'firstName': 'Pooja',
+      'lastName': 'Jha',
+      'partyId': {'displayValue': '***401', 'value': 'PARTY-401'},
+      'roles': ['corporateuser', 'Maker'],
+      'homeEntity': 'OBDX_BU',
+      'accessibleEntityDTOs': [
+        {'entityId': 'OBDX_BU', 'partyName': 'LC TEST4'},
+      ],
+    },
+    'dashboardResponse': {
+      'dashboardDTOs': [
         {
           'enterpriseRole': 'corporateuser',
           'dashboardId': '18',
