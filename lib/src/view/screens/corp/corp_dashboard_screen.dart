@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
 import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
@@ -114,11 +115,17 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           .read(corpProfileProvider.notifier)
           .ensureLoaded(profileResponse: widget.args.profileResponse);
       // Personalization needs the profile's dashboard descriptors, which
-      // the seed above has just parsed from the login trace. Scoped to the
-      // signed-in user, so one user's dashboard can never reach the next.
+      // the seed above has just parsed from the login trace. No profile
+      // means no `me` in the trace — not "no dashboard" — so personalization
+      // reads `me` itself. Scoped to the signed-in user, so one user's
+      // dashboard can never reach the next.
       final profile = ref.read(corpProfileProvider).profile;
       ref.read(personalizationProvider.notifier).ensureLoaded(
-            profile?.personalizableDashboard,
+            profile == null
+                ? const DashboardDescriptorUnknown()
+                : DashboardDescriptorLookup.resolved(
+                    profile.personalizableDashboard,
+                  ),
             userKey: profile?.userName ?? widget.args.userName,
           );
     });
@@ -197,9 +204,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         CorpDashboardHeaderBar(
           userName: widget.args.fallbackDisplayName,
           onLogout: _logout,
-          onMenuTap: isDesktop
-              ? null
-              : () => _scaffoldKey.currentState?.openDrawer(),
+          onMenuTap:
+              isDesktop ? null : () => _scaffoldKey.currentState?.openDrawer(),
           // Hidden when `me` resolved no personalizable dashboard, rather
           // than opening a screen with nothing to save to.
           onPersonalizeDashboard:
@@ -272,10 +278,11 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// [PersonalizationState.bodyStatus] — the same decision the Retail
   /// dashboard uses, so the two cannot drift apart.
   ///
-  /// The designed default arrangement is used only when there is no saved
-  /// configuration at all. An intentionally empty CUSTOM dashboard renders
-  /// empty, and a failed authorization load renders an error rather than
-  /// widgets we cannot vouch for.
+  /// The designed default arrangement is used only when the user has no
+  /// personalizable dashboard. An intentionally empty CUSTOM dashboard
+  /// renders empty, and a failed load — of the configuration or of the
+  /// authorization set — renders an error with Retry, rather than defaults
+  /// or widgets we cannot vouch for.
   List<DashboardTile> _buildPersonalizedTiles(bool sideBySide) {
     final state = ref.watch(personalizationProvider);
 
@@ -289,6 +296,19 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         ];
       case PersonalizedBodyStatus.unavailable:
         return _buildDefaultTiles(sideBySide);
+      case PersonalizedBodyStatus.loadFailed:
+        return [
+          DashboardTile(
+            span: DashboardGridSpan.columns,
+            child: _DashboardBodyMessage(
+              icon: Icons.cloud_off_rounded,
+              title: "Couldn't load your dashboard",
+              message: state.errorMessage ??
+                  'Your dashboard layout could not be loaded.',
+              onRetry: () => ref.read(personalizationProvider.notifier).retry(),
+            ),
+          ),
+        ];
       case PersonalizedBodyStatus.authorizationFailed:
         return [
           DashboardTile(
@@ -298,9 +318,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
               title: "Couldn't load your widgets",
               message: state.authorizationError ??
                   'Your widget permissions could not be checked.',
-              onRetry: () => ref
-                  .read(personalizationProvider.notifier)
-                  .retryAuthorization(),
+              onRetry: () => ref.read(personalizationProvider.notifier).retry(),
             ),
           ),
         ];
@@ -398,9 +416,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          ref
-              .read(personalizationProvider.notifier)
-              .setBreakpoint(breakpoint);
+          ref.read(personalizationProvider.notifier).setBreakpoint(breakpoint);
         });
 
         return SingleChildScrollView(

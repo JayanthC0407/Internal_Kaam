@@ -52,9 +52,8 @@ String? resolveUserType(Map<String, dynamic>? profileResponse) {
   final roles = userProfile is Map ? userProfile['roles'] : null;
 
   final dashboardResponse = bodyMap['dashboardResponse'];
-  final dashboards = dashboardResponse is Map
-      ? dashboardResponse['dashboardDTOs']
-      : null;
+  final dashboards =
+      dashboardResponse is Map ? dashboardResponse['dashboardDTOs'] : null;
 
   if (dashboards is List && dashboards.isNotEmpty) {
     // Prefer the dashboard whose class value matches one of the login roles.
@@ -82,6 +81,43 @@ String? resolveUserType(Map<String, dynamic>? profileResponse) {
   }
 
   return null;
+}
+
+/// Which dashboard `AuthenticatedHomeGate` should open.
+enum HomeDashboardKind {
+  corporate,
+  retail,
+
+  /// There is no usable `me` response to decide from. **Not** Retail: the
+  /// gate reads `me` again rather than guess, because guessing is what sent
+  /// corporate users whose session-restore `me` call failed to the Retail
+  /// dashboard.
+  unresolved,
+}
+
+/// Whether [profileResponse] is a `me` response the dashboard choice can
+/// be read from: present, not an HTTP failure, and carrying a user profile.
+bool hasUsableProfileResponse(Map<String, dynamic>? profileResponse) {
+  if (profileResponse == null) return false;
+  final statusCode = profileResponse['statusCode'];
+  if (statusCode is int && statusCode != 200) return false;
+  final body = profileResponse['body'];
+  return body is Map && body['userProfile'] is Map;
+}
+
+/// The dashboard to open for [profileResponse].
+///
+/// Only a usable `me` decides; without one this is
+/// [HomeDashboardKind.unresolved]. With one, Corporate is chosen only when
+/// [resolveUserType] says so, and everything else — Retail, or a type this
+/// app does not recognise — opens the Retail dashboard, as it always has.
+HomeDashboardKind homeDashboardFor(Map<String, dynamic>? profileResponse) {
+  if (!hasUsableProfileResponse(profileResponse)) {
+    return HomeDashboardKind.unresolved;
+  }
+  return resolveUserType(profileResponse) == UserType.corporate
+      ? HomeDashboardKind.corporate
+      : HomeDashboardKind.retail;
 }
 
 /// Returns the exact `dashboardDTOs` entry whose `dashboardClassValue`

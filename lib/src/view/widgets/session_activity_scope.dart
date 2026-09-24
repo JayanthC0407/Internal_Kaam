@@ -118,10 +118,66 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
   bool _checkingLfw = true;
   String? _lfwError;
 
+  /// The `me` response the dashboard is chosen from — the one on the login
+  /// trace, or one this gate read because the trace had none.
+  Map<String, dynamic>? _profileResponse;
+  bool _loadingProfile = false;
+  bool _profileFailed = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkLfw());
+    _profileResponse =
+        widget.args.loginTrace?['profileResponse'] as Map<String, dynamic>?;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLfw();
+      // A restored session whose own `me` call failed arrives with no `me`.
+      // Read it here rather than guess a dashboard from nothing.
+      if (homeDashboardFor(_profileResponse) == HomeDashboardKind.unresolved) {
+        _loadProfile();
+      }
+    });
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() {
+      _loadingProfile = true;
+      _profileFailed = false;
+    });
+    final fetched =
+        await ref.read(sessionManagerProvider).fetchProfileResponse();
+    if (!mounted) return;
+    setState(() {
+      _loadingProfile = false;
+      if (hasUsableProfileResponse(fetched)) {
+        _profileResponse = fetched;
+      } else {
+        _profileFailed = true;
+      }
+    });
+  }
+
+  Future<void> _signInAgain() async {
+    await ref.read(sessionManagerProvider).logout();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      RoutesConst.loginScreen,
+      (route) => false,
+    );
+  }
+
+  /// [AuthenticatedHomeGate.args], carrying the `me` this gate read when the
+  /// trace had none — so the dashboard's profile, header and personalization
+  /// see it too.
+  HomeDashboardArgs get _homeArgs {
+    final profile = _profileResponse;
+    final original = widget.args.loginTrace?['profileResponse'];
+    if (profile == null || identical(profile, original)) return widget.args;
+    return HomeDashboardArgs(
+      userName: widget.args.userName,
+      loginTrace: {...?widget.args.loginTrace, 'profileResponse': profile},
+      initialTab: widget.args.initialTab,
+    );
   }
 
   Future<void> _checkLfw() async {
@@ -150,7 +206,7 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
         Navigator.of(context).pushReplacementNamed(
           RoutesConst.loginWizardScreen,
           arguments: LoginWizardArgs(
-            homeArgs: widget.args,
+            homeArgs: _homeArgs,
             initialProgress: progress.steps.isEmpty ? null : progress,
           ),
         );
@@ -164,7 +220,7 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_checkingLfw) {
+    if (_checkingLfw || _loadingProfile) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -198,9 +254,13 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
       );
     }
 
-    final home = AuthenticatedSessionGate(
-      child: _resolveDashboard(),
-    );
+    final dashboard = _resolveDashboard();
+    if (dashboard == null) {
+      if (_profileFailed) return _buildProfileError(context);
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final home = AuthenticatedSessionGate(child: dashboard);
 
     // Web: once the dashboard is showing, browser Back must not step the
     // in-app Navigator back to splash/login (which then has to re-resolve
@@ -222,25 +282,71 @@ class _AuthenticatedHomeGateState extends ConsumerState<AuthenticatedHomeGate> {
   /// §6 "Dashboard Selection Logic" and §19–20 "Critical Dashboard Selection
   /// Rule" / "Updated User-Type Resolution Algorithm".
   ///
-  /// Username/email is never used to decide the dashboard. When resolution
-  /// is unavailable or the type is unrecognized, this falls back to the
-  /// existing Retail dashboard so current behavior is preserved.
-  Widget _resolveDashboard() {
-    final profileResponse =
-        widget.args.loginTrace?['profileResponse'] as Map<String, dynamic>?;
-    final userType = resolveUserType(profileResponse);
-
-    if (userType == UserType.corporate) {
-      // Corporate keeps its own args type so nothing under `screens/corp/`
-      // has to import the Retail dashboard — see [CorpDashboardArgs].
-      return CorpDashboardScreen(
-        args: CorpDashboardArgs(
-          userName: widget.args.userName,
-          loginTrace: widget.args.loginTrace,
-        ),
-      );
+  /// Username/email is never used to decide the dashboard. With a `me`
+  /// whose type is unrecognized, this falls back to the existing Retail
+  /// dashboard so current behavior is preserved.
+  ///
+  /// Returns null when there is no usable `me` to decide from — never a
+  /// guess. That used to fall back to Retail too, which is how a corporate
+  /// user whose session-restore `me` call failed landed on the Retail
+  /// dashboard. [build] shows [_buildProfileError] instead, once this
+  /// gate's own `me` read has failed as well.
+  Widget? _resolveDashboard() {
+    final args = _homeArgs;
+    switch (homeDashboardFor(_profileResponse)) {
+      case HomeDashboardKind.unresolved:
+        return null;
+      case HomeDashboardKind.corporate:
+        // Corporate keeps its own args type so nothing under `screens/corp/`
+        // has to import the Retail dashboard — see [CorpDashboardArgs].
+        return CorpDashboardScreen(
+          args: CorpDashboardArgs(
+            userName: args.userName,
+            loginTrace: args.loginTrace,
+          ),
+        );
+      case HomeDashboardKind.retail:
+        return HomeDashboardScreen(args: args);
     }
-    return HomeDashboardScreen(args: widget.args);
+  }
+
+  /// Shown when neither the login trace nor this gate's own read produced
+  /// a `me` response, so there is no telling which dashboard is the user's.
+  Widget _buildProfileError(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // TODO(l10n): add these strings to the ARB files.
+              Text(
+                "We couldn't load your profile",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Check your connection and try again.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: _loadProfile,
+                child: Text(l10n.accountsRetry),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _signInAgain,
+                child: const Text('Sign in again'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
