@@ -139,6 +139,10 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
     final available = state.availableWidgets(widget.userSegment);
     final groups = _grouped(available);
     final selection = state.effectiveSelection;
+    // Read after watching the state, so it reflects the state this build
+    // is rendering.
+    final saveBlockedReason =
+        ref.read(personalizationProvider.notifier).saveBlockedReason;
 
     return PopScope(
       // Intercepts the drawer's own dismissal (back gesture / Esc) so an
@@ -156,7 +160,10 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
             children: [
               _PanelHeader(
                 isSaving: state.isSaving,
-                canSave: state.hasUnsavedChanges,
+                // Disabled — with the reason shown below — rather than
+                // letting the press fail: a factory dashboard, or permissions
+                // that have not loaded, can never be saved from here.
+                canSave: state.hasUnsavedChanges && saveBlockedReason == null,
                 onSave: _save,
                 onClose: () async {
                   if (await _confirmDiscard() && mounted) widget.onClose();
@@ -167,6 +174,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
                 selectedCount: selection.length,
                 breakpointLabel: _breakpointLabel(state),
                 isCatalogStale: state.isCatalogStale,
+                blockedReason: state.isReady ? saveBlockedReason : null,
               ),
               Divider(height: 1, color: Theme.of(context).dividerColor),
               Expanded(child: _buildBody(context, state, groups, selection)),
@@ -192,6 +200,25 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
         icon: Icons.error_outline_rounded,
         message: state.errorMessage!,
       );
+    }
+
+    // Explicit, rather than falling through to "no widgets available":
+    // an authorization set that has not loaded is not the same as one that
+    // authorizes nothing, and the user needs to know which they are seeing.
+    switch (state.authorizationStatus) {
+      case DashboardAuthorizationStatus.notLoaded:
+      case DashboardAuthorizationStatus.loading:
+        return const Center(child: CircularProgressIndicator());
+      case DashboardAuthorizationStatus.failed:
+        return _Message(
+          icon: Icons.lock_outline_rounded,
+          message: state.authorizationError ??
+              'Your widget permissions could not be loaded.',
+          onRetry: () =>
+              ref.read(personalizationProvider.notifier).retryAuthorization(),
+        );
+      case DashboardAuthorizationStatus.loaded:
+        break;
     }
 
     if (groups.isEmpty) {
@@ -798,11 +825,15 @@ class _SelectionSummary extends StatelessWidget {
     required this.selectedCount,
     required this.breakpointLabel,
     required this.isCatalogStale,
+    this.blockedReason,
   });
 
   final int selectedCount;
   final String breakpointLabel;
   final bool isCatalogStale;
+
+  /// Why Save is unavailable, shown so a disabled button explains itself.
+  final String? blockedReason;
 
   @override
   Widget build(BuildContext context) {
@@ -847,6 +878,30 @@ class _SelectionSummary extends StatelessWidget {
               ],
             ),
           ],
+          if (blockedReason != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 13,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    blockedReason!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 10.5,
+                      height: 1.3,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -854,10 +909,11 @@ class _SelectionSummary extends StatelessWidget {
 }
 
 class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.message});
+  const _Message({required this.icon, required this.message, this.onRetry});
 
   final IconData icon;
   final String message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -875,6 +931,10 @@ class _Message extends StatelessWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(fontSize: 12.5),
             ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 10),
+              TextButton(onPressed: onRetry, child: const Text('Retry')),
+            ],
           ],
         ),
       ),

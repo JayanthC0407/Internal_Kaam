@@ -132,8 +132,29 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             DashboardDescriptor.personalizableFromProfileResponse(
               widget.args.loginTrace?['profileResponse'],
             ),
+            userKey: _signedInUserName(),
           );
     });
+  }
+
+  /// The signed-in user, for scoping personalization state.
+  ///
+  /// Read from the `me` response rather than [HomeDashboardArgs.userName],
+  /// which is what was typed at login and can differ in case or spacing
+  /// from the host's canonical user name.
+  String _signedInUserName() {
+    final profileResponse = widget.args.loginTrace?['profileResponse'];
+    if (profileResponse is Map) {
+      final body = profileResponse['body'];
+      if (body is Map) {
+        final userProfile = body['userProfile'];
+        if (userProfile is Map) {
+          final name = userProfile['userName']?.toString().trim();
+          if (name != null && name.isNotEmpty) return name;
+        }
+      }
+    }
+    return widget.args.userName;
   }
 
   /// Which `componentName`s the Retail dashboard can draw.
@@ -178,24 +199,38 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }) {
     final state = ref.watch(personalizationProvider);
 
-    if (state.isLoading && !state.isReady) {
-      return const SizedBox(
-        height: 220,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2.4)),
-      );
+    // The same decision the Corporate dashboard uses — see
+    // [PersonalizationState.bodyStatus].
+    switch (state.bodyStatus) {
+      case PersonalizedBodyStatus.loading:
+        return const SizedBox(
+          height: 220,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2.4)),
+        );
+      case PersonalizedBodyStatus.unavailable:
+        // Nothing saved to render from — keep the dashboard exactly as it
+        // was before personalization existed.
+        return _buildOriginalLayout(accountsState, isWide);
+      case PersonalizedBodyStatus.authorizationFailed:
+        return _withStaticWidgets(
+          _buildBodyMessage(
+            icon: Icons.lock_outline_rounded,
+            title: "Couldn't load your widgets",
+            message: state.authorizationError ??
+                'Your widget permissions could not be checked.',
+            onRetry: () =>
+                ref.read(personalizationProvider.notifier).retryAuthorization(),
+          ),
+        );
+      case PersonalizedBodyStatus.empty:
+        return _withStaticWidgets(_buildNoWidgetsSelected());
+      case PersonalizedBodyStatus.ready:
+        break;
     }
 
-    // Nothing saved to render from — keep the dashboard exactly as it was
-    // before personalization existed.
-    if (!state.isReady) return _buildOriginalLayout(accountsState, isWide);
-
-    final authorized = state.authorized;
     final tiles = <DashboardTile>[];
-    for (final item in state.selectedItems) {
+    for (final item in state.renderableItems) {
       if (_staticComponents.contains(item.componentName)) continue;
-      if (authorized.isNotEmpty && !authorized.contains(item.componentName)) {
-        continue;
-      }
       tiles.add(
         DashboardTile(
           span: isWide
@@ -211,16 +246,63 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       );
     }
 
+    // Everything renderable may have been a static widget, which is drawn
+    // above rather than in the grid.
+    return _withStaticWidgets(
+      tiles.isEmpty
+          ? _buildNoWidgetsSelected()
+          : DashboardTileGrid(tiles: tiles, available: available),
+    );
+  }
+
+  /// [body] beneath the widgets this dashboard always shows.
+  Widget _withStaticWidgets(Widget body) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SpendingsDonutCard(),
         const SizedBox(height: 20),
-        if (tiles.isEmpty)
-          _buildNoWidgetsSelected()
-        else
-          DashboardTileGrid(tiles: tiles, available: available),
+        body,
       ],
+    );
+  }
+
+  Widget _buildBodyMessage({
+    required IconData icon,
+    required String title,
+    required String message,
+    VoidCallback? onRetry,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 36),
+      child: Column(
+        children: [
+          Icon(icon, size: 30, color: HomeColors.navInactive(context)),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: HomeColors.textPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: HomeColors.textSecondary(context),
+            ),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 12),
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ],
+      ),
     );
   }
 

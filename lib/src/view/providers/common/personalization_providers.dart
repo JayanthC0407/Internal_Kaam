@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
@@ -22,20 +22,62 @@ final dashboardRepositoryProvider = Provider(
   ),
 );
 
+/// Where `me/components` — the authorization set — stands.
+///
+/// Explicit rather than inferred from whether the set is empty: an empty
+/// set that *loaded* means "nothing is authorized", while an empty set that
+/// *failed* to load means "we do not know". Treating those the same, as an
+/// earlier version did, made a failed call silently authorize everything.
+enum DashboardAuthorizationStatus { notLoaded, loading, loaded, failed }
+
+/// What the personalized part of a dashboard should render right now.
+///
+/// Computed once, here, so the Retail and Corporate dashboards cannot
+/// disagree about it — each previously made this decision separately, and
+/// they drifted (Corporate kept restoring its defaults for an intentionally
+/// empty dashboard after Retail had stopped).
+enum PersonalizedBodyStatus {
+  /// Configuration or authorization still loading. Render a placeholder —
+  /// never the defaults, or the dashboard visibly swaps under the user.
+  loading,
+
+  /// No saved configuration to render from: the user has no personalizable
+  /// dashboard, or the configuration failed to load. Render the designed
+  /// default layout.
+  unavailable,
+
+  /// A configuration loaded but authorization did not. Render an error with
+  /// a retry, **not** the saved widgets: without the authorization set we
+  /// cannot tell which of them the user may see, so this fails closed.
+  authorizationFailed,
+
+  /// A configuration and authorization loaded, and nothing is left to show
+  /// — the user unselected everything, or nothing they selected is
+  /// authorized. Render an empty state, **not** the defaults: restoring
+  /// defaults here puts back widgets the user deliberately removed.
+  empty,
+
+  /// Render [PersonalizationState.renderableItems].
+  ready,
+}
+
 /// State of the personalized dashboard: the saved configuration, the
 /// catalog it is chosen from, and the authorization set both are filtered
 /// against.
 ///
 /// Holds a *draft* selection separate from the saved [config] so the
-/// Personalize screen can toggle freely and only commit on Save.
+/// Personalize panel can toggle freely and only commit on Save.
 class PersonalizationState {
   const PersonalizationState({
+    this.hasStarted = false,
     this.isLoading = false,
     this.isSaving = false,
     this.config,
     this.catalog = DashboardWidgetCatalog.empty,
     this.catalogSource = DashboardCatalogSource.none,
     this.authorized = DashboardAuthorizedComponents.empty,
+    this.authorizationStatus = DashboardAuthorizationStatus.notLoaded,
+    this.authorizationError,
     this.breakpoint = DashboardBreakpoint.large,
     this.draftSelection,
     this.errorMessage,
@@ -43,6 +85,12 @@ class PersonalizationState {
     this.savedAt,
     this.isUnavailable = false,
   });
+
+  /// False until the first load begins. Distinguishes the very first frame
+  /// — before the dashboard's post-frame load has run — from a settled
+  /// "nothing to show", so that frame renders a placeholder instead of
+  /// flashing the default layout.
+  final bool hasStarted;
 
   /// True once we know `me` gave this user no personalizable dashboard, as
   /// opposed to simply not having loaded yet.
@@ -62,15 +110,21 @@ class PersonalizationState {
 
   final DashboardWidgetCatalog catalog;
   final DashboardCatalogSource catalogSource;
+
+  /// Meaningful only when [authorizationStatus] is
+  /// [DashboardAuthorizationStatus.loaded].
   final DashboardAuthorizedComponents authorized;
+
+  final DashboardAuthorizationStatus authorizationStatus;
+  final String? authorizationError;
 
   /// Which breakpoint's layout is being read and written. Set from the
   /// viewport so a phone edits `small` and a desktop edits `large`, exactly
   /// as the web client does.
   final DashboardBreakpoint breakpoint;
 
-  /// Uncommitted selection from the Personalize screen. Null when no edit
-  /// is in progress.
+  /// Uncommitted selection from the Personalize panel. Null when no edit is
+  /// in progress.
   final Set<String>? draftSelection;
 
   final String? errorMessage;
@@ -79,16 +133,25 @@ class PersonalizationState {
 
   bool get isReady => config != null;
 
+  bool get isAuthorizationLoaded =>
+      authorizationStatus == DashboardAuthorizationStatus.loaded;
+
+  /// Whether [componentName] may be shown. False whenever authorization has
+  /// not loaded — unknown is not the same as allowed.
+  bool isAuthorized(String componentName) =>
+      isAuthorizationLoaded && authorized.contains(componentName);
+
   /// Whether the catalog in use is the shipped fallback, which is known to
   /// lag the environment.
-  bool get isCatalogStale => catalogSource == DashboardCatalogSource.bundledAsset;
+  bool get isCatalogStale =>
+      catalogSource == DashboardCatalogSource.bundledAsset;
 
   /// Components currently on the dashboard at [breakpoint], de-duplicated.
   List<String> get selectedComponents =>
       config?.selectedComponentsAt(breakpoint) ?? const [];
 
   /// The saved layout items at [breakpoint], de-duplicated by component and
-  /// keeping the user's order — the render path's input.
+  /// keeping the user's order.
   ///
   /// Returns items rather than names so the dashboard can honour each
   /// widget's stored `style` (`oj-lg-4`, `oj-sm-12`, …) when sizing it.
@@ -104,6 +167,33 @@ class PersonalizationState {
     return deduped;
   }
 
+  /// [selectedItems] the user is authorized to see — the render path's
+  /// input. Filters on authorization only, never the catalog: a saved
+  /// layout can legitimately hold components the catalog has never listed.
+  List<DashboardLayoutItem> get renderableItems => [
+        for (final item in selectedItems)
+          if (isAuthorized(item.componentName)) item,
+      ];
+
+  PersonalizedBodyStatus get bodyStatus {
+    if (isUnavailable) return PersonalizedBodyStatus.unavailable;
+    if (!hasStarted) return PersonalizedBodyStatus.loading;
+    if (isLoading && !isReady) return PersonalizedBodyStatus.loading;
+    if (!isReady) return PersonalizedBodyStatus.unavailable;
+
+    switch (authorizationStatus) {
+      case DashboardAuthorizationStatus.notLoaded:
+      case DashboardAuthorizationStatus.loading:
+        return PersonalizedBodyStatus.loading;
+      case DashboardAuthorizationStatus.failed:
+        return PersonalizedBodyStatus.authorizationFailed;
+      case DashboardAuthorizationStatus.loaded:
+        return renderableItems.isEmpty
+            ? PersonalizedBodyStatus.empty
+            : PersonalizedBodyStatus.ready;
+    }
+  }
+
   /// The draft if one is open, else what is saved.
   Set<String> get effectiveSelection =>
       draftSelection ?? selectedComponents.toSet();
@@ -115,9 +205,11 @@ class PersonalizationState {
     return draft.length != saved.length || !draft.containsAll(saved);
   }
 
-  /// Widgets the user may add, per §17. Rendering does **not** use this —
-  /// the environment can hold components this catalog never listed.
+  /// Widgets the user may add, per §17. Empty until authorization has
+  /// loaded — offering widgets we cannot check would let a user select
+  /// something they are not entitled to.
   List<DashboardWidgetDefinition> availableWidgets(String userSegment) {
+    if (!isAuthorizationLoaded) return const [];
     return catalog.availableFor(
       userSegment: userSegment,
       authorizedComponents: authorized.authorized,
@@ -125,12 +217,15 @@ class PersonalizationState {
   }
 
   PersonalizationState copyWith({
+    bool? hasStarted,
     bool? isLoading,
     bool? isSaving,
     DashboardConfig? config,
     DashboardWidgetCatalog? catalog,
     DashboardCatalogSource? catalogSource,
     DashboardAuthorizedComponents? authorized,
+    DashboardAuthorizationStatus? authorizationStatus,
+    String? authorizationError,
     DashboardBreakpoint? breakpoint,
     Set<String>? draftSelection,
     String? errorMessage,
@@ -140,16 +235,23 @@ class PersonalizationState {
     bool clearError = false,
     bool clearSaveError = false,
     bool clearDraft = false,
+    bool clearAuthorizationError = false,
   }) {
     return PersonalizationState(
+      hasStarted: hasStarted ?? this.hasStarted,
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       config: config ?? this.config,
       catalog: catalog ?? this.catalog,
       catalogSource: catalogSource ?? this.catalogSource,
       authorized: authorized ?? this.authorized,
+      authorizationStatus: authorizationStatus ?? this.authorizationStatus,
+      authorizationError: clearAuthorizationError
+          ? null
+          : (authorizationError ?? this.authorizationError),
       breakpoint: breakpoint ?? this.breakpoint,
-      draftSelection: clearDraft ? null : (draftSelection ?? this.draftSelection),
+      draftSelection:
+          clearDraft ? null : (draftSelection ?? this.draftSelection),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       saveErrorMessage:
           clearSaveError ? null : (saveErrorMessage ?? this.saveErrorMessage),
@@ -159,14 +261,18 @@ class PersonalizationState {
   }
 }
 
-class PersonalizationNotifier
-    extends StateNotifier<PersonalizationState> {
-  PersonalizationNotifier(this._ref)
-      : super(const PersonalizationState());
+class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
+  PersonalizationNotifier(this._ref) : super(const PersonalizationState());
 
   final Ref _ref;
   bool _loadedOnce = false;
   Future<void>? _pendingLoad;
+
+  /// The user this state belongs to, normalised. See [ensureLoaded].
+  String? _owner;
+
+  /// Bumped whenever the owner changes. See [_isCurrent].
+  int _ownerGeneration = 0;
 
   /// Which dashboard to read and write, resolved from `me`. Null means the
   /// user has no personalizable dashboard and the feature is unavailable.
@@ -174,18 +280,66 @@ class PersonalizationNotifier
 
   DashboardDescriptor? get descriptor => _descriptor;
 
-  /// Loads once for [descriptor], which the caller resolves from its own
-  /// `me` response — Corporate via `CorpUserProfile.personalizableDashboard`,
-  /// Retail via `DashboardDescriptor.personalizableFromProfileResponse`.
+  /// Loads once per user for [descriptor], which the caller resolves from
+  /// its own `me` response — Corporate via
+  /// `CorpUserProfile.personalizableDashboard`, Retail via
+  /// `DashboardDescriptor.personalizableFromProfileResponse`.
   ///
-  /// Taking a descriptor rather than a typed profile is what lets one
-  /// engine serve both user types.
-  Future<void> ensureLoaded(DashboardDescriptor? descriptor) {
+  /// [userKey] scopes the state to the signed-in user. If it differs from
+  /// the user this state was loaded for, everything is discarded first:
+  /// one user's dashboard configuration, catalog selection or authorization
+  /// set must never be shown to the next user to sign in on the device.
+  ///
+  /// Logout also clears this state — `resetUserSessionState` invalidates
+  /// the provider and [SessionGeneration] advances — and the provider is
+  /// `autoDispose`; this check is the backstop for any path that reaches a
+  /// different user without going through logout.
+  Future<void> ensureLoaded(
+    DashboardDescriptor? descriptor, {
+    required String userKey,
+  }) {
+    final owner = userKey.trim().toLowerCase();
+    if (_owner != null && _owner != owner) _resetForNewOwner();
+    _owner = owner;
+
     if (_loadedOnce) return Future.value();
-    return _pendingLoad ??= load(descriptor).whenComplete(() {
-      _pendingLoad = null;
+    final pending = _pendingLoad;
+    if (pending != null) return pending;
+
+    late final Future<void> load;
+    load = _load(descriptor).whenComplete(() {
+      // Only clear our own marker — a reset may already have replaced it.
+      if (identical(_pendingLoad, load)) _pendingLoad = null;
     });
+    _pendingLoad = load;
+    return load;
   }
+
+  void _resetForNewOwner() {
+    _ownerGeneration++;
+    _loadedOnce = false;
+    _pendingLoad = null;
+    _descriptor = null;
+    state = PersonalizationState(breakpoint: state.breakpoint);
+  }
+
+  /// Which session and which user an async operation started under.
+  /// Captured before the first await; checked with [_isCurrent] after each.
+  _Epoch _epoch() => _Epoch(
+        session: SessionGeneration.current,
+        owner: _ownerGeneration,
+      );
+
+  /// Whether a result that started under [epoch] may still be published.
+  ///
+  /// Two independent guards, and either moving on means the result belongs
+  /// to someone else: [SessionGeneration] advances on every logout,
+  /// app-wide; [_ownerGeneration] advances when a different user reaches
+  /// this same state without a logout in between (see [ensureLoaded]).
+  bool _isCurrent(_Epoch epoch) =>
+      mounted &&
+      SessionGeneration.isCurrent(epoch.session) &&
+      epoch.owner == _ownerGeneration;
 
   /// Sets which breakpoint's layout is in play. Called from the dashboard
   /// as the viewport changes, so both mobile and desktop read and write
@@ -197,13 +351,14 @@ class PersonalizationNotifier
     state = state.copyWith(breakpoint: breakpoint, clearDraft: true);
   }
 
-  Future<void> load(DashboardDescriptor? descriptor) async {
-    final generation = SessionGeneration.current;
+  Future<void> _load(DashboardDescriptor? descriptor) async {
+    final epoch = _epoch();
     _descriptor = descriptor;
 
     if (descriptor == null) {
       _loadedOnce = true;
       state = state.copyWith(
+        hasStarted: true,
         isLoading: false,
         isUnavailable: true,
         clearError: true,
@@ -212,14 +367,17 @@ class PersonalizationNotifier
     }
 
     state = state.copyWith(
+      hasStarted: true,
       isLoading: true,
       isUnavailable: false,
+      authorizationStatus: DashboardAuthorizationStatus.loading,
       clearError: true,
+      clearAuthorizationError: true,
     );
     final repository = _ref.read(dashboardRepositoryProvider);
 
     // The catalog and authorization set are independent of the config, so
-    // fetch all three together.
+    // fetch them together.
     final results = await Future.wait([
       repository.fetchConfig(
         dashboardClass: descriptor.dashboardClass,
@@ -229,11 +387,13 @@ class PersonalizationNotifier
     ]);
     final catalogResult = await repository.fetchCatalog();
 
-    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+    if (!_isCurrent(epoch)) return;
     _loadedOnce = true;
 
     final configResult = results[0];
     final authorizedResult = results[1];
+    final authorization = await _authorizationFrom(authorizedResult);
+    if (!_isCurrent(epoch)) return;
 
     if (configResult is Success<DashboardConfig>) {
       state = state.copyWith(
@@ -241,9 +401,10 @@ class PersonalizationNotifier
         config: configResult.data,
         catalog: catalogResult.catalog,
         catalogSource: catalogResult.source,
-        authorized: authorizedResult is Success<DashboardAuthorizedComponents>
-            ? authorizedResult.data
-            : null,
+        authorized: authorization.authorized,
+        authorizationStatus: authorization.status,
+        authorizationError: authorization.error,
+        clearAuthorizationError: authorization.error == null,
         clearError: true,
         clearDraft: true,
       );
@@ -256,14 +417,71 @@ class PersonalizationNotifier
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+    if (!_isCurrent(epoch)) return;
     state = state.copyWith(
       isLoading: false,
       catalog: catalogResult.catalog,
       catalogSource: catalogResult.source,
+      authorized: authorization.authorized,
+      authorizationStatus: authorization.status,
+      authorizationError: authorization.error,
+      clearAuthorizationError: authorization.error == null,
       errorMessage: configResult.resolveUserMessage(
         l10n: l10n,
         fallback: 'Could not load your dashboard configuration.',
+      ),
+    );
+  }
+
+  /// Re-requests only the authorization set, after it failed.
+  Future<void> retryAuthorization() async {
+    if (_descriptor == null) return;
+    if (state.authorizationStatus == DashboardAuthorizationStatus.loading) {
+      return;
+    }
+    final epoch = _epoch();
+
+    state = state.copyWith(
+      authorizationStatus: DashboardAuthorizationStatus.loading,
+      clearAuthorizationError: true,
+    );
+    final result =
+        await _ref.read(dashboardRepositoryProvider).fetchAuthorizedComponents();
+    if (!_isCurrent(epoch)) return;
+
+    final authorization = await _authorizationFrom(result);
+    if (!_isCurrent(epoch)) return;
+    state = state.copyWith(
+      authorized: authorization.authorized,
+      authorizationStatus: authorization.status,
+      authorizationError: authorization.error,
+      clearAuthorizationError: authorization.error == null,
+    );
+  }
+
+  Future<_AuthorizationOutcome> _authorizationFrom(
+    ResponseHandler<dynamic> result,
+  ) async {
+    if (result is Success<DashboardAuthorizedComponents> &&
+        result.data != null) {
+      return _AuthorizationOutcome(
+        status: DashboardAuthorizationStatus.loaded,
+        authorized: result.data!,
+      );
+    }
+    if (SessionExpiryCoordinator.instance.isHandling) {
+      return const _AuthorizationOutcome(
+        status: DashboardAuthorizationStatus.failed,
+        authorized: DashboardAuthorizedComponents.empty,
+      );
+    }
+    final l10n = await AppLocalizationsHelper.current();
+    return _AuthorizationOutcome(
+      status: DashboardAuthorizationStatus.failed,
+      authorized: DashboardAuthorizedComponents.empty,
+      error: result.resolveUserMessage(
+        l10n: l10n,
+        fallback: 'Could not load your widget permissions.',
       ),
     );
   }
@@ -284,17 +502,50 @@ class PersonalizationNotifier
     state = state.copyWith(draftSelection: draft, clearSaveError: true);
   }
 
+  /// Why [save] would refuse right now, or null if it would proceed.
+  ///
+  /// Exposed so the panel can disable Save and say why, rather than let the
+  /// user press it and find out.
+  String? get saveBlockedReason {
+    final config = state.config;
+    final descriptor = _descriptor;
+    if (config == null || descriptor == null) {
+      return 'Your dashboard has not loaded yet.';
+    }
+    // Only ever write to the user's own CUSTOM dashboard. Checked on both
+    // what `me` described *and* what the host actually returned, because a
+    // host could answer a CUSTOM request with the factory dashboard for a
+    // user who has none — and the factory record is shared by every user
+    // of the type.
+    if (!descriptor.isUserCustom ||
+        !config.isUserCustom ||
+        config.dashboardId != descriptor.dashboardId) {
+      return 'This dashboard cannot be personalized yet.';
+    }
+    if (!state.isAuthorizationLoaded) {
+      return 'Your widget permissions have not loaded.';
+    }
+    return null;
+  }
+
   /// Commits the draft to the host.
   ///
   /// Only the current breakpoint's layout is rewritten; every other
-  /// breakpoint round-trips untouched, so personalizing on a phone cannot
-  /// wipe the desktop dashboard (`DashboardConfig.withLayout`).
+  /// breakpoint — and `waterfallLayout` — round-trips untouched, so
+  /// personalizing on a phone cannot wipe the desktop dashboard
+  /// (`DashboardConfig.withLayout`).
   Future<bool> save() async {
-    final generation = SessionGeneration.current;
     final config = state.config;
     final draft = state.draftSelection;
     if (config == null || draft == null) return false;
 
+    final blocked = saveBlockedReason;
+    if (blocked != null) {
+      state = state.copyWith(saveErrorMessage: blocked);
+      return false;
+    }
+
+    final epoch = _epoch();
     state = state.copyWith(isSaving: true, clearSaveError: true);
 
     final existing = config.layoutFor(state.breakpoint);
@@ -310,8 +561,8 @@ class PersonalizationNotifier
       items.add(item);
     }
 
-    // Anything newly switched on is appended, sized full-width for the
-    // breakpoint being edited.
+    // Anything newly switched on is appended, sized from the catalog for
+    // the breakpoint being edited.
     for (final componentName in draft) {
       if (seen.contains(componentName)) continue;
       seen.add(componentName);
@@ -329,7 +580,7 @@ class PersonalizationNotifier
         .read(dashboardRepositoryProvider)
         .saveConfig(config.withLayout(state.breakpoint, items));
 
-    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
+    if (!_isCurrent(epoch)) return false;
 
     if (result is Success<DashboardConfig>) {
       state = state.copyWith(
@@ -343,7 +594,7 @@ class PersonalizationNotifier
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
+    if (!_isCurrent(epoch)) return false;
     state = state.copyWith(
       isSaving: false,
       saveErrorMessage: result.resolveUserMessage(
@@ -396,7 +647,31 @@ class PersonalizationNotifier
   }
 }
 
-final personalizationProvider = StateNotifierProvider<
+class _Epoch {
+  const _Epoch({required this.session, required this.owner});
+
+  final int session;
+  final int owner;
+}
+
+class _AuthorizationOutcome {
+  const _AuthorizationOutcome({
+    required this.status,
+    required this.authorized,
+    this.error,
+  });
+
+  final DashboardAuthorizationStatus status;
+  final DashboardAuthorizedComponents authorized;
+  final String? error;
+}
+
+/// `autoDispose` so the state is discarded as soon as no dashboard is
+/// watching it — logging out pops the dashboard, which drops the state
+/// before the next user signs in. [PersonalizationNotifier.ensureLoaded]'s
+/// user check is the backstop for any path that keeps it alive across a
+/// user change.
+final personalizationProvider = StateNotifierProvider.autoDispose<
     PersonalizationNotifier, PersonalizationState>(
   (ref) => PersonalizationNotifier(ref),
 );

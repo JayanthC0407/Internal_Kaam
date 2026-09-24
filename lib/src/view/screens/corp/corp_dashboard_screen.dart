@@ -108,9 +108,12 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           .read(corpProfileProvider.notifier)
           .ensureLoaded(profileResponse: widget.args.profileResponse);
       // Personalization needs the profile's dashboard descriptors, which
-      // the seed above has just parsed from the login trace.
+      // the seed above has just parsed from the login trace. Scoped to the
+      // signed-in user, so one user's dashboard can never reach the next.
+      final profile = ref.read(corpProfileProvider).profile;
       ref.read(personalizationProvider.notifier).ensureLoaded(
-            ref.read(corpProfileProvider).profile?.personalizableDashboard,
+            profile?.personalizableDashboard,
+            userKey: profile?.userName ?? widget.args.userName,
           );
     });
   }
@@ -250,68 +253,75 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     );
   }
 
-  /// The dashboard body below the accounts hero, rendered from the user's
-  /// saved configuration for the current breakpoint.
+  /// The dashboard body below the accounts hero, driven by
+  /// [PersonalizationState.bodyStatus] — the same decision the Retail
+  /// dashboard uses, so the two cannot drift apart.
   ///
-  /// While the configuration is still loading this shows a placeholder
-  /// rather than the default arrangement. Rendering the default first and
-  /// swapping once the call lands made the whole dashboard visibly rebuild
-  /// under the user — showing widgets that were never theirs, then
-  /// replacing them.
-  ///
-  /// The default arrangement is still the fallback for a *settled* state
-  /// with nothing to render: the load failed, the user has no personalizable
-  /// dashboard, or their layout is empty. The dashboard is never blank once
-  /// loading has finished.
-  ///
-  /// Note the render path filters on *authorization* and the registry, not
-  /// on the catalog: a saved layout can legitimately hold components the
-  /// catalog has never listed (5 of the 10 on the captured dashboard), and
-  /// dropping those would silently gut a dashboard the user built.
+  /// The designed default arrangement is used only when there is no saved
+  /// configuration at all. An intentionally empty CUSTOM dashboard renders
+  /// empty, and a failed authorization load renders an error rather than
+  /// widgets we cannot vouch for.
   List<DashboardTile> _buildPersonalizedTiles(bool sideBySide) {
     final state = ref.watch(personalizationProvider);
-    final items = state.selectedItems;
 
-    if (state.isLoading && !state.isReady) {
-      return const [
-        DashboardTile(
-          span: DashboardGridSpan.columns,
-          child: _DashboardBodyPlaceholder(),
-        ),
-      ];
+    switch (state.bodyStatus) {
+      case PersonalizedBodyStatus.loading:
+        return const [
+          DashboardTile(
+            span: DashboardGridSpan.columns,
+            child: _DashboardBodyPlaceholder(),
+          ),
+        ];
+      case PersonalizedBodyStatus.unavailable:
+        return _buildDefaultTiles(sideBySide);
+      case PersonalizedBodyStatus.authorizationFailed:
+        return [
+          DashboardTile(
+            span: DashboardGridSpan.columns,
+            child: _DashboardBodyMessage(
+              icon: Icons.lock_outline_rounded,
+              title: "Couldn't load your widgets",
+              message: state.authorizationError ??
+                  'Your widget permissions could not be checked.',
+              onRetry: () => ref
+                  .read(personalizationProvider.notifier)
+                  .retryAuthorization(),
+            ),
+          ),
+        ];
+      case PersonalizedBodyStatus.empty:
+        return const [
+          DashboardTile(
+            span: DashboardGridSpan.columns,
+            child: _DashboardBodyMessage(
+              icon: Icons.dashboard_customize_outlined,
+              title: 'No widgets on your dashboard',
+              message: 'Add some from Personalize Dashboard in the settings '
+                  'menu.',
+            ),
+          ),
+        ];
+      case PersonalizedBodyStatus.ready:
+        break;
     }
 
-    if (!state.isReady || items.isEmpty) {
-      return _buildDefaultTiles(sideBySide);
-    }
-
-    final authorized = state.authorized;
-    final tiles = <DashboardTile>[];
-    for (final item in items) {
-      if (authorized.isNotEmpty && !authorized.contains(item.componentName)) {
-        continue;
-      }
-      // Width comes from the item's own stored `style` first, then the
-      // catalog's width for this breakpoint — so a dashboard arranged on
-      // the web keeps its proportions here.
-      final span = sideBySide
-          ? DashboardGridSpan.resolve(
-              style: item.style,
-              catalogWidth: state.catalog
-                  .byName(item.componentName)
-                  ?.widthFor(_catalogWidthKey(state.breakpoint)),
-            )
-          : DashboardGridSpan.columns;
-      tiles.add(
+    return [
+      for (final item in state.renderableItems)
         DashboardTile(
-          span: span,
+          // Width comes from the item's own stored `style` first, then the
+          // catalog's width for this breakpoint — so a dashboard arranged
+          // on the web keeps its proportions here.
+          span: sideBySide
+              ? DashboardGridSpan.resolve(
+                  style: item.style,
+                  catalogWidth: state.catalog
+                      .byName(item.componentName)
+                      ?.widthFor(_catalogWidthKey(state.breakpoint)),
+                )
+              : DashboardGridSpan.columns,
           child: _registry.build(item.componentName),
         ),
-      );
-    }
-
-    if (tiles.isEmpty) return _buildDefaultTiles(sideBySide);
-    return tiles;
+    ];
   }
 
   static String _catalogWidthKey(DashboardBreakpoint breakpoint) {
@@ -417,6 +427,57 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+/// A full-width message in place of the personalized body — the empty
+/// dashboard, or a failed authorization load with a retry.
+class _DashboardBodyMessage extends StatelessWidget {
+  const _DashboardBodyMessage({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.onRetry,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        children: [
+          Icon(icon, size: 30, color: CorpColors.navInactive(context)),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: CorpColors.textPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: CorpColors.textSecondary(context),
+            ),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 12),
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ],
+      ),
     );
   }
 }
