@@ -7,6 +7,7 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/retail/accounts_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
 final accountsRepositoryProvider = Provider(
@@ -78,19 +79,24 @@ class CasaAccountsNotifier extends StateNotifier<CasaAccountsState> {
   /// forget: never surfaces its own loading/error state since it's a
   /// background supporting call, not the primary list load.
   Future<void> refreshIncludingClosed() async {
+    final generation = SessionGeneration.current;
     final result = await _ref
         .read(accountsRepositoryProvider)
         .fetchCasaAccountsIncludingClosed();
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
     if (result is Success<CasaAccountsSummary> && result.data != null) {
       state = state.copyWith(accountsIncludingClosed: result.data);
     }
   }
 
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true, clearError: true);
     final result =
         await _ref.read(accountsRepositoryProvider).fetchCasaAccounts();
     final l10n = await AppLocalizationsHelper.current();
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     if (result is Success<CasaAccountsSummary>) {
       _loadedOnce = true;

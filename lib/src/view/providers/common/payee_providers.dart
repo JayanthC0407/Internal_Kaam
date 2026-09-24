@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 
 class PayeesState {
@@ -83,6 +84,7 @@ class PayeesNotifier extends StateNotifier<PayeesState> {
   }
 
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true, clearError: true);
 
     final repository = _ref.read(payeeRepositoryProvider);
@@ -104,6 +106,8 @@ class PayeesNotifier extends StateNotifier<PayeesState> {
     await repository.fetchAssignedLimits();
     await repository.fetchPayeeContent();
     final l10n = await AppLocalizationsHelper.current();
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     final errors = <String>[];
     final payees = payeesResult is Success<List<PayeeSummary>>
