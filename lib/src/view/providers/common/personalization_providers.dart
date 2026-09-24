@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
 final obdxDashboardApiProvider = Provider(
@@ -197,6 +198,7 @@ class PersonalizationNotifier
   }
 
   Future<void> load(DashboardDescriptor? descriptor) async {
+    final generation = SessionGeneration.current;
     _descriptor = descriptor;
 
     if (descriptor == null) {
@@ -227,7 +229,7 @@ class PersonalizationNotifier
     ]);
     final catalogResult = await repository.fetchCatalog();
 
-    if (!mounted) return;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
     _loadedOnce = true;
 
     final configResult = results[0];
@@ -254,7 +256,7 @@ class PersonalizationNotifier
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!mounted) return;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
     state = state.copyWith(
       isLoading: false,
       catalog: catalogResult.catalog,
@@ -288,6 +290,7 @@ class PersonalizationNotifier
   /// breakpoint round-trips untouched, so personalizing on a phone cannot
   /// wipe the desktop dashboard (`DashboardConfig.withLayout`).
   Future<bool> save() async {
+    final generation = SessionGeneration.current;
     final config = state.config;
     final draft = state.draftSelection;
     if (config == null || draft == null) return false;
@@ -326,7 +329,7 @@ class PersonalizationNotifier
         .read(dashboardRepositoryProvider)
         .saveConfig(config.withLayout(state.breakpoint, items));
 
-    if (!mounted) return false;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
 
     if (result is Success<DashboardConfig>) {
       state = state.copyWith(
@@ -340,7 +343,7 @@ class PersonalizationNotifier
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!mounted) return false;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
     state = state.copyWith(
       isSaving: false,
       saveErrorMessage: result.resolveUserMessage(
