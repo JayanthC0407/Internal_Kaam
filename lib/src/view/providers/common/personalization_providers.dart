@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
 final obdxDashboardApiProvider = Provider(
@@ -270,11 +271,8 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   /// The user this state belongs to, normalised. See [ensureLoaded].
   String? _owner;
 
-  /// Bumped whenever the owner changes. Every async operation captures it
-  /// before its first await and drops its result if it has moved on, so a
-  /// request that was in flight for one user can never land in another
-  /// user's state.
-  int _generation = 0;
+  /// Bumped whenever the owner changes. See [_isCurrent].
+  int _ownerGeneration = 0;
 
   /// Which dashboard to read and write, resolved from `me`. Null means the
   /// user has no personalizable dashboard and the feature is unavailable.
@@ -292,9 +290,10 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   /// one user's dashboard configuration, catalog selection or authorization
   /// set must never be shown to the next user to sign in on the device.
   ///
-  /// The provider is also `autoDispose`, so leaving the dashboard (as
-  /// logout does) throws the state away on its own; this check is the
-  /// backstop for any path that keeps it alive across a user change.
+  /// Logout also clears this state — `resetUserSessionState` invalidates
+  /// the provider and [SessionGeneration] advances — and the provider is
+  /// `autoDispose`; this check is the backstop for any path that reaches a
+  /// different user without going through logout.
   Future<void> ensureLoaded(
     DashboardDescriptor? descriptor, {
     required String userKey,
@@ -317,12 +316,30 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   }
 
   void _resetForNewOwner() {
-    _generation++;
+    _ownerGeneration++;
     _loadedOnce = false;
     _pendingLoad = null;
     _descriptor = null;
     state = PersonalizationState(breakpoint: state.breakpoint);
   }
+
+  /// Which session and which user an async operation started under.
+  /// Captured before the first await; checked with [_isCurrent] after each.
+  _Epoch _epoch() => _Epoch(
+        session: SessionGeneration.current,
+        owner: _ownerGeneration,
+      );
+
+  /// Whether a result that started under [epoch] may still be published.
+  ///
+  /// Two independent guards, and either moving on means the result belongs
+  /// to someone else: [SessionGeneration] advances on every logout,
+  /// app-wide; [_ownerGeneration] advances when a different user reaches
+  /// this same state without a logout in between (see [ensureLoaded]).
+  bool _isCurrent(_Epoch epoch) =>
+      mounted &&
+      SessionGeneration.isCurrent(epoch.session) &&
+      epoch.owner == _ownerGeneration;
 
   /// Sets which breakpoint's layout is in play. Called from the dashboard
   /// as the viewport changes, so both mobile and desktop read and write
@@ -335,7 +352,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   }
 
   Future<void> _load(DashboardDescriptor? descriptor) async {
-    final generation = _generation;
+    final epoch = _epoch();
     _descriptor = descriptor;
 
     if (descriptor == null) {
@@ -370,13 +387,13 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     ]);
     final catalogResult = await repository.fetchCatalog();
 
-    if (!mounted || generation != _generation) return;
+    if (!_isCurrent(epoch)) return;
     _loadedOnce = true;
 
     final configResult = results[0];
     final authorizedResult = results[1];
     final authorization = await _authorizationFrom(authorizedResult);
-    if (!mounted || generation != _generation) return;
+    if (!_isCurrent(epoch)) return;
 
     if (configResult is Success<DashboardConfig>) {
       state = state.copyWith(
@@ -400,7 +417,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!mounted || generation != _generation) return;
+    if (!_isCurrent(epoch)) return;
     state = state.copyWith(
       isLoading: false,
       catalog: catalogResult.catalog,
@@ -422,7 +439,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     if (state.authorizationStatus == DashboardAuthorizationStatus.loading) {
       return;
     }
-    final generation = _generation;
+    final epoch = _epoch();
 
     state = state.copyWith(
       authorizationStatus: DashboardAuthorizationStatus.loading,
@@ -430,10 +447,10 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     );
     final result =
         await _ref.read(dashboardRepositoryProvider).fetchAuthorizedComponents();
-    if (!mounted || generation != _generation) return;
+    if (!_isCurrent(epoch)) return;
 
     final authorization = await _authorizationFrom(result);
-    if (!mounted || generation != _generation) return;
+    if (!_isCurrent(epoch)) return;
     state = state.copyWith(
       authorized: authorization.authorized,
       authorizationStatus: authorization.status,
@@ -528,7 +545,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
       return false;
     }
 
-    final generation = _generation;
+    final epoch = _epoch();
     state = state.copyWith(isSaving: true, clearSaveError: true);
 
     final existing = config.layoutFor(state.breakpoint);
@@ -563,7 +580,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
         .read(dashboardRepositoryProvider)
         .saveConfig(config.withLayout(state.breakpoint, items));
 
-    if (!mounted || generation != _generation) return false;
+    if (!_isCurrent(epoch)) return false;
 
     if (result is Success<DashboardConfig>) {
       state = state.copyWith(
@@ -577,7 +594,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!mounted || generation != _generation) return false;
+    if (!_isCurrent(epoch)) return false;
     state = state.copyWith(
       isSaving: false,
       saveErrorMessage: result.resolveUserMessage(
@@ -628,6 +645,13 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     );
     return '$prefix-${span ?? DashboardGridSpan.columns}';
   }
+}
+
+class _Epoch {
+  const _Epoch({required this.session, required this.owner});
+
+  final int session;
+  final int owner;
 }
 
 class _AuthorizationOutcome {

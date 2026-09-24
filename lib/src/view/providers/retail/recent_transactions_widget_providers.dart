@@ -7,6 +7,7 @@ import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
 import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
 
@@ -120,6 +121,7 @@ class RecentTransactionsWidgetNotifier
   }
 
   Future<void> selectCategory(AccountCategory category) async {
+    final generation = SessionGeneration.current;
     state = RecentTransactionsWidgetState(
       category: category,
       isLoadingAccounts: true,
@@ -175,9 +177,13 @@ class RecentTransactionsWidgetNotifier
         break; // unreachable — isSupported already returned above
     }
 
-    // The user may have switched categories again while this was in
-    // flight — don't clobber whatever they've since selected.
-    if (state.category != category) return;
+    // The user may have logged out while this was in flight, or switched
+    // categories again. Never publish a stale session/category response.
+    if (!SessionGeneration.isCurrent(generation) ||
+        !mounted ||
+        state.category != category) {
+      return;
+    }
 
     state = state.copyWith(
       isLoadingAccounts: false,
@@ -212,6 +218,7 @@ class RecentTransactionsWidgetNotifier
   }
 
   Future<void> selectAccount(String accountId) async {
+    final generation = SessionGeneration.current;
     final category = state.category;
     state = state.copyWith(
       selectedAccountId: accountId,
@@ -226,7 +233,10 @@ class RecentTransactionsWidgetNotifier
           .read(accountsRepositoryProvider)
           .fetchCasaTransactions(accountId);
 
-      if (state.category != category || state.selectedAccountId != accountId) {
+      if (!SessionGeneration.isCurrent(generation) ||
+          !mounted ||
+          state.category != category ||
+          state.selectedAccountId != accountId) {
         return;
       }
 
@@ -260,7 +270,10 @@ class RecentTransactionsWidgetNotifier
           .read(loanRepositoryProvider)
           .fetchRecentLoanTransactions(accountId);
 
-      if (state.category != category || state.selectedAccountId != accountId) {
+      if (!SessionGeneration.isCurrent(generation) ||
+          !mounted ||
+          state.category != category ||
+          state.selectedAccountId != accountId) {
         return;
       }
 
