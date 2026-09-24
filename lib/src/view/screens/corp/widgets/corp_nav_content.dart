@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 
-/// The corporate dashboard's main navigation destinations, in the order the
-/// design lists them.
+/// The corporate dashboard's main navigation destinations, in menu order —
+/// declaration order *is* the order the sidebar and drawer list them, so
+/// [home] stays first.
 ///
 /// Only [home] has a built surface today; every other destination renders
 /// the corporate shell's own placeholder panel (see
 /// `CorpDashboardScreen._buildDestination`) so the sidebar, header and
 /// session handling stay live while those modules are built out.
 enum CorpNavDestination {
-  loan('Loan', Icons.savings_outlined),
   home('Home', Icons.home_outlined),
   accounts('Accounts', Icons.account_balance_outlined),
+  loan('Loan', Icons.savings_outlined),
   transfer('Transfer', Icons.swap_horiz_rounded),
   bill('Bill', Icons.receipt_long_outlined),
   statements('Statements', Icons.description_outlined),

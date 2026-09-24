@@ -22,6 +22,7 @@ import 'package:ubci_bank/src/view/screens/corp/widgets/corp_dashboard_header_ba
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_navigation_sidebar.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
+import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
 
 /// Arguments for the Corporate dashboard.
 ///
@@ -82,6 +83,11 @@ class CorpDashboardScreen extends ConsumerStatefulWidget {
 class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// The web desktop content area's navigator — see
+  /// [SidebarContentNavigator].
+  final GlobalKey<NavigatorState> _contentNavigatorKey =
+      GlobalKey<NavigatorState>();
+
   /// Which `componentName`s this dashboard can draw. The Retail dashboard
   /// supplies its own — see [RetailWidgetRegistry].
   static const _registry = CorpWidgetRegistry();
@@ -128,13 +134,15 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   Future<void> _logout() async {
     await ref.read(sessionManagerProvider).logout();
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
       RoutesConst.loginScreen,
       (route) => false,
     );
   }
 
   void _selectDestination(CorpNavDestination destination) {
+    // A menu choice replaces whatever was opened on top.
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() => _destination = destination);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
@@ -245,7 +253,14 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                     selected: _destination,
                     onSelected: _selectDestination,
                   ),
-                  Expanded(child: shell),
+                  // Screens opened from here open beside the sidebar on
+                  // web, not over it.
+                  Expanded(
+                    child: SidebarContentNavigator(
+                      navigatorKey: _contentNavigatorKey,
+                      child: shell,
+                    ),
+                  ),
                 ],
               )
             : shell,
