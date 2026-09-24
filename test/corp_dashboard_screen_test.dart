@@ -91,14 +91,20 @@ class _FakeCashManagementRepository implements CorpCashManagementRepository {
 }
 
 /// Personalization drives the dashboard body, so the dashboard test needs
-/// this faked too. Returns a config whose layouts are empty, which makes
-/// the dashboard fall back to its designed default arrangement — the state
-/// the rest of these tests assert against. The personalized render path has
-/// its own tests.
+/// this faked too.
+///
+/// With no [config] it reports the configuration as unloadable, which is
+/// the one state that renders the designed default arrangement — the state
+/// most of these tests assert against. An *empty* config is deliberately
+/// not the default: an intentionally empty CUSTOM dashboard renders empty,
+/// not the defaults, and has its own test.
 class _FakeDashboardRepository implements DashboardRepository {
-  _FakeDashboardRepository({this.config});
+  _FakeDashboardRepository({this.config, this.failAuthorization = false});
 
   final DashboardConfig? config;
+
+  /// Makes `me/components` fail, to exercise the fail-closed path.
+  final bool failAuthorization;
 
   static DashboardConfig emptyConfig() =>
       DashboardConfig.fromPayload(const {
@@ -124,8 +130,11 @@ class _FakeDashboardRepository implements DashboardRepository {
   Future<ResponseHandler<DashboardConfig>> fetchConfig({
     required String dashboardClass,
     required String dashboardClassValue,
-  }) async =>
-      ResponseHandler.success(config ?? emptyConfig(), code: 200);
+  }) async {
+    final saved = config;
+    if (saved == null) return ResponseHandler.error(500, 'unavailable');
+    return ResponseHandler.success(saved, code: 200);
+  }
 
   @override
   Future<ResponseHandler<DashboardConfig>> saveConfig(
@@ -135,7 +144,9 @@ class _FakeDashboardRepository implements DashboardRepository {
 
   @override
   Future<ResponseHandler<DashboardAuthorizedComponents>>
-      fetchAuthorizedComponents() async => ResponseHandler.success(
+      fetchAuthorizedComponents() async {
+    if (failAuthorization) return ResponseHandler.error(500, 'boom');
+    return ResponseHandler.success(
             const DashboardAuthorizedComponents(
               authorized: {
                 'account-financial-summary',
@@ -150,6 +161,7 @@ class _FakeDashboardRepository implements DashboardRepository {
             ),
             code: 200,
           );
+  }
 
   @override
   Future<DashboardCatalogResult> fetchCatalog() async => DashboardCatalogResult(
@@ -227,6 +239,7 @@ class _FakeProfileRepository implements CorpProfileRepository {
 Future<void> _pumpDashboard(
   WidgetTester tester, {
   DashboardConfig? config,
+  bool failAuthorization = false,
 }) async {
   // The design is a desktop layout; size the surface accordingly so the
   // persistent sidebar and the side-by-side panels are the ones exercised.
@@ -244,7 +257,10 @@ Future<void> _pumpDashboard(
         corpCashManagementRepositoryProvider
             .overrideWithValue(_FakeCashManagementRepository()),
         dashboardRepositoryProvider
-            .overrideWithValue(_FakeDashboardRepository(config: config)),
+            .overrideWithValue(_FakeDashboardRepository(
+              config: config,
+              failAuthorization: failAuthorization,
+            )),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
@@ -378,7 +394,11 @@ void main() {
 
     testWidgets('hovering a module heading flies out its widgets',
         (tester) async {
-      await _pumpDashboard(tester);
+      // A loaded configuration, so the panel lists headings.
+      await _pumpDashboard(
+        tester,
+        config: _FakeDashboardRepository.emptyConfig(),
+      );
 
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
@@ -410,7 +430,10 @@ void main() {
     testWidgets('tapping a heading pins the flyout open for touch',
         (tester) async {
       // Without hover there would be no way to reach a checkbox at all.
-      await _pumpDashboard(tester);
+      await _pumpDashboard(
+        tester,
+        config: _FakeDashboardRepository.emptyConfig(),
+      );
 
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
@@ -539,9 +562,10 @@ void main() {
       expect(find.text('Work Snapshot'), findsNothing);
     });
 
-    testWidgets('falls back to the designed layout when nothing is saved',
+    testWidgets('uses the designed layout when no configuration loads',
         (tester) async {
-      // The empty-config default: the dashboard must never be blank.
+      // No saved layout to render from at all, so the dashboard must not be
+      // blank — this is the only state that shows the defaults.
       await _pumpDashboard(tester);
 
       expect(find.text('Financial Summary'), findsOneWidget);
@@ -550,6 +574,96 @@ void main() {
       expect(find.text('Account Summary'), findsOneWidget);
       // Quick Links belongs to the default arrangement too — exactly once.
       expect(find.text('Quick Links'), findsOneWidget);
+    });
+
+    testWidgets('an intentionally empty CUSTOM dashboard stays empty',
+        (tester) async {
+      // Regression: an empty saved layout used to fall back to the defaults,
+      // putting back widgets the user had just removed.
+      await _pumpDashboard(
+        tester,
+        config: _FakeDashboardRepository.emptyConfig(),
+      );
+
+      expect(find.text('No widgets on your dashboard'), findsOneWidget);
+      expect(find.text('Financial Summary'), findsNothing);
+      expect(find.text('Pickup Points'), findsNothing);
+      expect(find.text('Quick Links'), findsNothing);
+    });
+
+    testWidgets('an empty dashboard after authorization filtering stays empty',
+        (tester) async {
+      // Every saved widget is unauthorized. That is still an empty
+      // dashboard, not an excuse to show the defaults.
+      await _pumpDashboard(
+        tester,
+        config: DashboardConfig.fromPayload(const {
+          'dashboardDTO': {
+            'dashboardId': '25801',
+            'dashboardName': 'obdx-name',
+            'dashboardDescription': 'obdx-description',
+            'dashboardClass': 'CUSTOM',
+            'dashboardClassValue': 'custom',
+            'layout': {
+              'layout': {
+                'defaultLayout': [],
+                'large': [
+                  {
+                    'componentName': 'work-snapshot',
+                    'module': 'corporateDashboard',
+                    'style': 'oj-lg-12',
+                  },
+                ],
+                'medium': [],
+                'small': [],
+              },
+            },
+          },
+        }),
+      );
+
+      expect(find.text('No widgets on your dashboard'), findsOneWidget);
+      expect(find.text('Financial Summary'), findsNothing);
+    });
+
+    testWidgets('a failed authorization load fails closed with a retry',
+        (tester) async {
+      // Without the authorization set we cannot tell which saved widgets the
+      // user may see, so none are shown — previously a failed call left the
+      // set empty and the render path treated empty as "allow everything".
+      await _pumpDashboard(
+        tester,
+        failAuthorization: true,
+        config: DashboardConfig.fromPayload(const {
+          'dashboardDTO': {
+            'dashboardId': '25801',
+            'dashboardName': 'obdx-name',
+            'dashboardDescription': 'obdx-description',
+            'dashboardClass': 'CUSTOM',
+            'dashboardClassValue': 'custom',
+            'layout': {
+              'layout': {
+                'defaultLayout': [],
+                'large': [
+                  {
+                    'componentName': 'currency-exposure',
+                    'module': 'corporateDashboard',
+                    'style': 'oj-lg-12',
+                  },
+                ],
+                'medium': [],
+                'small': [],
+              },
+            },
+          },
+        }),
+      );
+
+      expect(find.text("Couldn't load your widgets"), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      // The saved widget is withheld, and the defaults are not shown either.
+      expect(find.text('Currency Exposure'), findsNothing);
+      expect(find.text('Financial Summary'), findsNothing);
     });
 
     testWidgets('sorting the balance column reorders the rows',

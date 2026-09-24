@@ -37,6 +37,11 @@ class DashboardDescriptor {
 
   bool get isUsable => dashboardId.isNotEmpty;
 
+  /// The user's own personalized dashboard: not the bank's factory one, and
+  /// of class `CUSTOM`.
+  bool get isUserCustom =>
+      !isFactory && dashboardClass.toUpperCase() == 'CUSTOM';
+
   factory DashboardDescriptor.fromJson(Map<String, dynamic> json) {
     final role = (json['enterpriseRole'] ?? '').toString().trim();
     return DashboardDescriptor(
@@ -68,21 +73,25 @@ class DashboardDescriptor {
     return parsed;
   }
 
-  /// The dashboard personalization should read and write.
+  /// The dashboard personalization should read and write — the user's own
+  /// `CUSTOM` dashboard, and nothing else.
   ///
-  /// Prefers the user's own non-factory entry (the captured corporate user
-  /// has `CUSTOM`/`custom`, id 25801); falls back to the factory entry for
-  /// a user who has never personalized. Returns null when `me` carried no
-  /// usable dashboard DTO, in which case personalization is unavailable
-  /// rather than guessed at.
+  /// **There is deliberately no fallback to the factory dashboard.** A
+  /// factory dashboard (`USER_TYPE`/`corporateuser`, id 18 in the capture)
+  /// is shared by every user of that type, so writing to it would change the
+  /// bank's default for all of them, not personalize one user's. What OBDX
+  /// does for a first-time user who has no `CUSTOM` dashboard yet — whether
+  /// the first save creates one, and under what id — has not been captured
+  /// or verified. Until it is, such a user gets no personalization rather
+  /// than a write to a shared record.
+  ///
+  /// Returns null when there is no usable `CUSTOM` entry; callers treat that
+  /// as "personalization unavailable".
   static DashboardDescriptor? personalizableFrom(
     List<DashboardDescriptor> dashboards,
   ) {
     for (final dashboard in dashboards) {
-      if (!dashboard.isFactory && dashboard.isUsable) return dashboard;
-    }
-    for (final dashboard in dashboards) {
-      if (dashboard.isUsable) return dashboard;
+      if (dashboard.isUserCustom && dashboard.isUsable) return dashboard;
     }
     return null;
   }
