@@ -81,6 +81,10 @@ class PayeeHubScreen extends StatelessWidget {
         backgroundColor: HomeColors.bg(context),
         foregroundColor: textPrimary,
         elevation: 0,
+        // A little taller than the default 56 so the back arrow + title
+        // sit further from the very top edge — closer to the sidebar
+        // logo's line instead of hugging the top.
+        toolbarHeight: 70,
         // A plain AppBar only auto-adds a back arrow when there's a route
         // to pop — embedded swaps tab content instead of pushing a route,
         // so without this, embedded left no way back to the Transfer tab.
@@ -99,7 +103,21 @@ class PayeeHubScreen extends StatelessWidget {
             AppSpacing.xxxl,
           ),
           child: SingleChildScrollView(
-            child: Card(
+            child: Container(
+              decoration: BoxDecoration(
+                color: HomeColors.card(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: HomeColors.divider(context)),
+                boxShadow: [
+                  BoxShadow(
+                    color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+                    blurRadius: 15,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   for (var i = 0; i < items.length; i++) ...[

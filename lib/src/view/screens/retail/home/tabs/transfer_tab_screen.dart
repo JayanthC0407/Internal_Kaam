@@ -62,7 +62,11 @@ class TransferTabScreen extends StatelessWidget {
         maxWidth: 900,
         padding: EdgeInsets.fromLTRB(
           responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-          AppSpacing.xl,
+          // Top offset matches AppNavContent's top padding (22) around the
+          // sidebar logo, and the dashboard header's top padding — so
+          // "Payments" sits on the same line as the Demobank logo instead
+          // of floating above it (desktop/wide only; phones keep AppSpacing.xl).
+          responsive.isPhone ? AppSpacing.xl : 22,
           responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
           AppSpacing.xxxl,
         ),
@@ -148,7 +152,21 @@ class TransferTabScreen extends StatelessWidget {
             // --- Payment Services ---
             const _SectionHeader('Payment Services'),
             const SizedBox(height: AppSpacing.md),
-            Card(
+            Container(
+              decoration: BoxDecoration(
+                color: HomeColors.card(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: HomeColors.divider(context)),
+                boxShadow: [
+                  BoxShadow(
+                    color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+                    blurRadius: 15,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   ListTile(
@@ -205,7 +223,21 @@ class TransferTabScreen extends StatelessWidget {
             // --- More ---
             const _SectionHeader('More'),
             const SizedBox(height: AppSpacing.md),
-            Card(
+            Container(
+              decoration: BoxDecoration(
+                color: HomeColors.card(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: HomeColors.divider(context)),
+                boxShadow: [
+                  BoxShadow(
+                    color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+                    blurRadius: 15,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   const ComingSoonTile(icon: Icons.description_outlined, title: 'Demand Draft'),

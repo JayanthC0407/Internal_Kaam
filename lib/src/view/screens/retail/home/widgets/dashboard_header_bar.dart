@@ -47,21 +47,14 @@ class WebDashboardHeaderBar extends ConsumerWidget {
     final isDark = themeMode == ThemeMode.dark;
     final menuTap = onMenuTap;
 
-    return Container(
-  width: double.infinity,
-  decoration: BoxDecoration(
-    color: HomeColors.card(context),
-    boxShadow: [
-          BoxShadow(
-            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
-            blurRadius: 15,
-            spreadRadius: 0,
-            offset: const Offset(0, 5),
-          ),
-        ],
-  ),
-
-    child:  Row(
+    // No card background / shadow here on purpose — the header should sit
+    // directly on the page background like the design, with only the
+    // individual controls (search field, icon buttons, profile chip)
+    // carrying their own borders. A filled + shadowed Container here reads
+    // as a stray box/border floating above the content.
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
       children: [
         if (menuTap != null) ...[
           _HeaderIconButton(
@@ -122,7 +115,7 @@ class WebDashboardHeaderBar extends ConsumerWidget {
         // Static for now — dropdown menu / navigation to be wired up later.
         const _ProfileMenuTrigger(),
       ],
-    ),
+      ),
     );
   }
 }

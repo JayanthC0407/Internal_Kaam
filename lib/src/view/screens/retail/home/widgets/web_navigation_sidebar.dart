@@ -16,7 +16,7 @@ enum WebAccountsDestination { casa, loans }
 /// mobile bottom bar and is unrelated to this widget.
 ///
 /// Collapsible: a toggle button pinned at the top switches between the full
-/// 236px panel (icons + labels) and a 76px icon-only rail. The toggle stays
+/// 256px panel (icons + labels) and a 76px icon-only rail. The toggle stays
 /// visible in both states so the panel can always be re-expanded.
 class WebNavigationSidebar extends StatefulWidget {
   const WebNavigationSidebar({
@@ -41,7 +41,7 @@ class WebNavigationSidebar extends StatefulWidget {
 }
 
 class _WebNavigationSidebarState extends State<WebNavigationSidebar> {
-  static const double _expandedWidth = 236;
+  static const double _expandedWidth = 256;
   static const double _collapsedWidth = 76;
 
   bool _collapsed = false;
@@ -67,34 +67,18 @@ class _WebNavigationSidebarState extends State<WebNavigationSidebar> {
         ],
       ),
       child: SafeArea(
-        child: Stack(
-          children: [
-            AppNavContent(
-              selectedIndex: widget.selectedIndex,
-              onSelected: widget.onSelected,
-              selectedAccountsDestination: widget.selectedAccountsDestination,
-              selectedPayeeDestination: widget.selectedPayeeDestination,
-              onPayeeSelected: widget.onPayeeSelected,
-              onAccountsSelected: widget.onAccountsSelected,
-              collapsed: _collapsed,
-            ),
-            Positioned(
-              top: 22,
-              left: _collapsed ? 0 : null,
-              right: _collapsed ? 0 : 8,
-              child: _collapsed
-                  ? Center(
-                      child: _ToggleButton(
-                        collapsed: _collapsed,
-                        onTap: () => setState(() => _collapsed = !_collapsed),
-                      ),
-                    )
-                  : _ToggleButton(
-                      collapsed: _collapsed,
-                      onTap: () => setState(() => _collapsed = !_collapsed),
-                    ),
-            ),
-          ],
+        child: AppNavContent(
+          selectedIndex: widget.selectedIndex,
+          onSelected: widget.onSelected,
+          selectedAccountsDestination: widget.selectedAccountsDestination,
+          selectedPayeeDestination: widget.selectedPayeeDestination,
+          onPayeeSelected: widget.onPayeeSelected,
+          onAccountsSelected: widget.onAccountsSelected,
+          collapsed: _collapsed,
+          toggleButton: _ToggleButton(
+            collapsed: _collapsed,
+            onTap: () => setState(() => _collapsed = !_collapsed),
+          ),
         ),
       ),
     );

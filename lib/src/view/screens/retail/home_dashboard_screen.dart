@@ -670,7 +670,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
               width < 900 ? 20 : 30,
-              22,
+              36,
               width < 900 ? 20 : 30,
               32,
             ),

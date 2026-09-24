@@ -139,7 +139,11 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
         child: ListView(
           padding: EdgeInsets.fromLTRB(
             responsive.isPhone ? 20 : 24,
-            16,
+            // Top offset matches AppNavContent's top padding (22) around
+            // the sidebar logo, and the dashboard header's top padding —
+            // so "More" sits on the same line as the Demobank logo instead
+            // of floating above it (desktop/wide only; phones keep 16).
+            responsive.isPhone ? 16 : 28,
             responsive.isPhone ? 20 : 24,
             24,
           ),
@@ -278,6 +282,14 @@ class _SettingsCard extends StatelessWidget {
         color: HomeColors.card(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: HomeColors.divider(context)),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Material(
