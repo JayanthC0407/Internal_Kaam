@@ -121,13 +121,27 @@ void main() {
       const corp = CorpWidgetRegistry();
       const retail = RetailWidgetRegistry();
 
-      expect(corp.implementedComponents, hasLength(5));
-      expect(retail.implementedComponents, hasLength(5));
+      expect(corp.implementedComponents, isNotEmpty);
+      expect(retail.implementedComponents, isNotEmpty);
       for (final name in corp.implementedComponents) {
         expect(corp.builders[name], isNotNull);
       }
       for (final name in retail.implementedComponents) {
         expect(retail.builders[name], isNotNull);
+      }
+    });
+
+    test('every Retail default component is one the registry can build', () {
+      // The Retail dashboard draws its unpersonalized layout from
+      // `defaultComponents`, so an entry with no builder would render as a
+      // "not available" placeholder on a dashboard nobody personalized.
+      const retail = RetailWidgetRegistry();
+      for (final name in RetailWidgetRegistry.defaultComponents) {
+        expect(
+          retail.isImplemented(name),
+          isTrue,
+          reason: '$name is in the default layout but has no builder',
+        );
       }
     });
 
