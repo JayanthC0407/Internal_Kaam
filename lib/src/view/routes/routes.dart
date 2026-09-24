@@ -56,6 +56,28 @@ class Routes {
     );
   }
 
+  /// Routes that replace the whole app rather than open a screen inside it:
+  /// sign-in and its steps, device checks, and the dashboards themselves.
+  ///
+  /// These always belong to the root navigator. The web dashboards host
+  /// their content in a nested navigator (`SidebarContentNavigator`), and
+  /// one of these opened there would put a login screen, or a second
+  /// dashboard, next to the side menu.
+  static const Set<String> appLevelRoutes = {
+    '/',
+    RoutesConst.splashScreen,
+    RoutesConst.loginScreen,
+    RoutesConst.registrationScreen,
+    RoutesConst.forgotCredentialsScreen,
+    RoutesConst.otpLoginScreen,
+    RoutesConst.loginWizardScreen,
+    RoutesConst.biometricSetupScreen,
+    RoutesConst.biometricUnlockScreen,
+    RoutesConst.deviceBlockedScreen,
+    RoutesConst.homeScreen,
+    CorpRoutesConst.corpDashboardScreen,
+  };
+
   /// Handles routes with no matching generator (web unknown/`/` fallback).
   static Route<dynamic> onUnknownRoute(RouteSettings routeSettings) =>
       _splashFallback(routeSettings);

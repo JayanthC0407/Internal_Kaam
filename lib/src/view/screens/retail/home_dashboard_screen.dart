@@ -26,6 +26,7 @@ import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_gri
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
+import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
 
 import 'home/widgets/app_nav_content.dart';
 import 'home/widgets/home_content.dart';
@@ -78,6 +79,11 @@ class HomeDashboardScreen extends ConsumerStatefulWidget {
 class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   final PageController _heroActionPager = PageController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// The web desktop content area's navigator — see
+  /// [SidebarContentNavigator].
+  final GlobalKey<NavigatorState> _contentNavigatorKey =
+      GlobalKey<NavigatorState>();
 
   int _heroSlideIndex = 0;
   int _selectedTopTabIndex = 0;
@@ -441,12 +447,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                   WebNavigationSidebar(
                     selectedIndex: _selectedBottomNavIndex,
                     selectedAccountsDestination: _selectedAccountsDestination,
-                    onSelected: (index) => setState(() {
-                      _selectedBottomNavIndex = index;
-                      _selectedPayeeDestination = null;
-                      _selectedAccountsDestination = null;
-                      _selectedCasaAccountId = null;
-                    }),
+                    onSelected: (index) {
+                      // A menu choice replaces whatever was opened on top.
+                      SidebarContentNavigator.closeOpenedScreens(
+                        _contentNavigatorKey,
+                      );
+                      setState(() {
+                        _selectedBottomNavIndex = index;
+                        _selectedPayeeDestination = null;
+                        _selectedAccountsDestination = null;
+                        _selectedCasaAccountId = null;
+                      });
+                    },
                     // No onPayeeSelected: Payee already has its own entry
                     // point on the Transfer tab (and now stays embedded from
                     // there too, see case 14 below), so the separate Payee
@@ -454,7 +466,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     // destinations being reachable two different ways.
                     onAccountsSelected: _openAccountsDestination,
                   ),
-                  Expanded(child: content),
+                  // Screens opened from here open beside the sidebar on
+                  // web, not over it.
+                  Expanded(
+                    child: SidebarContentNavigator(
+                      navigatorKey: _contentNavigatorKey,
+                      child: content,
+                    ),
+                  ),
                 ],
               )
             : content,
@@ -486,6 +505,17 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   void _openMenu() => _scaffoldKey.currentState?.openDrawer();
 
+  /// Log out from the top bar's profile menu — the same flow as the
+  /// Corporate dashboard's.
+  Future<void> _logout() async {
+    await ref.read(sessionManagerProvider).logout();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      RoutesConst.loginScreen,
+      (route) => false,
+    );
+  }
+
   void _openCasaAccountsList() {
     Navigator.of(context).pushNamed(RoutesConst.casaAccountsListScreen);
   }
@@ -500,6 +530,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// [_buildWideDestination]); on phones, both push their own full screen
   /// since there's no sidebar to keep around.
   void _openAccountsDestination(WebAccountsDestination destination) {
+  SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
   switch (destination) {
     case WebAccountsDestination.casa:
       // On the wide/desktop shell, CASA is embedded next to the persistent
@@ -850,63 +881,49 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   Widget _buildWebDashboard(CasaAccountsState accountsState) {
     return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
+      child: Column(
+        children: [
+          // Full-width bar pinned above the scrolling content — the same
+          // shared top bar, in the same place, as the Corporate dashboard.
+          WebDashboardHeaderBar(
+            displayName: _displayNameFromTrace(),
+            userId: _signedInUserName(),
+            onLogout: _logout,
+            onMenuTap: Responsive.of(context).isDesktop ? null : _openMenu,
+            onPersonalizeDashboard:
+                ref.watch(personalizationProvider).isUnavailable
+                    ? null
+                    : _openPersonalize,
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
 
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-              width < 900 ? 20 : 30,
-              36,
-              width < 900 ? 20 : 30,
-              32,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Header — full available width
-                Transform.translate(
-                  offset: const Offset(-30, 0),
-                  child: SizedBox(
-                    width: width - 30,
-                    child: WebDashboardHeaderBar(
-                      onMenuTap:
-                          Responsive.of(context).isDesktop ? null : _openMenu,
-                      onPersonalizeDashboard:
-                          ref.watch(personalizationProvider).isUnavailable
-                              ? null
-                              : _openPersonalize,
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    width < 900 ? 20 : 30,
+                    32,
+                    width < 900 ? 20 : 30,
+                    32,
+                  ),
+                  // Dashboard content — keep max width 1400
+                  child: ResponsiveBody(
+                    maxWidth: 1400,
+                    child: LayoutBuilder(
+                      builder: (context, inner) => _buildWidgetArea(
+                        accountsState,
+                        inner.maxWidth,
+                        isWide: true,
+                      ),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                const SizedBox(height: 20),
-
-                // Dashboard content — keep max width 1400
-                ResponsiveBody(
-                  maxWidth: 1400,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 12),
-
-                      LayoutBuilder(
-                        builder: (context, inner) => _buildWidgetArea(
-                          accountsState,
-                          inner.maxWidth,
-                          isWide: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
