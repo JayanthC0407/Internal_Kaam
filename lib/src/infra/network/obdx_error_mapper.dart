@@ -5,7 +5,7 @@ import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/l10n/error_localizations.dart';
 import 'package:ubci_bank/src/core/constants/app_constants.dart';
-import 'package:ubci_bank/src/core/models/obdx_error.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_error.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Parses Dio and OBDX payloads into [ObdxError] with l10n keys for UI.

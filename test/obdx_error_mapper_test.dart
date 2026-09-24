@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/obdx_error.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_error.dart';
 import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
 
 void main() {

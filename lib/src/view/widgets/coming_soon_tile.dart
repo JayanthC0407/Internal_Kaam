@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// A payments-menu row for a feature not implemented yet (Repeat
 /// Transfer, Multiple Transfers, Payment Inquiries, Saved Drafts,

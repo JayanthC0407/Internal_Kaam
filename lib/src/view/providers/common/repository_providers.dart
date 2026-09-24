@@ -1,0 +1,63 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/src/infra/repositories/common/auth_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/biometric_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/forgot_credentials_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/login_wizard_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/registration_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/payee_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/payment_repository.dart';
+import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
+import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
+
+final authRepositoryProvider = Provider(
+  (ref) => AuthRepository(
+    authApi: ref.watch(obdxAuthApiProvider),
+    userApi: ref.watch(obdxUserApiProvider),
+  ),
+);
+
+final registrationRepositoryProvider = Provider(
+  (ref) => RegistrationRepository(
+    authApi: ref.watch(obdxAuthApiProvider),
+    registrationApi: ref.watch(obdxRegistrationApiProvider),
+  ),
+);
+
+final forgotCredentialsRepositoryProvider = Provider(
+  (ref) => ForgotCredentialsRepository(
+    authApi: ref.watch(obdxAuthApiProvider),
+    credentialsApi: ref.watch(obdxCredentialsApiProvider),
+  ),
+);
+
+final biometricRepositoryProvider = Provider(
+  (ref) => BiometricRepository(
+    authApi: ref.watch(obdxAuthApiProvider),
+    mobileApi: ref.watch(obdxMobileApiProvider),
+    userApi: ref.watch(obdxUserApiProvider),
+    preferences: ref.watch(preferenceHelperProvider),
+    sessionManager: ref.watch(sessionManagerProvider),
+    passwordCrypto: ObdxPasswordCryptoService(ref.watch(obdxAuthApiProvider)),
+  ),
+);
+
+final payeeRepositoryProvider = Provider(
+  (ref) => PayeeRepository(
+    payeeApi: ref.watch(obdxPayeeApiProvider),
+  ),
+);
+
+/// See [PaymentRepository] — currently a local mock; no `ObdxPaymentApi`
+/// exists in this codebase yet.
+final paymentRepositoryProvider = Provider((ref) => PaymentRepository());
+
+/// First-time Login Flow Wizard (LFW) — ported from vendor branch.
+final loginWizardRepositoryProvider = Provider(
+  (ref) => LoginWizardRepository(api: ref.watch(obdxLoginWizardApiProvider)),
+);
+
+// Note: `transferRepositoryProvider` (own-account transfer, ported from the
+// vendor branch) is defined in transfer_providers.dart alongside the rest of
+// that feature's Riverpod state — matching the vendor's own file layout —
+// rather than here, to avoid a duplicate top-level declaration.

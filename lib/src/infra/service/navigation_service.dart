@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/home_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
 
 class NavigationService {
   static final GlobalKey<NavigatorState> globalAppNav =

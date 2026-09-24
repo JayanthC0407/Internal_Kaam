@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/loan_account.dart';
+import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
 
 void main() {
   group('LoanAccountsSummary', () {

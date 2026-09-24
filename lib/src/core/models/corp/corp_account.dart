@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/money_amount.dart';
+import 'package:ubci_bank/src/core/models/common/money_amount.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
 /// OBDX account-type codes returned on `accounts[].type` and

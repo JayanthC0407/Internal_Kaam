@@ -7,3 +7,4 @@ export 'corp_accounts_providers.dart';
 export 'corp_network_providers.dart';
 export 'corp_profile_providers.dart';
 export 'corp_repository_providers.dart';
+export 'corp_cash_management_providers.dart';

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/profile_initials.dart';
-import 'package:ubci_bank/src/view/providers/app_settings_providers.dart';
+import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
+import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 
@@ -25,7 +25,12 @@ class CorpDashboardHeaderBar extends ConsumerWidget {
     this.onLanguageTap,
     this.onHelpTap,
     this.onNotificationsTap,
+    this.onPersonalizeDashboard,
   });
+
+  /// Opens the Personalize Dashboard screen from the settings menu.
+  /// `null` omits the entry entirely.
+  final VoidCallback? onPersonalizeDashboard;
 
   /// Fallback display name when the `me` response has not resolved a full
   /// name (used for the avatar initials and the profile menu header).
@@ -111,7 +116,7 @@ class CorpDashboardHeaderBar extends ConsumerWidget {
             badgeCount: profileState.unreadMessageCount,
             onTap: onNotificationsTap,
           ),
-          const _CorpSettingsMenu(),
+          _CorpSettingsMenu(onPersonalizeDashboard: onPersonalizeDashboard),
           const SizedBox(width: 4),
           _CorpProfileMenu(
             displayName: displayName,
@@ -233,37 +238,49 @@ class _CorpHeaderIconButton extends StatelessWidget {
   }
 }
 
-/// Gear + chevron, per the design. Holds the real light/dark theme switch.
+/// Gear + chevron, per the design. Holds the Personalize Dashboard action
+/// and the light/dark theme switch.
 class _CorpSettingsMenu extends ConsumerWidget {
-  const _CorpSettingsMenu();
+  const _CorpSettingsMenu({this.onPersonalizeDashboard});
+
+  /// `null` hides the entry — used when `me` gave the user no
+  /// personalizable dashboard, so the action would have nothing to open.
+  final VoidCallback? onPersonalizeDashboard;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(appSettingsProvider).themeMode == ThemeMode.dark;
+    final personalize = onPersonalizeDashboard;
 
     return PopupMenuButton<String>(
       tooltip: 'Settings',
       position: PopupMenuPosition.under,
       color: CorpColors.card(context),
       onSelected: (value) {
+        if (value == 'personalize') {
+          personalize?.call();
+          return;
+        }
         if (value != 'theme') return;
         ref.read(appSettingsProvider.notifier).setThemeMode(
               isDark ? ThemeMode.light : ThemeMode.dark,
             );
       },
       itemBuilder: (context) => [
+        if (personalize != null)
+          PopupMenuItem(
+            value: 'personalize',
+            child: _MenuRow(
+              icon: Icons.dashboard_customize_outlined,
+              label: 'Personalize Dashboard',
+            ),
+          ),
+        if (personalize != null) const PopupMenuDivider(),
         PopupMenuItem(
           value: 'theme',
-          child: Row(
-            children: [
-              Icon(
-                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                size: 18,
-                color: CorpColors.brand(context),
-              ),
-              const SizedBox(width: 10),
-              Text(isDark ? 'Switch to light mode' : 'Switch to dark mode'),
-            ],
+          child: _MenuRow(
+            icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            label: isDark ? 'Switch to light mode' : 'Switch to dark mode',
           ),
         ),
       ],
@@ -285,6 +302,32 @@ class _CorpSettingsMenu extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Icon + label row for a popup menu item.
+///
+/// The label is [Flexible] because popup menus are width-constrained
+/// (256px here) — a plain Row would overflow on the longer labels.
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.icon, required this.label, this.iconColor});
+
+  final IconData icon;
+  final String label;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: iconColor ?? CorpColors.brand(context)),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+      ],
     );
   }
 }
@@ -352,16 +395,10 @@ class _CorpProfileMenu extends StatelessWidget {
         const PopupMenuDivider(),
         PopupMenuItem<String>(
           value: 'logout',
-          child: Row(
-            children: [
-              Icon(
-                Icons.logout_rounded,
-                size: 18,
-                color: CorpColors.negativeBalance(context),
-              ),
-              const SizedBox(width: 10),
-              Text(l10n.logOut),
-            ],
+          child: _MenuRow(
+            icon: Icons.logout_rounded,
+            label: l10n.logOut,
+            iconColor: CorpColors.negativeBalance(context),
           ),
         ),
       ],

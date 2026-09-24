@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/core/utils/log_redactor.dart';
+import 'package:ubci_bank/src/core/utils/common/log_redactor.dart';
 
 void adLog(String message) {
   if (kDebugMode) {

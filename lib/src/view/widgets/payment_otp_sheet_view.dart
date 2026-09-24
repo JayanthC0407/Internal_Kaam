@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Pure-UI OTP entry sheet body, shared by the Internal and International
 /// payment flows' step-up authentication step (functional flow doc §7,

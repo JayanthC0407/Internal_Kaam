@@ -1,5 +1,5 @@
 import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/obdx_error.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_error.dart';
 
 extension AppLocalizationsErrors on AppLocalizations {
   String messageForObdxError(ObdxError error) {

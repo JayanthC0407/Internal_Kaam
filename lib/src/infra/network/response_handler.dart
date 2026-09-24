@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/obdx_error.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_error.dart';
 
 class ResponseHandler<T> {
   ResponseHandler._();
