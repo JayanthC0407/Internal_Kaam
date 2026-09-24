@@ -276,7 +276,10 @@ class _AuthenticatedSessionGateState
     if (!authed || expired) {
       if (expired) await session.logout();
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(RoutesConst.loginScreen);
+      // Root: this gate also wraps screens opened in a web dashboard's
+      // content navigator, where a login screen must not open.
+      Navigator.of(context, rootNavigator: true)
+          .pushReplacementNamed(RoutesConst.loginScreen);
       return;
     }
 
