@@ -4,9 +4,9 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
-import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
+import 'package:ubci_bank/src/infra/network/dashboard_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Where a loaded widget catalog came from. Surfaced so the UI can say so
 /// when it is running on the shipped copy, which is known to lag the
@@ -24,7 +24,7 @@ class DashboardCatalogResult {
 
 /// Personalized-dashboard data: the saved configuration, the authorization
 /// set, and the widget catalog.
-class DashboardRepository extends CorpRepositoryBase {
+class DashboardRepository extends ObdxRepositoryBase {
   DashboardRepository({required ObdxDashboardApi dashboardApi})
       : _api = dashboardApi;
 
@@ -133,7 +133,7 @@ class DashboardRepository extends CorpRepositoryBase {
 
     try {
       final raw = await rootBundle.loadString(
-        CorpApiConst.moduleComponentsAsset,
+        DashboardApiConst.moduleComponentsAsset,
       );
       final catalog = DashboardWidgetCatalog.fromPayload(jsonDecode(raw));
       if (!catalog.isEmpty) {

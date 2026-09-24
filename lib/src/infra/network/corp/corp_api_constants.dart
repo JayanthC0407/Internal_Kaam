@@ -75,45 +75,7 @@ class CorpApiConst {
   /// Collection types the pickup-point capture requests.
   static const List<String> pickupCollectionTypes = ['CASH', 'PAPERBASE'];
 
-  // ── Personalized dashboard ────────────────────────────────────────────
-
-  /// Dashboard configuration — `widgets(corp).har` entry #3.
-  ///
-  /// `class` and `value` are **not** constants: they come from the user's
-  /// own `me` response (`dashboardResponse.dashboardDTOs[]`). For the
-  /// captured corporate user that is `CUSTOM` / `custom`, but a user with
-  /// no personalized dashboard resolves to their factory `USER_TYPE` one.
-  ///
-  /// Shares a path with `ApiConst.dashboardModulesApi`, which the
-  /// first-time Login Flow Wizard probes with `class=USER_TYPE&value=Customer`
-  /// purely to detect a 428. Different parameters, different purpose —
-  /// deliberately kept as separate call sites.
-  static const String dashboardModulesApi =
-      '/digx-admin/config/v1/dashboards/modules';
-
-  /// Personalization save — `widgets(corp).har` entry #4.
-  /// `PUT /digx-admin/config/v1/dashboards/user/{dashboardId}`
-  static String dashboardUserApi(String dashboardId) =>
-      '/digx-admin/config/v1/dashboards/user/${Uri.encodeComponent(dashboardId)}';
-
-  /// Authorization set — `Home_widgets(corp).har` entry #6. Returns
-  /// `authorizedUIComponents` (~2500 names spanning the whole app, not just
-  /// dashboard widgets) plus `defaultDashboards`.
-  static const String meComponentsApi = '/digx-common/user/v1/me/components';
-
-  /// The widget catalog, served by the environment alongside the menu JSON
-  /// the web client fetches (`framework/json/menu/corporate.json`, capture
-  /// entry #15).
-  ///
-  /// Preferred over the bundled asset because the environment's catalog is
-  /// richer: the real Personalize screen lists whole modules the shipped
-  /// file lacks (Purchase Order Management, Reconciliation) and 8 cash
-  /// management widgets against the file's 2.
-  static const String moduleComponentsPath =
-      '/framework/json/moduleComponents.json';
-
-  /// Bundled fallback, used only when [moduleComponentsPath] cannot be
-  /// fetched. Known to lag the environment — see above.
-  static const String moduleComponentsAsset =
-      'assets/corp/module_components.json';
+  // The personalized-dashboard endpoints are not here: they serve every
+  // user type, so they live in `DashboardApiConst`
+  // (`infra/network/dashboard_api_constants.dart`).
 }
