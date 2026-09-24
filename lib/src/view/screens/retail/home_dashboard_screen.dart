@@ -19,15 +19,19 @@ import 'home/tabs/insights_tab_screen.dart';
 import 'home/tabs/more_tab_screen.dart';
 import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
 
 import 'home/widgets/app_nav_content.dart';
+import 'home/widgets/home_content.dart';
 import 'home/widgets/bottom_nav.dart';
 import 'home/widgets/dashboard_header_bar.dart';
-import 'home/widgets/home_content.dart';
+import 'home/widgets/spendings_donut_card.dart';
 import 'home/widgets/top_hero_section.dart';
 import 'home/widgets/web_navigation_sidebar.dart';
 // Payments, payees and transfers are shared with Corporate, so they live
@@ -140,32 +144,154 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   void _openPersonalize() => _scaffoldKey.currentState?.openEndDrawer();
 
-  /// Widgets the user has personalized onto their Retail dashboard,
-  /// rendered under the fixed content.
+  /// Components this dashboard always shows, whatever the saved
+  /// configuration says.
   ///
-  /// Additive rather than replacing: the Retail dashboard's own layout is a
-  /// designed, tabbed experience, and the OBDX catalog has no component
-  /// names for most of it — swapping it wholesale for the saved layout
-  /// would throw away more than it gained. Corporate replaces its body
-  /// because its widgets map onto catalog components almost one to one.
+  /// My Spendings is pinned here deliberately: it is part of the dashboard
+  /// proper rather than a widget the user opted into, so unselecting
+  /// everything must not take it away. It is also skipped in the
+  /// personalized grid below, so selecting it cannot draw it twice.
+  static const _staticComponents = <String>{'spend-summary'};
+
+  /// The Retail dashboard's widget area.
+  ///
+  /// Three distinct states, which matter because they look different:
+  ///
+  ///  - **No saved configuration** (not loaded, load failed, or the user has
+  ///    no personalizable dashboard): the original hand-built [HomeContent]
+  ///    layout, untouched. Its two-column arrangement and widget sizes are
+  ///    a designed thing, and approximating it on the 12-column grid
+  ///    changed proportions users were already used to.
+  ///  - **A saved configuration with widgets**: those widgets, on the grid,
+  ///    at the sizes the configuration asks for.
+  ///  - **A saved configuration with nothing selected**: empty, bar the
+  ///    static widgets. A user who unselects everything means it — falling
+  ///    back to a default set there put widgets back that they had just
+  ///    removed.
   ///
   /// Filters on *authorization* and the registry, never the catalog: a
   /// saved layout can hold components the catalog has never listed.
-  List<Widget> _buildPersonalizedWidgets() {
+  Widget _buildWidgetArea(
+    CasaAccountsState accountsState,
+    double available, {
+    required bool isWide,
+  }) {
     final state = ref.watch(personalizationProvider);
-    if (!state.isReady) return const [];
+
+    if (state.isLoading && !state.isReady) {
+      return const SizedBox(
+        height: 220,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2.4)),
+      );
+    }
+
+    // Nothing saved to render from — keep the dashboard exactly as it was
+    // before personalization existed.
+    if (!state.isReady) return _buildOriginalLayout(accountsState, isWide);
 
     final authorized = state.authorized;
-    final widgets = <Widget>[];
+    final tiles = <DashboardTile>[];
     for (final item in state.selectedItems) {
+      if (_staticComponents.contains(item.componentName)) continue;
       if (authorized.isNotEmpty && !authorized.contains(item.componentName)) {
         continue;
       }
-      widgets
-        ..add(const SizedBox(height: 16))
-        ..add(_registry.build(item.componentName));
+      tiles.add(
+        DashboardTile(
+          span: isWide
+              ? DashboardGridSpan.resolve(
+                  style: item.style,
+                  catalogWidth: state.catalog
+                      .byName(item.componentName)
+                      ?.widthFor(_catalogWidthKey(state.breakpoint)),
+                )
+              : DashboardGridSpan.columns,
+          child: _registry.build(item.componentName),
+        ),
+      );
     }
-    return widgets;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SpendingsDonutCard(),
+        const SizedBox(height: 20),
+        if (tiles.isEmpty)
+          _buildNoWidgetsSelected()
+        else
+          DashboardTileGrid(tiles: tiles, available: available),
+      ],
+    );
+  }
+
+  /// Shown when the user has deliberately unselected every widget.
+  Widget _buildNoWidgetsSelected() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 36),
+      child: Column(
+        children: [
+          Icon(
+            Icons.dashboard_customize_outlined,
+            size: 30,
+            color: HomeColors.navInactive(context),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No widgets on your dashboard',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: HomeColors.textPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Add some from Personalize Dashboard.',
+            style: TextStyle(
+              fontSize: 12.5,
+              color: HomeColors.textSecondary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The dashboard as it was before personalization — the original
+  /// [HomeContent] layout, with its own column arrangement and sizing.
+  Widget _buildOriginalLayout(CasaAccountsState accountsState, bool isWide) {
+    return HomeContent(
+      selectedTopTabIndex: _selectedTopTabIndex,
+      onTopTabSelected: (index) =>
+          setState(() => _selectedTopTabIndex = index),
+      revealedAccountIds: _revealedAccountIds,
+      onToggleAccountVisibility: _toggleAccountVisibility,
+      accounts: accountsState.summary?.accounts ?? const [],
+      accountsLoading: accountsState.isLoading,
+      accountsError: accountsState.errorMessage,
+      onRetryAccounts: () => ref.read(casaAccountsProvider.notifier).refresh(),
+      onViewAllLoans: () =>
+          _openAccountsDestination(WebAccountsDestination.loans),
+      onViewAllAccountsTap: () =>
+          _openAccountsDestination(WebAccountsDestination.casa),
+      onCasaAccountTap: _openCasaAccountDetails,
+      onLoanAccountTap: _openLoanAccountDetails,
+      isWide: isWide,
+      displayName: _displayNameFromTrace(),
+      onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
+    );
+  }
+
+  static String _catalogWidthKey(DashboardBreakpoint breakpoint) {
+    switch (breakpoint) {
+      case DashboardBreakpoint.small:
+        return 'small';
+      case DashboardBreakpoint.medium:
+        return 'medium';
+      case DashboardBreakpoint.large:
+      case DashboardBreakpoint.defaultLayout:
+        return 'large';
+    }
   }
 
   /// Side-sheet width — just the module headings.
@@ -628,25 +754,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           ),
         ),
         SliverToBoxAdapter(
-          child: HomeContent(
-            selectedTopTabIndex: _selectedTopTabIndex,
-            onTopTabSelected: (index) =>
-                setState(() => _selectedTopTabIndex = index),
-            revealedAccountIds: _revealedAccountIds,
-            onToggleAccountVisibility: _toggleAccountVisibility,
-            accounts: summary?.accounts ?? const [],
-            accountsLoading: accountsState.isLoading,
-            accountsError: accountsState.errorMessage,
-            onRetryAccounts: () =>
-                ref.read(casaAccountsProvider.notifier).refresh(),
-            onViewAllLoans: () =>
-                _openAccountsDestination(WebAccountsDestination.loans),
-            onViewAllAccountsTap: () =>
-                _openAccountsDestination(WebAccountsDestination.casa),
-            onCasaAccountTap: _openCasaAccountDetails,
-            onLoanAccountTap: _openLoanAccountDetails,
-            displayName: displayName,
-            onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
+          child: LayoutBuilder(
+            builder: (context, constraints) => _buildWidgetArea(
+              accountsState,
+              constraints.maxWidth,
+              isWide: false,
+            ),
           ),
         ),
       ],
@@ -654,17 +767,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }
 
   Widget _buildWebDashboard(CasaAccountsState accountsState) {
-    final l10n = AppLocalizations.of(context);
-    final summary = accountsState.summary;
-    final balanceText = _heroBalanceText(summary) ?? '—';
-    final accounts = summary?.accounts ?? const <CasaAccount>[];
-    final displayName = _displayNameFromTrace();
-
     return SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          final stackHero = width < 980;
 
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -705,29 +811,13 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                     children: [
                       const SizedBox(height: 12),
 
-                      HomeContent(
-                        selectedTopTabIndex: _selectedTopTabIndex,
-                        onTopTabSelected: (index) =>
-                            setState(() => _selectedTopTabIndex = index),
-                        revealedAccountIds: _revealedAccountIds,
-                        onToggleAccountVisibility: _toggleAccountVisibility,
-                        accounts: accounts,
-                        accountsLoading: accountsState.isLoading,
-                        accountsError: accountsState.errorMessage,
-                        onRetryAccounts: () =>
-                            ref.read(casaAccountsProvider.notifier).refresh(),
-                        onViewAllLoans: () =>
-                            _openAccountsDestination(WebAccountsDestination.loans),
-                        onViewAllAccountsTap: () =>
-                            _openAccountsDestination(WebAccountsDestination.casa),
-                        onCasaAccountTap: _openCasaAccountDetails,
-                        onLoanAccountTap: _openLoanAccountDetails,
-                        isWide: true,
-                        displayName: displayName,
-                        onTransferTap: () =>
-                            setState(() => _selectedBottomNavIndex = 2),
+                      LayoutBuilder(
+                        builder: (context, inner) => _buildWidgetArea(
+                          accountsState,
+                          inner.maxWidth,
+                          isWide: true,
+                        ),
                       ),
-                      ..._buildPersonalizedWidgets(),
                     ],
                   ),
                 ),
