@@ -5,6 +5,7 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/retail/loan_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
 final loanRepositoryProvider = Provider(
@@ -62,9 +63,12 @@ class LoanAccountsNotifier extends StateNotifier<LoanAccountsState> {
   }
 
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _ref.read(loanRepositoryProvider).fetchLoans();
     final l10n = await AppLocalizationsHelper.current();
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     if (result is Success<LoanAccountsSummary>) {
       _loadedOnce = true;
