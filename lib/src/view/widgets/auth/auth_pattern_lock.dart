@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/utils/responsive.dart';
-import 'package:ubci_bank/src/view/screens/auth/auth_colors.dart';
+import 'package:ubci_bank/src/core/utils/common/responsive.dart';
+import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 
 /// 3×3 Android-style pattern lock. Emits selected dot indices (0–8).
 class AuthPatternLock extends StatefulWidget {

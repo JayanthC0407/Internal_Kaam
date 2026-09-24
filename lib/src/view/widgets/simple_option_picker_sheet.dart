@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:ubci_bank/src/view/screens/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Generic single-select bottom sheet for short option lists (countries,
 /// currencies, payment purposes) — reused across the International

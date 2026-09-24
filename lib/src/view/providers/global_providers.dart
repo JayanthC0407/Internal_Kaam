@@ -1,17 +1,21 @@
-/// Barrel export — import this file for all app-wide Riverpod providers.
+/// Barrel export — import this file for the app-wide Riverpod providers
+/// that are not specific to one user type, plus the Retail ones.
+///
+/// Corporate providers live behind `corp/corp_global_providers.dart`, so
+/// Retail code never pulls the Corporate tree in and vice versa.
 library;
 
-export 'accounts_providers.dart';
-export 'app_settings_providers.dart';
-export 'biometric_providers.dart';
-export 'loan_providers.dart';
-export 'payee_providers.dart';
-export 'login_providers.dart';
-export 'login_wizard_providers.dart';
-export 'loan_transactions_screen_provider.dart';
-export 'network_providers.dart';
-export 'recent_transactions_widget_providers.dart';
-export 'repository_providers.dart';
-export 'security_providers.dart';
-export 'session_providers.dart';
-export 'transfer_providers.dart';
+export 'common/app_settings_providers.dart';
+export 'common/biometric_providers.dart';
+export 'common/login_providers.dart';
+export 'common/login_wizard_providers.dart';
+export 'common/network_providers.dart';
+export 'common/payee_providers.dart';
+export 'common/repository_providers.dart';
+export 'common/security_providers.dart';
+export 'common/session_providers.dart';
+export 'common/transfer_providers.dart';
+export 'retail/accounts_providers.dart';
+export 'retail/loan_providers.dart';
+export 'retail/loan_transactions_screen_provider.dart';
+export 'retail/recent_transactions_widget_providers.dart';

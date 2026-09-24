@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/account_type_option.dart';
+import 'package:ubci_bank/src/core/models/common/account_type_option.dart';
 
 void main() {
   group('AccountTypeOption', () {
