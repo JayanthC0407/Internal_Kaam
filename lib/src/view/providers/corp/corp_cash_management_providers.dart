@@ -6,6 +6,7 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_cash_management_repository.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
 
 final obdxCorpCashManagementApiProvider = Provider(
@@ -65,12 +66,13 @@ class CorpPickupPointsNotifier extends StateNotifier<CorpPickupPointsState> {
   }
 
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _ref
         .read(corpCashManagementRepositoryProvider)
         .fetchPickupPoints();
 
-    if (!mounted) return;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     if (result is Success<List<CorpPickupPoint>>) {
       _loadedOnce = true;
@@ -87,7 +89,7 @@ class CorpPickupPointsNotifier extends StateNotifier<CorpPickupPointsState> {
     }
 
     final l10n = await AppLocalizationsHelper.current();
-    if (!mounted) return;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
     _loadedOnce = true;
     state = state.copyWith(
       isLoading: false,

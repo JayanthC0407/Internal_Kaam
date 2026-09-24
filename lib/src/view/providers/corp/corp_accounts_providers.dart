@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
 
 /// Corporate accounts state for the dashboard.
@@ -83,8 +84,11 @@ class CorpAccountsNotifier extends StateNotifier<CorpAccountsState> {
   }
 
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _ref.read(corpAccountsRepositoryProvider).fetchAccounts();
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     if (result is Success<CorpAccountsSummary>) {
       _loadedOnce = true;
@@ -145,6 +149,7 @@ class CorpAccountsNotifier extends StateNotifier<CorpAccountsState> {
   }
 
   Future<void> _loadGroup(CorpAccountGroup group) async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(
       loadingGroups: {...state.loadingGroups, group},
       groupErrors: {...state.groupErrors}..remove(group),
@@ -156,6 +161,8 @@ class CorpAccountsNotifier extends StateNotifier<CorpAccountsState> {
       CorpAccountGroup.loan => await repository.fetchLoans(),
       _ => null,
     };
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     if (result == null) {
       state = state.copyWith(
