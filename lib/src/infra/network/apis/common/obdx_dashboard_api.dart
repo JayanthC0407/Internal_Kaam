@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
-import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
+import 'package:ubci_bank/src/infra/network/dashboard_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
@@ -24,7 +24,7 @@ class ObdxDashboardApi extends ObdxApiBase {
   }) async {
     try {
       final response = await dio.get(
-        ObdxApiUtils.appendLocaleQuery(CorpApiConst.dashboardModulesApi),
+        ObdxApiUtils.appendLocaleQuery(DashboardApiConst.dashboardModulesApi),
         queryParameters: {
           'class': dashboardClass,
           'value': dashboardClassValue,
@@ -53,7 +53,7 @@ class ObdxDashboardApi extends ObdxApiBase {
     try {
       final response = await dio.put(
         ObdxApiUtils.appendLocaleQuery(
-          CorpApiConst.dashboardUserApi(dashboardId),
+          DashboardApiConst.dashboardUserApi(dashboardId),
         ),
         data: payload,
         options: Options(
@@ -72,7 +72,7 @@ class ObdxDashboardApi extends ObdxApiBase {
   Future<ResponseHandler<Map<String, dynamic>>> fetchAuthorizedComponents() async {
     try {
       final response = await dio.get(
-        ObdxApiUtils.appendLocaleQuery(CorpApiConst.meComponentsApi),
+        ObdxApiUtils.appendLocaleQuery(DashboardApiConst.meComponentsApi),
         options: Options(
           headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
         ),
@@ -94,7 +94,7 @@ class ObdxDashboardApi extends ObdxApiBase {
   Future<ResponseHandler<Map<String, dynamic>>> fetchModuleComponents() async {
     try {
       final response = await dio.get(
-        CorpApiConst.moduleComponentsPath,
+        DashboardApiConst.moduleComponentsPath,
         queryParameters: {
           'bust': DateTime.now().millisecondsSinceEpoch,
         },

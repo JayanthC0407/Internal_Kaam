@@ -305,12 +305,104 @@ void main() {
       expect(small.last.toJson()['data'], '{}');
     });
 
-    test('omits waterfallLayout, matching the captured PUT', () {
+    test('sends waterfallLayout back exactly as received', () {
       final config = DashboardConfig.fromPayload(_capturedConfig())!;
       final payload = config.toUpdatePayload();
 
-      expect((payload['layout'] as Map).containsKey('waterfallLayout'), isFalse);
+      // The save replaces the whole `layout` object, so a waterfall that is
+      // not sent back is at risk of being cleared.
+      expect(
+        (payload['layout'] as Map)['waterfallLayout'],
+        {'defaultLayout': [], 'large': [], 'medium': [], 'small': []},
+      );
       expect(payload.keys, ['dashboardName', 'dashboardDescription', 'layout']);
+    });
+
+    test('preserves a populated waterfallLayout through an edit', () {
+      // The captured waterfall is empty, which is why omitting it looked
+      // harmless. A populated one is the case that matters: editing `large`
+      // must not lose it.
+      final source = _capturedConfig();
+      final layout = (source['dashboardDTO'] as Map)['layout'] as Map;
+      layout['waterfallLayout'] = {
+        'defaultLayout': [],
+        'large': [
+          {
+            'componentName': 'account-quick-links',
+            'module': 'corporateDashboard',
+            'style': 'oj-lg-4',
+            'childPanel': [],
+          },
+        ],
+        'medium': [],
+        'small': [],
+      };
+
+      final edited = DashboardConfig.fromPayload(source)!.withLayout(
+        DashboardBreakpoint.large,
+        const [
+          DashboardLayoutItem(
+            componentName: 'currency-exposure',
+            module: 'corporateDashboard',
+            style: 'oj-lg-4',
+          ),
+        ],
+      );
+      final sent = (edited.toUpdatePayload()['layout'] as Map)['waterfallLayout']
+          as Map;
+
+      // Verbatim — including `childPanel`, which the regular layout strips.
+      // Nothing here edits the waterfall, so nothing should reshape it.
+      expect(sent['large'], [
+        {
+          'componentName': 'account-quick-links',
+          'module': 'corporateDashboard',
+          'style': 'oj-lg-4',
+          'childPanel': [],
+        },
+      ]);
+    });
+
+    test('does not invent a waterfallLayout the host never sent', () {
+      final source = _capturedConfig();
+      ((source['dashboardDTO'] as Map)['layout'] as Map)
+          .remove('waterfallLayout');
+
+      final payload = DashboardConfig.fromPayload(source)!.toUpdatePayload();
+      expect((payload['layout'] as Map).containsKey('waterfallLayout'), isFalse);
+    });
+
+    test('the payload does not alias the config it came from', () {
+      // A caller mutating what it is about to send must not be able to
+      // reach back and change the stored configuration.
+      final config = DashboardConfig.fromPayload(_capturedConfig())!;
+      final first = config.toUpdatePayload();
+      ((first['layout'] as Map)['waterfallLayout'] as Map)['large'] = ['x'];
+
+      final second = config.toUpdatePayload();
+      expect(((second['layout'] as Map)['waterfallLayout'] as Map)['large'],
+          isEmpty);
+    });
+  });
+
+  group('DashboardConfig.isUserCustom', () {
+    test('is true only for a non-factory CUSTOM dashboard', () {
+      expect(DashboardConfig.fromPayload(_capturedConfig())!.isUserCustom,
+          isTrue);
+
+      final factory = _capturedConfig();
+      (factory['dashboardDTO'] as Map)
+        ..['factory'] = true
+        ..['dashboardClass'] = 'USER_TYPE'
+        ..['dashboardClassValue'] = 'corporateuser';
+      expect(DashboardConfig.fromPayload(factory)!.isUserCustom, isFalse);
+
+      // A host could answer a CUSTOM request with a factory record; the
+      // factory flag alone must be enough to refuse it.
+      final customButFactory = _capturedConfig();
+      (customButFactory['dashboardDTO'] as Map)['factory'] = true;
+      expect(DashboardConfig.fromPayload(customButFactory)!.isUserCustom,
+          isFalse);
     });
   });
 }

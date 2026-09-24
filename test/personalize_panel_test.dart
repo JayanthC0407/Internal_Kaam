@@ -48,8 +48,11 @@ void main() {
       expect(descriptor.dashboardClassValue, 'custom');
     });
 
-    test('falls back to the factory dashboard when that is all there is', () {
-      // A user who has never personalized still needs somewhere to save.
+    test('never offers the factory dashboard as a write target', () {
+      // A factory dashboard is shared by every user of the type — saving to
+      // it would change the bank's default for all of them. What OBDX does
+      // for a first-time user without a CUSTOM dashboard is unverified, so
+      // such a user gets no personalization rather than a shared write.
       final descriptor = DashboardDescriptor.personalizableFromProfileResponse({
         'body': {
           'dashboardResponse': {
@@ -65,8 +68,28 @@ void main() {
         },
       });
 
-      expect(descriptor?.dashboardId, '9');
-      expect(descriptor?.dashboardClassValue, 'retailuser');
+      expect(descriptor, isNull);
+    });
+
+    test('rejects a non-factory dashboard that is not CUSTOM', () {
+      // Being non-factory is not enough on its own — the user's own record
+      // is the CUSTOM one.
+      final descriptor = DashboardDescriptor.personalizableFromProfileResponse({
+        'body': {
+          'dashboardResponse': {
+            'dashboardDTOs': [
+              {
+                'dashboardId': '40',
+                'dashboardClass': 'USER_TYPE',
+                'dashboardClassValue': 'retailuser',
+                'factory': false,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(descriptor, isNull);
     });
 
     test('returns null when me carried no usable dashboard', () {

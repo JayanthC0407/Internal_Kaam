@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
 /// The responsive breakpoints OBDX stores a separate widget layout for.
@@ -123,6 +125,7 @@ class DashboardConfig {
     this.dashboardClass,
     this.dashboardClassValue,
     this.isFactory = false,
+    this.waterfallLayout,
   });
 
   /// PUT target: `.../dashboards/user/{dashboardId}`.
@@ -142,6 +145,23 @@ class DashboardConfig {
 
   /// A factory dashboard is the bank's default, not the user's own copy.
   final bool isFactory;
+
+  /// `layout.waterfallLayout`, kept verbatim.
+  ///
+  /// Nothing in this app reads or edits it, which is exactly why it is held
+  /// raw rather than parsed: the save replaces the whole `layout` object, so
+  /// anything not sent back is at risk of being cleared. Round-tripping it
+  /// untouched means a layout the web client arranged there survives a save
+  /// made from this app. Null when the host did not send one, in which case
+  /// none is invented on save.
+  final Map<String, dynamic>? waterfallLayout;
+
+  /// The user's own personalized dashboard — the only kind this app writes.
+  ///
+  /// A factory dashboard is shared by every user of the type, so saving to
+  /// one would change the bank's default for all of them.
+  bool get isUserCustom =>
+      !isFactory && (dashboardClass ?? '').toUpperCase() == 'CUSTOM';
 
   List<DashboardLayoutItem> layoutFor(DashboardBreakpoint breakpoint) =>
       layoutsByBreakpoint[breakpoint] ?? const [];
@@ -181,15 +201,19 @@ class DashboardConfig {
       dashboardClass: dashboardClass,
       dashboardClassValue: dashboardClassValue,
       isFactory: isFactory,
+      waterfallLayout: waterfallLayout,
     );
   }
 
   /// The PUT body, in the shape the captured request used.
   ///
-  /// `waterfallLayout` is intentionally omitted: the GET returns it but the
-  /// captured PUT does not send it. (Untested for a user whose
-  /// `waterfallLayout` is non-empty — every capture we have is empty.)
+  /// [waterfallLayout] is sent back exactly as it was received. The captured
+  /// web-client PUT happened to omit it, but that capture's waterfall was
+  /// empty, so it proves nothing about a populated one — and because the
+  /// save replaces the whole `layout` object, omitting a populated waterfall
+  /// risks clearing it. Preserving it is the safe round-trip.
   Map<String, dynamic> toUpdatePayload() {
+    final waterfall = waterfallLayout;
     return {
       'dashboardName': dashboardName,
       'dashboardDescription': dashboardDescription,
@@ -200,9 +224,15 @@ class DashboardConfig {
               for (final item in layoutFor(breakpoint)) item.toJson(),
             ],
         },
+        if (waterfall != null) 'waterfallLayout': _deepCopy(waterfall),
       },
     };
   }
+
+  /// Independent copy of a JSON map, so a caller mutating the payload
+  /// cannot reach back into this config.
+  static Map<String, dynamic> _deepCopy(Map<String, dynamic> source) =>
+      Map<String, dynamic>.from(jsonDecode(jsonEncode(source)) as Map);
 
   static DashboardConfig? fromPayload(dynamic data) {
     final root = _unwrap(data);
@@ -225,6 +255,7 @@ class DashboardConfig {
     // `layout.layout` — the outer key wraps `layout` and `waterfallLayout`.
     final layoutWrapper = ObdxApiUtils.asMap(dto['layout']);
     final layouts = ObdxApiUtils.asMap(layoutWrapper['layout']);
+    final waterfall = layoutWrapper['waterfallLayout'];
 
     final parsed = <DashboardBreakpoint, List<DashboardLayoutItem>>{};
     for (final breakpoint in DashboardBreakpoint.values) {
@@ -254,6 +285,9 @@ class DashboardConfig {
       dashboardClass: _trimmed(dto['dashboardClass']),
       dashboardClassValue: _trimmed(dto['dashboardClassValue']),
       isFactory: dto['factory'] == true,
+      waterfallLayout: waterfall is Map
+          ? _deepCopy(Map<String, dynamic>.from(waterfall))
+          : null,
     );
   }
 
