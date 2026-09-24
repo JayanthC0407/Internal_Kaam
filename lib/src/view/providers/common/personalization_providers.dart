@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
@@ -316,7 +317,7 @@ class PersonalizationNotifier
           componentName: componentName,
           module: _moduleFor(componentName),
           data: '{}',
-          style: _styleFor(state.breakpoint),
+          style: _styleFor(componentName, state.breakpoint),
         ),
       );
     }
@@ -359,19 +360,36 @@ class PersonalizationNotifier
     return module.isEmpty ? 'corporateDashboard' : module;
   }
 
-  /// Oracle JET grid class for a newly added item. Flutter derives its own
-  /// layout, but the value round-trips to the web client, so it has to be
-  /// one the web grid understands.
-  static String _styleFor(DashboardBreakpoint breakpoint) {
-    switch (breakpoint) {
-      case DashboardBreakpoint.small:
-        return 'oj-sm-12';
-      case DashboardBreakpoint.medium:
-        return 'oj-md-12';
-      case DashboardBreakpoint.large:
-      case DashboardBreakpoint.defaultLayout:
-        return 'oj-lg-12';
-    }
+  /// Oracle JET grid class for a newly added item.
+  ///
+  /// Takes the column count from the catalog's `width` for this breakpoint,
+  /// which is the size the bank configured the widget at — writing a flat
+  /// `oj-*-12` instead made every newly added widget full width, so a
+  /// personalized dashboard collapsed into a single vertical column.
+  ///
+  /// Full width is only the fallback, for a component the catalog has no
+  /// entry or no width for. Flutter derives its own layout from this, but
+  /// the value also round-trips to the web client, so it has to be a class
+  /// the Oracle JET grid understands.
+  String _styleFor(String componentName, DashboardBreakpoint breakpoint) {
+    final prefix = switch (breakpoint) {
+      DashboardBreakpoint.small => 'oj-sm',
+      DashboardBreakpoint.medium => 'oj-md',
+      DashboardBreakpoint.large ||
+      DashboardBreakpoint.defaultLayout =>
+        'oj-lg',
+    };
+    final widthKey = switch (breakpoint) {
+      DashboardBreakpoint.small => 'small',
+      DashboardBreakpoint.medium => 'medium',
+      DashboardBreakpoint.large || DashboardBreakpoint.defaultLayout => 'large',
+    };
+
+    final definition = state.catalog.byName(componentName);
+    final span = DashboardGridSpan.fromCatalogWidth(
+      definition?.widthFor(widthKey),
+    );
+    return '$prefix-${span ?? DashboardGridSpan.columns}';
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
@@ -252,24 +253,40 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// The dashboard body below the accounts hero, rendered from the user's
   /// saved configuration for the current breakpoint.
   ///
-  /// Falls back to the designed default arrangement whenever personalization
-  /// is unavailable — still loading, failed to load, or the user has no
-  /// personalizable dashboard — so the dashboard is never blank.
+  /// While the configuration is still loading this shows a placeholder
+  /// rather than the default arrangement. Rendering the default first and
+  /// swapping once the call lands made the whole dashboard visibly rebuild
+  /// under the user — showing widgets that were never theirs, then
+  /// replacing them.
+  ///
+  /// The default arrangement is still the fallback for a *settled* state
+  /// with nothing to render: the load failed, the user has no personalizable
+  /// dashboard, or their layout is empty. The dashboard is never blank once
+  /// loading has finished.
   ///
   /// Note the render path filters on *authorization* and the registry, not
   /// on the catalog: a saved layout can legitimately hold components the
   /// catalog has never listed (5 of the 10 on the captured dashboard), and
   /// dropping those would silently gut a dashboard the user built.
-  List<_DashboardTile> _buildPersonalizedTiles(bool sideBySide) {
+  List<DashboardTile> _buildPersonalizedTiles(bool sideBySide) {
     final state = ref.watch(personalizationProvider);
     final items = state.selectedItems;
+
+    if (state.isLoading && !state.isReady) {
+      return const [
+        DashboardTile(
+          span: DashboardGridSpan.columns,
+          child: _DashboardBodyPlaceholder(),
+        ),
+      ];
+    }
 
     if (!state.isReady || items.isEmpty) {
       return _buildDefaultTiles(sideBySide);
     }
 
     final authorized = state.authorized;
-    final tiles = <_DashboardTile>[];
+    final tiles = <DashboardTile>[];
     for (final item in items) {
       if (authorized.isNotEmpty && !authorized.contains(item.componentName)) {
         continue;
@@ -286,7 +303,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
             )
           : DashboardGridSpan.columns;
       tiles.add(
-        _DashboardTile(
+        DashboardTile(
           span: span,
           child: _registry.build(item.componentName),
         ),
@@ -311,20 +328,20 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
 
   /// The designed arrangement, used when there is no saved configuration to
   /// render — so the dashboard is never blank.
-  List<_DashboardTile> _buildDefaultTiles(bool sideBySide) {
+  List<DashboardTile> _buildDefaultTiles(bool sideBySide) {
     final half = sideBySide ? 6 : DashboardGridSpan.columns;
     return [
-      _DashboardTile(
+      DashboardTile(
         span: sideBySide ? 6 : DashboardGridSpan.columns,
         child: const CorpQuickLinksCard(),
       ),
-      _DashboardTile(
+      DashboardTile(
         span: DashboardGridSpan.columns,
         child: const CorpFinancialSummaryWidget(),
       ),
-      _DashboardTile(span: half, child: const CorpCurrencyExposureWidget()),
-      _DashboardTile(span: half, child: const CorpPickupPointsWidget()),
-      _DashboardTile(
+      DashboardTile(span: half, child: const CorpCurrencyExposureWidget()),
+      DashboardTile(span: half, child: const CorpPickupPointsWidget()),
+      DashboardTile(
         span: DashboardGridSpan.columns,
         child: CorpAccountSummaryCard(onAccountTap: _openAccount),
       ),
@@ -380,8 +397,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                 // `account-quick-links`, so it arrives through the saved
                 // configuration like any other widget. Hard-coding it here
                 // as well is what made it render twice.
-                final tiles = <_DashboardTile>[
-                  _DashboardTile(
+                final tiles = <DashboardTile>[
+                  DashboardTile(
                     span: sideBySide ? 5 : DashboardGridSpan.columns,
                     child: CorpAccountsCard(
                       onViewAll: _openAccounts,
@@ -391,7 +408,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                   ..._buildPersonalizedTiles(sideBySide),
                 ];
 
-                return _DashboardGrid(
+                return DashboardTileGrid(
                   tiles: tiles,
                   available: inner.maxWidth,
                 );
@@ -404,45 +421,25 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   }
 }
 
-/// One widget on the dashboard, with the number of grid columns it spans.
-class _DashboardTile {
-  const _DashboardTile({required this.span, required this.child});
-
-  /// Columns out of [DashboardGridSpan.columns].
-  final int span;
-  final Widget child;
-}
-
-/// Lays dashboard tiles out on OBDX's 12-column grid.
-///
-/// Uses a [Wrap] rather than a fixed Row/Column so a row fills up and
-/// overflows naturally — matching how the web grid reflows, and meaning the
-/// dashboard never overflows horizontally however the user arranges it.
-class _DashboardGrid extends StatelessWidget {
-  const _DashboardGrid({required this.tiles, required this.available});
-
-  final List<_DashboardTile> tiles;
-  final double available;
-
-  static const double _gap = 20;
+/// Holds the dashboard body's place while the saved configuration loads,
+/// so the layout does not visibly rebuild once it arrives.
+class _DashboardBodyPlaceholder extends StatelessWidget {
+  const _DashboardBodyPlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: _gap,
-      runSpacing: _gap,
-      crossAxisAlignment: WrapCrossAlignment.start,
-      children: [
-        for (final tile in tiles)
-          SizedBox(
-            width: DashboardGridSpan.widthFor(
-              span: tile.span,
-              available: available,
-              gap: _gap,
-            ),
-            child: tile.child,
+    return SizedBox(
+      height: 220,
+      child: Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.4,
+            color: CorpColors.brand(context),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
