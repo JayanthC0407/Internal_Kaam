@@ -129,9 +129,13 @@ class _LoanAccountsListScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
+              // Top offset matches AppNavContent's top padding (22) around
+              // the sidebar logo, and the dashboard header's top padding —
+              // so "‹ Loans & Finances" sits on the same line as the
+              // Demobank logo instead of floating above it.
               padding: EdgeInsets.fromLTRB(
                 wide ? 28 : 16,
-                wide ? 12 : 12,
+                wide ? 36 : 24,
                 wide ? 28 : 16,
                 8,
               ),
@@ -219,69 +223,94 @@ class _LoanAccountsListScreenState
       padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 8, wide ? 28 : 16, 28),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        Text(
-          'All Loans',
-          style: TextStyle(
-            fontSize: wide ? 22 : 18,
-            fontWeight: FontWeight.w700,
-            color: HomeColors.textPrimary(context),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'View and manage all your loans.',
-          style: TextStyle(
-            fontSize: 13,
-            color: HomeColors.textSecondary(context),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (summary != null && summary.isMultiCurrency) ...[
-          LoanCurrencyTabs(
-            currencies: currencies,
-            selected: currency ?? currencies.first,
-            onChanged: onCurrencyChanged,
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (summary != null)
-          _SummaryCards(
-            summary: summary,
-            wide: wide,
-            currency: currency,
-          ),
-        const SizedBox(height: 20),
-        _AccountsHeader(
-          count: allLoans.length,
-          wide: wide,
-          searchOpen: _searchOpen,
-          searchController: _searchController,
-          statusFilter: _statusFilter,
-          onToggleSearch: () => setState(() => _searchOpen = !_searchOpen),
-          onStatusFilterChanged: (v) => setState(() => _statusFilter = v),
-        ),
-        const SizedBox(height: 12),
-        if (allLoans.isEmpty)
-          _EmptyState(message: l10n.loansEmpty)
-        else if (loans.isEmpty)
-          _EmptyState(message: 'No loans match your search.')
-        else if (wide)
-          _LoanTable(
-            loans: loans,
-            onSelected: widget.embedded ? widget.onLoanSelected : null,
-          )
-        else
-          Column(
-            children: [
-              for (var i = 0; i < loans.length; i++) ...[
-                if (i > 0) const SizedBox(height: 12),
-                _LoanCard(
-                  loan: loans[i],
-                  onSelected: widget.embedded ? widget.onLoanSelected : null,
-                ),
-              ],
+        // Outermost card — same chrome (bg, radius, border, bluish shadow)
+        // as the dashboard's cards, so the whole "All Loans" section reads
+        // as one elevated card instead of loose items on the page.
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: HomeColors.card(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: HomeColors.divider(context)),
+            boxShadow: [
+              BoxShadow(
+                color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+                blurRadius: 15,
+                spreadRadius: 0,
+                offset: const Offset(0, 0),
+              ),
             ],
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'All Loans',
+                style: TextStyle(
+                  fontSize: wide ? 22 : 18,
+                  fontWeight: FontWeight.w700,
+                  color: HomeColors.textPrimary(context),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'View and manage all your loans.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: HomeColors.textSecondary(context),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (summary != null && summary.isMultiCurrency) ...[
+                LoanCurrencyTabs(
+                  currencies: currencies,
+                  selected: currency ?? currencies.first,
+                  onChanged: onCurrencyChanged,
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (summary != null)
+                _SummaryCards(
+                  summary: summary,
+                  wide: wide,
+                  currency: currency,
+                ),
+              const SizedBox(height: 20),
+              _AccountsHeader(
+                count: allLoans.length,
+                wide: wide,
+                searchOpen: _searchOpen,
+                searchController: _searchController,
+                statusFilter: _statusFilter,
+                onToggleSearch: () => setState(() => _searchOpen = !_searchOpen),
+                onStatusFilterChanged: (v) => setState(() => _statusFilter = v),
+              ),
+              const SizedBox(height: 12),
+              if (allLoans.isEmpty)
+                _EmptyState(message: l10n.loansEmpty)
+              else if (loans.isEmpty)
+                _EmptyState(message: 'No loans match your search.')
+              else if (wide)
+                _LoanTable(
+                  loans: loans,
+                  onSelected: widget.embedded ? widget.onLoanSelected : null,
+                )
+              else
+                Column(
+                  children: [
+                    for (var i = 0; i < loans.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 12),
+                      _LoanCard(
+                        loan: loans[i],
+                        onSelected: widget.embedded ? widget.onLoanSelected : null,
+                      ),
+                    ],
+                  ],
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }

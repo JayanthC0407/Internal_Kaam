@@ -95,9 +95,13 @@ class _LoanAccountDetailsScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
+              // Top offset matches AppNavContent's top padding (22) around
+              // the sidebar logo, and the dashboard header's top padding —
+              // so the back arrow + title sit on the same line as the
+              // Demobank logo instead of floating above it.
               padding: EdgeInsets.fromLTRB(
                 wide ? 28 : 16,
-                wide ? 12 : 12,
+                wide ? 36 : 24,
                 wide ? 28 : 16,
                 8,
               ),
@@ -129,10 +133,15 @@ class _LoanAccountDetailsScreenState
   ) {
     if (state.isLoading && state.details == null) {
       return ListView(
+        padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 8, wide ? 28 : 16, 28),
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 160),
-          Center(child: CircularProgressIndicator()),
+        children: [
+          _OuterCard(
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
         ],
       );
     }
@@ -141,27 +150,34 @@ class _LoanAccountDetailsScreenState
 
     if (details == null) {
       return ListView(
+        padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 8, wide ? 28 : 16, 28),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          const SizedBox(height: 80),
-          Icon(
-            Icons.error_outline_rounded,
-            size: 40,
-            color: HomeColors.textSecondary(context),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            state.errorMessage ?? l10n.errorLoanDetailsLoadFailed,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: HomeColors.textSecondary(context)),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: OutlinedButton(
-              onPressed: () => ref
-                  .read(loanAccountDetailProvider(_detailKey).notifier)
-                  .refresh(),
-              child: Text(l10n.accountsRetry),
+          _OuterCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 40,
+                  color: HomeColors.textSecondary(context),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  state.errorMessage ?? l10n.errorLoanDetailsLoadFailed,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: HomeColors.textSecondary(context)),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () => ref
+                      .read(loanAccountDetailProvider(_detailKey).notifier)
+                      .refresh(),
+                  child: Text(l10n.accountsRetry),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ],
@@ -181,6 +197,14 @@ class _LoanAccountDetailsScreenState
       padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 8, wide ? 28 : 16, 28),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
+        // Outermost card — same chrome (bg, radius, border, bluish shadow)
+        // as the dashboard's cards, so the whole loan detail section reads
+        // as one elevated card. The banner / info grid / schedule keep
+        // their own inner borders, same as the CASA account details page.
+        _OuterCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
         _Banner(
           loan: widget.args.loan,
           details: details,
@@ -317,6 +341,9 @@ class _LoanAccountDetailsScreenState
                   errorMessage: state.disbursementsError,
                 ),
         ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -328,6 +355,38 @@ String _formatTenure(int? months, int? days) {
   if (months != null && months > 0) parts.add('$months mo');
   if (days != null && days > 0) parts.add('$days d');
   return parts.isEmpty ? '—' : parts.join(' ');
+}
+
+/// Outermost card — same chrome (bg, radius, border, bluish shadow) as the
+/// dashboard's cards (e.g. `AccountsTabCard`), reused across every state of
+/// this screen's body (loading / error / loaded) so the loan detail section
+/// always reads as one elevated card on the page.
+class _OuterCard extends StatelessWidget {
+  const _OuterCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: HomeColors.card(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: HomeColors.divider(context)),
+        boxShadow: [
+          BoxShadow(
+            color: HomeColors.brandLight(context).withValues(alpha: 0.30),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
 class _Banner extends StatelessWidget {
