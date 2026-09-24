@@ -64,7 +64,9 @@ class TransferSuccessScreen extends ConsumerWidget {
 Future<void> _goToHome(BuildContext context, WidgetRef ref) async {
   final args = await ref.read(sessionManagerProvider).buildHomeArgs();
   if (!context.mounted) return;
-  Navigator.of(context).pushNamedAndRemoveUntil(
+  // Root: on web this screen opens in the dashboard's content navigator,
+  // and a fresh dashboard must replace the whole app, not open inside it.
+  Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
     RoutesConst.homeScreen,
     (route) => false,
     arguments: HomeDashboardArgs(

@@ -63,7 +63,8 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
     if (!confirmed || !context.mounted) return;
     await action();
     if (!context.mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
+    // Root: on web this tab sits in the dashboard's content navigator.
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
       RoutesConst.loginScreen,
       (route) => false,
     );
