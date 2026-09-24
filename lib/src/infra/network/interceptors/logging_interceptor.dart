@@ -60,6 +60,16 @@ class LoggingInterceptor extends Interceptor {
     adLog('$label headers: ${LogRedactor.redactHeaders(headers)}');
   }
 
+  /// Longest payload written to the log in one go.
+  ///
+  /// `debugPrint` is rate-limited, so a few very large bodies can swamp the
+  /// queue and make later requests look as though they stopped logging
+  /// altogether. The dashboard alone pulls ~120KB per load
+  /// (`me/components` is 65KB, `moduleComponents.json` 55KB), which is
+  /// enough to do it. Truncating keeps every request visible; the full body
+  /// is still on the wire if it is genuinely needed.
+  static const int _maxPayloadChars = 4000;
+
   void _logPayload(String label, dynamic data) {
     if (data == null) {
       adLog('$label: (empty)');
@@ -76,6 +86,15 @@ class LoggingInterceptor extends Interceptor {
       adLog('$label: (empty)');
       return;
     }
-    adLog('$label: ${LogRedactor.redactPayload(data)}');
+
+    final payload = LogRedactor.redactPayload(data);
+    if (payload.length <= _maxPayloadChars) {
+      adLog('$label: $payload');
+      return;
+    }
+    adLog(
+      '$label (${payload.length} chars, showing first $_maxPayloadChars): '
+      '${payload.substring(0, _maxPayloadChars)}…',
+    );
   }
 }

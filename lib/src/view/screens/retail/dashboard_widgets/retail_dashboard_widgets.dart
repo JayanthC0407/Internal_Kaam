@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/accounts_tab_card.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/widgets/credit_cards_visual.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/widgets/info_corner_card.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_accounts_inline_panel.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_tracker_card.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/recent_transactions_card.dart';
@@ -101,4 +106,71 @@ class RetailQuickLinksWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const QuickActionsGrid();
+}
+
+/// OBDX `offers` (module `dashboard`) — the dashboard's info corner.
+class RetailOffersWidget extends StatelessWidget {
+  const RetailOffersWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) => const InfoCornerCard();
+}
+
+/// OBDX `casa-account-card` — the CASA accounts list panel.
+class RetailCasaAccountsWidget extends ConsumerStatefulWidget {
+  const RetailCasaAccountsWidget({super.key});
+
+  @override
+  ConsumerState<RetailCasaAccountsWidget> createState() =>
+      _RetailCasaAccountsWidgetState();
+}
+
+class _RetailCasaAccountsWidgetState
+    extends ConsumerState<RetailCasaAccountsWidget> {
+  final Set<String> _revealed = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(casaAccountsProvider.notifier).ensureLoaded();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(casaAccountsProvider);
+    return CasaAccountsPanel(
+      accounts: state.summary?.accounts ?? const <CasaAccount>[],
+      revealedAccountIds: _revealed,
+      onToggleAccountVisibility: (key) => setState(() {
+        if (!_revealed.remove(key)) _revealed.add(key);
+      }),
+      isLoading: state.isLoading,
+      errorMessage: state.errorMessage,
+      onRetry: () => ref.read(casaAccountsProvider.notifier).refresh(),
+    );
+  }
+}
+
+/// OBDX `loans-account-card` — the loan accounts list panel.
+class RetailLoanAccountsWidget extends StatelessWidget {
+  const RetailLoanAccountsWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) => LoanAccountsInlinePanel(
+        onLoanTap: (loan) => Navigator.of(context).pushNamed(
+          RoutesConst.loanAccountDetailsScreen,
+          arguments: LoanAccountDetailsArgs(loan: loan),
+        ),
+      );
+}
+
+/// OBDX `credit-card` visual, kept available for mapping.
+class RetailCreditCardsWidget extends StatelessWidget {
+  const RetailCreditCardsWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) => const CreditCardsVisual();
 }
