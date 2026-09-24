@@ -3,6 +3,7 @@ import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
 
 /// Identifies a loan for [loanAccountDetailProvider] — the loan id plus its
@@ -81,6 +82,7 @@ class LoanDetailNotifier extends StateNotifier<LoanDetailState> {
   }
 
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true, clearError: true);
     final repository = _ref.read(loanRepositoryProvider);
     final l10n = await AppLocalizationsHelper.current();
@@ -89,6 +91,8 @@ class LoanDetailNotifier extends StateNotifier<LoanDetailState> {
       _key.loanId,
       module: _key.module,
     );
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     if (detailsResult is! Success<LoanAccountDetails>) {
       _loadedOnce = true;
@@ -113,6 +117,8 @@ class LoanDetailNotifier extends StateNotifier<LoanDetailState> {
         repository.fetchLoanDisbursements(_key.loanId, module: _key.module);
     final scheduleResult = await scheduleFuture;
     final disbursementsResult = await disbursementsFuture;
+
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     LoanSchedule? schedule;
     String? scheduleError;
@@ -148,7 +154,7 @@ class LoanDetailNotifier extends StateNotifier<LoanDetailState> {
   }
 }
 
-final loanAccountDetailProvider = StateNotifierProvider.family<
+final loanAccountDetailProvider = StateNotifierProvider.autoDispose.family<
     LoanDetailNotifier, LoanDetailState, LoanDetailKey>(
   (ref, key) => LoanDetailNotifier(ref, key),
 );

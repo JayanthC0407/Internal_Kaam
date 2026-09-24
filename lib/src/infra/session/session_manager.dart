@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
 import 'package:ubci_bank/src/infra/pref/pref_const.dart';
 import 'package:ubci_bank/src/infra/pref/secure_storage_service.dart';
@@ -19,12 +20,15 @@ class SessionManager {
     this._preferenceHelper, {
     ObdxAuthApi? authApi,
     ObdxUserApi? userApi,
+    Future<void> Function()? onSessionCleared,
   })  : _authApi = authApi,
-        _userApi = userApi;
+        _userApi = userApi,
+        _onSessionCleared = onSessionCleared;
 
   final PreferenceHelper _preferenceHelper;
   final ObdxAuthApi? _authApi;
   final ObdxUserApi? _userApi;
+  final Future<void> Function()? _onSessionCleared;
   final SecureStorageService _secure = SecureStorageService.instance;
 
   Future<bool> isAuthenticated() async {
@@ -148,8 +152,10 @@ class SessionManager {
 
     // "Keep me signed in" off → drop restored session; biometric cold start still allowed.
     if (authenticated && !await prefs.isKeepSignedIn()) {
+      SessionGeneration.advance();
       await _preferenceHelper.clearSession();
       await _secure.delete(PrefConst.lastSessionActivityAt);
+      await _onSessionCleared?.call();
       authenticated = false;
     }
 
@@ -171,8 +177,10 @@ class SessionManager {
     }
 
     if (await isSessionExpired()) {
+      SessionGeneration.advance();
       await _preferenceHelper.clearSession();
       await _secure.delete(PrefConst.lastSessionActivityAt);
+      await _onSessionCleared?.call();
 
       if (await BiometricUnlockPolicy.shouldShowColdStartBiometricLogin(
         session: this,
@@ -193,12 +201,22 @@ class SessionManager {
   /// Calls OBDX `POST .../logout` first (best-effort) while JWT/cookies are
   /// still available, then always performs the local wipe.
   Future<void> logout() async {
+    // Invalidate every in-flight user-specific request immediately. This must
+    // happen before the network logout because the old user's API response
+    // may arrive after the next user has already logged in.
+    SessionGeneration.advance();
+
     await _invalidateServerSessionBestEffort();
     RegistrationSessionHolder.instance.clear();
     await _preferenceHelper.clearSession();
     await _preferenceHelper.clearPendingBiometricEnrollment();
     await _secure.delete(PrefConst.lastSessionActivityAt);
     await _secure.delete(PrefConst.lastDisplayName);
+
+    // Reset Riverpod user state after authentication/session storage is wiped.
+    // Kept as a callback so this infrastructure class does not depend on
+    // Flutter/Riverpod.
+    await _onSessionCleared?.call();
   }
 
   /// Full local wipe — user must sign in again; biometrics and device id removed.
