@@ -40,7 +40,9 @@ if [[ -n "${OBDX_INIT_SESSION_PATH:-}" ]]; then
   ARGS+=("--dart-define=OBDX_INIT_SESSION_PATH=${OBDX_INIT_SESSION_PATH}")
 fi
 
-python3 - "$ROOT" "${ARGS[@]}" <<'PY'
+ROOT_WIN="$(cygpath -w "$ROOT")"
+ 
+MSYS_NO_PATHCONV=1 python - "$ROOT_WIN" "${ARGS[@]}" <<'PY'
 import json
 import sys
 from pathlib import Path

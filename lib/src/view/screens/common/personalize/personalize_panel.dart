@@ -199,6 +199,9 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
       return _Message(
         icon: Icons.error_outline_rounded,
         message: state.errorMessage!,
+        onRetry: state.configLoadFailed
+            ? () => ref.read(personalizationProvider.notifier).retry()
+            : null,
       );
     }
 
@@ -214,8 +217,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
           icon: Icons.lock_outline_rounded,
           message: state.authorizationError ??
               'Your widget permissions could not be loaded.',
-          onRetry: () =>
-              ref.read(personalizationProvider.notifier).retryAuthorization(),
+          onRetry: () => ref.read(personalizationProvider.notifier).retry(),
         );
       case DashboardAuthorizationStatus.loaded:
         break;
@@ -606,9 +608,7 @@ class _ModuleHeading extends StatelessWidget {
                 ),
               ],
               Icon(
-                isPinned
-                    ? Icons.push_pin_rounded
-                    : Icons.chevron_right_rounded,
+                isPinned ? Icons.push_pin_rounded : Icons.chevron_right_rounded,
                 size: isPinned ? 13 : 16,
                 color: isOpen ? accent : theme.hintColor,
               ),
@@ -658,8 +658,7 @@ class _ModuleAccordionState extends State<_ModuleAccordion> {
         final definitions =
             widget.groups[module] ?? const <DashboardWidgetDefinition>[];
         final isExpanded = module == _expanded;
-        final count =
-            _selectedCount(module, widget.groups, widget.selection);
+        final count = _selectedCount(module, widget.groups, widget.selection);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -739,8 +738,7 @@ class _WidgetChecklist extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: 13,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
           ),
           subtitle: implemented
@@ -865,7 +863,8 @@ class _SelectionSummary extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline_rounded, size: 13, color: theme.hintColor),
+                Icon(Icons.info_outline_rounded,
+                    size: 13, color: theme.hintColor),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(

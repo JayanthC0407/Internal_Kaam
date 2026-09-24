@@ -100,12 +100,15 @@ class SessionManager {
   /// re-enter home). Re-fetching `me` here restores the same
   /// `dashboardClassValue` data a fresh login would have provided, per the
   /// API Flow & Implementation doc §6/§19-20.
+  ///
+  /// If that re-fetch fails, the args carry no `me` and
+  /// `AuthenticatedHomeGate` reads it again before choosing a dashboard.
   Future<HomeDashboardArgs> buildHomeArgs() async {
     final userName =
         await _secure.read(PrefConst.lastUserName) ?? 'User';
     final displayName = await _secure.read(PrefConst.lastDisplayName);
 
-    final profileResponse = await _fetchProfileForRestore();
+    final profileResponse = await fetchProfileResponse();
 
     final loginTrace = <String, dynamic>{
       if (displayName != null) 'displayName': displayName,
@@ -118,13 +121,14 @@ class SessionManager {
     );
   }
 
-  /// Best-effort `me` refresh for [buildHomeArgs]. Returns `null` (never
-  /// throws) on any failure — callers must keep working the way they always
-  /// did when `profileResponse` is unavailable (falls back to Retail; see
-  /// `_resolveDashboard` in `session_activity_scope.dart`), just without
-  /// silently mis-resolving a corporate user because of a stale/missing
-  /// trace.
-  Future<Map<String, dynamic>?> _fetchProfileForRestore() async {
+  /// Best-effort `me` read, as the wrapped `{ statusCode, body }` response.
+  /// Returns `null` (never throws) on any failure.
+  ///
+  /// Used by [buildHomeArgs], and again by `AuthenticatedHomeGate` when the
+  /// args it was handed carry no usable `me` — so a failure here can no
+  /// longer send a corporate user to the Retail dashboard: the gate retries
+  /// instead of guessing.
+  Future<Map<String, dynamic>?> fetchProfileResponse() async {
     final api = _userApi;
     if (api == null) return null;
     try {

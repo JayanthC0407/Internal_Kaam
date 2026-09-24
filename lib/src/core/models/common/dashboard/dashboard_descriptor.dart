@@ -68,7 +68,8 @@ class DashboardDescriptor {
     final parsed = <DashboardDescriptor>[];
     for (final entry in raw) {
       if (entry is! Map) continue;
-      parsed.add(DashboardDescriptor.fromJson(Map<String, dynamic>.from(entry)));
+      parsed
+          .add(DashboardDescriptor.fromJson(Map<String, dynamic>.from(entry)));
     }
     return parsed;
   }
@@ -104,6 +105,12 @@ class DashboardDescriptor {
   ) =>
       personalizableFrom(listFromProfileResponse(profileResponse));
 
+  /// Whether [profileResponse] is a `me` response at all — as opposed to
+  /// missing, which is what a session restore passes on when its own `me`
+  /// call failed.
+  static bool isProfileResponse(dynamic profileResponse) =>
+      _bodyOf(profileResponse) != null;
+
   static Map<String, dynamic>? _bodyOf(dynamic profileResponse) {
     if (profileResponse is! Map) return null;
     final map = Map<String, dynamic>.from(profileResponse);
@@ -115,4 +122,53 @@ class DashboardDescriptor {
     if (body is Map) return _bodyOf(body);
     return null;
   }
+}
+
+/// What is known about the user's personalizable dashboard.
+///
+/// Three cases, because two of them used to be one: "`me` says this user
+/// has no `CUSTOM` dashboard" is final, while "we do not have `me`" is not —
+/// a session restore whose own `me` call failed passes no response at all.
+/// Treating the second like the first made a transient failure switch
+/// personalization off for the rest of the session.
+sealed class DashboardDescriptorLookup {
+  const DashboardDescriptorLookup();
+
+  /// From a descriptor the caller has already resolved out of a `me`
+  /// response it holds: null means that response has no `CUSTOM` entry.
+  factory DashboardDescriptorLookup.resolved(DashboardDescriptor? descriptor) =>
+      descriptor == null
+          ? const DashboardDescriptorAbsent()
+          : DashboardDescriptorFound(descriptor);
+
+  /// From a raw `me` response, which may be missing.
+  factory DashboardDescriptorLookup.fromProfileResponse(
+    dynamic profileResponse,
+  ) {
+    if (!DashboardDescriptor.isProfileResponse(profileResponse)) {
+      return const DashboardDescriptorUnknown();
+    }
+    return DashboardDescriptorLookup.resolved(
+      DashboardDescriptor.personalizableFromProfileResponse(profileResponse),
+    );
+  }
+}
+
+/// `me` lists this `CUSTOM` dashboard as the user's own.
+final class DashboardDescriptorFound extends DashboardDescriptorLookup {
+  const DashboardDescriptorFound(this.descriptor);
+
+  final DashboardDescriptor descriptor;
+}
+
+/// `me` was read and has no `CUSTOM` dashboard for this user. Final:
+/// personalization is unavailable.
+final class DashboardDescriptorAbsent extends DashboardDescriptorLookup {
+  const DashboardDescriptorAbsent();
+}
+
+/// No `me` response is in hand. Not final: the dashboard's personalization
+/// state fetches `me` itself.
+final class DashboardDescriptorUnknown extends DashboardDescriptorLookup {
+  const DashboardDescriptorUnknown();
 }
