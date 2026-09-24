@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/models/corp/corp_currency.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_user_profile.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:ubci_bank/src/infra/session/session_generation.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
 
 /// Corporate profile context for the dashboard chrome.
@@ -123,6 +124,7 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
   /// swallowed rather than surfaced — the header simply keeps the values it
   /// already has from the login trace.
   Future<void> refresh() async {
+    final generation = SessionGeneration.current;
     state = state.copyWith(isLoading: true);
     final repository = _ref.read(corpProfileRepositoryProvider);
 
@@ -134,7 +136,7 @@ class CorpProfileNotifier extends StateNotifier<CorpProfileState> {
     ]);
 
     _loadedOnce = true;
-    if (!mounted) return;
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
 
     final party = results[0];
     final bankConfig = results[1];
