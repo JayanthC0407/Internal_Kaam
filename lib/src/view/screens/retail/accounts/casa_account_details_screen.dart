@@ -234,7 +234,7 @@ class _CasaAccountDetailsScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                // Top offset matches AppNavContent's top padding (22) around
+                // Top offset matches the side menu's top padding (22) around
                 // the sidebar logo, and the dashboard header's top padding —
                 // so "‹ Accounts" sits on the same line as the Demobank
                 // logo instead of floating above it.

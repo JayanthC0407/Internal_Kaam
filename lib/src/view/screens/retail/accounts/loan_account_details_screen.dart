@@ -40,7 +40,7 @@ class LoanAccountDetailsScreen extends ConsumerStatefulWidget {
   final LoanAccountDetailsArgs args;
 
   /// When `true`, this screen is rendered inline inside the desktop/wide
-  /// dashboard shell (next to the persistent [WebNavigationSidebar]) rather
+  /// dashboard shell (next to the persistent side menu) rather
   /// than pushed as its own route.
   final bool embedded;
 
@@ -95,7 +95,7 @@ class _LoanAccountDetailsScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              // Top offset matches AppNavContent's top padding (22) around
+              // Top offset matches the side menu's top padding (22) around
               // the sidebar logo, and the dashboard header's top padding —
               // so the back arrow + title sit on the same line as the
               // Demobank logo instead of floating above it.

@@ -65,10 +65,10 @@ class _RetailAccountsWidgetState extends ConsumerState<RetailAccountsWidget> {
       accounts: accounts,
       revealedAccountIds: _revealed,
       onToggleAccountVisibility: _toggle,
-      onViewAllAccountsTap: () => Navigator.of(context)
-          .pushNamed(RoutesConst.casaAccountsListScreen),
-      onViewAllLoans: () => Navigator.of(context)
-          .pushNamed(RoutesConst.loanAccountsListScreen),
+      onViewAllAccountsTap: () =>
+          Navigator.of(context).pushNamed(RoutesConst.casaAccountsListScreen),
+      onViewAllLoans: () =>
+          Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen),
     );
   }
 }
@@ -95,8 +95,8 @@ class RetailLoanSummaryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LoanTrackerCard(
-        onViewAll: () => Navigator.of(context)
-            .pushNamed(RoutesConst.loanAccountsListScreen),
+        onViewAll: () =>
+            Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen),
       );
 }
 
