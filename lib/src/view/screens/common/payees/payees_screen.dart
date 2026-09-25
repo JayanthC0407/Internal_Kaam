@@ -132,7 +132,7 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen>
         return Padding(
           padding: EdgeInsets.fromLTRB(
             isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-            // Top offset matches AppNavContent's top padding (22) around
+            // Top offset matches the side menu's top padding (22) around
             // the sidebar logo, and the dashboard header's top padding —
             // so the back arrow + title sit on the same line as the
             // Demobank logo instead of floating above it (phones keep

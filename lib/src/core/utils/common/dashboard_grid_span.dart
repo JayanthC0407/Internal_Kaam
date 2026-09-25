@@ -1,16 +1,17 @@
 /// Translates OBDX's Oracle JET grid classes into column spans Flutter can
-/// lay out with.
+/// lay out with, and packs spans into rows.
 ///
 /// The dashboard configuration stores sizing as a CSS class (`oj-lg-8`,
 /// `oj-md-6`, `oj-sm-12`) because that is what the web client renders with.
 /// Flutter does not use those classes, but the *intent* — "this widget
-/// occupies N of 12 columns" — is exactly what we need, and honouring it
-/// keeps a dashboard personalized on the web looking the same here.
+/// occupies N of 12 columns" — is exactly what we need.
 class DashboardGridSpan {
   DashboardGridSpan._();
 
   /// Total columns in the Oracle JET grid.
   static const int columns = 12;
+
+  static final RegExp _jetClass = RegExp(r'oj-(?:lg|md|sm|xl)-(\d{1,2})\b');
 
   /// Columns [style] asks for, or null when it says nothing usable.
   ///
@@ -21,32 +22,123 @@ class DashboardGridSpan {
     final raw = style?.trim();
     if (raw == null || raw.isEmpty) return null;
 
-    final match = RegExp(r'oj-(?:lg|md|sm|xl)-(\d{1,2})\b').firstMatch(raw);
+    final match = _jetClass.firstMatch(raw);
     if (match == null) return null;
-
-    final span = int.tryParse(match.group(1) ?? '');
-    if (span == null || span < 1 || span > columns) return null;
-    return span;
+    return _valid(int.tryParse(match.group(1) ?? ''));
   }
 
   /// Columns for a catalog `width` entry, e.g. `{'large': '8'}`.
   static int? fromCatalogWidth(String? width) {
     final raw = width?.trim();
     if (raw == null || raw.isEmpty) return null;
-    final span = int.tryParse(raw);
-    if (span == null || span < 1 || span > columns) return null;
-    return span;
+    return _valid(int.tryParse(raw));
   }
 
-  /// Resolves a span from the stored style first, then the catalog width,
-  /// then [fallback] — full width, which is what OBDX's own "short form"
-  /// catalog entries imply on small screens.
+  /// Marks a style whose span the *user* chose — written by the Personalize
+  /// panel's former Half / Full width setting, and still honoured so those
+  /// choices keep their size.
+  ///
+  /// Needed because a saved span alone cannot be trusted — earlier builds
+  /// wrote `oj-lg-12` for everything they could not size — so [resolve]
+  /// ranks unmarked saved styles last. A plain CSS class, which the web
+  /// client's grid ignores.
+  static const userSizedClass = 'user-sized';
+
+  /// Whether [style] carries a span the user chose. See [userSizedClass].
+  static bool isUserSized(String? style) =>
+      (style ?? '').split(RegExp(r'\s+')).contains(userSizedClass);
+
+  /// The span to draw a widget at, from the most to the least authoritative
+  /// source:
+  ///
+  ///  0. [style], when the user chose its span ([isUserSized]).
+  ///  1. [preferred] — the size the app declares for a widget it builds
+  ///     (the widget registry). Five of Retail's six built widgets, and
+  ///     Corporate's Pickup Points, have no catalog entry at all, so
+  ///     without this they had no size and drew full width.
+  ///  2. [catalogWidth] — the size the bank configured the widget at.
+  ///  3. [style] — the saved `oj-*-N` class. Last, not first: it is a copy
+  ///     of a size written at save time, and earlier builds wrote
+  ///     `oj-lg-12` for every widget they could not size, which then kept
+  ///     them full width permanently.
+  ///  4. [fallback].
   static int resolve({
-    String? style,
+    int? preferred,
     String? catalogWidth,
-    int fallback = columns,
+    String? style,
+    required int fallback,
   }) {
-    return fromStyle(style) ?? fromCatalogWidth(catalogWidth) ?? fallback;
+    final chosen = isUserSized(style) ? fromStyle(style) : null;
+    return chosen ??
+        _valid(preferred) ??
+        fromCatalogWidth(catalogWidth) ??
+        fromStyle(style) ??
+        fallback;
+  }
+
+  /// [style] with its `oj-{prefix}-N` class set to [span], keeping any other
+  /// classes. [prefix] is e.g. `oj-lg`.
+  static String withSpan(String? style, String prefix, int span) {
+    final value = '$prefix-${span.clamp(1, columns)}';
+    final raw = style?.trim() ?? '';
+    if (raw.isEmpty) return value;
+
+    final ownClass = RegExp('${RegExp.escape(prefix)}-\\d{1,2}\\b');
+    if (ownClass.hasMatch(raw)) return raw.replaceFirst(ownClass, value);
+    return '$raw $value';
+  }
+
+  /// Packs [spans], in order, into rows of [columns], then widens each row's
+  /// tiles so the row is exactly full.
+  ///
+  /// Order is never changed — the user's arrangement is the saved order —
+  /// so a row closes as soon as the next tile does not fit. The columns a
+  /// row is short by are shared out in proportion to the tiles' spans, so
+  /// no row ends in an empty hole: `[4, 4]` becomes `[6, 6]`, a lone `[8]`
+  /// becomes `[12]`.
+  ///
+  /// Returns, per row, the indices into [spans] and each tile's final span.
+  static List<List<({int index, int span})>> packRows(List<int> spans) {
+    final rows = <List<({int index, int span})>>[];
+    var row = <({int index, int span})>[];
+    var used = 0;
+
+    void closeRow() {
+      if (row.isEmpty) return;
+      rows.add(_fill(row, used));
+      row = [];
+      used = 0;
+    }
+
+    for (var i = 0; i < spans.length; i++) {
+      final span = spans[i].clamp(1, columns);
+      if (used + span > columns) closeRow();
+      row.add((index: i, span: span));
+      used += span;
+    }
+    closeRow();
+    return rows;
+  }
+
+  static List<({int index, int span})> _fill(
+    List<({int index, int span})> row,
+    int used,
+  ) {
+    final spare = columns - used;
+    if (spare <= 0) return row;
+
+    final widened = [
+      for (final tile in row)
+        (index: tile.index, span: tile.span + spare * tile.span ~/ used),
+    ];
+    // Rounding leaves a remainder; hand it out left to right.
+    var remainder =
+        columns - widened.fold<int>(0, (total, tile) => total + tile.span);
+    for (var i = 0; remainder > 0; i = (i + 1) % widened.length) {
+      widened[i] = (index: widened[i].index, span: widened[i].span + 1);
+      remainder--;
+    }
+    return widened;
   }
 
   /// Pixel width for [span] columns inside [available], allowing for
@@ -67,4 +159,7 @@ class DashboardGridSpan {
     final columnWidth = (available - totalGaps) / columns;
     return (columnWidth * clamped) + (gap * (clamped - 1));
   }
+
+  static int? _valid(int? span) =>
+      span == null || span < 1 || span > columns ? null : span;
 }

@@ -62,7 +62,7 @@ class TransferTabScreen extends StatelessWidget {
         maxWidth: 900,
         padding: EdgeInsets.fromLTRB(
           responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-          // Top offset matches AppNavContent's top padding (22) around the
+          // Top offset matches the side menu's top padding (22) around the
           // sidebar logo, and the dashboard header's top padding — so
           // "Payments" sits on the same line as the Demobank logo instead
           // of floating above it (desktop/wide only; phones keep AppSpacing.xl).

@@ -6,6 +6,7 @@ import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// CASA account list with per-account balance reveal and navigation to details.
 class CasaAccountsPanel extends StatelessWidget {
@@ -249,7 +250,7 @@ class _MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DashboardCardSurface(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

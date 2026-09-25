@@ -40,7 +40,7 @@ class WebDashboardHeaderBar extends StatelessWidget {
   final VoidCallback? onPersonalizeDashboard;
 
   /// Opens the hamburger drawer. Only passed on tablet — desktop has the
-  /// persistent `WebNavigationSidebar` instead, so this is `null` there and
+  /// persistent side menu instead, so this is `null` there and
   /// the menu button is not shown.
   final VoidCallback? onMenuTap;
   final ValueChanged<String>? onSearchSubmitted;

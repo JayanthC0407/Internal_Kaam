@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// The white, rounded, cyan-outlined panel every corporate dashboard card
 /// sits in. Kept as one widget so all three panels share identical radius,
@@ -16,7 +17,7 @@ class CorpCardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DashboardCardSurface(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
