@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
 import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
@@ -11,6 +13,9 @@ class _EmptyRegistry extends DashboardWidgetRegistry {
 
   @override
   Map<String, Widget Function()> get builders => const {};
+
+  @override
+  Map<String, DashboardWidgetSpec> get specs => const {};
 }
 
 void main() {
@@ -214,6 +219,128 @@ void main() {
       for (final name in retail.implementedComponents) {
         expect(retail.builders[name], isNotNull);
       }
+    });
+
+    test('every built widget declares its grid size', () {
+      // A builder without a spec falls back to a guessed size — the gap
+      // that left five of Retail's six widgets full width, one per row.
+      for (final registry in const <DashboardWidgetRegistry>[
+        CorpWidgetRegistry(),
+        RetailWidgetRegistry(),
+      ]) {
+        for (final name in registry.implementedComponents) {
+          expect(
+            registry.specs[name],
+            isNotNull,
+            reason: '${registry.runtimeType} builds $name but gives no size',
+          );
+        }
+      }
+    });
+
+    test('Retail widgets absent from the catalog are no longer full width', () {
+      const retail = RetailWidgetRegistry();
+      for (final name in const [
+        'casa-account-card',
+        'casa-balance-card',
+        'loans-account-card',
+        'loans-balance-card',
+        'credit-card',
+      ]) {
+        // No catalog passed: these have no catalog entry at all.
+        expect(
+          retail.spanFor(name, breakpoint: DashboardBreakpoint.large),
+          lessThan(12),
+          reason: name,
+        );
+      }
+    });
+
+    test('the app size wins over a saved blanket oj-lg-12', () {
+      // Earlier builds saved every widget they could not size as 12.
+      const retail = RetailWidgetRegistry();
+      expect(
+        retail.spanFor(
+          'loans-balance-card',
+          breakpoint: DashboardBreakpoint.large,
+          style: 'oj-lg-12',
+        ),
+        6,
+      );
+    });
+
+    test('Corporate widgets are half the row, bar the Account Summary table',
+        () {
+      const corp = CorpWidgetRegistry();
+      for (final name in corp.implementedComponents) {
+        expect(
+          corp.spanFor(name, breakpoint: DashboardBreakpoint.large),
+          name == 'account-summary' ? 12 : 6,
+          reason: name,
+        );
+      }
+    });
+
+    test('Retail widgets are half the row, like the fixed home', () {
+      const retail = RetailWidgetRegistry();
+      for (final name in retail.implementedComponents) {
+        expect(
+          retail.spanFor(name, breakpoint: DashboardBreakpoint.large),
+          6,
+          reason: name,
+        );
+      }
+    });
+
+    test('Retail widgets with a card keep it; bare ones get one', () {
+      const retail = RetailWidgetRegistry();
+      DashboardTile tile(String name) => retail.tileFor(
+            DashboardLayoutItem(componentName: name, module: 'm'),
+            breakpoint: DashboardBreakpoint.large,
+          );
+
+      // Drawn exactly as on the fixed home.
+      expect(tile('spend-summary').framed, isFalse);
+      expect(tile('recent-account-transactions').framed, isFalse);
+      // The bare list has no card or heading of its own.
+      expect(tile('casa-account-card').framed, isTrue);
+      expect(tile('casa-account-card').title, 'My Accounts');
+    });
+
+    test('a widget the user made full width is drawn full width', () {
+      const retail = RetailWidgetRegistry();
+      expect(
+        retail.spanFor(
+          'loans-balance-card',
+          breakpoint: DashboardBreakpoint.large,
+          style: 'oj-lg-12 user-sized',
+        ),
+        12,
+      );
+    });
+
+    test('phones always use the full width', () {
+      const corp = CorpWidgetRegistry();
+      expect(
+        corp.spanFor('currency-exposure',
+            breakpoint: DashboardBreakpoint.small),
+        12,
+      );
+    });
+
+    test('an unknown component gets a typical size, not the full row', () {
+      const corp = CorpWidgetRegistry();
+      expect(
+        corp.spanFor('bulk-file-upload', breakpoint: DashboardBreakpoint.large),
+        4,
+      );
+      expect(
+        corp.spanFor(
+          'bulk-file-upload',
+          breakpoint: DashboardBreakpoint.medium,
+        ),
+        6,
+      );
     });
 
     test('every Retail default component is one the registry can build', () {

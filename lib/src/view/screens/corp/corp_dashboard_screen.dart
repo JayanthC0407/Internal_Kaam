@@ -12,6 +12,7 @@ import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
@@ -21,7 +22,7 @@ import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_summary_car
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_accounts_card.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_dashboard_header_bar.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_navigation_sidebar.dart';
+import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
 import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
 
@@ -151,9 +152,12 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     // A menu choice replaces whatever was opened on top.
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() => _destination = destination);
-    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
-      Navigator.of(context).pop();
-    }
+  }
+
+  /// From the side menu — which closes its own drawer.
+  void _onNavSelected(String id) {
+    final destination = CorpNavDestination.fromNavId(id);
+    if (destination != null) _selectDestination(destination);
   }
 
   /// Opens the Personalize panel as a side sheet rather than a full page,
@@ -228,17 +232,18 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       backgroundColor: CorpColors.bg(context),
       drawer: isDesktop
           ? null
-          : Drawer(
-              backgroundColor: CorpColors.card(context),
-              child: SafeArea(
-                child: CorpNavContent(
-                  selected: _destination,
-                  onSelected: _selectDestination,
-                ),
-              ),
+          : DashboardNavDrawer(
+              items: CorpNavDestination.navItems,
+              selectedId: _destination.name,
+              onSelected: _onNavSelected,
             ),
       // Personalize opens as a side sheet so the dashboard stays on screen
       // behind it and re-renders the moment a change is saved.
+      // Tapping outside the panel closes it without a pop it can see, so
+      // its draft is dropped here — see [DashboardArrange.panelClosed].
+      onEndDrawerChanged: (open) {
+        if (!open) DashboardArrange.panelClosed(ref);
+      },
       endDrawer: ref.watch(personalizationProvider).isUnavailable
           ? null
           : Drawer(
@@ -255,9 +260,12 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         child: isDesktop
             ? Row(
                 children: [
-                  CorpNavigationSidebar(
-                    selected: _destination,
-                    onSelected: _selectDestination,
+                  // The side menu both dashboards share, with Corporate's
+                  // entries.
+                  DashboardNavigationSidebar(
+                    items: CorpNavDestination.navItems,
+                    selectedId: _destination.name,
+                    onSelected: _onNavSelected,
                   ),
                   // Screens opened from here open beside the sidebar on
                   // web, not over it.
@@ -286,12 +294,17 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   List<DashboardTile> _buildPersonalizedTiles(bool sideBySide) {
     final state = ref.watch(personalizationProvider);
 
+    // Status content takes the space beside the accounts card rather than
+    // a row of its own, which would leave that card stretched across the
+    // full width above it.
+    final statusSpan = sideBySide ? 6 : DashboardGridSpan.columns;
+
     switch (state.bodyStatus) {
       case PersonalizedBodyStatus.loading:
-        return const [
+        return [
           DashboardTile(
-            span: DashboardGridSpan.columns,
-            child: _DashboardBodyPlaceholder(),
+            span: statusSpan,
+            child: const _DashboardBodyPlaceholder(),
           ),
         ];
       case PersonalizedBodyStatus.unavailable:
@@ -299,7 +312,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       case PersonalizedBodyStatus.loadFailed:
         return [
           DashboardTile(
-            span: DashboardGridSpan.columns,
+            span: statusSpan,
             child: _DashboardBodyMessage(
               icon: Icons.cloud_off_rounded,
               title: "Couldn't load your dashboard",
@@ -312,7 +325,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       case PersonalizedBodyStatus.authorizationFailed:
         return [
           DashboardTile(
-            span: DashboardGridSpan.columns,
+            span: statusSpan,
             child: _DashboardBodyMessage(
               icon: Icons.lock_outline_rounded,
               title: "Couldn't load your widgets",
@@ -323,10 +336,10 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           ),
         ];
       case PersonalizedBodyStatus.empty:
-        return const [
+        return [
           DashboardTile(
-            span: DashboardGridSpan.columns,
-            child: _DashboardBodyMessage(
+            span: statusSpan,
+            child: const _DashboardBodyMessage(
               icon: Icons.dashboard_customize_outlined,
               title: 'No widgets on your dashboard',
               message: 'Add some from Personalize Dashboard in the settings '
@@ -338,50 +351,32 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         break;
     }
 
+    // Sizes come from the registry first — see
+    // [DashboardWidgetRegistry.spanFor]. Each can be held and dropped
+    // elsewhere — see [DashboardArrange].
     return [
-      for (final item in state.renderableItems)
-        DashboardTile(
-          // Width comes from the item's own stored `style` first, then the
-          // catalog's width for this breakpoint — so a dashboard arranged
-          // on the web keeps its proportions here.
-          span: sideBySide
-              ? DashboardGridSpan.resolve(
-                  style: item.style,
-                  catalogWidth: state.catalog
-                      .byName(item.componentName)
-                      ?.widthFor(_catalogWidthKey(state.breakpoint)),
-                )
-              : DashboardGridSpan.columns,
-          child: _registry.build(item.componentName),
+      for (final item in state.visibleItems)
+        _registry.tileFor(
+          item,
+          breakpoint: state.breakpoint,
+          catalog: state.catalog,
+          draggable: true,
         ),
     ];
   }
 
-  static String _catalogWidthKey(DashboardBreakpoint breakpoint) {
-    switch (breakpoint) {
-      case DashboardBreakpoint.small:
-        return 'small';
-      case DashboardBreakpoint.medium:
-        return 'medium';
-      case DashboardBreakpoint.large:
-      case DashboardBreakpoint.defaultLayout:
-        return 'large';
-    }
-  }
-
-  /// The designed arrangement, used when there is no saved configuration to
-  /// render — so the dashboard is never blank.
+  /// The designed arrangement, used when the user has no personalizable
+  /// dashboard — so the dashboard is never blank. Quick Links pairs with the
+  /// accounts card on the first row.
+  ///
+  /// Two columns like the personalized grid, with the same sizes as
+  /// [CorpWidgetRegistry.specs]: everything half width except the Account
+  /// Summary table, which spans both.
   List<DashboardTile> _buildDefaultTiles(bool sideBySide) {
     final half = sideBySide ? 6 : DashboardGridSpan.columns;
     return [
-      DashboardTile(
-        span: sideBySide ? 6 : DashboardGridSpan.columns,
-        child: const CorpQuickLinksCard(),
-      ),
-      DashboardTile(
-        span: DashboardGridSpan.columns,
-        child: const CorpFinancialSummaryWidget(),
-      ),
+      DashboardTile(span: half, child: const CorpQuickLinksCard()),
+      DashboardTile(span: half, child: const CorpFinancialSummaryWidget()),
       DashboardTile(span: half, child: const CorpCurrencyExposureWidget()),
       DashboardTile(span: half, child: const CorpPickupPointsWidget()),
       DashboardTile(
@@ -438,9 +433,12 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                 // `account-quick-links`, so it arrives through the saved
                 // configuration like any other widget. Hard-coding it here
                 // as well is what made it render twice.
+                //
+                // It takes the left column's first slot, so the first
+                // personalized widget sits beside it.
                 final tiles = <DashboardTile>[
                   DashboardTile(
-                    span: sideBySide ? 5 : DashboardGridSpan.columns,
+                    span: sideBySide ? 6 : DashboardGridSpan.columns,
                     child: CorpAccountsCard(
                       onViewAll: _openAccounts,
                       onAccountTap: _openAccount,
@@ -449,9 +447,22 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                   ..._buildPersonalizedTiles(sideBySide),
                 ];
 
+                // Two columns, like the Retail home — cards keep their own
+                // heights rather than being stretched to a row's tallest.
+                // One column below the width the accounts card stacks at.
                 return DashboardTileGrid(
                   tiles: tiles,
-                  available: inner.maxWidth,
+                  layout: DashboardGridLayout.twoColumns,
+                  collapseBelow: 900,
+                  onMove: DashboardArrange.isAvailable(ref)
+                      ? (dragged, target) => DashboardArrange.move(
+                            context,
+                            ref,
+                            registry: _registry,
+                            dragged: dragged,
+                            target: target,
+                          )
+                      : null,
                 );
               },
             ),

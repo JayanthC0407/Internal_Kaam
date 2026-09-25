@@ -8,6 +8,7 @@ import 'package:ubci_bank/src/core/utils/common/money_format.dart';
 import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/loan_currency_tabs.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// Dashboard "Loan Tracker" card — Total Borrowing / Outstanding + donut %.
 class LoanTrackerCard extends ConsumerWidget {
@@ -34,7 +35,7 @@ final isDark = Theme.of(context).brightness == Brightness.dark;
     final currency = (rawSelection != null && currencies.contains(rawSelection))
         ? rawSelection
         : (currencies.isNotEmpty ? currencies.first : summary?.primaryCurrency);
-    return Container(
+    return DashboardCardSurface(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
 decoration: BoxDecoration(

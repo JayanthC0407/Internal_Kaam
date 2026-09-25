@@ -11,6 +11,7 @@ import 'package:ubci_bank/src/view/screens/retail/accounts/loan_transactions_scr
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_tile.dart';
 import 'package:ubci_bank/src/view/screens/retail/transactions/widgets/transaction_tile.dart';
 import '../home_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// Shows [items] as a menu anchored directly under the tapped field,
 /// instead of a full [showModalBottomSheet] — used on every layout (mobile
@@ -98,7 +99,7 @@ class _RecentTransactionsCardState
     final canViewAll =
         state.category.isSupported && state.selectedAccountId != null;
 
-    return Container(
+    return DashboardCardSurface(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: HomeColors.card(context),

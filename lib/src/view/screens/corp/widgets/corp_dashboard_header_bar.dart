@@ -34,7 +34,7 @@ class CorpDashboardHeaderBar extends ConsumerWidget {
   final VoidCallback onLogout;
 
   /// Opens the hamburger drawer. Only passed below desktop width — desktop
-  /// has the persistent `CorpNavigationSidebar` instead, so this is `null`
+  /// has the persistent side menu instead, so this is `null`
   /// there and the menu button is not shown.
   final VoidCallback? onMenuTap;
 

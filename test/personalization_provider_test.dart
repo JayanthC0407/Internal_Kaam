@@ -53,11 +53,22 @@ class _FakeRepo implements DashboardRepository {
     return ResponseHandler.success(captured, code: 200);
   }
 
+  DashboardConfig? lastSaved;
+  bool failSave = false;
+
+  /// One-shot gate: the next save waits on it.
+  Completer<void>? saveGate;
+
   @override
   Future<ResponseHandler<DashboardConfig>> saveConfig(
     DashboardConfig config,
   ) async {
     saveCalls++;
+    final hold = saveGate;
+    saveGate = null;
+    if (hold != null) await hold.future;
+    if (failSave) return ResponseHandler.error(500, 'save failed');
+    lastSaved = config;
     return ResponseHandler.success(config, code: 200);
   }
 
@@ -265,6 +276,242 @@ void main() {
 
       expect(await notifier().save(), isFalse);
       expect(repo.saveCalls, 0);
+    });
+
+    test('saves every item at the size the dashboard draws it', () async {
+      repo.next = _config(id: 'A', large: ['alice-widget']);
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      notifier()
+        ..beginEditing()
+        ..toggle('shared-widget');
+      await notifier().save(spanFor: (name, style) => 4);
+
+      final saved = repo.lastSaved!.layoutFor(DashboardBreakpoint.large);
+      expect(
+        {for (final item in saved) item.componentName: item.style},
+        // The kept item is re-sized too, not only the new one — which is
+        // what repairs a widget an earlier build saved as `oj-lg-12`.
+        {'alice-widget': 'oj-lg-4', 'shared-widget': 'oj-lg-4'},
+      );
+    });
+
+    test(
+        'without a registry, a widget the catalog cannot size is not saved '
+        'full width', () async {
+      repo.next = _config(id: 'A');
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      notifier()
+        ..beginEditing()
+        ..toggle('unsized-widget');
+      await notifier().save();
+
+      final saved = repo.lastSaved!.layoutFor(DashboardBreakpoint.large);
+      expect(saved.single.style, 'oj-lg-4');
+    });
+
+    test('saves the widgets in the order they were arranged', () async {
+      repo.next = _config(id: 'A', large: ['alice-widget', 'bob-widget']);
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      notifier()
+        ..beginEditing()
+        ..toggle('shared-widget')
+        // shared-widget, dropped on the first widget.
+        ..move('shared-widget', 'alice-widget');
+      expect(
+        state().effectiveOrder,
+        ['shared-widget', 'alice-widget', 'bob-widget'],
+      );
+
+      await notifier().save(spanFor: (name, style) => 6);
+      expect(
+        [
+          for (final item
+              in repo.lastSaved!.layoutFor(DashboardBreakpoint.large))
+            item.componentName,
+        ],
+        ['shared-widget', 'alice-widget', 'bob-widget'],
+      );
+    });
+
+    test('moving a widget back where it was is no change', () async {
+      repo.next = _config(id: 'A', large: ['alice-widget', 'bob-widget']);
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      notifier()
+        ..beginEditing()
+        ..move('alice-widget', 'bob-widget');
+      expect(state().effectiveOrder, ['bob-widget', 'alice-widget']);
+      expect(state().hasUnsavedChanges, isTrue);
+
+      notifier().move('alice-widget', 'bob-widget');
+      expect(state().hasUnsavedChanges, isFalse);
+    });
+
+    test('a size saved as the user\'s own is kept on a later save', () async {
+      repo.next = DashboardConfig.fromPayload({
+        'dashboardDTO': {
+          'dashboardId': 'A',
+          'dashboardName': 'n',
+          'dashboardDescription': 'd',
+          'dashboardClass': 'CUSTOM',
+          'dashboardClassValue': 'custom',
+          'factory': false,
+          'layout': {
+            'layout': {
+              'defaultLayout': [],
+              'large': [
+                {
+                  'componentName': 'alice-widget',
+                  'module': 'm',
+                  'style': 'oj-lg-12 user-sized',
+                },
+              ],
+              'medium': [],
+              'small': [],
+            },
+          },
+        },
+      });
+      await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+      notifier()
+        ..beginEditing()
+        ..toggle('bob-widget');
+      await notifier().save();
+
+      final saved = {
+        for (final item in repo.lastSaved!.layoutFor(DashboardBreakpoint.large))
+          item.componentName: item.style,
+      };
+      expect(saved['alice-widget'], 'oj-lg-12 user-sized');
+    });
+    group('drag and drop on the dashboard', () {
+      List<String> savedOrder() => [
+            for (final item
+                in repo.lastSaved!.layoutFor(DashboardBreakpoint.large))
+              item.componentName,
+          ];
+
+      Future<void> load(List<String> large) async {
+        repo.next = _config(id: 'A', large: large);
+        await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+      }
+
+      test('dropped on a widget below, it lands after it', () async {
+        await load(['alice-widget', 'bob-widget', 'shared-widget']);
+
+        await notifier().moveAndSave('alice-widget', 'bob-widget');
+
+        expect(savedOrder(), ['bob-widget', 'alice-widget', 'shared-widget']);
+      });
+
+      test('dropped on a widget above, it lands before it', () async {
+        await load(['alice-widget', 'bob-widget', 'shared-widget']);
+
+        await notifier().moveAndSave('shared-widget', 'alice-widget');
+
+        expect(savedOrder(), ['shared-widget', 'alice-widget', 'bob-widget']);
+      });
+
+      test('the drop saves at once and leaves no draft open', () async {
+        await load(['alice-widget', 'bob-widget']);
+
+        final saved = await notifier().moveAndSave(
+          'alice-widget',
+          'bob-widget',
+        );
+
+        expect(saved, isTrue);
+        expect(repo.saveCalls, 1);
+        expect(state().draft, isNull);
+        expect(
+          [for (final item in state().visibleItems) item.componentName],
+          ['bob-widget', 'alice-widget'],
+        );
+      });
+
+      test('the dashboard shows the new order while the save is out', () async {
+        await load(['alice-widget', 'bob-widget']);
+        final gate = Completer<void>();
+        repo.saveGate = gate;
+
+        final saving = notifier().moveAndSave('alice-widget', 'bob-widget');
+        // Not jumping back to the saved order while waiting.
+        expect(
+          [for (final item in state().visibleItems) item.componentName],
+          ['bob-widget', 'alice-widget'],
+        );
+
+        gate.complete();
+        await saving;
+      });
+
+      test('a failed save puts the dashboard back as it was', () async {
+        await load(['alice-widget', 'bob-widget']);
+        repo.failSave = true;
+
+        final saved = await notifier().moveAndSave(
+          'alice-widget',
+          'bob-widget',
+        );
+
+        expect(saved, isFalse);
+        expect(state().draft, isNull);
+        expect(
+          [for (final item in state().visibleItems) item.componentName],
+          ['alice-widget', 'bob-widget'],
+        );
+      });
+
+      test('Undo saves the previous order back', () async {
+        await load(['alice-widget', 'bob-widget']);
+        final before = [...state().effectiveOrder];
+
+        await notifier().moveAndSave('alice-widget', 'bob-widget');
+        await notifier().saveOrder(before);
+
+        expect(savedOrder(), ['alice-widget', 'bob-widget']);
+      });
+
+      test('keeps a size the user chose', () async {
+        repo.next = DashboardConfig.fromPayload({
+          'dashboardDTO': {
+            'dashboardId': 'A',
+            'dashboardName': 'n',
+            'dashboardDescription': 'd',
+            'dashboardClass': 'CUSTOM',
+            'dashboardClassValue': 'custom',
+            'factory': false,
+            'layout': {
+              'layout': {
+                'defaultLayout': [],
+                'large': [
+                  {
+                    'componentName': 'alice-widget',
+                    'module': 'm',
+                    'style': 'oj-lg-12 user-sized',
+                  },
+                  {'componentName': 'bob-widget', 'module': 'm'},
+                ],
+                'medium': [],
+                'small': [],
+              },
+            },
+          },
+        });
+        await notifier().ensureLoaded(_custom('A'), userKey: 'alice');
+
+        await notifier().moveAndSave('bob-widget', 'alice-widget');
+
+        final alice = repo.lastSaved!
+            .layoutFor(DashboardBreakpoint.large)
+            .firstWhere((item) => item.componentName == 'alice-widget');
+        // The mark keeps the size the resolver would otherwise replace.
+        expect(alice.style, contains('user-sized'));
+      });
     });
 
     test('saves to the user\'s own CUSTOM dashboard', () async {

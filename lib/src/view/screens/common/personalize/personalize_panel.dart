@@ -62,7 +62,15 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
     final notifier = ref.read(personalizationProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
 
-    final saved = await notifier.save();
+    // Saved at the sizes the dashboard draws them at, so the web client
+    // shows the same arrangement.
+    final state = ref.read(personalizationProvider);
+    final saved = await notifier.save(
+      spanFor: widget.registry.spanResolver(
+        breakpoint: state.breakpoint,
+        catalog: state.catalog,
+      ),
+    );
     if (!mounted) return;
 
     if (saved) {
@@ -857,6 +865,22 @@ class _SelectionSummary extends StatelessWidget {
               fontSize: 11,
               height: 1.35,
             ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.open_with_rounded, size: 13, color: theme.hintColor),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'To rearrange, hold a widget on the dashboard and drag it '
+                  'where you want it.',
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(fontSize: 10.5, height: 1.3),
+                ),
+              ),
+            ],
           ),
           if (isCatalogStale) ...[
             const SizedBox(height: 6),

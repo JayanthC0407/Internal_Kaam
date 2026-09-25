@@ -21,20 +21,19 @@ import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
 import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
 
-import 'home/widgets/app_nav_content.dart';
+import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
 import 'home/widgets/home_content.dart';
 import 'home/widgets/bottom_nav.dart';
 import 'home/widgets/dashboard_header_bar.dart';
-import 'home/widgets/spendings_donut_card.dart';
 import 'home/widgets/top_hero_section.dart';
-import 'home/widgets/web_navigation_sidebar.dart';
+import 'home/widgets/retail_nav.dart';
 // Payments, payees and transfers are shared with Corporate, so they live
 // under `screens/common/` rather than in the Retail tree.
 import '../common/payments/transfers_module_screen.dart';
@@ -88,7 +87,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   int _heroSlideIndex = 0;
   int _selectedTopTabIndex = 0;
   late int _selectedBottomNavIndex;
-  
+
   WebPayeeDestination? _selectedPayeeDestination;
   WebAccountsDestination? _selectedAccountsDestination;
 
@@ -173,15 +172,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   void _openPersonalize() => _scaffoldKey.currentState?.openEndDrawer();
 
-  /// Components this dashboard always shows, whatever the saved
-  /// configuration says.
-  ///
-  /// My Spendings is pinned here deliberately: it is part of the dashboard
-  /// proper rather than a widget the user opted into, so unselecting
-  /// everything must not take it away. It is also skipped in the
-  /// personalized grid below, so selecting it cannot draw it twice.
-  static const _staticComponents = <String>{'spend-summary'};
-
   /// The Retail dashboard's widget area.
   ///
   /// Distinct states, which matter because they look different:
@@ -203,8 +193,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// Filters on *authorization* and the registry, never the catalog: a
   /// saved layout can hold components the catalog has never listed.
   Widget _buildWidgetArea(
-    CasaAccountsState accountsState,
-    double available, {
+    CasaAccountsState accountsState, {
     required bool isWide,
   }) {
     final state = ref.watch(personalizationProvider);
@@ -223,7 +212,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return _buildOriginalLayout(accountsState, isWide);
       case PersonalizedBodyStatus.loadFailed:
         return _withStaticWidgets(
-          _buildBodyMessage(
+          state,
+          status: _buildBodyMessage(
             icon: Icons.cloud_off_rounded,
             title: "Couldn't load your dashboard",
             message: state.errorMessage ??
@@ -233,7 +223,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         );
       case PersonalizedBodyStatus.authorizationFailed:
         return _withStaticWidgets(
-          _buildBodyMessage(
+          state,
+          status: _buildBodyMessage(
             icon: Icons.lock_outline_rounded,
             title: "Couldn't load your widgets",
             message: state.authorizationError ??
@@ -242,46 +233,82 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           ),
         );
       case PersonalizedBodyStatus.empty:
-        return _withStaticWidgets(_buildNoWidgetsSelected());
+        return _withStaticWidgets(state, status: _buildNoWidgetsSelected());
       case PersonalizedBodyStatus.ready:
         break;
     }
 
-    final tiles = <DashboardTile>[];
-    for (final item in state.renderableItems) {
-      if (_staticComponents.contains(item.componentName)) continue;
-      tiles.add(
-        DashboardTile(
-          span: isWide
-              ? DashboardGridSpan.resolve(
-                  style: item.style,
-                  catalogWidth: state.catalog
-                      .byName(item.componentName)
-                      ?.widthFor(_catalogWidthKey(state.breakpoint)),
-                )
-              : DashboardGridSpan.columns,
-          child: _registry.build(item.componentName),
-        ),
-      );
-    }
+    // Sizes come from the registry first — see
+    // [DashboardWidgetRegistry.spanFor]. Pinned widgets (My Spendings) are
+    // placed by [_withStaticWidgets] instead, so selecting one cannot draw
+    // it twice, and unselecting everything cannot take it away.
+    final tiles = [
+      for (final item in state.visibleItems)
+        if (!_registry.pinnedComponents.contains(item.componentName))
+          _registry.tileFor(
+            item,
+            breakpoint: state.breakpoint,
+            catalog: state.catalog,
+            // Held and dropped elsewhere — see [DashboardArrange].
+            draggable: true,
+          ),
+    ];
 
-    // Everything renderable may have been a static widget, which is drawn
-    // above rather than in the grid.
-    return _withStaticWidgets(
-      tiles.isEmpty
-          ? _buildNoWidgetsSelected()
-          : DashboardTileGrid(tiles: tiles, available: available),
-    );
+    // Everything renderable may have been a static widget.
+    return tiles.isEmpty
+        ? _withStaticWidgets(state, status: _buildNoWidgetsSelected())
+        : _withStaticWidgets(
+            state,
+            tiles: tiles,
+            onMove: DashboardArrange.isAvailable(ref)
+                ? (dragged, target) => DashboardArrange.move(
+                      context,
+                      ref,
+                      registry: _registry,
+                      dragged: dragged,
+                      target: target,
+                    )
+                : null,
+          );
   }
 
-  /// [body] beneath the widgets this dashboard always shows.
-  Widget _withStaticWidgets(Widget body) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SpendingsDonutCard(),
-        const SizedBox(height: 20),
-        body,
+  /// The personalized grid, laid out like the fixed Retail home: two
+  /// columns, each widget in its own card, one column below the same width
+  /// [HomeContent] switches at.
+  ///
+  /// My Spendings, which this dashboard always shows, takes the top-right
+  /// slot it has on the fixed home — beside the first widget, or beside a
+  /// [status] card when there are no widgets to show.
+  Widget _withStaticWidgets(
+    PersonalizationState state, {
+    List<DashboardTile> tiles = const [],
+    Widget? status,
+    void Function(String dragged, String target)? onMove,
+  }) {
+    final spendings = _registry.tileFor(
+      const DashboardLayoutItem(
+        componentName: 'spend-summary',
+        module: 'personal-finance-management',
+      ),
+      breakpoint: state.breakpoint,
+      catalog: state.catalog,
+    );
+    final leading = [
+      if (status != null)
+        DashboardTile(span: 6, child: Center(child: status))
+      else if (tiles.isNotEmpty)
+        tiles.first,
+    ];
+
+    return DashboardTileGrid(
+      layout: DashboardGridLayout.twoColumns,
+      collapseBelow: 920,
+      tileDecoration: RetailWidgetRegistry.tileDecoration,
+      onMove: onMove,
+      tiles: [
+        ...leading,
+        spendings,
+        ...tiles.skip(status == null ? 1 : 0),
       ],
     );
   }
@@ -363,8 +390,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   Widget _buildOriginalLayout(CasaAccountsState accountsState, bool isWide) {
     return HomeContent(
       selectedTopTabIndex: _selectedTopTabIndex,
-      onTopTabSelected: (index) =>
-          setState(() => _selectedTopTabIndex = index),
+      onTopTabSelected: (index) => setState(() => _selectedTopTabIndex = index),
       revealedAccountIds: _revealedAccountIds,
       onToggleAccountVisibility: _toggleAccountVisibility,
       accounts: accountsState.summary?.accounts ?? const [],
@@ -381,18 +407,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       displayName: _displayNameFromTrace(),
       onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
     );
-  }
-
-  static String _catalogWidthKey(DashboardBreakpoint breakpoint) {
-    switch (breakpoint) {
-      case DashboardBreakpoint.small:
-        return 'small';
-      case DashboardBreakpoint.medium:
-        return 'medium';
-      case DashboardBreakpoint.large:
-      case DashboardBreakpoint.defaultLayout:
-        return 'large';
-    }
   }
 
   /// Side-sheet width — just the module headings.
@@ -442,42 +456,54 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     final bg = HomeColors.bg(context);
     final accountsState = ref.watch(casaAccountsProvider);
 
+    // Read and personalize the layout for this screen size, as Corporate
+    // does. Without this Retail always used `large`, so a phone showed —
+    // and saved over — the desktop layout. Post-frame: it mutates a
+    // provider.
+    final breakpoint = DashboardBreakpoint.forWidth(responsive.width);
+    if (ref.read(personalizationProvider).breakpoint != breakpoint) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(personalizationProvider.notifier).setBreakpoint(breakpoint);
+      });
+    }
+
     if (responsive.useWideHome) {
-      final content = _selectedBottomNavIndex == 0
+      final destination = _selectedBottomNavIndex == 0
           ? RefreshIndicator(
               onRefresh: _refreshHomeData,
               child: _buildWebDashboard(accountsState),
             )
           : _buildWideDestination(accountsState);
+      // The shared top bar above every destination, as on Corporate — not
+      // only above Home.
+      final content = SafeArea(
+        child: Column(
+          children: [
+            _buildTopBar(),
+            Expanded(child: destination),
+          ],
+        ),
+      );
       return Scaffold(
         key: _scaffoldKey,
         backgroundColor: bg,
         drawer: responsive.isDesktop ? null : _buildNavDrawer(),
         endDrawer: _buildPersonalizeDrawer(),
+        onEndDrawerChanged: (open) {
+          if (!open) DashboardArrange.panelClosed(ref);
+        },
         body: responsive.isDesktop
             ? Row(
                 children: [
-                  WebNavigationSidebar(
-                    selectedIndex: _selectedBottomNavIndex,
-                    selectedAccountsDestination: _selectedAccountsDestination,
-                    onSelected: (index) {
-                      // A menu choice replaces whatever was opened on top.
-                      SidebarContentNavigator.closeOpenedScreens(
-                        _contentNavigatorKey,
-                      );
-                      setState(() {
-                        _selectedBottomNavIndex = index;
-                        _selectedPayeeDestination = null;
-                        _selectedAccountsDestination = null;
-                        _selectedCasaAccountId = null;
-                      });
-                    },
-                    // No onPayeeSelected: Payee already has its own entry
-                    // point on the Transfer tab (and now stays embedded from
-                    // there too, see case 14 below), so the separate Payee
-                    // accordion in the nav is removed to avoid the same
-                    // destinations being reachable two different ways.
-                    onAccountsSelected: _openAccountsDestination,
+                  // The side menu both dashboards share, with Retail's
+                  // entries. No Payee group: Payee has its own entry point
+                  // on the Transfer tab, so it is not reachable two ways.
+                  DashboardNavigationSidebar(
+                    items: RetailNav.items(AppLocalizations.of(context)),
+                    selectedId: _selectedNavId,
+                    onSelected: _onNavSelected,
+                    footer: RetailNav.footer(AppLocalizations.of(context)),
                   ),
                   // Screens opened from here open beside the sidebar on
                   // web, not over it.
@@ -505,6 +531,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       backgroundColor: bg,
       drawer: _buildNavDrawer(),
       endDrawer: _buildPersonalizeDrawer(),
+      onEndDrawerChanged: (open) {
+        if (!open) DashboardArrange.panelClosed(ref);
+      },
       body: RefreshIndicator(
         onRefresh: _refreshHomeData,
         child: _buildCurrentBody(accountsState),
@@ -543,48 +572,48 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// [_buildWideDestination]); on phones, both push their own full screen
   /// since there's no sidebar to keep around.
   void _openAccountsDestination(WebAccountsDestination destination) {
-  SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-  switch (destination) {
-    case WebAccountsDestination.casa:
-      // On the wide/desktop shell, CASA is embedded next to the persistent
-      // sidebar so it never disappears. On phones there's no sidebar to
-      // preserve, so it pushes its own full screen for a normal back-stack.
-      if (Responsive.of(context).useWideHome) {
-        setState(() {
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+    switch (destination) {
+      case WebAccountsDestination.casa:
+        // On the wide/desktop shell, CASA is embedded next to the persistent
+        // sidebar so it never disappears. On phones there's no sidebar to
+        // preserve, so it pushes its own full screen for a normal back-stack.
+        if (Responsive.of(context).useWideHome) {
+          setState(() {
+            _selectedAccountsDestination = WebAccountsDestination.casa;
+            _selectedPayeeDestination = null;
+            _selectedCasaAccountId = null;
+            _selectedLoanAccount = null;
+            _selectedBottomNavIndex = 9;
+          });
+        } else {
           _selectedAccountsDestination = WebAccountsDestination.casa;
           _selectedPayeeDestination = null;
-          _selectedCasaAccountId = null;
           _selectedLoanAccount = null;
-          _selectedBottomNavIndex = 9;
-        });
-      } else {
-        _selectedAccountsDestination = WebAccountsDestination.casa;
-        _selectedPayeeDestination = null;
-        _selectedLoanAccount = null;
-        _openCasaAccountsList();
-      }
+          _openCasaAccountsList();
+        }
 
-    case WebAccountsDestination.loans:
-      // On the wide/desktop shell, Loans is embedded next to the
-      // persistent sidebar exactly like CASA (index 10) so the sidebar
-      // never disappears. On phones there's no sidebar to preserve, so
-      // it keeps pushing its own full screen for a normal back-stack.
-      if (Responsive.of(context).useWideHome) {
-        setState(() {
+      case WebAccountsDestination.loans:
+        // On the wide/desktop shell, Loans is embedded next to the
+        // persistent sidebar exactly like CASA (index 10) so the sidebar
+        // never disappears. On phones there's no sidebar to preserve, so
+        // it keeps pushing its own full screen for a normal back-stack.
+        if (Responsive.of(context).useWideHome) {
+          setState(() {
+            _selectedAccountsDestination = WebAccountsDestination.loans;
+            _selectedPayeeDestination = null;
+            _selectedCasaAccountId = null;
+            _selectedLoanAccount = null;
+            _selectedBottomNavIndex = 10;
+          });
+        } else {
           _selectedAccountsDestination = WebAccountsDestination.loans;
           _selectedPayeeDestination = null;
           _selectedCasaAccountId = null;
-          _selectedLoanAccount = null;
-          _selectedBottomNavIndex = 10;
-        });
-      } else {
-        _selectedAccountsDestination = WebAccountsDestination.loans;
-        _selectedPayeeDestination = null;
-        _selectedCasaAccountId = null;
-        _openLoanAccountsList();
-      }
+          _openLoanAccountsList();
+        }
+    }
   }
-}
 
   /// Opens a CASA account's details from a Home-tab preview tap. On the
   /// wide/desktop shell it embeds next to the persistent sidebar (index 9,
@@ -641,35 +670,69 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     }
   }
 
-  /// Hamburger drawer content — mobile/tablet only. Selecting a destination
-  /// closes the drawer first, then updates the same [_selectedBottomNavIndex]
-  /// / [_selectedPayeeDestination] state the bottom nav and desktop sidebar
-  /// both drive, so all three stay in sync without separate index schemes.
+  /// Hamburger drawer — below desktop width. The same shared menu as the
+  /// desktop sidebar, driving the same state the bottom nav does, so all
+  /// three stay in sync.
   Widget _buildNavDrawer() {
-    return Drawer(
-      child: SafeArea(
-        child: AppNavContent(
-          selectedIndex: _selectedBottomNavIndex,
-          selectedAccountsDestination: _selectedAccountsDestination,
-          onSelected: (index) {
-            Navigator.of(context).pop();
-            setState(() {
-              _selectedBottomNavIndex = index;
-              _selectedPayeeDestination = null;
-              _selectedAccountsDestination = null;
-              _selectedCasaAccountId = null;
-              _selectedLoanAccount = null;
-            });
-          },
-          // No selectedPayeeDestination/onPayeeSelected: Payee already has
-          // its own entry point on the Transfer tab (see case 14 below), so
-          // the separate Payee accordion in the nav drawer is removed.
-          onAccountsSelected: (destination) {
-            Navigator.of(context).pop();
-            _openAccountsDestination(destination);
-          },
-        ),
-      ),
+    final l10n = AppLocalizations.of(context);
+    return DashboardNavDrawer(
+      items: RetailNav.items(l10n),
+      selectedId: _selectedNavId,
+      onSelected: _onNavSelected,
+      footer: RetailNav.footer(l10n),
+    );
+  }
+
+  /// The side menu's selection, from the tab and accounts state.
+  String? get _selectedNavId {
+    switch (_selectedAccountsDestination) {
+      case WebAccountsDestination.casa:
+        return RetailNav.accountsCasa;
+      case WebAccountsDestination.loans:
+        return RetailNav.accountsLoans;
+      case null:
+        break;
+    }
+    final index = _selectedBottomNavIndex;
+    // Tabs past the first five are screens opened from within one (payees,
+    // transfers), which the menu has no entry for.
+    return index < RetailNav.tabIds.length ? RetailNav.tabIds[index] : null;
+  }
+
+  void _onNavSelected(String id) {
+    switch (id) {
+      case RetailNav.accountsCasa:
+        _openAccountsDestination(WebAccountsDestination.casa);
+        return;
+      case RetailNav.accountsLoans:
+        _openAccountsDestination(WebAccountsDestination.loans);
+        return;
+    }
+    final index = RetailNav.tabIds.indexOf(id);
+    if (index < 0) return;
+    // A menu choice replaces whatever was opened on top.
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+    setState(() {
+      _selectedBottomNavIndex = index;
+      _selectedPayeeDestination = null;
+      _selectedAccountsDestination = null;
+      _selectedCasaAccountId = null;
+      _selectedLoanAccount = null;
+    });
+  }
+
+  /// The shared top bar — the same one Corporate shows.
+  Widget _buildTopBar() {
+    return WebDashboardHeaderBar(
+      displayName: _displayNameFromTrace(),
+      userId: _signedInUserName(),
+      onLogout: _logout,
+      onMenuTap: Responsive.of(context).isDesktop ? null : _openMenu,
+      // Personalize applies to Home, so it is offered only there.
+      onPersonalizeDashboard: _selectedBottomNavIndex != 0 ||
+              ref.watch(personalizationProvider).isUnavailable
+          ? null
+          : _openPersonalize,
     );
   }
 
@@ -681,10 +744,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return TransferTabScreen(
           onOwnAccountTransferTap: () =>
               setState(() => _selectedBottomNavIndex = 11),
-          onTransfersTap: () =>
-              setState(() => _selectedBottomNavIndex = 12),
-          onPayeeHubTap: () =>
-              setState(() => _selectedBottomNavIndex = 14),
+          onTransfersTap: () => setState(() => _selectedBottomNavIndex = 12),
+          onPayeeHubTap: () => setState(() => _selectedBottomNavIndex = 14),
           onTransferMoneyTap: () => setState(() {
             _transferMoneyReturnIndex = 2;
             _selectedBottomNavIndex = 13;
@@ -716,12 +777,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           }),
         );
       case 6:
-      return AddBankAccountPayeeScreen(
-        embedded: true,
-
-        onBack: () => setState(() => _returnFromAddPayee()),
-        onCompleted: () => setState(() => _returnFromAddPayee()),
-      );
+        return AddBankAccountPayeeScreen(
+          embedded: true,
+          onBack: () => setState(() => _returnFromAddPayee()),
+          onCompleted: () => setState(() => _returnFromAddPayee()),
+        );
       case 7:
         return AddDemandDraftPayeeScreen(
           embedded: true,
@@ -769,9 +829,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // fixed tab.
         return TransferMoneyScreen(
           embedded: true,
-          onBack: () =>
-              setState(() => _selectedBottomNavIndex = _transferMoneyReturnIndex),
-          onExistingPayeeTap: () => setState(() => _selectedBottomNavIndex = 15),
+          onBack: () => setState(
+              () => _selectedBottomNavIndex = _transferMoneyReturnIndex),
+          onExistingPayeeTap: () =>
+              setState(() => _selectedBottomNavIndex = 15),
           onAdhocPayeeTap: () => setState(() => _selectedBottomNavIndex = 16),
         );
       case 15:
@@ -880,64 +941,34 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           ),
         ),
         SliverToBoxAdapter(
-          child: LayoutBuilder(
-            builder: (context, constraints) => _buildWidgetArea(
-              accountsState,
-              constraints.maxWidth,
-              isWide: false,
-            ),
-          ),
+          child: _buildWidgetArea(accountsState, isWide: false),
         ),
       ],
     );
   }
 
+  /// The Home destination on wide screens. The top bar above it belongs to
+  /// the shell — see [_buildTopBar].
   Widget _buildWebDashboard(CasaAccountsState accountsState) {
-    return SafeArea(
-      child: Column(
-        children: [
-          // Full-width bar pinned above the scrolling content — the same
-          // shared top bar, in the same place, as the Corporate dashboard.
-          WebDashboardHeaderBar(
-            displayName: _displayNameFromTrace(),
-            userId: _signedInUserName(),
-            onLogout: _logout,
-            onMenuTap: Responsive.of(context).isDesktop ? null : _openMenu,
-            onPersonalizeDashboard:
-                ref.watch(personalizationProvider).isUnavailable
-                    ? null
-                    : _openPersonalize,
-          ),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
 
-                return SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    width < 900 ? 20 : 30,
-                    32,
-                    width < 900 ? 20 : 30,
-                    32,
-                  ),
-                  // Dashboard content — keep max width 1400
-                  child: ResponsiveBody(
-                    maxWidth: 1400,
-                    child: LayoutBuilder(
-                      builder: (context, inner) => _buildWidgetArea(
-                        accountsState,
-                        inner.maxWidth,
-                        isWide: true,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            width < 900 ? 20 : 30,
+            32,
+            width < 900 ? 20 : 30,
+            32,
           ),
-        ],
-      ),
+          // Dashboard content — keep max width 1400
+          child: ResponsiveBody(
+            maxWidth: 1400,
+            child: _buildWidgetArea(accountsState, isWide: true),
+          ),
+        );
+      },
     );
   }
 
@@ -951,7 +982,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
-gradient: AppGradients.primary(context),
+        gradient: AppGradients.primary(context),
         boxShadow: const [
           BoxShadow(
             color: Color(0x26003D37),
@@ -1133,81 +1164,81 @@ gradient: AppGradients.primary(context),
   }
 
   Widget _buildWideDestination(CasaAccountsState accountsState) {
-  switch (_selectedBottomNavIndex) {
-    case 9:
-      if (_selectedCasaAccountId != null) {
+    switch (_selectedBottomNavIndex) {
+      case 9:
+        if (_selectedCasaAccountId != null) {
+          return SafeArea(
+            child: CasaAccountDetailsScreen(
+              accountId: _selectedCasaAccountId!,
+              embedded: true,
+              onBack: () {
+                setState(() {
+                  _selectedCasaAccountId = null;
+                });
+              },
+            ),
+          );
+        }
+
         return SafeArea(
-          child: CasaAccountDetailsScreen(
-            accountId: _selectedCasaAccountId!,
+          child: CasaAccountsListScreen(
             embedded: true,
+            onAccountSelected: (account) {
+              setState(() {
+                _selectedCasaAccountId = account.id;
+              });
+            },
             onBack: () {
               setState(() {
+                _selectedAccountsDestination = null;
                 _selectedCasaAccountId = null;
+                _selectedPayeeDestination = null;
+                _selectedBottomNavIndex = 0;
               });
             },
           ),
         );
-      }
 
-      return SafeArea(
-        child: CasaAccountsListScreen(
-          embedded: true,
-          onAccountSelected: (account) {
-            setState(() {
-              _selectedCasaAccountId = account.id;
-            });
-          },
-          onBack: () {
-            setState(() {
-              _selectedAccountsDestination = null;
-              _selectedCasaAccountId = null;
-              _selectedPayeeDestination = null;
-              _selectedBottomNavIndex = 0;
-            });
-          },
-        ),
-      );
+      case 10:
+        if (_selectedLoanAccount != null) {
+          return SafeArea(
+            child: LoanAccountDetailsScreen(
+              args: LoanAccountDetailsArgs(loan: _selectedLoanAccount!),
+              embedded: true,
+              onBack: () {
+                setState(() {
+                  _selectedLoanAccount = null;
+                });
+              },
+            ),
+          );
+        }
 
-    case 10:
-      if (_selectedLoanAccount != null) {
         return SafeArea(
-          child: LoanAccountDetailsScreen(
-            args: LoanAccountDetailsArgs(loan: _selectedLoanAccount!),
+          child: LoanAccountsListScreen(
             embedded: true,
+            onLoanSelected: (loan) {
+              setState(() {
+                _selectedLoanAccount = loan;
+              });
+            },
             onBack: () {
               setState(() {
+                _selectedAccountsDestination = null;
                 _selectedLoanAccount = null;
+                _selectedPayeeDestination = null;
+                _selectedBottomNavIndex = 0;
               });
             },
           ),
         );
-      }
 
-      return SafeArea(
-        child: LoanAccountsListScreen(
-          embedded: true,
-          onLoanSelected: (loan) {
-            setState(() {
-              _selectedLoanAccount = loan;
-            });
-          },
-          onBack: () {
-            setState(() {
-              _selectedAccountsDestination = null;
-              _selectedLoanAccount = null;
-              _selectedPayeeDestination = null;
-              _selectedBottomNavIndex = 0;
-            });
-          },
-        ),
-      );
-
-    default:
-      return SafeArea(
-        child: _buildCurrentBody(accountsState),
-      );
+      default:
+        return SafeArea(
+          child: _buildCurrentBody(accountsState),
+        );
+    }
   }
-}
 
   String? _heroBalanceText(CasaAccountsSummary? summary) {
     if (summary == null) return null;
