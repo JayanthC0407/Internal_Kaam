@@ -34,7 +34,7 @@ class TopHeroSection extends StatelessWidget {
   final VoidCallback? onProfileTap;
 
   /// Opens the hamburger drawer. Only passed on mobile/tablet — desktop has
-  /// the persistent `WebNavigationSidebar` instead, so this is `null` there
+  /// the persistent side menu instead, so this is `null` there
   /// and the menu button is not shown.
   final VoidCallback? onMenuTap;
   final VoidCallback? onNotificationsTap;

@@ -21,6 +21,8 @@ import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 
 /// The fakes `implements` (rather than `extends`) the repositories on
@@ -387,6 +389,171 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Personalize Dashboard'), findsOneWidget);
+    });
+
+    group('arranging', () {
+      DashboardConfig twoWidgets() => DashboardConfig.fromPayload(const {
+            'dashboardDTO': {
+              'dashboardId': '25801',
+              'dashboardName': 'obdx-name',
+              'dashboardDescription': 'obdx-description',
+              'dashboardClass': 'CUSTOM',
+              'dashboardClassValue': 'custom',
+              'factory': false,
+              'layout': {
+                'layout': {
+                  'defaultLayout': [],
+                  'large': [
+                    {
+                      'componentName': 'currency-exposure',
+                      'module': 'corporateDashboard',
+                    },
+                    {
+                      'componentName': 'pickup-point-collections',
+                      'module': 'corporateDashboard',
+                    },
+                  ],
+                  'medium': [],
+                  'small': [],
+                },
+              },
+            },
+          })!;
+
+      testWidgets('Personalize has no Arrange section any more',
+          (tester) async {
+        await _pumpDashboard(tester, config: twoWidgets());
+        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Personalize Dashboard'));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Arrange'), findsNothing);
+        // It points to arranging on the dashboard instead.
+        expect(
+          find.textContaining('hold a widget on the dashboard'),
+          findsOneWidget,
+        );
+      });
+      testWidgets(
+          'holding a widget on the dashboard and dropping it on another '
+          'moves it and saves, with Undo', (tester) async {
+        await _pumpDashboard(tester, config: twoWidgets());
+
+        List<String> saved() => ProviderScope.containerOf(
+              tester.element(find.byType(CorpDashboardScreen)),
+            ).read(personalizationProvider).selectedComponents;
+
+        final from = find.byType(CorpCurrencyExposureWidget);
+        final to = find.byType(CorpPickupPointsWidget);
+        final gesture = await tester.startGesture(tester.getCenter(from));
+        await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+        final start = tester.getCenter(from);
+        final end = tester.getCenter(to);
+        for (var i = 1; i <= 10; i++) {
+          await gesture.moveTo(Offset.lerp(start, end, i / 10)!);
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pumpAndSettle();
+
+        expect(saved(), ['pickup-point-collections', 'currency-exposure']);
+        expect(find.text('Dashboard updated'), findsOneWidget);
+
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        expect(saved(), ['currency-exposure', 'pickup-point-collections']);
+      });
+
+      List<String> savedOrder(WidgetTester tester) => ProviderScope.containerOf(
+            tester.element(find.byType(CorpDashboardScreen)),
+          ).read(personalizationProvider).selectedComponents;
+
+      Future<void> dragOnto(WidgetTester tester, Finder from, Finder to) async {
+        final start = tester.getCenter(from);
+        final end = tester.getCenter(to);
+        final gesture = await tester.startGesture(start);
+        await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+        for (var i = 1; i <= 10; i++) {
+          await gesture.moveTo(Offset.lerp(start, end, i / 10)!);
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('the confirmation goes away by itself', (tester) async {
+        // Regression: a SnackBar with an action persists by default, so
+        // "Dashboard updated · Undo" stayed on screen for good.
+        await _pumpDashboard(tester, config: twoWidgets());
+
+        await dragOnto(
+          tester,
+          find.byType(CorpCurrencyExposureWidget),
+          find.byType(CorpPickupPointsWidget),
+        );
+        expect(find.text('Dashboard updated'), findsOneWidget);
+
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
+        expect(find.text('Dashboard updated'), findsNothing);
+      });
+
+      testWidgets('each drop gets its own Undo', (tester) async {
+        await _pumpDashboard(tester, config: twoWidgets());
+
+        await dragOnto(
+          tester,
+          find.byType(CorpCurrencyExposureWidget),
+          find.byType(CorpPickupPointsWidget),
+        );
+        // A second move while the first message is still up.
+        await dragOnto(
+          tester,
+          find.byType(CorpCurrencyExposureWidget),
+          find.byType(CorpPickupPointsWidget),
+        );
+        expect(savedOrder(tester), [
+          'currency-exposure',
+          'pickup-point-collections',
+        ]);
+
+        // Undo takes back the second move only.
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        expect(savedOrder(tester), [
+          'pickup-point-collections',
+          'currency-exposure',
+        ]);
+        expect(find.text('Move undone'), findsOneWidget);
+      });
+
+      testWidgets(
+          'widgets can still be dragged after Personalize is closed by '
+          'tapping outside it', (tester) async {
+        // Regression: that close is not a pop the panel sees, so its draft
+        // lingered and switched dragging off.
+        await _pumpDashboard(tester, config: twoWidgets());
+        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Personalize Dashboard'));
+        await tester.pumpAndSettle();
+
+        // The scrim, left of the panel.
+        await tester.tapAt(const Offset(40, 500));
+        await tester.pumpAndSettle();
+        expect(find.byType(PersonalizePanel), findsNothing);
+
+        await dragOnto(
+          tester,
+          find.byType(CorpCurrencyExposureWidget),
+          find.byType(CorpPickupPointsWidget),
+        );
+        expect(savedOrder(tester), [
+          'pickup-point-collections',
+          'currency-exposure',
+        ]);
+      });
     });
 
     testWidgets('Personalize opens as a side panel, not a new page',

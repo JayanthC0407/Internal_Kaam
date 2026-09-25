@@ -1,5 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
 import 'package:ubci_bank/src/core/utils/common/dashboard_widget_labels.dart';
+import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
+
+/// How a widget the app builds sits on the dashboard grid.
+///
+/// Declared by the app, per widget, because the catalog cannot be relied
+/// on for it: most of the widgets this app builds have no catalog entry at
+/// all, and those that do were sized for the web client's content.
+class DashboardWidgetSpec {
+  const DashboardWidgetSpec({
+    required this.large,
+    int? medium,
+    this.minHeight = 0,
+    this.title,
+    this.ownCard = false,
+  }) : medium = medium ?? large;
+
+  /// The widget draws its own card, and keeps it on the grid instead of
+  /// taking the grid's. Retail sets this so a personalized dashboard looks
+  /// exactly like its fixed home, whose cards differ slightly per widget.
+  final bool ownCard;
+
+  /// Columns of 12 on a desktop-width dashboard.
+  final int large;
+
+  /// Columns of 12 on a tablet-width one. Phones always use the full width.
+  final int medium;
+
+  /// See [DashboardTileHeight].
+  final double minHeight;
+
+  /// Heading for the tile's card, for a widget that draws none of its own.
+  final String? title;
+
+  int spanFor(DashboardBreakpoint breakpoint) => switch (breakpoint) {
+        DashboardBreakpoint.small => DashboardGridSpan.columns,
+        DashboardBreakpoint.medium => medium,
+        DashboardBreakpoint.large || DashboardBreakpoint.defaultLayout => large,
+      };
+}
 
 /// Maps an OBDX `componentName` to a Flutter widget.
 ///
@@ -19,6 +63,79 @@ abstract class DashboardWidgetRegistry {
   /// Builders keyed by `componentName`. Each takes no arguments and reads
   /// its own providers, so a widget can be constructed from a name alone.
   Map<String, Widget Function()> get builders;
+
+  /// Grid size for each built widget, keyed like [builders]. Every builder
+  /// should have one — a test enforces it.
+  Map<String, DashboardWidgetSpec> get specs;
+
+  /// Size for a component with no spec: the catalog's most common width
+  /// rather than the full row, so an unimplemented or newly added widget
+  /// does not push everything else onto its own line.
+  static const fallbackSpec = DashboardWidgetSpec(large: 4, medium: 6);
+
+  /// The span [componentName] is drawn at on [breakpoint] — see
+  /// [DashboardGridSpan.resolve] for the order sources are consulted in.
+  int spanFor(
+    String componentName, {
+    required DashboardBreakpoint breakpoint,
+    DashboardWidgetCatalog? catalog,
+    String? style,
+  }) {
+    if (breakpoint == DashboardBreakpoint.small) {
+      return DashboardGridSpan.columns;
+    }
+    return DashboardGridSpan.resolve(
+      preferred: specs[componentName]?.spanFor(breakpoint),
+      catalogWidth:
+          catalog?.byName(componentName)?.widthFor(breakpoint.catalogWidthKey),
+      style: style,
+      fallback: fallbackSpec.spanFor(breakpoint),
+    );
+  }
+
+  /// [spanFor] as a save callback — the sizes a save writes are the ones
+  /// the dashboard draws.
+  DashboardSpanResolver spanResolver({
+    required DashboardBreakpoint breakpoint,
+    DashboardWidgetCatalog? catalog,
+  }) =>
+      (componentName, style) => spanFor(
+            componentName,
+            breakpoint: breakpoint,
+            catalog: catalog,
+            style: style,
+          );
+
+  /// The grid tile for a saved layout [item]. [draggable] lets it be held
+  /// and dropped elsewhere on the dashboard (see
+  /// [DashboardTileGrid.onMove]); pinned components never are.
+  DashboardTile tileFor(
+    DashboardLayoutItem item, {
+    required DashboardBreakpoint breakpoint,
+    DashboardWidgetCatalog? catalog,
+    bool draggable = false,
+  }) {
+    final spec = specs[item.componentName];
+    final canDrag = draggable && !pinnedComponents.contains(item.componentName);
+    return DashboardTile(
+      span: spanFor(
+        item.componentName,
+        breakpoint: breakpoint,
+        catalog: catalog,
+        style: item.style,
+      ),
+      minHeight: spec?.minHeight ?? 0,
+      title: spec?.title,
+      framed: !(spec?.ownCard ?? false),
+      dragId: canDrag ? item.componentName : null,
+      child: build(item.componentName),
+    );
+  }
+
+  /// Components the dashboard always draws in a fixed place, whatever the
+  /// saved order says — they cannot be moved or resized in the Personalize
+  /// panel.
+  Set<String> get pinnedComponents => const {};
 
   Set<String> get implementedComponents => builders.keys.toSet();
 
@@ -51,7 +168,7 @@ class UnavailableDashboardWidget extends StatelessWidget {
     final muted = theme.textTheme.bodySmall?.color ?? theme.hintColor;
     final label = DashboardWidgetLabels.forComponent(componentName);
 
-    return Container(
+    return DashboardCardSurface(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
         color: theme.cardColor,

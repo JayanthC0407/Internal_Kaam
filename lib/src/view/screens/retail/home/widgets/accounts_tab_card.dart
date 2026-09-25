@@ -13,6 +13,7 @@ import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
 import 'credit_cards_visual.dart';
 import '../home_colors.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// Dashboard "Accounts / Credit Card / Loans / Insurance" hero section.
 ///
@@ -112,7 +113,7 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
     // for the Credit Card / Loans / Insurance tab labels.
     const tabs = ['CASA', 'Credit Card', 'Loans', 'Insurance'];
 
-    return Container(
+    return DashboardCardSurface(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

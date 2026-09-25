@@ -28,6 +28,25 @@ enum DashboardBreakpoint {
     if (width < 1024) return DashboardBreakpoint.medium;
     return DashboardBreakpoint.large;
   }
+
+  /// The key a catalog entry's `width` map uses for this breakpoint.
+  /// `defaultLayout` has none of its own and reads `large`.
+  String get catalogWidthKey => switch (this) {
+        DashboardBreakpoint.small => 'small',
+        DashboardBreakpoint.medium => 'medium',
+        DashboardBreakpoint.large ||
+        DashboardBreakpoint.defaultLayout =>
+          'large',
+      };
+
+  /// The Oracle JET grid class prefix for this breakpoint, e.g. `oj-lg`.
+  String get jetPrefix => switch (this) {
+        DashboardBreakpoint.small => 'oj-sm',
+        DashboardBreakpoint.medium => 'oj-md',
+        DashboardBreakpoint.large ||
+        DashboardBreakpoint.defaultLayout =>
+          'oj-lg',
+      };
 }
 
 /// One widget placed on a dashboard layout.
@@ -78,7 +97,8 @@ class DashboardLayoutItem {
       // contains items both with and without it, and the PUT echoes that
       // back, so writing one in where there was none would be a change.
       data: json.containsKey('data') ? json['data']?.toString() : null,
-      childPanel: childPanel is List ? List<dynamic>.from(childPanel) : const [],
+      childPanel:
+          childPanel is List ? List<dynamic>.from(childPanel) : const [],
     );
   }
 
@@ -136,8 +156,7 @@ class DashboardConfig {
   final String dashboardName;
   final String dashboardDescription;
 
-  final Map<DashboardBreakpoint, List<DashboardLayoutItem>>
-      layoutsByBreakpoint;
+  final Map<DashboardBreakpoint, List<DashboardLayoutItem>> layoutsByBreakpoint;
 
   final String? enterpriseRole;
   final String? dashboardClass;

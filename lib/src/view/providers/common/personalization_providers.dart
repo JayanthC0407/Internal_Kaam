@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
@@ -67,6 +68,25 @@ enum PersonalizedBodyStatus {
   ready,
 }
 
+/// An uncommitted edit — from the Personalize panel, or a drag on the
+/// dashboard while it saves.
+class DashboardDraft {
+  const DashboardDraft({required this.order});
+
+  /// The selected components, in dashboard order.
+  final List<String> order;
+
+  DashboardDraft copyWith({List<String>? order}) =>
+      DashboardDraft(order: order ?? this.order);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DashboardDraft && listEquals(other.order, order);
+
+  @override
+  int get hashCode => Object.hashAll(order);
+}
+
 /// State of the personalized dashboard: the saved configuration, the
 /// catalog it is chosen from, and the authorization set both are filtered
 /// against.
@@ -85,7 +105,7 @@ class PersonalizationState {
     this.authorizationStatus = DashboardAuthorizationStatus.notLoaded,
     this.authorizationError,
     this.breakpoint = DashboardBreakpoint.large,
-    this.draftSelection,
+    this.draft,
     this.errorMessage,
     this.saveErrorMessage,
     this.savedAt,
@@ -136,9 +156,12 @@ class PersonalizationState {
   /// as the web client does.
   final DashboardBreakpoint breakpoint;
 
-  /// Uncommitted selection from the Personalize panel. Null when no edit is
-  /// in progress.
-  final Set<String>? draftSelection;
+  /// Uncommitted edit from the Personalize panel — which widgets, in what
+  /// order, at what sizes. Null when no edit is in progress.
+  final DashboardDraft? draft;
+
+  /// The draft's selection, or null when no edit is in progress.
+  Set<String>? get draftSelection => draft?.order.toSet();
 
   final String? errorMessage;
   final String? saveErrorMessage;
@@ -217,11 +240,32 @@ class PersonalizationState {
   Set<String> get effectiveSelection =>
       draftSelection ?? selectedComponents.toSet();
 
+  /// Selected components in dashboard order — the draft's if one is open.
+  List<String> get effectiveOrder => draft?.order ?? selectedComponents;
+
+  /// What the dashboard should draw: [renderableItems] — except while a
+  /// draft is being saved, when it is the draft, so a widget dragged into a
+  /// new place stays there instead of jumping back until the save returns.
+  List<DashboardLayoutItem> get visibleItems {
+    final current = draft;
+    if (current == null || !isSaving) return renderableItems;
+
+    final stored = <String, DashboardLayoutItem>{};
+    for (final item in selectedItems) {
+      stored.putIfAbsent(item.componentName, () => item);
+    }
+    return [
+      for (final name in current.order.toSet())
+        if (isAuthorized(name))
+          stored[name] ?? DashboardLayoutItem(componentName: name, module: ''),
+    ];
+  }
+
+  /// Whether the draft differs from what is saved, in selection or order.
   bool get hasUnsavedChanges {
-    final draft = draftSelection;
-    if (draft == null) return false;
-    final saved = selectedComponents.toSet();
-    return draft.length != saved.length || !draft.containsAll(saved);
+    final current = draft;
+    if (current == null) return false;
+    return !listEquals(current.order, selectedComponents);
   }
 
   /// Widgets the user may add, per §17. Empty until authorization has
@@ -246,7 +290,7 @@ class PersonalizationState {
     DashboardAuthorizationStatus? authorizationStatus,
     String? authorizationError,
     DashboardBreakpoint? breakpoint,
-    Set<String>? draftSelection,
+    DashboardDraft? draft,
     String? errorMessage,
     String? saveErrorMessage,
     DateTime? savedAt,
@@ -270,8 +314,7 @@ class PersonalizationState {
           ? null
           : (authorizationError ?? this.authorizationError),
       breakpoint: breakpoint ?? this.breakpoint,
-      draftSelection:
-          clearDraft ? null : (draftSelection ?? this.draftSelection),
+      draft: clearDraft ? null : (draft ?? this.draft),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       saveErrorMessage:
           clearSaveError ? null : (saveErrorMessage ?? this.saveErrorMessage),
@@ -599,21 +642,75 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     );
   }
 
-  /// Opens a draft seeded from the saved selection.
+  /// Opens a draft seeded from the saved dashboard, in its saved order.
   void beginEditing() {
     state = state.copyWith(
-      draftSelection: state.selectedComponents.toSet(),
+      draft: DashboardDraft(order: [...state.selectedComponents]),
       clearSaveError: true,
     );
   }
 
   void discardDraft() => state = state.copyWith(clearDraft: true);
 
+  DashboardDraft get _draft =>
+      state.draft ?? DashboardDraft(order: [...state.selectedComponents]);
+
+  /// Adds [componentName] at the end of the dashboard, or removes it.
   void toggle(String componentName) {
-    final draft = {...state.effectiveSelection};
-    if (!draft.remove(componentName)) draft.add(componentName);
-    state = state.copyWith(draftSelection: draft, clearSaveError: true);
+    final draft = _draft;
+    final order = [...draft.order];
+    if (!order.remove(componentName)) order.add(componentName);
+    _setDraft(draft.copyWith(order: order));
   }
+
+  /// Moves [dragged] into [target]'s place — the drag-and-drop gesture on
+  /// the dashboard. Dragged down, it lands after [target]; dragged up,
+  /// before it, so dropping on a neighbour always swaps the two.
+  void move(String dragged, String target) {
+    final draft = _draft;
+    final order = [...draft.order];
+    final from = order.indexOf(dragged);
+    final to = order.indexOf(target);
+    if (from < 0 || to < 0 || from == to) return;
+    order.removeAt(from);
+    order.insert(to, dragged);
+    _setDraft(draft.copyWith(order: order));
+  }
+
+  /// [move], then [save] straight away — dropping a widget on the dashboard
+  /// is the whole edit. On failure the draft is dropped, so the dashboard
+  /// shows what is actually saved.
+  Future<bool> moveAndSave(
+    String dragged,
+    String target, {
+    DashboardSpanResolver? spanFor,
+  }) async {
+    beginEditing();
+    move(dragged, target);
+    return _saveOrDiscard(spanFor);
+  }
+
+  /// Saves [order] as the dashboard's order, keeping every widget's size —
+  /// what Undo after a drag uses.
+  Future<bool> saveOrder(
+    List<String> order, {
+    DashboardSpanResolver? spanFor,
+  }) async {
+    state = state.copyWith(
+      draft: DashboardDraft(order: [...order]),
+      clearSaveError: true,
+    );
+    return _saveOrDiscard(spanFor);
+  }
+
+  Future<bool> _saveOrDiscard(DashboardSpanResolver? spanFor) async {
+    final saved = await save(spanFor: spanFor);
+    if (!saved && mounted) discardDraft();
+    return saved;
+  }
+
+  void _setDraft(DashboardDraft draft) =>
+      state = state.copyWith(draft: draft, clearSaveError: true);
 
   /// Why [save] would refuse right now, or null if it would proceed.
   ///
@@ -647,9 +744,17 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   /// breakpoint — and `waterfallLayout` — round-trips untouched, so
   /// personalizing on a phone cannot wipe the desktop dashboard
   /// (`DashboardConfig.withLayout`).
-  Future<bool> save() async {
+  ///
+  /// Every item on the edited breakpoint is saved with the span the
+  /// dashboard draws it at — [spanFor], which the Personalize panel takes
+  /// from its widget registry — so the web client shows the same layout.
+  /// That also repairs items an earlier build saved as a blanket `oj-*-12`.
+  ///
+  /// Widgets are saved in the draft's order. A span saved as the user's own
+  /// choice (`DashboardGridSpan.userSizedClass`) is kept as it is.
+  Future<bool> save({DashboardSpanResolver? spanFor}) async {
     final config = state.config;
-    final draft = state.draftSelection;
+    final draft = state.draft;
     if (config == null || draft == null) return false;
 
     final blocked = saveBlockedReason;
@@ -661,33 +766,34 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     final epoch = _epoch();
     state = state.copyWith(isSaving: true, clearSaveError: true);
 
-    final existing = config.layoutFor(state.breakpoint);
-    final items = <DashboardLayoutItem>[];
-    final seen = <String>{};
+    final breakpoint = state.breakpoint;
+    final resolve = spanFor ?? _catalogSpan;
+    String styleFor(String componentName, String? style) =>
+        DashboardGridSpan.withSpan(
+          style,
+          breakpoint.jetPrefix,
+          resolve(componentName, style),
+        );
 
-    // Keep the stored item for anything still selected — preserving its
-    // style and data — and keep the user's existing order. Duplicates
-    // collapse to the first occurrence.
-    for (final item in existing) {
-      if (!draft.contains(item.componentName)) continue;
-      if (!seen.add(item.componentName)) continue;
-      items.add(item);
+    // The stored item for anything already on the dashboard — its first
+    // occurrence, preserving its data and any other classes on its style —
+    // otherwise a new one.
+    final stored = <String, DashboardLayoutItem>{};
+    for (final item in config.layoutFor(breakpoint)) {
+      stored.putIfAbsent(item.componentName, () => item);
     }
-
-    // Anything newly switched on is appended, sized from the catalog for
-    // the breakpoint being edited.
-    for (final componentName in draft) {
-      if (seen.contains(componentName)) continue;
-      seen.add(componentName);
-      items.add(
-        DashboardLayoutItem(
-          componentName: componentName,
-          module: _moduleFor(componentName),
-          data: '{}',
-          style: _styleFor(componentName, state.breakpoint),
-        ),
-      );
-    }
+    final items = [
+      for (final componentName in draft.order.toSet())
+        if (stored[componentName] case final item?)
+          item.copyWith(style: styleFor(componentName, item.style))
+        else
+          DashboardLayoutItem(
+            componentName: componentName,
+            module: _moduleFor(componentName),
+            data: '{}',
+            style: styleFor(componentName, null),
+          ),
+    ];
 
     final result = await _ref
         .read(dashboardRepositoryProvider)
@@ -727,36 +833,32 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     return module.isEmpty ? 'corporateDashboard' : module;
   }
 
-  /// Oracle JET grid class for a newly added item.
+  /// The span to save when the caller has no registry to ask: the catalog's
+  /// width, then the stored style, then the catalog's most common width.
   ///
-  /// Takes the column count from the catalog's `width` for this breakpoint,
-  /// which is the size the bank configured the widget at — writing a flat
-  /// `oj-*-12` instead made every newly added widget full width, so a
-  /// personalized dashboard collapsed into a single vertical column.
-  ///
-  /// Full width is only the fallback, for a component the catalog has no
-  /// entry or no width for. Flutter derives its own layout from this, but
-  /// the value also round-trips to the web client, so it has to be a class
-  /// the Oracle JET grid understands.
-  String _styleFor(String componentName, DashboardBreakpoint breakpoint) {
-    final prefix = switch (breakpoint) {
-      DashboardBreakpoint.small => 'oj-sm',
-      DashboardBreakpoint.medium => 'oj-md',
-      DashboardBreakpoint.large || DashboardBreakpoint.defaultLayout => 'oj-lg',
-    };
-    final widthKey = switch (breakpoint) {
-      DashboardBreakpoint.small => 'small',
-      DashboardBreakpoint.medium => 'medium',
-      DashboardBreakpoint.large || DashboardBreakpoint.defaultLayout => 'large',
-    };
-
-    final definition = state.catalog.byName(componentName);
-    final span = DashboardGridSpan.fromCatalogWidth(
-      definition?.widthFor(widthKey),
+  /// Never a blanket full width — writing `oj-*-12` for everything the
+  /// catalog did not size is what stacked personalized dashboards into a
+  /// single column.
+  int _catalogSpan(String componentName, String? style) {
+    final breakpoint = state.breakpoint;
+    if (breakpoint == DashboardBreakpoint.small) {
+      return DashboardGridSpan.columns;
+    }
+    return DashboardGridSpan.resolve(
+      catalogWidth: state.catalog
+          .byName(componentName)
+          ?.widthFor(breakpoint.catalogWidthKey),
+      style: style,
+      fallback: breakpoint == DashboardBreakpoint.medium ? 6 : 4,
     );
-    return '$prefix-${span ?? DashboardGridSpan.columns}';
   }
 }
+
+/// Columns of 12 a component is saved at, given its current [style].
+typedef DashboardSpanResolver = int Function(
+  String componentName,
+  String? style,
+);
 
 class _Epoch {
   const _Epoch({required this.session, required this.owner});
