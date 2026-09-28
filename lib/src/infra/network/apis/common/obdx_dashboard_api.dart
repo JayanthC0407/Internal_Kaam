@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
@@ -69,7 +71,8 @@ class ObdxDashboardApi extends ObdxApiBase {
   }
 
   /// `GET /digx-common/user/v1/me/components`
-  Future<ResponseHandler<Map<String, dynamic>>> fetchAuthorizedComponents() async {
+  Future<ResponseHandler<Map<String, dynamic>>>
+      fetchAuthorizedComponents() async {
     try {
       final response = await dio.get(
         ObdxApiUtils.appendLocaleQuery(DashboardApiConst.meComponentsApi),
@@ -91,18 +94,41 @@ class ObdxDashboardApi extends ObdxApiBase {
   /// Static JSON rather than a digx API, so it carries no `locale` query
   /// and no `status` envelope. A cache-buster matches how the web client
   /// fetches the sibling menu JSON.
+  ///
+  /// Read as plain text and decoded here, because a static file's
+  /// `Content-Type` is whatever the web server in front of OBDX says, and
+  /// a server that does not route `/framework/` to OBDX answers with some
+  /// other page entirely — typically the app's own `index.html`, with a
+  /// 200. The result's `body` is empty when the text is not a JSON object,
+  /// and `contentType` / `bodyPreview` say what came back instead.
   Future<ResponseHandler<Map<String, dynamic>>> fetchModuleComponents() async {
     try {
-      final response = await dio.get(
+      final response = await dio.get<String>(
         DashboardApiConst.moduleComponentsPath,
         queryParameters: {
           'bust': DateTime.now().millisecondsSinceEpoch,
         },
         options: Options(
+          responseType: ResponseType.plain,
           headers: {'Accept': 'application/json, text/plain, */*'},
         ),
       );
-      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+      final text = response.data ?? '';
+      Map<String, dynamic> body = const {};
+      try {
+        final decoded = jsonDecode(text.replaceFirst('﻿', ''));
+        if (decoded is Map) body = Map<String, dynamic>.from(decoded);
+      } on FormatException {
+        // Not JSON — reported through `bodyPreview`.
+      }
+      return ResponseHandler.success({
+        'statusCode': response.statusCode,
+        'headers': response.headers.map,
+        'contentType': response.headers.value('content-type'),
+        'url': response.realUri.toString(),
+        'bodyPreview': text.length > 80 ? text.substring(0, 80) : text,
+        'body': body,
+      });
     } on DioException catch (error) {
       return getErrorResponse(error);
     } catch (exc, stack) {
