@@ -730,6 +730,50 @@ void main() {
     });
   });
 
+  group('availability report', () {
+    PersonalizationState withCatalog(
+      List<Map<String, dynamic>> components, {
+      Set<String> authorized = const {},
+    }) =>
+        PersonalizationState(
+          catalog: DashboardWidgetCatalog.fromPayload({
+            'components': components,
+          }),
+          catalogSource: DashboardCatalogSource.environment,
+          authorized: DashboardAuthorizedComponents(authorized: authorized),
+          authorizationStatus: DashboardAuthorizationStatus.loaded,
+        );
+
+    const retailWidget = {
+      'componentName': 'spend-summary',
+      'module': 'm',
+      'segment': ['retailuser'],
+    };
+
+    test('an empty catalog is reported as such', () {
+      final report = withCatalog(const []).availability('retailuser');
+      expect(report.catalogSize, 0);
+    });
+
+    test('a catalog with nothing for the user type', () {
+      final report = withCatalog(const [
+        retailWidget
+      ], authorized: {
+        'spend-summary',
+      }).availability('corporateuser');
+      expect(report.catalogSize, 1);
+      expect(report.forSegment, 0);
+    });
+
+    test('widgets for the user type that the user holds no permission for', () {
+      final report =
+          withCatalog(const [retailWidget]).availability('retailuser');
+      expect(report.forSegment, 1);
+      expect(report.available, 0);
+      expect(report.describe(), contains('offered: 0'));
+    });
+  });
+
   group('authorization', () {
     test('a failed load is explicit and fails closed', () async {
       repo
