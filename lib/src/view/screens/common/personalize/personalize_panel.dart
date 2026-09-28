@@ -231,12 +231,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
         break;
     }
 
-    if (groups.isEmpty) {
-      return const _Message(
-        icon: Icons.widgets_outlined,
-        message: 'No widgets are available for your profile.',
-      );
-    }
+    if (groups.isEmpty) return _buildNothingToOffer(state);
 
     final moduleKeys = groups.keys.toList();
 
@@ -270,6 +265,45 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
           onToggle: onToggle,
         );
       },
+    );
+  }
+
+  /// The last availability report logged, so a rebuild does not repeat it.
+  String? _loggedAvailability;
+
+  /// Why there is nothing to offer — one message per step that can empty
+  /// the list, since each has a different fix: the catalog did not load
+  /// (a deployment routing problem), it has nothing for this user type
+  /// (the bank's catalog), or the user holds none of the permissions (the
+  /// user's entitlements).
+  Widget _buildNothingToOffer(PersonalizationState state) {
+    final report = state.availability(widget.userSegment);
+    final line = report.describe();
+    if (line != _loggedAvailability) {
+      _loggedAvailability = line;
+      // Printed in release builds too: it is what diagnoses this on a
+      // deployed server, and holds counts only.
+      debugPrint('[Personalize] Nothing to offer — $line');
+    }
+
+    if (report.catalogSize == 0) {
+      return _Message(
+        icon: Icons.cloud_off_rounded,
+        message: 'The list of dashboard widgets could not be loaded.',
+        onRetry: () =>
+            ref.read(personalizationProvider.notifier).reloadCatalog(),
+      );
+    }
+    if (report.forSegment == 0) {
+      return const _Message(
+        icon: Icons.widgets_outlined,
+        message: 'No dashboard widgets are set up for this type of user.',
+      );
+    }
+    return const _Message(
+      icon: Icons.lock_outline_rounded,
+      message: 'Your profile has no dashboard widgets enabled. Your bank '
+          'administrator can give you access.',
     );
   }
 
