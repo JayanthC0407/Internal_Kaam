@@ -7,6 +7,10 @@ import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_p
 import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_lc_amend_providers.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_lc_export_providers.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_lc_initiate_providers.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 
 /// Invalidates all Riverpod state that belongs to the authenticated user.
@@ -34,6 +38,18 @@ void resetUserSessionState(Ref ref) {
   ref.invalidate(corpAccountsProvider);
   ref.invalidate(corpPickupPointsProvider);
   ref.invalidate(corpProfileProvider);
+
+  // Trade Finance (Letter of Credit). Families are invalidated whole, so
+  // every Import / Export / Drafts list and every open LC detail or
+  // amendment form is dropped together.
+  ref.invalidate(corpLcListProvider);
+  ref.invalidate(corpLcDetailProvider);
+  ref.invalidate(corpLcLookupsProvider);
+  ref.invalidate(corpLcInitiateProvider);
+  ref.invalidate(corpLcAmendProvider);
+  ref.invalidate(corpLcExportAmendmentsProvider);
+  ref.invalidate(corpLcAcceptanceProvider);
+  ref.invalidate(corpLcTransferProvider);
 
   // Shared by both dashboards — one user's saved widget selection must
   // never be visible, even briefly, on the next user's dashboard.

@@ -16,10 +16,14 @@ abstract class ObdxRepositoryBase {
   /// Unwraps the `{ statusCode, headers, body }` envelope from
   /// `ObdxApiUtils.wrapHttpResponse` and runs [parse] on the body, mapping
   /// every failure mode onto [ResponseHandler].
+  ///
+  /// [successCodes] defaults to `200` only; create endpoints that answer
+  /// `201` (e.g. the trade-finance LC draft) pass `{200, 201}`.
   Future<ResponseHandler<T>> parseBody<T>(
     ResponseHandler<Map<String, dynamic>> result,
-    T Function(Map<String, dynamic> body) parse,
-  ) async {
+    T Function(Map<String, dynamic> body) parse, {
+    Set<int> successCodes = const {StatusCode.OK},
+  }) async {
     if (result is! Success<Map<String, dynamic>> || result.data == null) {
       return mapFailure(result);
     }
@@ -28,7 +32,7 @@ abstract class ObdxRepositoryBase {
     final statusCode = wrapped['statusCode'] as int? ?? 0;
     final body = ObdxApiUtils.asMap(wrapped['body'] ?? wrapped['rawBody']);
 
-    if (statusCode != StatusCode.OK) {
+    if (!successCodes.contains(statusCode)) {
       final obdxError = ObdxErrorMapper.fromHttpResponse(statusCode, body);
       return ResponseHandler.error(
         obdxError.httpStatusCode ?? statusCode,

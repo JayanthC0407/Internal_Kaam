@@ -27,10 +27,12 @@ class DashboardNavItem {
 
   bool get isGroup => children.isNotEmpty;
 
-  /// Whether [selectedId] is this item or one of its children.
+  /// Whether [selectedId] is this item or a descendant of it, at any depth —
+  /// so a group nested inside another group (e.g. Trade Finance ▸ Import
+  /// Letter of Credit ▸ Initiate) still reports containing the selection.
   bool contains(String? selectedId) =>
       selectedId != null &&
-      (id == selectedId || children.any((child) => child.id == selectedId));
+      (id == selectedId || children.any((child) => child.contains(selectedId)));
 }
 
 /// A non-interactive note pinned to the bottom of the menu — Retail's
@@ -220,15 +222,23 @@ class _DashboardNavContentState extends State<DashboardNavContent> {
     if (widget.selectedId != oldWidget.selectedId) _expandSelectedGroup();
   }
 
-  /// Opens the group holding the selected item, so it is visible.
+  /// Opens every group that holds the selected item, at any depth, so a
+  /// leaf nested inside nested groups (e.g. Trade Finance ▸ Import Letter of
+  /// Credit ▸ Initiate) is visible without the user expanding each level
+  /// themselves.
   void _expandSelectedGroup() {
-    for (final item in widget.items) {
-      if (item.isGroup &&
-          item.id != widget.selectedId &&
-          item.contains(widget.selectedId)) {
-        _expanded.add(item.id);
+    void walk(List<DashboardNavItem> items) {
+      for (final item in items) {
+        if (item.isGroup &&
+            item.id != widget.selectedId &&
+            item.contains(widget.selectedId)) {
+          _expanded.add(item.id);
+          walk(item.children);
+        }
       }
     }
+
+    walk(widget.items);
   }
 
   void _onItemTap(DashboardNavItem item) {
@@ -237,14 +247,18 @@ class _DashboardNavContentState extends State<DashboardNavContent> {
       return;
     }
     if (widget.collapsed) {
-      // No room to open a group in the rail — go to its first entry.
-      widget.onSelected(item.children.first.id);
+      // No room to open a group in the rail — go to its first leaf entry,
+      // however deep the group nests.
+      widget.onSelected(_firstLeafId(item));
       return;
     }
     setState(() {
       if (!_expanded.remove(item.id)) _expanded.add(item.id);
     });
   }
+
+  String _firstLeafId(DashboardNavItem item) =>
+      item.isGroup ? _firstLeafId(item.children.first) : item.id;
 
   @override
   Widget build(BuildContext context) {
@@ -303,18 +317,8 @@ class _DashboardNavContentState extends State<DashboardNavContent> {
                           : null,
                       onTap: () => _onItemTap(item),
                     ),
-                    if (item.isGroup &&
-                        !collapsed &&
-                        _expanded.contains(item.id))
-                      for (final child in item.children) ...[
-                        const SizedBox(height: 2),
-                        _SubNavRow(
-                          label: child.label,
-                          icon: child.icon,
-                          selected: child.id == widget.selectedId,
-                          onTap: () => widget.onSelected(child.id),
-                        ),
-                      ],
+                    if (item.isGroup && !collapsed && _expanded.contains(item.id))
+                      ..._buildSubtree(item.children, 1),
                     const SizedBox(height: 4),
                   ],
                 ],
@@ -328,6 +332,32 @@ class _DashboardNavContentState extends State<DashboardNavContent> {
         ],
       ),
     );
+  }
+
+  /// Renders [items] — a group's children — at [depth] (1 for a top-level
+  /// group's direct children, 2 for a group nested one level deeper, and so
+  /// on), recursing into any child that is itself a group and currently
+  /// expanded. Only reached when the sidebar is not collapsed, same as the
+  /// single-level case this replaces.
+  List<Widget> _buildSubtree(List<DashboardNavItem> items, int depth) {
+    final widgets = <Widget>[];
+    for (final item in items) {
+      widgets.add(const SizedBox(height: 2));
+      widgets.add(
+        _SubNavRow(
+          label: item.label,
+          icon: item.icon,
+          selected: item.contains(widget.selectedId),
+          depth: depth,
+          expanded: item.isGroup ? _expanded.contains(item.id) : null,
+          onTap: () => _onItemTap(item),
+        ),
+      );
+      if (item.isGroup && _expanded.contains(item.id)) {
+        widgets.addAll(_buildSubtree(item.children, depth + 1));
+      }
+    }
+    return widgets;
   }
 }
 
@@ -431,23 +461,35 @@ class _NavRow extends StatelessWidget {
 
 /// A row inside an open group, indented under its parent's label: brand
 /// text on a light tint when selected.
+///
+/// [depth] is 1 for a top-level group's direct children and increases by one
+/// for each further nesting level (e.g. Trade Finance ▸ Import Letter of
+/// Credit ▸ Initiate is depth 2 for "Import Letter of Credit" and depth 3 for
+/// "Initiate") — each level indents a further 18px. [expanded] is non-null
+/// when this row is itself a nested group, which draws the same chevron a
+/// top-level group does; a plain leaf row passes null.
 class _SubNavRow extends StatelessWidget {
   const _SubNavRow({
     required this.label,
     required this.icon,
     required this.selected,
     required this.onTap,
+    this.depth = 1,
+    this.expanded,
   });
 
   final String label;
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final int depth;
+  final bool? expanded;
 
   @override
   Widget build(BuildContext context) {
     final brand = _NavColors.brand(context);
     final foreground = selected ? brand : _NavColors.textSecondary(context);
+    final isOpen = expanded;
     return Material(
       color: selected
           ? _NavColors.selectedBg(context).withValues(alpha: 0.06)
@@ -457,7 +499,12 @@ class _SubNavRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.only(left: 30, right: 8, top: 9, bottom: 9),
+          padding: EdgeInsets.only(
+            left: 30 + 18 * (depth - 1),
+            right: 8,
+            top: 9,
+            bottom: 9,
+          ),
           child: Row(
             children: [
               Icon(icon, size: 16, color: foreground),
@@ -474,6 +521,14 @@ class _SubNavRow extends StatelessWidget {
                   ),
                 ),
               ),
+              if (isOpen != null)
+                Icon(
+                  isOpen
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  size: 16,
+                  color: foreground,
+                ),
             ],
           ),
         ),
