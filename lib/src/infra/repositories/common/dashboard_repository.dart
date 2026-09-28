@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
@@ -146,6 +147,12 @@ class DashboardRepository extends ObdxRepositoryBase {
   /// Never fails outright — a catalog that cannot be loaded at all returns
   /// an empty one with [DashboardCatalogSource.none], which callers render as
   /// "no widgets available to add" rather than an error.
+  ///
+  /// Each step logs a one-line outcome to the console, release builds
+  /// included — nothing about the user, only where the catalog came from
+  /// and, when the server's copy was not usable, what came back instead.
+  /// A deployment whose web server does not route `/framework/` to OBDX
+  /// shows up here as HTML or a 404 rather than as a silent empty list.
   Future<DashboardCatalogResult> fetchCatalog() async {
     try {
       final result = await _api.fetchModuleComponents();
@@ -154,13 +161,18 @@ class DashboardRepository extends ObdxRepositoryBase {
       if (parsed is Success<DashboardWidgetCatalog> &&
           parsed.data != null &&
           !parsed.data!.isEmpty) {
+        _log('using the server\'s moduleComponents.json '
+            '(${parsed.data!.definitions.length} widgets)');
         return DashboardCatalogResult(
           catalog: parsed.data!,
           source: DashboardCatalogSource.environment,
         );
       }
-    } catch (_) {
-      // Fall through to the bundled copy.
+      _log('the server\'s moduleComponents.json was not usable — '
+          '${_describe(result)}; trying the built-in list');
+    } catch (error) {
+      _log('the server\'s moduleComponents.json failed '
+          '(${error.runtimeType}); trying the built-in list');
     }
 
     try {
@@ -169,13 +181,18 @@ class DashboardRepository extends ObdxRepositoryBase {
       );
       final catalog = DashboardWidgetCatalog.fromPayload(jsonDecode(raw));
       if (!catalog.isEmpty) {
+        _log('using the built-in widget list '
+            '(${catalog.definitions.length} widgets)');
         return DashboardCatalogResult(
           catalog: catalog,
           source: DashboardCatalogSource.bundledAsset,
         );
       }
-    } catch (_) {
-      // Fall through to empty.
+      _log('the built-in widget list is empty');
+    } catch (error) {
+      _log('the built-in widget list '
+          '(${DashboardApiConst.moduleComponentsAsset}) could not be read '
+          '(${error.runtimeType})');
     }
 
     return const DashboardCatalogResult(
@@ -183,4 +200,24 @@ class DashboardRepository extends ObdxRepositoryBase {
       source: DashboardCatalogSource.none,
     );
   }
+
+  /// What a catalog response actually was, for the log.
+  static String _describe(ResponseHandler<Map<String, dynamic>> result) {
+    if (result is Success<Map<String, dynamic>>) {
+      final data = result.data ?? const {};
+      final preview = (data['bodyPreview'] ?? '')
+          .toString()
+          .replaceAll(RegExp(r'\s+'), ' ');
+      return 'HTTP ${data['statusCode']} from ${data['url']}, '
+          'content-type ${data['contentType']}, '
+          'body starts "$preview"';
+    }
+    if (result is Error<Map<String, dynamic>>) {
+      return 'HTTP ${result.code}';
+    }
+    return result.runtimeType.toString();
+  }
+
+  static void _log(String message) =>
+      debugPrint('[Personalize] Widget catalog: $message');
 }

@@ -231,6 +231,65 @@ void main() {
     });
   });
 
+  group('DashboardRepository.fetchCatalog', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
+    DashboardRepository repositoryWith(
+      ResponseHandler<Map<String, dynamic>> catalog,
+    ) =>
+        DashboardRepository(
+          dashboardApi: _FakeCatalogApi(catalog),
+          userApi: _FakeUserApi(),
+        );
+
+    test('uses the server\'s catalog when it is one', () async {
+      final result = await repositoryWith(
+        ResponseHandler.success({
+          'statusCode': 200,
+          'body': {
+            'components': [
+              {
+                'componentName': 'currency-exposure',
+                'module': 'corporateDashboard',
+                'segment': ['corporateuser'],
+              },
+            ],
+          },
+        }),
+      ).fetchCatalog();
+
+      expect(result.source, DashboardCatalogSource.environment);
+      expect(
+          result.catalog.definitions.single.componentName, 'currency-exposure');
+    });
+
+    test('falls back to the built-in list when the server sends a web page',
+        () async {
+      // What a host that does not route /framework/ to OBDX sends back: the
+      // app's own index.html, with a 200.
+      final result = await repositoryWith(
+        ResponseHandler.success({
+          'statusCode': 200,
+          'contentType': 'text/html',
+          'url': 'https://bank.example/framework/json/moduleComponents.json',
+          'bodyPreview': '<!DOCTYPE html><html><head>',
+          'body': <String, dynamic>{},
+        }),
+      ).fetchCatalog();
+
+      expect(result.source, DashboardCatalogSource.bundledAsset);
+      expect(result.catalog.isEmpty, isFalse);
+    });
+
+    test('falls back on a 404 too', () async {
+      final result = await repositoryWith(
+        ResponseHandler.error(404, 'not found'),
+      ).fetchCatalog();
+
+      expect(result.source, DashboardCatalogSource.bundledAsset);
+    });
+  });
+
   group('DashboardRepository.fetchPersonalizableDashboard', () {
     DashboardRepository repositoryWith(
       ResponseHandler<Map<String, dynamic>> me,
@@ -315,6 +374,21 @@ void main() {
       expect(result, isNot(isA<Success<DashboardDescriptorLookup>>()));
     });
   });
+}
+
+/// Serves a fixed `moduleComponents.json` result.
+class _FakeCatalogApi implements ObdxDashboardApi {
+  _FakeCatalogApi(this._result);
+
+  final ResponseHandler<Map<String, dynamic>> _result;
+
+  @override
+  Future<ResponseHandler<Map<String, dynamic>>> fetchModuleComponents() async =>
+      _result;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not faked');
 }
 
 /// Serves a fixed `me` result. The default is only for the tests that never
