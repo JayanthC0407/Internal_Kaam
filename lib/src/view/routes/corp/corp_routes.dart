@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_acceptance_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_amend_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_detail_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_transfer_screen.dart';
 import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
 
 /// Route generation for the Corporate (`corporateuser`) surfaces.
@@ -16,20 +22,49 @@ class CorpRoutes {
   CorpRoutes._();
 
   static Route<dynamic>? onGenerateRoute(RouteSettings routeSettings) {
+    final args = routeSettings.arguments;
     switch (routeSettings.name) {
       case CorpRoutesConst.corpDashboardScreen:
-        final args = routeSettings.arguments;
         if (args is! CorpDashboardArgs) return null;
-        return PageTransition(
-          settings: routeSettings,
-          child: AuthenticatedSessionGate(
-            child: CorpDashboardScreen(args: args),
+        return _page(routeSettings, CorpDashboardScreen(args: args));
+
+      case CorpRoutesConst.lcDetailScreen:
+        if (args is! LcDetailArgs) return null;
+        return _page(routeSettings, LcDetailScreen(args: args));
+
+      case CorpRoutesConst.lcInitiateScreen:
+        return _page(
+          routeSettings,
+          LcInitiateScreen(
+            args: args is LcInitiateArgs ? args : const LcInitiateArgs(),
           ),
-          type: PageTransitionType.rightToLeft,
-          duration: const Duration(milliseconds: 300),
         );
+
+      case CorpRoutesConst.lcAmendScreen:
+        if (args is! LcAmendArgs) return null;
+        return _page(routeSettings, LcAmendScreen(args: args));
+
+      case CorpRoutesConst.lcAcceptanceScreen:
+        if (args is! LcAcceptanceArgs) return null;
+        return _page(routeSettings, LcAcceptanceScreen(args: args));
+
+      case CorpRoutesConst.lcTransferScreen:
+        if (args is! LcTransferArgs) return null;
+        return _page(routeSettings, LcTransferScreen(args: args));
+
       default:
         return null;
     }
+  }
+
+  /// Every corporate page sits behind [AuthenticatedSessionGate], so a
+  /// reload or deep link without a live session lands on login instead.
+  static Route<dynamic> _page(RouteSettings settings, Widget child) {
+    return PageTransition(
+      settings: settings,
+      child: AuthenticatedSessionGate(child: child),
+      type: PageTransitionType.rightToLeft,
+      duration: const Duration(milliseconds: 300),
+    );
   }
 }
