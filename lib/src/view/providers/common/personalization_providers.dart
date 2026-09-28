@@ -87,6 +87,41 @@ class DashboardDraft {
   int get hashCode => Object.hashAll(order);
 }
 
+/// The steps between the widget catalog and what the Personalize panel
+/// offers — see [PersonalizationState.availability].
+class DashboardAvailability {
+  const DashboardAvailability({
+    required this.userSegment,
+    required this.catalogSource,
+    required this.catalogSize,
+    required this.forSegment,
+    required this.authorizedCount,
+    required this.available,
+  });
+
+  final String userSegment;
+  final DashboardCatalogSource catalogSource;
+
+  /// Entries in the catalog.
+  final int catalogSize;
+
+  /// Of those, offered at all and meant for [userSegment].
+  final int forSegment;
+
+  /// Components in the user's authorization set (the whole app's, not only
+  /// dashboard widgets).
+  final int authorizedCount;
+
+  /// Of [forSegment], the ones the user is authorized for.
+  final int available;
+
+  /// One line for the console — counts only, nothing about the user.
+  String describe() => 'catalog: $catalogSize widgets (${catalogSource.name}); '
+      'for $userSegment: $forSegment; '
+      'permissions: $authorizedCount components; '
+      'offered: $available';
+}
+
 /// State of the personalized dashboard: the saved configuration, the
 /// catalog it is chosen from, and the authorization set both are filtered
 /// against.
@@ -266,6 +301,23 @@ class PersonalizationState {
     final current = draft;
     if (current == null) return false;
     return !listEquals(current.order, selectedComponents);
+  }
+
+  /// How [availableWidgets] came to be what it is, step by step — so an
+  /// empty list can say which step emptied it, rather than one message for
+  /// every cause.
+  DashboardAvailability availability(String userSegment) {
+    final forSegment = catalog.definitions
+        .where((d) => d.isSelectable && d.appliesToSegment(userSegment))
+        .length;
+    return DashboardAvailability(
+      userSegment: userSegment,
+      catalogSource: catalogSource,
+      catalogSize: catalog.definitions.length,
+      forSegment: forSegment,
+      authorizedCount: authorized.authorized.length,
+      available: availableWidgets(userSegment).length,
+    );
   }
 
   /// Widgets the user may add, per §17. Empty until authorization has
@@ -585,6 +637,18 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
       errorMessage: result == null
           ? fallback
           : result.resolveUserMessage(l10n: l10n, fallback: fallback),
+    );
+  }
+
+  /// Re-requests the widget catalog — the Personalize panel's Retry when it
+  /// could not be loaded from the server or the app.
+  Future<void> reloadCatalog() async {
+    final epoch = _epoch();
+    final result = await _ref.read(dashboardRepositoryProvider).fetchCatalog();
+    if (!_isCurrent(epoch)) return;
+    state = state.copyWith(
+      catalog: result.catalog,
+      catalogSource: result.source,
     );
   }
 
