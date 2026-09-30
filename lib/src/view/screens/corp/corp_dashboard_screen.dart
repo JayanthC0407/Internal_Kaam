@@ -18,12 +18,15 @@ import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/corp_trade_finance_hub.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_accounts_card.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_dashboard_header_bar.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
 import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
 
 /// Arguments for the Corporate dashboard.
@@ -96,6 +99,12 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
 
   late CorpNavDestination _destination;
 
+  /// The open Letter of Credit option, while [_destination] is
+  /// [CorpNavDestination.tradeFinance]. Null before the user has picked one
+  /// — the destination then falls back to the "coming soon" placeholder,
+  /// same as any other unopened module.
+  LcMenuAction? _lcAction;
+
   @override
   void initState() {
     super.initState();
@@ -148,16 +157,37 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     );
   }
 
-  void _selectDestination(CorpNavDestination destination) {
+  void _selectDestination(CorpNavDestination destination, {LcMenuAction? lcAction}) {
     // A menu choice replaces whatever was opened on top.
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-    setState(() => _destination = destination);
+    setState(() {
+      _destination = destination;
+      if (lcAction != null) _lcAction = lcAction;
+    });
   }
 
   /// From the side menu — which closes its own drawer.
   void _onNavSelected(String id) {
     final destination = CorpNavDestination.fromNavId(id);
-    if (destination != null) _selectDestination(destination);
+    if (destination == null) return;
+    _selectDestination(
+      destination,
+      lcAction: destination == CorpNavDestination.tradeFinance
+          ? CorpNavDestination.lcActionFromNavId(id)
+          : null,
+    );
+  }
+
+  /// The nav widget's selected id — the destination's plain name, except
+  /// while a Letter of Credit option is open, when it is that option's full
+  /// leaf id so the nav tree highlights it and keeps its ancestor groups
+  /// expanded (see `DashboardNavContent._expandSelectedGroup`).
+  String? get _selectedNavId {
+    final action = _lcAction;
+    if (_destination == CorpNavDestination.tradeFinance && action != null) {
+      return '${CorpNavDestination.tradeFinance.name}.${action.group.name}.${action.name}';
+    }
+    return _destination.name;
   }
 
   /// Opens the Personalize panel as a side sheet rather than a full page,
@@ -202,6 +232,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final isDesktop = responsive.isDesktop;
+    final navItems =
+        CorpNavDestination.navItems(ref.watch(lcPermissionsProvider));
 
     final shell = Column(
       children: [
@@ -233,8 +265,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       drawer: isDesktop
           ? null
           : DashboardNavDrawer(
-              items: CorpNavDestination.navItems,
-              selectedId: _destination.name,
+              items: navItems,
+              selectedId: _selectedNavId,
               onSelected: _onNavSelected,
             ),
       // Personalize opens as a side sheet so the dashboard stays on screen
@@ -263,8 +295,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                   // The side menu both dashboards share, with Corporate's
                   // entries.
                   DashboardNavigationSidebar(
-                    items: CorpNavDestination.navItems,
-                    selectedId: _destination.name,
+                    items: navItems,
+                    selectedId: _selectedNavId,
                     onSelected: _onNavSelected,
                   ),
                   // Screens opened from here open beside the sidebar on
@@ -389,6 +421,18 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   Widget _buildDestination(Responsive responsive) {
     if (_destination == CorpNavDestination.home) {
       return _buildHome(responsive);
+    }
+    if (_destination == CorpNavDestination.tradeFinance) {
+      final action = _lcAction;
+      if (action != null) {
+        return CorpTradeFinanceWorkspace(
+          action: action,
+          // Trade Finance is reached only from the nav menu, not pushed
+          // over another destination, so back always returns Home — the
+          // same place every other menu choice starts from.
+          onBack: () => _selectDestination(CorpNavDestination.home),
+        );
+      }
     }
     return _CorpDestinationPlaceholder(destination: _destination);
   }
