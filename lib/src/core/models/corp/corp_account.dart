@@ -72,6 +72,13 @@ class CorpAccount {
     this.outstandingBalance,
     this.maturityAmount,
     this.principalAmount,
+    this.maturityDate,
+    this.interestRate,
+    this.installmentAmount,
+    this.nextInstallmentDate,
+    this.amountFinanced,
+    this.totalInstallments,
+    this.remainingInstallments,
   });
 
   /// Complex OBDX account id (`id.value`) — required for any follow-up
@@ -136,6 +143,99 @@ class CorpAccount {
 
   /// Deposit-only (`principalAmount` / `investmentAmount`).
   final MoneyAmount? principalAmount;
+
+  // ── Term-deposit and loan dashboard fields ────────────────────────────
+  //
+  // Only the list endpoints carry these: `td/v1/deposit` returns a
+  // deposit's maturity date and rate, `loan/v1/loan` a loan's rate,
+  // installment and tenure. The aggregated `account/v1/accounts` call does
+  // not, so anything reading them must have loaded the group's own list
+  // (`CorpAccountsNotifier.ensureGroupLoaded`) first — otherwise they are
+  // legitimately null and the widgets fall back rather than showing zero.
+
+  /// Deposit maturity / loan final-repayment date, as the host sends it.
+  /// Kept as the raw string and parsed through [maturityDateTime], because
+  /// hosts vary between `2026-10-15` and `2026-10-15T00:00:00.000`.
+  final String? maturityDate;
+
+  /// Annual rate as a percentage — `6.85` means 6.85%, not 0.0685.
+  final double? interestRate;
+
+  /// Loan-only: the scheduled periodic repayment (EMI).
+  final MoneyAmount? installmentAmount;
+
+  /// Loan-only: when the next [installmentAmount] falls due.
+  final String? nextInstallmentDate;
+
+  /// Loan-only: the originally sanctioned amount, which with
+  /// [outstandingBalance] gives how much has been repaid.
+  final MoneyAmount? amountFinanced;
+
+  /// Loan-only tenure, in installments.
+  final int? totalInstallments;
+  final int? remainingInstallments;
+
+  /// [maturityDate] as a date, or `null` when absent or unparseable.
+  DateTime? get maturityDateTime => _parseDate(maturityDate);
+
+  /// [nextInstallmentDate] as a date, or `null` when absent or unparseable.
+  DateTime? get nextInstallmentDateTime => _parseDate(nextInstallmentDate);
+
+  /// How much of [amountFinanced] has been repaid. `null` unless both the
+  /// sanctioned amount and the outstanding balance are known — a repayment
+  /// figure guessed from one of them would be wrong, not approximate.
+  double? get repaidAmount {
+    final financed = amountFinanced?.amount;
+    final outstanding = outstandingBalance?.amount;
+    if (financed == null || outstanding == null || financed <= 0) return null;
+    final repaid = financed - outstanding;
+    return repaid < 0 ? 0 : repaid;
+  }
+
+  /// Share of the loan repaid, 0..1 — the donut's fill in Loan Summary.
+  double? get repaidFraction {
+    final financed = amountFinanced?.amount;
+    final repaid = repaidAmount;
+    if (financed == null || repaid == null || financed <= 0) return null;
+    return (repaid / financed).clamp(0.0, 1.0);
+  }
+
+  /// Parses the date formats OBDX list endpoints use. A bare `yyyy-MM-dd`
+  /// is not ISO-8601 complete, so [DateTime.tryParse] handles it, but a
+  /// `dd-MMM-yyyy` (some hosts' loan schedules) is tried explicitly.
+  static DateTime? _parseDate(String? raw) {
+    final value = raw?.trim();
+    if (value == null || value.isEmpty) return null;
+
+    final iso = DateTime.tryParse(value);
+    if (iso != null) return DateTime(iso.year, iso.month, iso.day);
+
+    final match = RegExp(r'^(\d{1,2})[-/ ]([A-Za-z]{3})[-/ ](\d{4})$')
+        .firstMatch(value);
+    if (match == null) return null;
+    final month = _monthAbbreviations[match.group(2)!.toLowerCase()];
+    if (month == null) return null;
+    return DateTime(
+      int.parse(match.group(3)!),
+      month,
+      int.parse(match.group(1)!),
+    );
+  }
+
+  static const Map<String, int> _monthAbbreviations = {
+    'jan': 1,
+    'feb': 2,
+    'mar': 3,
+    'apr': 4,
+    'may': 5,
+    'jun': 6,
+    'jul': 7,
+    'aug': 8,
+    'sep': 9,
+    'oct': 10,
+    'nov': 11,
+    'dec': 12,
+  };
 
   bool get isActive => status.toUpperCase() == 'ACTIVE';
   bool get isDormant => status.toUpperCase() == 'DORMANT';
@@ -339,7 +439,84 @@ class CorpAccount {
         ],
         currencyCode,
       ),
+      // `td/v1/deposit` names it `maturityDate`; loans call the same
+      // concept `maturityDate` too, with `endDate` on some host versions.
+      maturityDate: _firstNonEmpty([
+        json['maturityDate'],
+        json['maturityDt'],
+        json['endDate'],
+      ]),
+      interestRate: _firstNumber([
+        json['interestRate'],
+        json['rate'],
+        json['depositRate'],
+        json['currentRate'],
+        json['annualisedRate'],
+      ]),
+      installmentAmount: MoneyAmount.readFirst(
+        json,
+        const [
+          'installmentAmount',
+          'emiAmount',
+          'nextInstallmentAmount',
+          'repaymentAmount',
+        ],
+        currencyCode,
+      ),
+      nextInstallmentDate: _firstNonEmpty([
+        json['nextInstallmentDate'],
+        json['nextRepaymentDate'],
+        json['nextPaymentDate'],
+        json['nextEmiDate'],
+      ]),
+      amountFinanced: MoneyAmount.readFirst(
+        json,
+        const [
+          'amountFinanced',
+          'sanctionedAmount',
+          'loanAmount',
+          'disbursedAmount',
+          'originalLoanAmount',
+        ],
+        currencyCode,
+      ),
+      totalInstallments: _firstInt([
+        json['totalInstallments'],
+        json['noOfInstallments'],
+        json['tenure'],
+      ]),
+      remainingInstallments: _firstInt([
+        json['remainingInstallments'],
+        json['outstandingInstallments'],
+        json['installmentsRemaining'],
+      ]),
     );
+  }
+
+  /// First value in [values] readable as a number. Strings are accepted
+  /// because digx returns rates as `"6.85"` on some host versions.
+  static double? _firstNumber(List<dynamic> values) {
+    for (final value in values) {
+      if (value == null) continue;
+      if (value is num) return value.toDouble();
+      if (value is Map) {
+        final nested = _firstNumber([
+          value['amount'],
+          value['value'],
+          value['rate'],
+        ]);
+        if (nested != null) return nested;
+        continue;
+      }
+      final parsed = double.tryParse(value.toString().trim());
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
+  static int? _firstInt(List<dynamic> values) {
+    final number = _firstNumber(values);
+    return number?.round();
   }
 
   /// Parses `{ "accounts": [ … ] }` (optionally still wrapped in the
