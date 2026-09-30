@@ -37,11 +37,25 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
   Future<void> _prepare() async {
     await ref.read(corpLcLookupsProvider.notifier).ensureLoaded();
     if (!mounted) return;
-    final seed = widget.args.seed;
+    final args = widget.args;
+    final seed = args.seed;
+    final notifier = ref.read(corpLcInitiateProvider.notifier);
     if (seed != null) {
-      ref
-          .read(corpLcInitiateProvider.notifier)
-          .seed(seed, draftId: widget.args.draftId);
+      switch (args.source) {
+        case LcInitiateSource.template:
+          await notifier.seedFromTemplate(seed.id, seed);
+        case LcInitiateSource.copy:
+          await notifier.seedFromLc(seed.id, seed);
+        case LcInitiateSource.backToBack:
+          await notifier.seedBackToBack(seed);
+        case LcInitiateSource.draft:
+          await notifier.seedFromDraft(args.draftId ?? seed.id, seed);
+        case LcInitiateSource.blank:
+          // Legacy callers (e.g. "Copy & initiate" on LC detail) pass a
+          // seed without a source.
+          notifier.seed(seed, draftId: args.draftId);
+      }
+      if (!mounted) return;
     }
     setState(() => _ready = true);
   }
@@ -115,12 +129,15 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
 
     final lookupsState = ref.watch(corpLcLookupsProvider);
     final state = ref.watch(corpLcInitiateProvider);
-    const title = 'Initiate Import LC';
+    final title = state.draft.isBackToBack ||
+            widget.args.source == LcInitiateSource.backToBack
+        ? 'Initiate Back to Back LC'
+        : 'Initiate Import LC';
 
     if (!_ready) {
-      return const LcScreenScaffold(
+      return LcScreenScaffold(
         title: title,
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (lookupsState.lookups.products.isEmpty) {
@@ -179,6 +196,12 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
               children: [
+                if (state.draft.parentLcId != null)
+                  LcMessageBanner(
+                    isError: false,
+                    message:
+                        'Back to Back LC, backed by Export LC ${state.draft.parentLcId}.',
+                  ),
                 for (final e in _errors) LcMessageBanner(message: e),
                 if (state.errorMessage != null)
                   LcMessageBanner(message: state.errorMessage!),

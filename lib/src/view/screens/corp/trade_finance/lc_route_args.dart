@@ -9,14 +9,58 @@ class LcDetailArgs {
   final LcType lcType;
 }
 
-class LcInitiateArgs {
-  const LcInitiateArgs({this.seed, this.draftId});
+/// How the Initiate LC wizard is prefilled — one per Initiate LC tab.
+enum LcInitiateSource {
+  /// "Create LC" — empty form.
+  blank,
 
-  /// Existing LC to copy, or a saved draft to continue.
+  /// By Template — [LcInitiateArgs.seed] is the template row.
+  template,
+
+  /// Copy & Initiate — [LcInitiateArgs.seed] is the LC to duplicate.
+  copy,
+
+  /// By Drafts — [LcInitiateArgs.seed] is the draft; saves update it.
+  draft,
+
+  /// Back to Back LC — [LcInitiateArgs.seed] is the backing Export LC.
+  backToBack,
+}
+
+class LcInitiateArgs {
+  const LcInitiateArgs({
+    this.seed,
+    this.draftId,
+    this.source = LcInitiateSource.blank,
+  });
+
+  const LcInitiateArgs.fromTemplate(CorpLetterOfCredit template)
+      : seed = template,
+        draftId = null,
+        source = LcInitiateSource.template;
+
+  const LcInitiateArgs.copyOf(CorpLetterOfCredit lc)
+      : seed = lc,
+        draftId = null,
+        source = LcInitiateSource.copy;
+
+  LcInitiateArgs.fromDraft(CorpLetterOfCredit draft)
+      : seed = draft,
+        draftId = draft.id,
+        source = LcInitiateSource.draft;
+
+  const LcInitiateArgs.backToBack(CorpLetterOfCredit exportLc)
+      : seed = exportLc,
+        draftId = null,
+        source = LcInitiateSource.backToBack;
+
+  /// The row the wizard is prefilled from (see [source]).
   final CorpLetterOfCredit? seed;
 
   /// Set when [seed] is a draft, so saves update it instead of creating one.
   final String? draftId;
+
+  final LcInitiateSource source;
 }
 
 class LcAmendArgs {

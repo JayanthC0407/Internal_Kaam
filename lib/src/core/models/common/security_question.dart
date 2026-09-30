@@ -12,6 +12,23 @@ class SecurityQuestionOption {
   /// Locale of the master question text (e.g. `en-US`) — required on submit.
   final String? languageId;
 
+  /// Parses `GET …/securityQuestion/question/{id}` body:
+  /// `{ "securityQuestionMappingDTO": { questionId, question, languageId } }`.
+  static SecurityQuestionOption? fromQuestionByIdPayload(dynamic payload) {
+    if (payload is! Map) return null;
+    final body = Map<String, dynamic>.from(payload);
+    final dto = body['securityQuestionMappingDTO'];
+    final Map<String, dynamic> source;
+    if (dto is Map) {
+      source = Map<String, dynamic>.from(dto);
+    } else {
+      source = body;
+    }
+    final option = SecurityQuestionOption.fromJson(source);
+    if (option.id.isEmpty || option.text.isEmpty) return null;
+    return option;
+  }
+
   factory SecurityQuestionOption.fromJson(Map<String, dynamic> json) {
     // OBDX sometimes nests the payload under `securityQuestion`.
     final nested = json['securityQuestion'];

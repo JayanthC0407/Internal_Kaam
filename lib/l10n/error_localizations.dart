@@ -44,6 +44,7 @@ extension AppLocalizationsErrors on AppLocalizations {
         'errorUnexpected' => errorUnexpected,
         'errorGeneric' => errorGeneric,
         'errorOtpInvalid' => errorOtpInvalid,
+        'errorSecurityAnswersInvalid' => errorSecurityAnswersInvalid,
         'errorUserAlreadyExists' => errorUserAlreadyExists,
         'otpResendUnavailable' => otpResendUnavailable,
         'errorBiometricAccessPoint' => errorBiometricAccessPoint,
