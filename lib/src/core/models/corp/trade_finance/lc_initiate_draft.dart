@@ -219,7 +219,10 @@ class LcInitiateDraft {
       'approvalParty': TfId.empty.toJson(),
       'totalRecords': null,
       'id': id,
-      'partyId': partyId.toJson(),
+            // The host takes the applicant from the session, as the web portal does
+      // (partyId null). Sending the masked party id here made the host reject
+      // that id afterwards (DIGX_LC_042 "Invalid Party" on the next LC list).
+      'partyId': TfId.empty.toJson(),
       'collateralDTO': {
         'account': TfId.empty.toJson(),
         'linkedPartyId': TfId.empty.toJson(),
@@ -233,7 +236,7 @@ class LcInitiateDraft {
         'outstandingAmount': {'currency': null, 'amount': null},
         'accountCurrency': null,
       },
-      'partyName': partyName,
+      'partyName': null,
       'partyAddress': LcAddress.empty.toJson(),
       'branchId': branchId,
       'applicationDate': null,
@@ -329,8 +332,8 @@ class LcInitiateDraft {
       'policyDTOs': const <dynamic>[],
       'newApplicant': false,
       'letterOfCreditProductDTO': product?.toRequestJson(),
-      'accounteeId': partyId.toJson(),
-      'accounteeName': partyName,
+      'accounteeId': TfId.empty.toJson(),
+      'accounteeName': null,
       'accounteeAddress': LcAddress.empty.toJson(),
       'primaryCustCIF': TfId.empty.toJson(),
       'autoSaved': autoSaved,

@@ -402,7 +402,29 @@ class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
     await _repo.deleteDraft(id);
     refreshLcListIfOpen(_ref, LcListKind.drafts);
   }
+    /// User-initiated delete of the draft being edited. Returns true on success.
+  Future<bool> deleteCurrentDraft() async {
+    final id = state.draftId;
+    if (id == null) return false;
+    final generation = SessionGeneration.current;
+    state = state.copyWith(isSaving: true, clearMessages: true);
+    final result = await _repo.deleteDraft(id);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
 
+    if (result is Success<bool>) {
+      state = state.copyWith(isSaving: false);
+      refreshLcListIfOpen(_ref, LcListKind.drafts);
+      return true;
+    }
+    state = state.copyWith(
+      isSaving: false,
+      errorMessage: await lcFailureMessage(
+        result,
+        fallback: 'Could not delete the draft.',
+      ),
+    );
+    return false;
+  }
   /// Submits the LC; call again with [otp] after an [LcAwaitingOtp].
   Future<void> submit({String? otp}) async {
     for (final step in LcInitiateStep.values) {
