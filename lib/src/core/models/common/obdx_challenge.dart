@@ -8,6 +8,7 @@ class ObdxChallenge {
     this.attemptsLeft,
     this.resendsLeft,
     this.scope,
+    this.questionIds = const [],
   });
 
   final String authType;
@@ -16,6 +17,13 @@ class ObdxChallenge {
   final int? resendsLeft;
   final String? scope;
 
+  /// Present when [authType] is `SEC_QUE` (forgot username/password KBA).
+  final List<String> questionIds;
+
+  /// Digx-ui forgot credentials challenge: answer enrolled security questions.
+  bool get isSecurityQuestionChallenge =>
+      authType.toUpperCase() == 'SEC_QUE';
+
   factory ObdxChallenge.fromJson(Map<String, dynamic> json) {
     return ObdxChallenge(
       authType: (json['authType'] ?? 'OTP').toString(),
@@ -23,6 +31,9 @@ class ObdxChallenge {
       attemptsLeft: _asInt(json['attemptsLeft']),
       resendsLeft: _asInt(json['resendsLeft']),
       scope: json['scope']?.toString(),
+      questionIds: _asStringList(
+        json['questionIDs'] ?? json['questionIds'],
+      ),
     );
   }
 
@@ -32,6 +43,26 @@ class ObdxChallenge {
       'otp': otp,
       'referenceNo': referenceNo,
       'authType': authType,
+    });
+  }
+
+  /// Value for `X-Challenge_response` when [authType] is `SEC_QUE`.
+  ///
+  /// Digx-ui shape:
+  /// `{"referenceNo","authType":"SEC_QUE","questionAnswers":[{questionId,answer}]}`.
+  String toSecurityQuestionChallengeResponseHeader(
+    List<({String questionId, String answer})> answers,
+  ) {
+    return jsonEncode({
+      'referenceNo': referenceNo,
+      'authType': authType,
+      'questionAnswers': [
+        for (final a in answers)
+          {
+            'questionId': a.questionId,
+            'answer': a.answer,
+          },
+      ],
     });
   }
 
@@ -95,6 +126,7 @@ class ObdxChallenge {
       attemptsLeft: fromHeader?.attemptsLeft,
       resendsLeft: fromHeader?.resendsLeft,
       scope: fromHeader?.scope,
+      questionIds: fromHeader?.questionIds ?? const [],
     );
   }
 
@@ -102,6 +134,16 @@ class ObdxChallenge {
     if (value is int) return value;
     if (value is String) return int.tryParse(value);
     return null;
+  }
+
+  static List<String> _asStringList(dynamic value) {
+    if (value is! List) return const [];
+    final out = <String>[];
+    for (final item in value) {
+      final text = item?.toString().trim() ?? '';
+      if (text.isNotEmpty) out.add(text);
+    }
+    return out;
   }
 
   static String? _headerValue(dynamic headers, String name) {

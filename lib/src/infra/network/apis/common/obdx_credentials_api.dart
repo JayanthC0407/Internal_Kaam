@@ -48,6 +48,27 @@ class ObdxCredentialsApi extends ObdxApiBase {
     );
   }
 
+  /// Master question text for a `SEC_QUE` challenge id.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchSecurityQuestionById(
+    String questionId,
+  ) async {
+    try {
+      final response = await dio.get(
+        ObdxApiUtils.appendLocaleQuery(
+          ApiConst.securityQuestionByIdApi(questionId),
+        ),
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
   Future<ResponseHandler<Map<String, dynamic>>> _postCredentials({
     required String path,
     required Map<String, dynamic> body,

@@ -3591,6 +3591,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You Send'**
   String get youSend;
+
+  /// No description provided for @forgotSecurityQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Questions'**
+  String get forgotSecurityQuestionsTitle;
+
+  /// No description provided for @forgotSecurityQuestionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer your security questions to continue.'**
+  String get forgotSecurityQuestionsSubtitle;
+
+  /// No description provided for @forgotSecurityAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get forgotSecurityAnswerLabel;
+
+  /// No description provided for @forgotSecurityAnswerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an answer'**
+  String get forgotSecurityAnswerRequired;
+
+  /// No description provided for @errorSecurityAnswersInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'One or more answers are incorrect. Please try again.'**
+  String get errorSecurityAnswersInvalid;
 }
 
 class _AppLocalizationsDelegate
