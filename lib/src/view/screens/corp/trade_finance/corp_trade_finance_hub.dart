@@ -348,9 +348,43 @@ class _LcListPageState extends ConsumerState<_LcListPage> {
                 lc: lc,
                 isDraft: isDraft,
                 onTap: () => widget.onOpen(context, lc),
+                onDelete: isDraft ? () => _confirmDelete(lc) : null,
               ),
         ],
       ),
+    );
+  }
+    Future<void> _confirmDelete(CorpLetterOfCredit draft) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete draft?'),
+        content: Text(
+          '"${draft.draftName ?? 'Draft ${draft.id}'}" will be permanently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: CorpColors.of(ctx).error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    final error = await ref
+        .read(corpLcListProvider(LcListKind.drafts).notifier)
+        .deleteDraft(draft);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error ?? 'Draft deleted.')),
     );
   }
 }
@@ -477,11 +511,12 @@ class _AmendmentAcceptancePageState
 // ── LC row ──────────────────────────────────────────────────────────────
 
 class _LcTile extends StatelessWidget {
-  const _LcTile({required this.lc, required this.isDraft, required this.onTap});
+  const _LcTile({required this.lc, required this.isDraft, required this.onTap, this.onDelete});
 
   final CorpLetterOfCredit lc;
   final bool isDraft;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -572,6 +607,13 @@ class _LcTile extends StatelessWidget {
                 ),
               ],
             ),
+              if (onDelete != null)
+              IconButton(
+                tooltip: 'Delete draft',
+                icon: const Icon(Icons.delete_outline_rounded),
+                color: CorpColors.of(context).error,
+                onPressed: onDelete,
+              ),
           ],
         ),
       ),
