@@ -483,5 +483,10 @@
   "lfwTermsSubtitle": "Please read and accept the Terms & Conditions to continue.",
   "lfwTermsTitle": "Terms & Conditions",
   "lfwTitle": "First-time setup",
-  "lfwUnknownStep": "Please complete this setup step to continue."
+  "lfwUnknownStep": "Please complete this setup step to continue.",
+  "forgotSecurityQuestionsTitle": "Xavfsizlik savollari",
+  "forgotSecurityQuestionsSubtitle": "Davom etish uchun xavfsizlik savollariga javob bering.",
+  "forgotSecurityAnswerLabel": "Javob",
+  "forgotSecurityAnswerRequired": "Javob kiriting",
+  "errorSecurityAnswersInvalid": "Bir yoki bir nechta javob noto‘g‘ri. Qayta urinib ko‘ring."
 }

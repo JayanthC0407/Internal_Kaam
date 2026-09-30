@@ -483,5 +483,10 @@
   "lfwTermsSubtitle": "Please read and accept the Terms & Conditions to continue.",
   "lfwTermsTitle": "Terms & Conditions",
   "lfwTitle": "First-time setup",
-  "lfwUnknownStep": "Please complete this setup step to continue."
+  "lfwUnknownStep": "Please complete this setup step to continue.",
+  "forgotSecurityQuestionsTitle": "Domande di sicurezza",
+  "forgotSecurityQuestionsSubtitle": "Rispondi alle domande di sicurezza per continuare.",
+  "forgotSecurityAnswerLabel": "Risposta",
+  "forgotSecurityAnswerRequired": "Inserisci una risposta",
+  "errorSecurityAnswersInvalid": "Una o più risposte non sono corrette. Riprova."
 }

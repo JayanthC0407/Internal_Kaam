@@ -1,6 +1,8 @@
 import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/common/forgot_credentials_pending.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_error.dart';
+import 'package:ubci_bank/src/core/models/common/security_question.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_credentials_api.dart';
@@ -83,16 +85,53 @@ class ForgotCredentialsRepository {
     }
 
     final header = pending.challenge.toChallengeResponseHeader(otp);
+    return _submitChallengeResponse(
+      pending,
+      challengeResponseHeader: header,
+      securityQuestionSubmit: false,
+    );
+  }
+
+  /// Submit `SEC_QUE` answers via the same forgot endpoint + `X-Challenge_response`.
+  Future<ResponseHandler<ForgotCredentialsFlowResult>> submitSecurityAnswers({
+    required List<({String questionId, String answer})> answers,
+  }) async {
+    final pending = _pending;
+    if (pending == null) {
+      return ResponseHandler.exceptionError();
+    }
+
+    if (RegistrationSessionHolder.instance.anonymousAuth == null) {
+      final bootstrap = await _ensureAnonymousSession();
+      if (bootstrap is! Success<void>) {
+        return _mapFailure(bootstrap);
+      }
+    }
+
+    final header =
+        pending.challenge.toSecurityQuestionChallengeResponseHeader(answers);
+    return _submitChallengeResponse(
+      pending,
+      challengeResponseHeader: header,
+      securityQuestionSubmit: true,
+    );
+  }
+
+  Future<ResponseHandler<ForgotCredentialsFlowResult>> _submitChallengeResponse(
+    ForgotCredentialsPending pending, {
+    required String challengeResponseHeader,
+    required bool securityQuestionSubmit,
+  }) async {
     final result = switch (pending.kind) {
       ForgotCredentialsKind.username => await _credentialsApi.forgotUserId(
           emailId: pending.emailId ?? '',
           dateOfBirth: pending.dateOfBirth,
-          challengeResponseHeader: header,
+          challengeResponseHeader: challengeResponseHeader,
         ),
       ForgotCredentialsKind.password => await _credentialsApi.forgotCredentials(
           userId: pending.userId ?? '',
           dateOfBirth: pending.dateOfBirth,
-          challengeResponseHeader: header,
+          challengeResponseHeader: challengeResponseHeader,
         ),
     };
 
@@ -106,35 +145,62 @@ class ForgotCredentialsRepository {
     final body = ObdxApiUtils.asMap(wrapped['body']);
     final rawBody = wrapped['body'] ?? wrapped['rawBody'];
 
-    // Wrong OTP / TFA failure: HTTP 417 with message.type ERROR (e.g. DIGX_TFA_0004).
-    if (ObdxApiUtils.hasErrorMessage(body)) {
+    // Challenge already sent in X-Challenge_response. Another HTTP 417
+    // (DIGX_AUTH_0003 INFO re-challenge, or DIGX_TFA_* ERROR) is a failed
+    // submit — never Success(otp/secQue required), or the UI silently resets.
+    if (statusCode == ApiConst.expectationFailed ||
+        ObdxApiUtils.hasErrorMessage(body)) {
       final updated = _resolveChallenge(headers, body);
       if (updated != null) {
         pending.updateChallenge(updated);
+        if (updated.isSecurityQuestionChallenge &&
+            updated.questionIds.isNotEmpty) {
+          final questions = await _loadSecurityQuestions(updated.questionIds);
+          if (questions != null) {
+            pending.updateSecurityQuestions(questions);
+          }
+        }
       }
-      final obdxError = ObdxErrorMapper.fromChallengeResponse(
-        statusCode == 0 ? StatusCode.BAD_REQUEST : statusCode,
-        rawBody,
-      );
-      return ResponseHandler.error(
-        obdxError.httpStatusCode ?? statusCode,
-        obdxError.userMessage,
-        obdxError: obdxError,
-      );
-    }
-
-    if (statusCode == ApiConst.expectationFailed) {
-      final challenge = _resolveChallenge(headers, body);
-      if (challenge != null) {
-        pending.updateChallenge(challenge);
-        return ResponseHandler.success(
-          ForgotCredentialsFlowResult.otpRequired(pending),
+      // OTP: fromProfileResponse remaps 417 + DIGX_AUTH_0003 → invalid OTP.
+      // SEC_QUE: DIGX_AUTH_0003 INFO is a wrong-answers re-challenge — not
+      // password-expired / OTP-invalid.
+      if (securityQuestionSubmit &&
+          statusCode == ApiConst.expectationFailed) {
+        final parsed =
+            ObdxErrorMapper.fromChallengeResponse(statusCode, rawBody);
+        final code = parsed.obdxCode;
+        final key = parsed.l10nKey;
+        if (code == 'DIGX_AUTH_0003' ||
+            key == 'errorPasswordExpired' ||
+            key == 'errorOtpInvalid') {
+          return ResponseHandler.error(
+            statusCode,
+            'One or more answers are incorrect. Please try again.',
+            obdxError: ObdxError(
+              category: ObdxErrorCategory.validation,
+              l10nKey: 'errorSecurityAnswersInvalid',
+              userMessage:
+                  'One or more answers are incorrect. Please try again.',
+              detail: parsed.detail,
+              httpStatusCode: statusCode,
+              obdxCode: code,
+              requestId: parsed.requestId,
+            ),
+          );
+        }
+        return ResponseHandler.error(
+          parsed.httpStatusCode ?? statusCode,
+          parsed.userMessage,
+          obdxError: parsed,
         );
       }
-      final obdxError = ObdxErrorMapper.fromChallengeResponse(
-        statusCode,
-        rawBody,
-      );
+
+      final obdxError = statusCode == ApiConst.expectationFailed
+          ? ObdxErrorMapper.fromProfileResponse(statusCode, rawBody)
+          : ObdxErrorMapper.fromChallengeResponse(
+              statusCode == 0 ? StatusCode.BAD_REQUEST : statusCode,
+              rawBody,
+            );
       return ResponseHandler.error(
         obdxError.httpStatusCode ?? statusCode,
         obdxError.userMessage,
@@ -142,7 +208,7 @@ class ForgotCredentialsRepository {
       );
     }
 
-    // After OTP was sent in X-Challenge_response, HTTP 200 without ERROR = done.
+    // After challenge response, HTTP 200 without ERROR = done.
     // Bodies seen on digx-ui:
     // - forgot password: {"tokenValid":false}
     // - forgot username: status.result SUCCESSFUL (may still echo referenceNumber)
@@ -259,6 +325,16 @@ class ForgotCredentialsRepository {
     if (challenge != null &&
         (statusCode == ApiConst.expectationFailed ||
             statusCode == StatusCode.OK)) {
+      if (challenge.isSecurityQuestionChallenge) {
+        return _securityQuestionsRequired(
+          kind: kind,
+          dateOfBirth: dateOfBirth,
+          emailId: emailId,
+          userId: userId,
+          challenge: challenge,
+        );
+      }
+
       return _otpRequired(
         kind: kind,
         dateOfBirth: dateOfBirth,
@@ -320,6 +396,69 @@ class ForgotCredentialsRepository {
     );
   }
 
+  Future<ResponseHandler<ForgotCredentialsFlowResult>>
+      _securityQuestionsRequired({
+    required ForgotCredentialsKind kind,
+    required String dateOfBirth,
+    required ObdxChallenge challenge,
+    String? emailId,
+    String? userId,
+  }) async {
+    if (challenge.questionIds.isEmpty) {
+      await clear();
+      return ResponseHandler.exceptionError();
+    }
+
+    final questions = await _loadSecurityQuestions(challenge.questionIds);
+    if (questions == null || questions.isEmpty) {
+      await clear();
+      return ResponseHandler.exceptionError();
+    }
+
+    final pending = ForgotCredentialsPending(
+      kind: kind,
+      dateOfBirth: dateOfBirth,
+      emailId: emailId,
+      userId: userId,
+      challenge: challenge,
+      securityQuestions: questions,
+    );
+    _pending = pending;
+    return ResponseHandler.success(
+      ForgotCredentialsFlowResult.securityQuestionsRequired(pending),
+    );
+  }
+
+  /// Fetch master question text for each challenge id (order preserved).
+  Future<List<SecurityQuestionOption>?> _loadSecurityQuestions(
+    List<String> questionIds,
+  ) async {
+    final results = await Future.wait([
+      for (final id in questionIds)
+        _credentialsApi.fetchSecurityQuestionById(id),
+    ]);
+
+    final out = <SecurityQuestionOption>[];
+    for (var i = 0; i < results.length; i++) {
+      final result = results[i];
+      if (result is! Success<Map<String, dynamic>> || result.data == null) {
+        return null;
+      }
+      final wrapped = result.data!;
+      final statusCode = wrapped['statusCode'] as int? ?? 0;
+      final body = wrapped['body'] ?? wrapped['rawBody'];
+      if (statusCode != StatusCode.OK) return null;
+      final option = SecurityQuestionOption.fromQuestionByIdPayload(body);
+      if (option == null) {
+        // Fall back to id-only label if DTO shape differs.
+        out.add(SecurityQuestionOption(id: questionIds[i], text: questionIds[i]));
+        continue;
+      }
+      out.add(option);
+    }
+    return out;
+  }
+
   /// Prefer non-empty `X-Challenge.referenceNo`; fall back to status.referenceNumber.
   ObdxChallenge? _resolveChallenge(dynamic headers, Map<String, dynamic> body) {
     final fromHeader = ObdxChallenge.fromResponseHeaders(headers);
@@ -336,6 +475,7 @@ class ForgotCredentialsRepository {
       attemptsLeft: fromHeader?.attemptsLeft,
       resendsLeft: fromHeader?.resendsLeft,
       scope: fromHeader?.scope,
+      questionIds: fromHeader?.questionIds ?? const [],
     );
   }
 

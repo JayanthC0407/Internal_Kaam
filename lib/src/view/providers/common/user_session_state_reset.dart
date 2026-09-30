@@ -45,6 +45,7 @@ void resetUserSessionState(Ref ref) {
   ref.invalidate(corpLcListProvider);
   ref.invalidate(corpLcDetailProvider);
   ref.invalidate(corpLcLookupsProvider);
+  ref.invalidate(corpLcSearchProvider);
   ref.invalidate(corpLcInitiateProvider);
   ref.invalidate(corpLcAmendProvider);
   ref.invalidate(corpLcExportAmendmentsProvider);

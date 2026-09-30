@@ -103,6 +103,9 @@ enum LcListKind {
   importLc('Import LC'),
   exportLc('Export LC'),
   drafts('Drafts'),
+
+  /// Saved LC templates (H1 #37).
+  templates('Templates'),
   amendable('Amendable'),
 
   /// Export LCs that can still be transferred (H2 #202).
@@ -219,6 +222,7 @@ class CorpLcListNotifier extends StateNotifier<CorpLcListState> {
           amendableOnly: true,
         ),
       LcListKind.drafts => repo.fetchDrafts(),
+      LcListKind.templates => repo.fetchTemplates(),
       LcListKind.transferable => repo.fetchTransferableLcs(partyId: partyId),
       LcListKind.transferred => repo
           .fetchLetterOfCredits(lcType: LcType.exportLc, partyId: partyId)
@@ -471,4 +475,101 @@ class CorpLcAmendmentListNotifier
 final corpLcExportAmendmentsProvider = StateNotifierProvider<
     CorpLcAmendmentListNotifier, CorpLcAmendmentListState>(
   (ref) => CorpLcAmendmentListNotifier(ref),
+);
+
+// ── LC search (Initiate → Copy & Initiate / Back to Back LC) ────────────
+
+enum LcSearchMode { copy, backToBack }
+
+class CorpLcSearchState {
+  const CorpLcSearchState({
+    required this.criteria,
+    this.isLoading = false,
+    this.results,
+    this.errorMessage,
+  });
+
+  final LcSearchCriteria criteria;
+  final bool isLoading;
+
+  /// Null until the first search; empty = searched, nothing found.
+  final List<CorpLetterOfCredit>? results;
+  final String? errorMessage;
+
+  bool get searched => results != null;
+}
+
+class CorpLcSearchNotifier extends StateNotifier<CorpLcSearchState> {
+  CorpLcSearchNotifier(this._ref, this.mode)
+      : super(CorpLcSearchState(criteria: _initial(mode)));
+
+  final Ref _ref;
+  final LcSearchMode mode;
+  int _request = 0;
+
+  static LcSearchCriteria _initial(LcSearchMode mode) =>
+      mode == LcSearchMode.copy
+          ? LcSearchCriteria.copy()
+          : LcSearchCriteria.backToBack();
+
+  void update(LcSearchCriteria Function(LcSearchCriteria c) change) {
+    state = CorpLcSearchState(
+      criteria: change(state.criteria),
+      results: state.results,
+    );
+  }
+
+  void clear() => state = CorpLcSearchState(criteria: state.criteria.cleared());
+
+  Future<void> search() async {
+    final generation = SessionGeneration.current;
+    final request = ++_request;
+    state = CorpLcSearchState(
+      criteria: state.criteria,
+      isLoading: true,
+      results: state.results,
+    );
+    bool stale() =>
+        !SessionGeneration.isCurrent(generation) ||
+        !mounted ||
+        request != _request;
+
+    final repo = _ref.read(corpTradeFinanceRepositoryProvider);
+    Future<ResponseHandler<List<CorpLetterOfCredit>>> run() =>
+        repo.searchLetterOfCredits(
+          state.criteria,
+          partyId: currentLcParty(_ref).value,
+        );
+
+    var result = await run();
+    if (_isInvalidParty(result)) {
+      await _ref.read(corpProfileProvider.notifier).refresh();
+      if (stale()) return;
+      result = await run();
+    }
+    if (stale()) return;
+
+    if (result is Success<List<CorpLetterOfCredit>>) {
+      state = CorpLcSearchState(
+        criteria: state.criteria,
+        results: result.data ?? const [],
+      );
+      return;
+    }
+    final message = await lcFailureMessage(
+      result,
+      fallback: 'Could not search letters of credit.',
+    );
+    if (stale()) return;
+    state = CorpLcSearchState(
+      criteria: state.criteria,
+      results: const [],
+      errorMessage: message,
+    );
+  }
+}
+
+final corpLcSearchProvider = StateNotifierProvider.autoDispose
+    .family<CorpLcSearchNotifier, CorpLcSearchState, LcSearchMode>(
+  (ref, mode) => CorpLcSearchNotifier(ref, mode),
 );

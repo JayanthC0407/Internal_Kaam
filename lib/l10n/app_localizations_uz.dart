@@ -1898,4 +1898,21 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get youSend => 'You Send';
+
+  @override
+  String get forgotSecurityQuestionsTitle => 'Xavfsizlik savollari';
+
+  @override
+  String get forgotSecurityQuestionsSubtitle =>
+      'Davom etish uchun xavfsizlik savollariga javob bering.';
+
+  @override
+  String get forgotSecurityAnswerLabel => 'Javob';
+
+  @override
+  String get forgotSecurityAnswerRequired => 'Javob kiriting';
+
+  @override
+  String get errorSecurityAnswersInvalid =>
+      'Bir yoki bir nechta javob noto‘g‘ri. Qayta urinib ko‘ring.';
 }
