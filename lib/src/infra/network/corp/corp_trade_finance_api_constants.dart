@@ -37,6 +37,18 @@ class CorpTradeFinanceApiConst {
   /// Saved drafts — H1 #90 (`autoSaved=true` variant H1 #41).
   static const String draftsApi = '$_base/letterofcredits/drafts';
 
+  /// One saved draft in full — OBDX spec `LetterOfCredit.readDraft`.
+  static String draftApi(String id) =>
+      '$draftsApi/${Uri.encodeComponent(id)}';
+
+  /// Saved templates — H1 #37 (`transactionType=CONVENTIONAL`), OBDX spec
+  /// `LetterOfCredit.listTemplates`.
+  static const String templatesApi = '$_base/letterofcredits/templates';
+
+  /// One template in full — OBDX spec `LetterOfCredit.readTemplate`.
+  static String templateApi(String id) =>
+      '$templatesApi/${Uri.encodeComponent(id)}';
+
   /// Charge preview for a new LC — H1 #121 (400 on pre-sales: the fresh
   /// web flow left `partyId` empty, DIGX_LC_042).
   static const String chargesApi = '$_base/letterofcredits/charges';
