@@ -56,6 +56,7 @@ class LcInitiateDraft {
     this.instructions,
     this.draftName,
     this.customerReferenceNo,
+    this.parentLcId,
   });
 
   final LcProduct? product;
@@ -93,6 +94,13 @@ class LcInitiateDraft {
   /// Draft label (`name`) — generated when saving a draft.
   final String? draftName;
   final String? customerReferenceNo;
+
+  /// Export LC backing this one — set for a Back to Back LC. Sent as
+  /// `parentReferenceLCs` (the field the LC detail carries, H1 #48).
+  /// ASSUMPTION: no captured back-to-back initiation; confirm with a capture.
+  final String? parentLcId;
+
+  bool get isBackToBack => parentLcId != null;
 
   static const empty = LcInitiateDraft();
 
@@ -161,6 +169,7 @@ class LcInitiateDraft {
     List<TradeCode>? additionalConditions,
     String? instructions,
     String? draftName,
+    String? parentLcId,
   }) {
     return LcInitiateDraft(
       product: product ?? this.product,
@@ -189,6 +198,7 @@ class LcInitiateDraft {
       instructions: instructions ?? this.instructions,
       draftName: draftName ?? this.draftName,
       customerReferenceNo: customerReferenceNo,
+      parentLcId: parentLcId ?? this.parentLcId,
     );
   }
 
@@ -337,6 +347,7 @@ class LcInitiateDraft {
       'accounteeAddress': LcAddress.empty.toJson(),
       'primaryCustCIF': TfId.empty.toJson(),
       'autoSaved': autoSaved,
+      'parentReferenceLCs': [if (parentLcId != null) parentLcId],
     };
   }
 

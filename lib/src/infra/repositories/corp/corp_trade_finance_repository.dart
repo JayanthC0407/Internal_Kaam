@@ -53,6 +53,47 @@ class CorpTradeFinanceRepository extends CorpRepositoryBase {
     });
   }
 
+  /// Free LC search (Copy & Initiate, Back to Back LC).
+  Future<ResponseHandler<List<CorpLetterOfCredit>>> searchLetterOfCredits(
+    LcSearchCriteria criteria, {
+    String? partyId,
+  }) async {
+    final result = await _api.searchLetterOfCredits(
+      criteria.toQuery(partyId: partyId),
+    );
+    return parseBody(
+      result,
+      (body) => CorpLetterOfCredit.listFromPayload(
+        body,
+        fallbackType: criteria.lcType,
+      ),
+    );
+  }
+
+  /// Saved templates (H1 #37 — `letterOfCreditDTOs`).
+  Future<ResponseHandler<List<CorpLetterOfCredit>>> fetchTemplates() async {
+    final result = await _api.fetchTemplates();
+    return parseBody(result, CorpLetterOfCredit.listFromPayload);
+  }
+
+  /// One template in full, for prefilling the wizard.
+  Future<ResponseHandler<CorpLetterOfCredit>> fetchTemplate(String id) async {
+    final result = await _api.fetchTemplate(id);
+    return parseBody(result, _detailOrThrow);
+  }
+
+  /// One draft in full, for continuing it in the wizard.
+  Future<ResponseHandler<CorpLetterOfCredit>> fetchDraft(String id) async {
+    final result = await _api.fetchDraft(id);
+    return parseBody(result, _detailOrThrow);
+  }
+
+  static CorpLetterOfCredit _detailOrThrow(Map<String, dynamic> body) {
+    final lc = CorpLetterOfCredit.fromDetailPayload(body);
+    if (lc == null) throw const FormatException('letterOfCredit missing');
+    return lc;
+  }
+
   Future<ResponseHandler<List<CorpLetterOfCredit>>> fetchDrafts() async {
     final result = await _api.fetchDrafts();
     return parseBody(result, CorpLetterOfCredit.listFromPayload);

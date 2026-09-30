@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_model
 import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_hub.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
@@ -38,12 +39,18 @@ class CorpTradeFinanceWorkspace extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(pad, 12, pad, 32),
       children: [
+        // Initiate LC has its own header (design: title + entity line,
+        // same back arrow), so the generic one is skipped for it.
+        if (current == LcMenuAction.importInitiate)
+          LcInitiateHub(onBack: onBack)
+        else ...[
         _PageHeader(action: current, onBack: onBack),
         const SizedBox(height: 14),
         KeyedSubtree(
           key: ValueKey(current),
           child: switch (current) {
-            LcMenuAction.importInitiate => const _InitiatePage(),
+            // Rendered above (own header); never reached.
+            LcMenuAction.importInitiate => const SizedBox.shrink(),
             LcMenuAction.importAmend => _LcListPage(
                 kind: LcListKind.amendable,
                 emptyMessage:
@@ -86,6 +93,7 @@ class CorpTradeFinanceWorkspace extends StatelessWidget {
               ),
           },
         ),
+        ],
       ],
     );
   }
@@ -159,77 +167,6 @@ class _PageHeader extends StatelessWidget {
               const SizedBox(height: 2),
               Text(action.description, style: muted),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Initiate: new LC + saved drafts ─────────────────────────────────────
-
-class _InitiatePage extends StatelessWidget {
-  const _InitiatePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CorpCardShell(
-          child: LayoutBuilder(
-            builder: (context, c) {
-              final text = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'New Import LC',
-                    style: TextStyle(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w700,
-                      color: CorpColors.textPrimary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'LC details → beneficiary & bank → shipment & goods → documents → review.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: CorpColors.textSecondary(context),
-                    ),
-                  ),
-                ],
-              );
-              final button = LcPrimaryButton(
-                label: 'Initiate LC',
-                icon: Icons.add_rounded,
-                onPressed: () => Navigator.of(context).pushNamed(
-                  CorpRoutesConst.lcInitiateScreen,
-                  arguments: const LcInitiateArgs(),
-                ),
-              );
-              return c.maxWidth < 520
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [text, const SizedBox(height: 12), button],
-                    )
-                  : Row(children: [
-                      Expanded(child: text),
-                      const SizedBox(width: 12),
-                      button,
-                    ]);
-            },
-          ),
-        ),
-        const SizedBox(height: 14),
-        _LcListPage(
-          title: 'Saved drafts',
-          kind: LcListKind.drafts,
-          emptyMessage: 'Drafts you save while initiating an LC appear here.',
-          showSearch: false,
-          onOpen: (context, lc) => Navigator.of(context).pushNamed(
-            CorpRoutesConst.lcInitiateScreen,
-            arguments: LcInitiateArgs(seed: lc, draftId: lc.id),
           ),
         ),
       ],
