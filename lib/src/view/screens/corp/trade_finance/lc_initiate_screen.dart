@@ -73,7 +73,32 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
       _notifier.cancelOtp();
     }
   }
-
+  
+    Future<void> _deleteDraft() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this draft?'),
+        content: const Text('The saved draft will be permanently deleted.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    if (await _notifier.deleteCurrentDraft() && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Draft deleted.')));
+      Navigator.of(context).pop();
+    }
+  }
   @override
   Widget build(BuildContext context) {
     ref.listen<CorpLcInitiateState>(corpLcInitiateProvider, (prev, next) {
@@ -139,6 +164,14 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
     final narrow = MediaQuery.sizeOf(context).width < 420;
     return LcScreenScaffold(
       title: title,
+      actions: [
+        if (state.draftId != null)
+          IconButton(
+            tooltip: 'Delete draft',
+            icon: const Icon(Icons.delete_outline_rounded),
+            onPressed: state.isBusy ? null : _deleteDraft,
+          ),
+      ],
       body: Column(
         children: [
           _StepIndicator(current: state.step),
