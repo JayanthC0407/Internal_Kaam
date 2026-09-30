@@ -152,6 +152,10 @@ class ApiConst {
   static const String securityQuestionsMasterApi =
       '/digx-admin/security/v1/securityQuestion';
 
+  /// Resolve one master question by id (forgot credentials `SEC_QUE` challenge).
+  static String securityQuestionByIdApi(String questionId) =>
+      '$securityQuestionsMasterApi/question/${Uri.encodeComponent(questionId)}';
+
   static const String userSecurityQuestionsApi =
       '/digx-admin/security/v1/userSecurityQuestion';
 

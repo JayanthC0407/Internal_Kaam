@@ -483,5 +483,10 @@
   "lfwTermsSubtitle": "يرجى قراءة الشروط والأحكام وقبولها للمتابعة.",
   "lfwTermsTitle": "الشروط والأحكام",
   "lfwTitle": "إعداد أول مرة",
-  "lfwUnknownStep": "يرجى إكمال خطوة الإعداد هذه للمتابعة."
+  "lfwUnknownStep": "يرجى إكمال خطوة الإعداد هذه للمتابعة.",
+  "forgotSecurityQuestionsTitle": "أسئلة الأمان",
+  "forgotSecurityQuestionsSubtitle": "أجب عن أسئلة الأمان للمتابعة.",
+  "forgotSecurityAnswerLabel": "الإجابة",
+  "forgotSecurityAnswerRequired": "يرجى إدخال إجابة",
+  "errorSecurityAnswersInvalid": "إجابة واحدة أو أكثر غير صحيحة. يرجى المحاولة مرة أخرى."
 }

@@ -1897,4 +1897,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get youSend => 'You Send';
+
+  @override
+  String get forgotSecurityQuestionsTitle => 'Контрольные вопросы';
+
+  @override
+  String get forgotSecurityQuestionsSubtitle =>
+      'Ответьте на контрольные вопросы, чтобы продолжить.';
+
+  @override
+  String get forgotSecurityAnswerLabel => 'Ответ';
+
+  @override
+  String get forgotSecurityAnswerRequired => 'Введите ответ';
+
+  @override
+  String get errorSecurityAnswersInvalid =>
+      'Один или несколько ответов неверны. Попробуйте ещё раз.';
 }

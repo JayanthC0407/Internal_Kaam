@@ -42,7 +42,18 @@ class ForgotCredentialsScreenVm {
   }) {
     return _run(
       () => _ref.read(forgotCredentialsRepositoryProvider).submitOtp(otp: otp),
-      otpFallback: true,
+      errorFallback: _ForgotErrorFallback.otp,
+    );
+  }
+
+  Future<ResponseHandler<ForgotCredentialsFlowResult>?> submitSecurityAnswers({
+    required List<({String questionId, String answer})> answers,
+  }) {
+    return _run(
+      () => _ref
+          .read(forgotCredentialsRepositoryProvider)
+          .submitSecurityAnswers(answers: answers),
+      errorFallback: _ForgotErrorFallback.securityAnswers,
     );
   }
 
@@ -95,7 +106,7 @@ class ForgotCredentialsScreenVm {
 
   Future<ResponseHandler<ForgotCredentialsFlowResult>?> _run(
     Future<ResponseHandler<ForgotCredentialsFlowResult>> Function() action, {
-    bool otpFallback = false,
+    _ForgotErrorFallback errorFallback = _ForgotErrorFallback.generic,
   }) async {
     _ref.read(forgotIsLoadingProvider.notifier).state = true;
     _ref.read(forgotErrorMessageProvider.notifier).state = null;
@@ -111,7 +122,7 @@ class ForgotCredentialsScreenVm {
 
       final result = await action();
       final l10n = await AppLocalizationsHelper.current();
-      _applyError(result, l10n, otpFallback: otpFallback);
+      _applyError(result, l10n, errorFallback: errorFallback);
       return result;
     } catch (_) {
       final l10n = await AppLocalizationsHelper.current();
@@ -125,10 +136,14 @@ class ForgotCredentialsScreenVm {
   void _applyError(
     ResponseHandler<ForgotCredentialsFlowResult> result,
     AppLocalizations l10n, {
-    required bool otpFallback,
+    required _ForgotErrorFallback errorFallback,
   }) {
-    final fallback =
-        otpFallback ? l10n.errorOtpInvalid : l10n.errorGeneric;
+    final fallback = switch (errorFallback) {
+      _ForgotErrorFallback.otp => l10n.errorOtpInvalid,
+      _ForgotErrorFallback.securityAnswers =>
+        l10n.errorSecurityAnswersInvalid,
+      _ForgotErrorFallback.generic => l10n.errorGeneric,
+    };
     if (result is Error<ForgotCredentialsFlowResult>) {
       _ref.read(forgotErrorMessageProvider.notifier).state =
           result.resolveUserMessage(l10n: l10n, fallback: fallback);
@@ -141,3 +156,5 @@ class ForgotCredentialsScreenVm {
     }
   }
 }
+
+enum _ForgotErrorFallback { generic, otp, securityAnswers }
