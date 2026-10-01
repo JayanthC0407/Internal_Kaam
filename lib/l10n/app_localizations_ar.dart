@@ -1888,4 +1888,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get youSend => 'You Send';
+
+  @override
+  String get forgotSecurityQuestionsTitle => 'أسئلة الأمان';
+
+  @override
+  String get forgotSecurityQuestionsSubtitle => 'أجب عن أسئلة الأمان للمتابعة.';
+
+  @override
+  String get forgotSecurityAnswerLabel => 'الإجابة';
+
+  @override
+  String get forgotSecurityAnswerRequired => 'يرجى إدخال إجابة';
+
+  @override
+  String get errorSecurityAnswersInvalid =>
+      'إجابة واحدة أو أكثر غير صحيحة. يرجى المحاولة مرة أخرى.';
 }

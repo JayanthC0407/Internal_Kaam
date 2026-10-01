@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_model
 import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_hub.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
@@ -38,12 +39,18 @@ class CorpTradeFinanceWorkspace extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(pad, 12, pad, 32),
       children: [
+        // Initiate LC has its own header (design: title + entity line,
+        // same back arrow), so the generic one is skipped for it.
+        if (current == LcMenuAction.importInitiate)
+          LcInitiateHub(onBack: onBack)
+        else ...[
         _PageHeader(action: current, onBack: onBack),
         const SizedBox(height: 14),
         KeyedSubtree(
           key: ValueKey(current),
           child: switch (current) {
-            LcMenuAction.importInitiate => const _InitiatePage(),
+            // Rendered above (own header); never reached.
+            LcMenuAction.importInitiate => const SizedBox.shrink(),
             LcMenuAction.importAmend => _LcListPage(
                 kind: LcListKind.amendable,
                 emptyMessage:
@@ -86,6 +93,7 @@ class CorpTradeFinanceWorkspace extends StatelessWidget {
               ),
           },
         ),
+        ],
       ],
     );
   }
@@ -159,77 +167,6 @@ class _PageHeader extends StatelessWidget {
               const SizedBox(height: 2),
               Text(action.description, style: muted),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Initiate: new LC + saved drafts ─────────────────────────────────────
-
-class _InitiatePage extends StatelessWidget {
-  const _InitiatePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CorpCardShell(
-          child: LayoutBuilder(
-            builder: (context, c) {
-              final text = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'New Import LC',
-                    style: TextStyle(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w700,
-                      color: CorpColors.textPrimary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'LC details → beneficiary & bank → shipment & goods → documents → review.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: CorpColors.textSecondary(context),
-                    ),
-                  ),
-                ],
-              );
-              final button = LcPrimaryButton(
-                label: 'Initiate LC',
-                icon: Icons.add_rounded,
-                onPressed: () => Navigator.of(context).pushNamed(
-                  CorpRoutesConst.lcInitiateScreen,
-                  arguments: const LcInitiateArgs(),
-                ),
-              );
-              return c.maxWidth < 520
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [text, const SizedBox(height: 12), button],
-                    )
-                  : Row(children: [
-                      Expanded(child: text),
-                      const SizedBox(width: 12),
-                      button,
-                    ]);
-            },
-          ),
-        ),
-        const SizedBox(height: 14),
-        _LcListPage(
-          title: 'Saved drafts',
-          kind: LcListKind.drafts,
-          emptyMessage: 'Drafts you save while initiating an LC appear here.',
-          showSearch: false,
-          onOpen: (context, lc) => Navigator.of(context).pushNamed(
-            CorpRoutesConst.lcInitiateScreen,
-            arguments: LcInitiateArgs(seed: lc, draftId: lc.id),
           ),
         ),
       ],
@@ -348,9 +285,43 @@ class _LcListPageState extends ConsumerState<_LcListPage> {
                 lc: lc,
                 isDraft: isDraft,
                 onTap: () => widget.onOpen(context, lc),
+                onDelete: isDraft ? () => _confirmDelete(lc) : null,
               ),
         ],
       ),
+    );
+  }
+    Future<void> _confirmDelete(CorpLetterOfCredit draft) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete draft?'),
+        content: Text(
+          '"${draft.draftName ?? 'Draft ${draft.id}'}" will be permanently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: CorpColors.of(ctx).error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    final error = await ref
+        .read(corpLcListProvider(LcListKind.drafts).notifier)
+        .deleteDraft(draft);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error ?? 'Draft deleted.')),
     );
   }
 }
@@ -477,11 +448,12 @@ class _AmendmentAcceptancePageState
 // ── LC row ──────────────────────────────────────────────────────────────
 
 class _LcTile extends StatelessWidget {
-  const _LcTile({required this.lc, required this.isDraft, required this.onTap});
+  const _LcTile({required this.lc, required this.isDraft, required this.onTap, this.onDelete});
 
   final CorpLetterOfCredit lc;
   final bool isDraft;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -572,6 +544,13 @@ class _LcTile extends StatelessWidget {
                 ),
               ],
             ),
+              if (onDelete != null)
+              IconButton(
+                tooltip: 'Delete draft',
+                icon: const Icon(Icons.delete_outline_rounded),
+                color: CorpColors.of(context).error,
+                onPressed: onDelete,
+              ),
           ],
         ),
       ),

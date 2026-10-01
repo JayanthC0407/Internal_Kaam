@@ -147,6 +147,98 @@ class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
     if (id != null) _loadProductDocuments(id);
   }
 
+  // ── Prefill sources (Initiate LC tabs) ───────────────────────────────
+
+  /// By Drafts — the drafts list may carry summaries only, so the full draft
+  /// is read (OBDX spec `readDraft`); the list row is the fallback.
+  Future<void> seedFromDraft(String draftId, CorpLetterOfCredit row) async {
+    final generation = SessionGeneration.current;
+    final result = await _repo.fetchDraft(draftId);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+    final lc = _dataOr(result, row);
+    seed(lc, draftId: draftId);
+    // A Back to Back draft keeps its backing Export LC.
+    final parents = lc.raw['parentReferenceLCs'];
+    if (parents is List && parents.isNotEmpty) {
+      final parent = TfJson.str(parents.first);
+      if (parent != null) {
+        state = state.copyWith(draft: state.draft.copyWith(parentLcId: parent));
+      }
+    }
+  }
+
+  /// By Template — prefills a *new* LC; the template itself is untouched,
+  /// so no draft id and no draft name are carried over.
+  Future<void> seedFromTemplate(String templateId, CorpLetterOfCredit row) async {
+    final generation = SessionGeneration.current;
+    final result = await _repo.fetchTemplate(templateId);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+    seed(_dataOr(result, row));
+    state = state.copyWith(draft: _withoutName(state.draft));
+  }
+
+  /// Copy & Initiate — the full LC is read (H1 #48) and duplicated.
+  Future<void> seedFromLc(String lcId, CorpLetterOfCredit row) async {
+    final generation = SessionGeneration.current;
+    final result = await _repo.fetchLetterOfCredit(lcId);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+    seed(_dataOr(result, row));
+    state = state.copyWith(draft: _withoutName(state.draft));
+  }
+
+  /// Back to Back LC — a new Import LC backed by [exportLc]. Currency,
+  /// goods, shipment and incoterm follow the export LC; beneficiary and
+  /// amount are left for the user (the supplier and the cost price differ
+  /// from the export side).
+  Future<void> seedBackToBack(CorpLetterOfCredit exportLc) async {
+    final generation = SessionGeneration.current;
+    final result = await _repo.fetchLetterOfCredit(exportLc.id);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+    final source = _dataOr(result, exportLc);
+    state = CorpLcInitiateState(
+      draft: LcInitiateDraft(
+        currency: source.amount?.currency,
+        expiryDate: source.expiryDate,
+        shipment: source.shipment,
+        incoterm: (source.incoterm?.code.isEmpty ?? true) ? null : source.incoterm,
+        goods: source.goods,
+        parentLcId: source.id,
+      ),
+    );
+  }
+
+  static CorpLetterOfCredit _dataOr(
+    ResponseHandler<CorpLetterOfCredit> result,
+    CorpLetterOfCredit fallback,
+  ) =>
+      (result is Success<CorpLetterOfCredit> ? result.data : null) ?? fallback;
+
+  /// A copy must not reuse the source's draft/template name.
+  static LcInitiateDraft _withoutName(LcInitiateDraft d) => LcInitiateDraft(
+        product: d.product,
+        currency: d.currency,
+        amount: d.amount,
+        expiryDate: d.expiryDate,
+        expiryPlace: d.expiryPlace,
+        toleranceAbove: d.toleranceAbove,
+        toleranceUnder: d.toleranceUnder,
+        availableBy: d.availableBy,
+        confirmationInstruction: d.confirmationInstruction,
+        documentPresentationDays: d.documentPresentationDays,
+        beneficiaryName: d.beneficiaryName,
+        beneficiaryAddress: d.beneficiaryAddress,
+        advisingBank: d.advisingBank,
+        advisingBankCode: d.advisingBankCode,
+        chargesBorneBy: d.chargesBorneBy,
+        shipment: d.shipment,
+        incoterm: d.incoterm,
+        goods: d.goods,
+        documents: d.documents,
+        additionalConditions: d.additionalConditions,
+        instructions: d.instructions,
+        parentLcId: d.parentLcId,
+      );
+
   void update(LcInitiateDraft Function(LcInitiateDraft draft) change) {
     state = state.copyWith(
       draft: change(state.draft),
@@ -402,7 +494,29 @@ class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
     await _repo.deleteDraft(id);
     refreshLcListIfOpen(_ref, LcListKind.drafts);
   }
+    /// User-initiated delete of the draft being edited. Returns true on success.
+  Future<bool> deleteCurrentDraft() async {
+    final id = state.draftId;
+    if (id == null) return false;
+    final generation = SessionGeneration.current;
+    state = state.copyWith(isSaving: true, clearMessages: true);
+    final result = await _repo.deleteDraft(id);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
 
+    if (result is Success<bool>) {
+      state = state.copyWith(isSaving: false);
+      refreshLcListIfOpen(_ref, LcListKind.drafts);
+      return true;
+    }
+    state = state.copyWith(
+      isSaving: false,
+      errorMessage: await lcFailureMessage(
+        result,
+        fallback: 'Could not delete the draft.',
+      ),
+    );
+    return false;
+  }
   /// Submits the LC; call again with [otp] after an [LcAwaitingOtp].
   Future<void> submit({String? otp}) async {
     for (final step in LcInitiateStep.values) {
