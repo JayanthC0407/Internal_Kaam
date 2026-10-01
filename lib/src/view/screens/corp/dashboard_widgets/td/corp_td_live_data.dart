@@ -41,7 +41,7 @@ class CorpTdBook {
       id: a.displayNumber.isEmpty ? a.title : a.displayNumber,
       principal: principal,
       rate: a.interestRate,
-      maturesOn: a.maturityDate,
+      maturesOn: a.maturityDateTime,
       // Without a maturity value, the principal — the least it pays.
       maturityValue: a.maturityAmount?.amount ?? principal,
       status: _statusLabel(a.status),

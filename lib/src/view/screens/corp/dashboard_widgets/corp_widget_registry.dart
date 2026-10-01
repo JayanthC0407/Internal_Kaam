@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_forecast_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_snapshot_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_widgets.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cashflow_summary_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
@@ -121,18 +120,20 @@ class CorpWidgetRegistry extends DashboardWidgetRegistry {
         CorpComponentNames.termDepositSummary: () =>
             const CorpLiveTdSummaryWidget(),
 
-        // Cash management. The withdrawal summary is live
-        // (`collections/CW`); the widgets capture shows no call behind the
-        // other three, so they keep their sample figures and "Sample data"
-        // tag.
+        // Cash management, live: the withdrawal summary from
+        // `collections/CW`; the snapshot (today) and summary (this month)
+        // from the current and savings accounts' transactions. The forecast
+        // keeps its sample figures and "Sample data" tag — projected cash
+        // flow comes from no endpoint the app knows, and working one out
+        // of past transactions would be inventing it.
         CorpComponentNames.cashWithdrawalSummary: () =>
             const CorpLiveCashWithdrawalSummaryWidget(),
+        CorpComponentNames.cashFlowSnapshot: () =>
+            const CorpLiveCashFlowSnapshotWidget(),
+        CorpComponentNames.cashflowSummary: () =>
+            const CorpLiveCashflowSummaryWidget(),
         CorpComponentNames.cashFlowForecast: () =>
             const CorpCashFlowForecastWidget(),
-        CorpComponentNames.cashFlowSnapshot: () =>
-            const CorpCashFlowSnapshotWidget(),
-        CorpComponentNames.cashflowSummary: () =>
-            const CorpCashflowSummaryWidget(),
       };
 
   /// Sizes — half the row, the two-column arrangement both dashboards use

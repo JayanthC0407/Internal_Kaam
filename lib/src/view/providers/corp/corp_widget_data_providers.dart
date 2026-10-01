@@ -6,6 +6,7 @@ import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_cash_collection.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_loan_application.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_loan_record.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_process_management_api.dart';
@@ -14,6 +15,7 @@ import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_lending_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/retail/accounts_repository.dart';
 import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
@@ -157,4 +159,66 @@ final corpWithdrawalsProvider = FutureProvider.autoDispose<
     entries: result.data ?? const <CorpCashCollectionEntry>[],
     month: from
   );
+});
+
+/// Which slice of the current and savings accounts' transactions the Cash
+/// Flow widgets read: today's for the Snapshot, this month's for the
+/// Summary.
+enum CorpCashFlowPeriod { today, thisMonth }
+
+/// At most this many current / savings accounts are read for the Cash
+/// Flow widgets — one transactions call each.
+const int corpCashFlowAccountLimit = 10;
+
+/// One account's transactions for a [CorpCashFlowPeriod].
+typedef CorpAccountActivity = ({
+  CorpAccount account,
+  CasaTransactionsResult result,
+});
+
+/// `dda/v1/demandDeposit/{id}/transactions` for each open current or
+/// savings account: `searchBy=SPD` for the business date, or `CPR` (the
+/// current period) for the month.
+///
+/// The widgets capture shows no call behind the Cash Flow Snapshot or
+/// Summary, so their figures come from these transactions — the same
+/// call the account screens make. The accounts are the dashboard's own
+/// list, not fetched again. If any account's transactions fail, the
+/// widget shows the failure: totals with an account silently missing
+/// would be wrong.
+final corpCashFlowActivityProvider = FutureProvider.autoDispose.family<
+    ({List<CorpAccountActivity> accounts, DateTime today}),
+    CorpCashFlowPeriod>((ref, period) async {
+  final today = await ref.watch(corpBusinessDateProvider.future);
+  await ref.read(corpAccountsProvider.notifier).ensureLoaded();
+  final state = ref.read(corpAccountsProvider);
+  if (state.summary.isEmpty && state.errorMessage != null) {
+    throw CorpWidgetLoadError(state.errorMessage!);
+  }
+  final accounts = [
+    for (final a in state.summary.casaAccounts)
+      if (!a.isClosed) a,
+  ].take(corpCashFlowAccountLimit).toList();
+
+  final query = period == CorpCashFlowPeriod.today
+      ? CasaTransactionQuery(
+          period: CasaTransactionPeriod.specificDay,
+          specificDate: today,
+        )
+      : const CasaTransactionQuery();
+  final repository = ref.read(accountsRepositoryProvider);
+  final results = await Future.wait([
+    for (final a in accounts)
+      repository.fetchCasaTransactions(a.id, query: query),
+  ]);
+
+  final activity = <CorpAccountActivity>[];
+  for (var i = 0; i < accounts.length; i++) {
+    final result = results[i];
+    if (result is! Success<CasaTransactionsResult> || result.data == null) {
+      return _fail(result);
+    }
+    activity.add((account: accounts[i], result: result.data!));
+  }
+  return (accounts: activity, today: today);
 });

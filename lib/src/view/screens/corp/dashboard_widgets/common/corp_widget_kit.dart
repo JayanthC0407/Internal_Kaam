@@ -1187,6 +1187,22 @@ class CorpFigures {
   static String percent(double value, {int decimals = 2}) =>
       '${value.toStringAsFixed(decimals)}%';
 
+  /// `28 inflows • 19 outflows • 3 pending`, or `28 in • 19 out` when
+  /// [short]; the pending count only when the host reports one.
+  static String activity(
+    int inflows,
+    int outflows,
+    int? pending, {
+    bool short = false,
+  }) {
+    String plural(int n, String word) => '$n $word${n == 1 ? '' : 's'}';
+    return [
+      short ? '$inflows in' : plural(inflows, 'inflow'),
+      short ? '$outflows out' : plural(outflows, 'outflow'),
+      if (pending != null) '$pending pending',
+    ].join(' • ');
+  }
+
   /// [percent], or `—` when the host gave no rate.
   static String percentOr(double? value, {int decimals = 2}) =>
       value == null ? '—' : percent(value, decimals: decimals);
