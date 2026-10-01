@@ -137,6 +137,15 @@ abstract class DashboardWidgetRegistry {
   /// panel.
   Set<String> get pinnedComponents => const {};
 
+  /// Tiles the dashboard always shows that are not catalog widgets at all —
+  /// Corporate's accounts card. They take room on screen, so they count
+  /// toward the widget limit.
+  int get fixedTileCount => 0;
+
+  /// Everything the dashboard shows whatever the user picks: pinned
+  /// widgets and fixed tiles. See `DashboardWidgetLimit`.
+  int get alwaysShownCount => pinnedComponents.length + fixedTileCount;
+
   Set<String> get implementedComponents => builders.keys.toSet();
 
   bool isImplemented(String componentName) =>

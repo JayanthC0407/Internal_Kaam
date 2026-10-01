@@ -71,9 +71,15 @@ class DashboardTopBar extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final menuTap = onMenuTap;
 
+    // Phones: room for search, the bell, settings and profile only.
+    // Favourites, Language and Help do nothing yet, so they go first; once
+    // one does something it belongs in the settings menu on a phone.
+    final compact = MediaQuery.sizeOf(context).width < 600;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding:
+          EdgeInsets.symmetric(horizontal: compact ? 10 : 16, vertical: 10),
       decoration: BoxDecoration(
         color: _TopBarColors.card(context),
         border: Border(
@@ -109,22 +115,24 @@ class DashboardTopBar extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          _TopBarIconButton(
-            icon: Icons.favorite_border_rounded,
-            tooltip: 'Favourites',
-            onTap: onFavouritesTap,
-          ),
-          _TopBarIconButton(
-            icon: Icons.language_rounded,
-            tooltip: 'Language',
-            onTap: onLanguageTap,
-          ),
-          _TopBarIconButton(
-            icon: Icons.help_outline_rounded,
-            tooltip: l10n.help,
-            onTap: onHelpTap,
-          ),
+          SizedBox(width: compact ? 6 : 12),
+          if (!compact) ...[
+            _TopBarIconButton(
+              icon: Icons.favorite_border_rounded,
+              tooltip: 'Favourites',
+              onTap: onFavouritesTap,
+            ),
+            _TopBarIconButton(
+              icon: Icons.language_rounded,
+              tooltip: 'Language',
+              onTap: onLanguageTap,
+            ),
+            _TopBarIconButton(
+              icon: Icons.help_outline_rounded,
+              tooltip: l10n.help,
+              onTap: onHelpTap,
+            ),
+          ],
           _TopBarIconButton(
             icon: Icons.notifications_none_rounded,
             tooltip: 'Notifications',

@@ -12,9 +12,9 @@ import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_dashb
 /// everything else the user selects draws a named placeholder, exactly as
 /// on Corporate.
 ///
-/// Note `financial-summary` (module `accounts`, retail) is a different
-/// component from Corporate's `account-financial-summary`, which is why
-/// each user type gets its own registry rather than sharing one map.
+/// A name need not mean the same widget for both user types (see
+/// [DashboardWidgetRegistry]), which is why each user type gets its own
+/// registry rather than sharing one map.
 class RetailWidgetRegistry extends DashboardWidgetRegistry {
   const RetailWidgetRegistry();
 
@@ -26,8 +26,13 @@ class RetailWidgetRegistry extends DashboardWidgetRegistry {
         // from the catalog. An earlier version of this map was derived from
         // the catalog's retail-eligible entries and matched almost none of
         // them, so the whole dashboard rendered as placeholders.
+        //
+        // The accounts carousel ([RetailAccountsWidget]: CASA / Credit Card
+        // / Loans / Insurance tabs) is not in this map. It is part of the
+        // dashboard itself — see [fixedTileCount] — and it used to be
+        // mapped to `casa-balance-card` and `financial-summary`, neither of
+        // which it resembles; selecting either now draws a placeholder.
         'casa-account-card': () => const RetailCasaAccountsWidget(),
-        'casa-balance-card': () => const RetailAccountsWidget(),
         'loans-account-card': () => const RetailLoanAccountsWidget(),
         'loans-balance-card': () => const RetailLoanSummaryWidget(),
         'dashboard-quick-links': () => const RetailQuickLinksWidget(),
@@ -37,7 +42,6 @@ class RetailWidgetRegistry extends DashboardWidgetRegistry {
         //
         // Kept alongside: a user whose dashboard was built from the catalog
         // rather than these host names should still render.
-        'financial-summary': () => const RetailAccountsWidget(),
         'recent-account-transactions': () =>
             const RetailRecentTransactionsWidget(),
         'spend-summary': () => const RetailSpendSummaryWidget(),
@@ -65,7 +69,6 @@ class RetailWidgetRegistry extends DashboardWidgetRegistry {
           // TODO(l10n): tile titles.
           title: 'My Accounts',
         ),
-        'casa-balance-card': _ownCard,
         'loans-account-card': DashboardWidgetSpec(
           large: 6,
           medium: 12,
@@ -78,7 +81,6 @@ class RetailWidgetRegistry extends DashboardWidgetRegistry {
           medium: 12,
           title: 'Credit Cards',
         ),
-        'financial-summary': _ownCard,
         'recent-account-transactions': _ownCard,
         'spend-summary': _ownCard,
         'loan-summary': _ownCard,
@@ -91,6 +93,12 @@ class RetailWidgetRegistry extends DashboardWidgetRegistry {
   /// home.
   @override
   Set<String> get pinnedComponents => const {'spend-summary'};
+
+  /// The accounts carousel, always shown top left, as on the fixed home.
+  /// It has no component name, so it is counted here, toward the widget
+  /// limit, rather than through [pinnedComponents].
+  @override
+  int get fixedTileCount => 1;
 
   static const _ownCard = DashboardWidgetSpec(
     large: 6,
@@ -118,8 +126,10 @@ class RetailWidgetRegistry extends DashboardWidgetRegistry {
   /// Keeping this beside the map is what guarantees the default and the
   /// personalized paths draw the same set: if a widget is added to one it
   /// has to be added here too, or it is plainly missing.
+  ///
+  /// The accounts carousel, first on the fixed home, is not listed: it is
+  /// always drawn, see [fixedTileCount].
   static const defaultComponents = <String>[
-    'financial-summary',
     'quick-links',
     'loan-summary',
     'spend-summary',

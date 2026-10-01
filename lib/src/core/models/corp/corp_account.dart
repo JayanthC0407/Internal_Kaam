@@ -72,6 +72,8 @@ class CorpAccount {
     this.outstandingBalance,
     this.maturityAmount,
     this.principalAmount,
+    this.maturityDate,
+    this.interestRate,
   });
 
   /// Complex OBDX account id (`id.value`) — required for any follow-up
@@ -136,6 +138,13 @@ class CorpAccount {
 
   /// Deposit-only (`principalAmount` / `investmentAmount`).
   final MoneyAmount? principalAmount;
+
+  /// Deposit-only (`maturityDate`). Not seen filled in a capture yet — the
+  /// captured party holds no deposits — so read by the OBDX field names.
+  final DateTime? maturityDate;
+
+  /// Deposit-only annual rate, percent (`interestRate`); read the same way.
+  final double? interestRate;
 
   bool get isActive => status.toUpperCase() == 'ACTIVE';
   bool get isDormant => status.toUpperCase() == 'DORMANT';
@@ -339,7 +348,33 @@ class CorpAccount {
         ],
         currencyCode,
       ),
+      maturityDate: _firstDate([json['maturityDate'], json['maturesOn']]),
+      interestRate: _firstNumber([
+        json['interestRate'],
+        json['rateOfInterest'],
+        json['netRate'],
+        json['rate'],
+      ]),
     );
+  }
+
+  static DateTime? _firstDate(List<dynamic> values) {
+    for (final value in values) {
+      final parsed =
+          value == null ? null : DateTime.tryParse(value.toString().trim());
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
+  static double? _firstNumber(List<dynamic> values) {
+    for (final value in values) {
+      if (value is num) return value.toDouble();
+      final parsed =
+          value == null ? null : double.tryParse(value.toString().trim());
+      if (parsed != null) return parsed;
+    }
+    return null;
   }
 
   /// Parses `{ "accounts": [ … ] }` (optionally still wrapped in the

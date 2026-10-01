@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 import 'package:ubci_bank/src/core/utils/common/dashboard_widget_labels.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_limit.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
 
 /// Personalize Dashboard — pick which widgets appear on the home screen.
@@ -151,6 +152,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
     // is rendering.
     final saveBlockedReason =
         ref.read(personalizationProvider.notifier).saveBlockedReason;
+    final limit = DashboardWidgetLimit.of(state, widget.registry);
 
     return PopScope(
       // Intercepts the drawer's own dismissal (back gesture / Esc) so an
@@ -171,7 +173,11 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
                 // Disabled — with the reason shown below — rather than
                 // letting the press fail: a factory dashboard, or permissions
                 // that have not loaded, can never be saved from here.
-                canSave: state.hasUnsavedChanges && saveBlockedReason == null,
+                // The widget limit too: an edit that takes the dashboard
+                // over it cannot be saved.
+                canSave: state.hasUnsavedChanges &&
+                    saveBlockedReason == null &&
+                    limit.allowsSave,
                 onSave: _save,
                 onClose: () async {
                   if (await _confirmDiscard() && mounted) widget.onClose();
@@ -179,13 +185,16 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
               ),
               Divider(height: 1, color: Theme.of(context).dividerColor),
               _SelectionSummary(
-                selectedCount: selection.length,
+                limit: limit,
+                showLimit: state.isReady && state.isAuthorizationLoaded,
                 breakpointLabel: _breakpointLabel(state),
                 isCatalogStale: state.isCatalogStale,
                 blockedReason: state.isReady ? saveBlockedReason : null,
               ),
               Divider(height: 1, color: Theme.of(context).dividerColor),
-              Expanded(child: _buildBody(context, state, groups, selection)),
+              Expanded(
+                child: _buildBody(context, state, groups, selection, limit),
+              ),
             ],
           ),
         ),
@@ -198,6 +207,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
     PersonalizationState state,
     Map<String, List<DashboardWidgetDefinition>> groups,
     Set<String> selection,
+    DashboardWidgetLimit limit,
   ) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -235,8 +245,12 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
 
     final moduleKeys = groups.keys.toList();
 
-    void onToggle(String componentName) =>
-        ref.read(personalizationProvider.notifier).toggle(componentName);
+    void onToggle(String componentName) {
+      // At the limit, only removals — the list disables additions, and this
+      // is the backstop.
+      if (!selection.contains(componentName) && !limit.canAdd) return;
+      ref.read(personalizationProvider.notifier).toggle(componentName);
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -254,6 +268,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
             selection: selection,
             registry: widget.registry,
             onToggle: onToggle,
+            canAdd: limit.canAdd,
           );
         }
 
@@ -263,6 +278,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
           selection: selection,
           registry: widget.registry,
           onToggle: onToggle,
+          canAdd: limit.canAdd,
         );
       },
     );
@@ -349,6 +365,7 @@ class _ModuleFlyout extends StatefulWidget {
     required this.selection,
     required this.registry,
     required this.onToggle,
+    required this.canAdd,
   });
 
   final List<String> modules;
@@ -356,6 +373,7 @@ class _ModuleFlyout extends StatefulWidget {
   final Set<String> selection;
   final DashboardWidgetRegistry registry;
   final ValueChanged<String> onToggle;
+  final bool canAdd;
 
   @override
   State<_ModuleFlyout> createState() => _ModuleFlyoutState();
@@ -560,6 +578,7 @@ class _ModuleFlyoutState extends State<_ModuleFlyout> {
                     selection: widget.selection,
                     registry: widget.registry,
                     onToggle: widget.onToggle,
+                    canAdd: widget.canAdd,
                   ),
                 ),
               ),
@@ -673,6 +692,7 @@ class _ModuleAccordion extends StatefulWidget {
     required this.selection,
     required this.registry,
     required this.onToggle,
+    required this.canAdd,
   });
 
   final List<String> modules;
@@ -680,6 +700,7 @@ class _ModuleAccordion extends StatefulWidget {
   final Set<String> selection;
   final DashboardWidgetRegistry registry;
   final ValueChanged<String> onToggle;
+  final bool canAdd;
 
   @override
   State<_ModuleAccordion> createState() => _ModuleAccordionState();
@@ -723,6 +744,7 @@ class _ModuleAccordionState extends State<_ModuleAccordion> {
                   selection: widget.selection,
                   registry: widget.registry,
                   onToggle: widget.onToggle,
+                  canAdd: widget.canAdd,
                   shrinkWrap: true,
                 ),
               ),
@@ -740,6 +762,7 @@ class _WidgetChecklist extends StatelessWidget {
     required this.selection,
     required this.registry,
     required this.onToggle,
+    required this.canAdd,
     this.shrinkWrap = false,
   });
 
@@ -747,6 +770,10 @@ class _WidgetChecklist extends StatelessWidget {
   final Set<String> selection;
   final DashboardWidgetRegistry registry;
   final ValueChanged<String> onToggle;
+
+  /// False at the widget limit: unticked widgets are then disabled, ticked
+  /// ones can still be removed. See `DashboardWidgetLimit`.
+  final bool canAdd;
   final bool shrinkWrap;
 
   @override
@@ -758,6 +785,11 @@ class _WidgetChecklist extends StatelessWidget {
       );
     }
 
+    // Phones get full-height rows — a comfortable touch target — where the
+    // desktop flyout keeps compact ones.
+    final isPhone = MediaQuery.sizeOf(context).width < 600;
+    final theme = Theme.of(context);
+
     return ListView.builder(
       shrinkWrap: shrinkWrap,
       physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
@@ -767,30 +799,36 @@ class _WidgetChecklist extends StatelessWidget {
         final definition = definitions[index];
         final implemented = registry.isImplemented(definition.componentName);
         final isSelected = selection.contains(definition.componentName);
+        final blocked = !isSelected && !canAdd;
+
+        final String? note = blocked
+            ? 'Limit reached · remove one to add another'
+            : (implemented ? null : 'Not available in this app yet');
 
         return CheckboxListTile(
           value: isSelected,
-          onChanged: (_) => onToggle(definition.componentName),
-          dense: true,
+          // Null disables the row: at the limit nothing new can be added.
+          onChanged: blocked ? null : (_) => onToggle(definition.componentName),
+          dense: !isPhone,
           controlAffinity: ListTileControlAffinity.trailing,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          contentPadding: EdgeInsets.symmetric(horizontal: isPhone ? 16 : 12),
           title: Text(
             DashboardWidgetLabels.forComponent(definition.componentName),
-            maxLines: 1,
+            maxLines: isPhone ? 2 : 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: isPhone ? 14.5 : 13,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: blocked ? theme.disabledColor : null,
+            ),
           ),
-          subtitle: implemented
+          subtitle: note == null
               ? null
               : Text(
-                  'Not available in this app yet',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(fontSize: 10.5),
+                  note,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: isPhone ? 12 : 10.5,
+                  ),
                 ),
         );
       },
@@ -862,13 +900,18 @@ class _PanelHeader extends StatelessWidget {
 
 class _SelectionSummary extends StatelessWidget {
   const _SelectionSummary({
-    required this.selectedCount,
+    required this.limit,
+    required this.showLimit,
     required this.breakpointLabel,
     required this.isCatalogStale,
     this.blockedReason,
   });
 
-  final int selectedCount;
+  final DashboardWidgetLimit limit;
+
+  /// False until the dashboard and permissions have loaded — before then
+  /// the count means nothing.
+  final bool showLimit;
   final String breakpointLabel;
   final bool isCatalogStale;
 
@@ -878,20 +921,59 @@ class _SelectionSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final atLimit = !limit.canAdd;
+    final over = limit.isOverLimit;
+    final barColor = over
+        ? theme.colorScheme.error
+        : (atLimit ? const Color(0xFFD97706) : theme.colorScheme.primary);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$selectedCount ${selectedCount == 1 ? 'widget' : 'widgets'} '
-            'selected',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
+          if (showLimit) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${limit.onScreen} of ${limit.limit} widgets on this '
+                    'screen',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: (limit.onScreen / limit.limit).clamp(0.0, 1.0),
+                minHeight: 5,
+                color: barColor,
+                backgroundColor: barColor.withValues(alpha: 0.15),
+              ),
+            ),
+            if (atLimit) ...[
+              const SizedBox(height: 6),
+              Text(
+                over
+                    ? 'This dashboard is over the limit for this screen. '
+                        'Remove ${limit.excess} to be able to add others.'
+                    : 'Limit reached. Remove a widget to add another.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  height: 1.3,
+                  fontWeight: FontWeight.w600,
+                  color: barColor,
+                ),
+              ),
+            ],
+            const SizedBox(height: 6),
+          ],
           Text(
             'Applies to $breakpointLabel. Your other screen sizes keep their '
             'own arrangement.',
