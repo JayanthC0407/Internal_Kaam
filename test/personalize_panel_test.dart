@@ -189,14 +189,8 @@ void main() {
       const corp = CorpWidgetRegistry();
       const retail = RetailWidgetRegistry();
 
-      // The reason each user type gets its own registry: Retail's
-      // `financial-summary` is a different component from Corporate's
-      // `account-financial-summary`.
       expect(corp.isImplemented('account-financial-summary'), isTrue);
       expect(retail.isImplemented('account-financial-summary'), isFalse);
-
-      expect(retail.isImplemented('financial-summary'), isTrue);
-      expect(corp.isImplemented('financial-summary'), isFalse);
 
       // Corporate-only.
       expect(corp.isImplemented('pickup-point-collections'), isTrue);
@@ -242,7 +236,6 @@ void main() {
       const retail = RetailWidgetRegistry();
       for (final name in const [
         'casa-account-card',
-        'casa-balance-card',
         'loans-account-card',
         'loans-balance-card',
         'credit-card',
@@ -269,13 +262,19 @@ void main() {
       );
     });
 
-    test('Corporate widgets are half the row, bar the Account Summary table',
-        () {
+    test('Corporate widgets are half the row, bar the tables', () {
       const corp = CorpWidgetRegistry();
       for (final name in corp.implementedComponents) {
         expect(
           corp.spanFor(name, breakpoint: DashboardBreakpoint.large),
-          name == 'account-summary' ? 12 : 6,
+          const {
+            'account-summary',
+            'loans-overview',
+            'td-summary',
+            'cash-flow-forecast',
+          }.contains(name)
+              ? 12
+              : 6,
           reason: name,
         );
       }
@@ -341,6 +340,16 @@ void main() {
         ),
         6,
       );
+    });
+
+    test('the Retail accounts carousel is not a selectable widget', () {
+      // It is always drawn, top left, and counted as a fixed tile — it is
+      // not what either of the names it used to be mapped to describes.
+      const retail = RetailWidgetRegistry();
+      expect(retail.isImplemented('casa-balance-card'), isFalse);
+      expect(retail.isImplemented('financial-summary'), isFalse);
+      expect(retail.fixedTileCount, 1);
+      expect(retail.alwaysShownCount, 2); // + My Spendings
     });
 
     test('every Retail default component is one the registry can build', () {

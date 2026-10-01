@@ -21,8 +21,10 @@ import 'package:ubci_bank/src/view/screens/retail/home/widgets/spendings_donut_c
 /// read their own providers; only the accounts carousel needed adapting,
 /// because the fixed Retail layout passes it state the dashboard owns.
 
-/// OBDX `financial-summary` (module `accounts`) — the CASA accounts
-/// carousel.
+/// The accounts carousel (CASA / Credit Card / Loans / Insurance tabs).
+///
+/// Not a selectable widget: the personalized Retail dashboard always draws
+/// it, top left — see [RetailWidgetRegistry.fixedTileCount].
 ///
 /// Owns the reveal state the fixed Retail layout used to hold, so the
 /// widget is self-contained when the registry builds it. Each personalized

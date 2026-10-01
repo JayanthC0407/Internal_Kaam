@@ -24,7 +24,10 @@ import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_customize_bar.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
+import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_dashboard_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
 import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
 
@@ -170,7 +173,19 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// §17's segment half for Retail.
   static const _userSegment = 'retailuser';
 
-  void _openPersonalize() => _scaffoldKey.currentState?.openEndDrawer();
+  /// A bottom sheet on phones, the side panel elsewhere — see
+  /// [PersonalizeLauncher].
+  void _openPersonalize() {
+    PersonalizeLauncher.open(
+      context,
+      scaffold: _scaffoldKey.currentState,
+      userSegment: _userSegment,
+      registry: _registry,
+      onClosed: () {
+        if (mounted) DashboardArrange.panelClosed(ref);
+      },
+    );
+  }
 
   /// The Retail dashboard's widget area.
   ///
@@ -198,8 +213,45 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }) {
     final state = ref.watch(personalizationProvider);
 
-    // The same decision the Corporate dashboard uses — see
-    // [PersonalizationState.bodyStatus].
+    if (state.bodyStatus == PersonalizedBodyStatus.unavailable) {
+      // No personalizable dashboard — keep the dashboard exactly as it was
+      // before personalization existed.
+      return _buildOriginalLayout(accountsState, isWide);
+    }
+
+    final area = _buildPersonalizedArea(state);
+    if (isWide) return area;
+
+    // Phone: the original home's rounded panel, drawn 16 px up over the
+    // hero, with its 20 px margins — see [HomeContent] — so a personalized
+    // dashboard looks like the fixed one. The way into Personalize sits
+    // right above the widgets: a phone's header has no settings menu.
+    return Transform.translate(
+      offset: const Offset(0, -16),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: HomeColors.bg(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DashboardCustomizeBar(onCustomize: _openPersonalize),
+              const SizedBox(height: 8),
+              area,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The personalized widgets, or the state standing in for them — the
+  /// same decision the Corporate dashboard makes, see
+  /// [PersonalizationState.bodyStatus].
+  Widget _buildPersonalizedArea(PersonalizationState state) {
     switch (state.bodyStatus) {
       case PersonalizedBodyStatus.loading:
         return const SizedBox(
@@ -207,9 +259,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           child: Center(child: CircularProgressIndicator(strokeWidth: 2.4)),
         );
       case PersonalizedBodyStatus.unavailable:
-        // No personalizable dashboard — keep the dashboard exactly as it
-        // was before personalization existed.
-        return _buildOriginalLayout(accountsState, isWide);
+        // Handled by [_buildWidgetArea], which shows the original layout.
+        return const SizedBox.shrink();
       case PersonalizedBodyStatus.loadFailed:
         return _withStaticWidgets(
           state,
@@ -276,15 +327,22 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// columns, each widget in its own card, one column below the same width
   /// [HomeContent] switches at.
   ///
-  /// My Spendings, which this dashboard always shows, takes the top-right
-  /// slot it has on the fixed home — beside the first widget, or beside a
-  /// [status] card when there are no widgets to show.
+  /// The two widgets this dashboard always shows keep the slots they have
+  /// on the fixed home: the accounts carousel top left, My Spendings top
+  /// right. Neither can be dragged. The user's widgets follow them, or a
+  /// full-width [status] card when there are none to show.
   Widget _withStaticWidgets(
     PersonalizationState state, {
     List<DashboardTile> tiles = const [],
     Widget? status,
     void Function(String dragged, String target)? onMove,
   }) {
+    // Draws its own card, like on the fixed home.
+    const accounts = DashboardTile(
+      span: 6,
+      framed: false,
+      child: RetailAccountsWidget(),
+    );
     final spendings = _registry.tileFor(
       const DashboardLayoutItem(
         componentName: 'spend-summary',
@@ -293,12 +351,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       breakpoint: state.breakpoint,
       catalog: state.catalog,
     );
-    final leading = [
-      if (status != null)
-        DashboardTile(span: 6, child: Center(child: status))
-      else if (tiles.isNotEmpty)
-        tiles.first,
-    ];
 
     return DashboardTileGrid(
       layout: DashboardGridLayout.twoColumns,
@@ -306,9 +358,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       tileDecoration: RetailWidgetRegistry.tileDecoration,
       onMove: onMove,
       tiles: [
-        ...leading,
+        accounts,
         spendings,
-        ...tiles.skip(status == null ? 1 : 0),
+        if (status != null)
+          DashboardTile(span: 12, child: Center(child: status)),
+        ...tiles,
       ],
     );
   }
@@ -530,7 +584,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       key: _scaffoldKey,
       backgroundColor: bg,
       drawer: _buildNavDrawer(),
-      endDrawer: _buildPersonalizeDrawer(),
+      // Phones use the bottom sheet (see [PersonalizeLauncher]); no side
+      // panel, so an edge swipe cannot pull one in.
+      endDrawer: PersonalizeLauncher.usesSheet(context)
+          ? null
+          : _buildPersonalizeDrawer(),
       onEndDrawerChanged: (open) {
         if (!open) DashboardArrange.panelClosed(ref);
       },
