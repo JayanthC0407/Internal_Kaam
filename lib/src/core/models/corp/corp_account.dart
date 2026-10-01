@@ -445,10 +445,13 @@ class CorpAccount {
         json['maturityDate'],
         json['maturityDt'],
         json['endDate'],
+        json['maturesOn'],
       ]),
       interestRate: _firstNumber([
         json['interestRate'],
         json['rate'],
+        json['rateOfInterest'],
+        json['netRate'],
         json['depositRate'],
         json['currentRate'],
         json['annualisedRate'],

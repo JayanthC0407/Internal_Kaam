@@ -106,4 +106,51 @@ class ObdxCorpCashManagementApi extends ObdxApiBase {
       return getExceptionErrorResponse(exc, stack);
     }
   }
+
+  /// `GET …/cashmanagement/collections/{transactionType}` — collections of
+  /// one type, grouped by [interval] (`D` day, `M` month) over
+  /// [from]..[to], oldest first. The filter and sort are the JSON the
+  /// widgets capture sends.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchCashCollections({
+    required String transactionType,
+    required String interval,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    String isoDate(DateTime value) =>
+        value.toIso8601String().split('T').first;
+
+    try {
+      final response = await dio.get(
+        ObdxApiUtils.appendLocaleQuery(
+          CorpApiConst.cashCollectionsApi(transactionType),
+        ),
+        queryParameters: {
+          'queryParams': buildCriteria([
+            {
+              'operand': 'interval',
+              'operator': 'ENUM',
+              'value': [interval],
+            },
+            {
+              'operand': 'date',
+              'operator': 'BETWEEN',
+              'value': [isoDate(from), isoDate(to)],
+            },
+          ]),
+          'sortBy': jsonEncode([
+            {'sortBy': 'date', 'sortOrder': 'ASC'},
+          ]),
+        },
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
 }

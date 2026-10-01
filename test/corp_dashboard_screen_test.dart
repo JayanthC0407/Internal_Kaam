@@ -12,6 +12,7 @@ import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_cata
 import 'package:ubci_bank/src/core/models/corp/corp_pickup_point.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
+import 'package:ubci_bank/src/core/utils/common/dashboard_widget_labels.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_accounts_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_cash_management_repository.dart';
@@ -247,14 +248,16 @@ Future<void> _pumpDashboard(
   DashboardConfig? config,
   bool failAuthorization = false,
   bool failConfig = false,
+  Size size = const Size(1440, 1000),
 }) async {
   final profileResponse = config == null && !failConfig
       ? _meResponseWithoutCustomDashboard
       : _meResponse;
 
   // The design is a desktop layout; size the surface accordingly so the
-  // persistent sidebar and the side-by-side panels are the ones exercised.
-  tester.view.physicalSize = const Size(1440, 1000);
+  // persistent sidebar and the side-by-side panels are the ones exercised
+  // — unless a test asks for another [size], such as a phone's.
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
@@ -553,6 +556,126 @@ void main() {
           'pickup-point-collections',
           'currency-exposure',
         ]);
+      });
+    });
+
+    group('on a phone', () {
+      const phone = Size(390, 844);
+
+      /// A saved phone layout — a phone reads and writes `small`.
+      DashboardConfig phoneLayout(List<String> components) =>
+          DashboardConfig.fromPayload({
+            'dashboardDTO': {
+              'dashboardId': '25801',
+              'dashboardName': 'obdx-name',
+              'dashboardDescription': 'obdx-description',
+              'dashboardClass': 'CUSTOM',
+              'dashboardClassValue': 'custom',
+              'factory': false,
+              'layout': {
+                'layout': {
+                  'defaultLayout': [],
+                  'large': [],
+                  'medium': [],
+                  'small': [
+                    for (final name in components)
+                      {'componentName': name, 'module': 'corporateDashboard'},
+                  ],
+                },
+              },
+            },
+          })!;
+
+      Future<void> openCustomize(WidgetTester tester) async {
+        await tester.tap(find.text('Customize'));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('Customize opens Personalize as a bottom sheet',
+          (tester) async {
+        await _pumpDashboard(tester,
+            config: phoneLayout(const []), size: phone);
+
+        await openCustomize(tester);
+
+        expect(find.byType(BottomSheet), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(PersonalizePanel),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('tapping the sheet\'s handle closes it', (tester) async {
+        await _pumpDashboard(tester,
+            config: phoneLayout(const []), size: phone);
+        await openCustomize(tester);
+
+        await tester.tap(find.bySemanticsLabel('Close Personalize Dashboard'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PersonalizePanel), findsNothing);
+      });
+
+      testWidgets('the counter includes the accounts card', (tester) async {
+        await _pumpDashboard(tester,
+            config: phoneLayout(const []), size: phone);
+        await openCustomize(tester);
+
+        // Nothing picked yet — the always-shown accounts card is 1 of 5.
+        expect(find.text('1 of 5 widgets on this screen'), findsOneWidget);
+      });
+
+      testWidgets('at the limit, other widgets cannot be added',
+          (tester) async {
+        // Four picked + the accounts card = the phone's limit of 5.
+        await _pumpDashboard(
+          tester,
+          config: phoneLayout(const [
+            'account-quick-links',
+            'pickup-point-collections',
+            'account-summary',
+            'bulk-file-upload',
+          ]),
+          size: phone,
+        );
+        await openCustomize(tester);
+
+        expect(find.text('5 of 5 widgets on this screen'), findsOneWidget);
+        expect(
+          find.text('Limit reached. Remove a widget to add another.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.text(DashboardWidgetLabels.forModule('corporateDashboard')),
+        );
+        await tester.pumpAndSettle();
+
+        // Neither unticked catalog widget can be ticked.
+        expect(
+          find.text('Limit reached · remove one to add another'),
+          findsNWidgets(2),
+        );
+        final row = tester.widget<CheckboxListTile>(
+          find.widgetWithText(
+            CheckboxListTile,
+            DashboardWidgetLabels.forComponent('currency-exposure'),
+          ),
+        );
+        expect(row.onChanged, isNull);
+      });
+
+      testWidgets('the top bar drops the icons that do nothing yet',
+          (tester) async {
+        await _pumpDashboard(tester,
+            config: phoneLayout(const []), size: phone);
+
+        expect(find.byTooltip('Favourites'), findsNothing);
+        expect(find.byTooltip('Notifications'), findsOneWidget);
+        expect(find.byTooltip('Settings'), findsOneWidget);
       });
     });
 
