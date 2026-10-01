@@ -1,3 +1,4 @@
+import 'package:ubci_bank/src/core/models/corp/corp_cash_collection.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_pickup_point.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_cash_management_api.dart';
 import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
@@ -52,6 +53,26 @@ class CorpCashManagementRepository extends CorpRepositoryBase {
         return mapFailure<List<CorpPickupPoint>>(lastFailure);
       }
       return ResponseHandler.success(merged, code: 200);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// Cash withdrawals per [interval] (`D` / `M`) over [from]..[to] — the
+  /// Cash Withdrawal Summary's figures.
+  Future<ResponseHandler<List<CorpCashCollectionEntry>>> fetchCashWithdrawals({
+    required DateTime from,
+    required DateTime to,
+    String interval = 'M',
+  }) async {
+    try {
+      final result = await _api.fetchCashCollections(
+        transactionType: CorpApiConst.cashWithdrawalType,
+        interval: interval,
+        from: from,
+        to: to,
+      );
+      return parseBody(result, CorpCashCollectionEntry.listFromPayload);
     } catch (_) {
       return ResponseHandler.exceptionError();
     }

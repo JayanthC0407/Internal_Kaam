@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_forecast_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_widgets.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_installments_due_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_loan_portfolio_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_loan_summary_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_term_deposit_overview_widget.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_live_widgets.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_live_widgets.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
 
@@ -57,15 +58,32 @@ class CorpComponentNames {
   /// Catalog: `large 4 / medium 6`, height 251.
   static const String loanPortfolio = 'loan-portfolio';
 
-  // ── Designed, not yet built — the endpoints behind these are not in
-  // the app. Named here so the next pass has the catalog names to hand,
-  // and so nothing guesses them a second time.
-  //
-  //   loan-application-tracker    loans            large 6  h 220
-  //   cash-flow-forecast-widget   cash-management  large 12 h 220
-  //   cash-flow-snapshot          cash-management  large 12 h 220
-  //   cash-flow-summary           cash-management  large 12 h 220
-  //   cash-withdrawal-summary     cash-management  large 4  h 220
+  /// Catalog: `large 6 / medium 6`, height 251.
+  static const String loanApplicationTracker = 'loan-application-tracker';
+
+  /// The design's "Loan and Finance Summary" table. Catalog: `large 6`.
+  static const String loansOverview = 'loans-overview';
+
+  // ── module: term-deposits (continued) ─────────────────────────────────
+
+  /// Catalog: `large 8 / medium 12`, height 224.
+  static const String termDepositSummary = 'td-summary';
+
+  // ── module: cash-management (continued) ───────────────────────────────
+
+  /// Catalog: `large 12 / medium 12`.
+  static const String cashFlowForecast = 'cash-flow-forecast';
+
+  /// Catalog: `large 12 / medium 12`, height 220.
+  static const String cashFlowSnapshot = 'cash-flow-snapshot';
+
+  /// Not in this environment's catalog, but on the corporate dashboard
+  /// saved in the widgets capture (`HAR for widgets.har`).
+  static const String cashWithdrawalSummary = 'cash-withdrawal-summary';
+
+  /// Neither in the catalog nor in a capture; the name is the app's own,
+  /// so the widget is only offered where a host's catalog lists it.
+  static const String cashflowSummary = 'cashflow-summary';
 }
 
 /// The Corporate dashboard's `componentName` → widget map.
@@ -82,32 +100,55 @@ class CorpWidgetRegistry extends DashboardWidgetRegistry {
         CorpComponentNames.pickupPointCollections: () =>
             const CorpPickupPointsWidget(),
         CorpComponentNames.accountSummary: () => const CorpAccountSummaryCard(),
-        CorpComponentNames.termDepositOverview: () =>
-            const CorpTermDepositOverviewWidget(),
-        CorpComponentNames.loanSummary: () => const CorpLoanSummaryWidget(),
+
+        // Loans, on live data: `loan/v1/loan` and each loan's detail call,
+        // shared by the four account widgets, and `processManagement` for
+        // the tracker (see `corp_widget_data_providers.dart`).
+        CorpComponentNames.loanSummary: () => const CorpLiveLoanSummaryWidget(),
+        CorpComponentNames.loanApplicationTracker: () =>
+            const CorpLiveLoanApplicationTrackerWidget(),
         CorpComponentNames.loanInstallmentsDue: () =>
-            const CorpInstallmentsDueWidget(),
-        CorpComponentNames.loanPortfolio: () => const CorpLoanPortfolioWidget(),
+            const CorpLiveLoanInstallmentsWidget(),
+        CorpComponentNames.loanPortfolio: () =>
+            const CorpLiveLoanPortfolioWidget(),
+        CorpComponentNames.loansOverview: () =>
+            const CorpLiveLoansOverviewWidget(),
+
+        // Term deposits, live: `td/v1/deposit`.
+        CorpComponentNames.termDepositOverview: () =>
+            const CorpLiveTdAccountsOverviewWidget(),
+        CorpComponentNames.termDepositSummary: () =>
+            const CorpLiveTdSummaryWidget(),
+
+        // Cash management, live: the withdrawal summary from
+        // `collections/CW`; the snapshot (today) and summary (this month)
+        // from the current and savings accounts' transactions. The forecast
+        // keeps its sample figures and "Sample data" tag — projected cash
+        // flow comes from no endpoint the app knows, and working one out
+        // of past transactions would be inventing it.
+        CorpComponentNames.cashWithdrawalSummary: () =>
+            const CorpLiveCashWithdrawalSummaryWidget(),
+        CorpComponentNames.cashFlowSnapshot: () =>
+            const CorpLiveCashFlowSnapshotWidget(),
+        CorpComponentNames.cashflowSummary: () =>
+            const CorpLiveCashflowSummaryWidget(),
+        CorpComponentNames.cashFlowForecast: () =>
+            const CorpCashFlowForecastWidget(),
       };
 
   /// Sizes — half the row, the two-column arrangement both dashboards use
   /// (see [DashboardGridLayout.twoColumns]); saving 6 gives the web client
   /// two columns too.
   ///
-  /// Account Summary is the exception: a multi-column table, too cramped
-  /// at half width, so it spans both columns. Pickup Points has no catalog
-  /// entry at all, so the app's sizes are authoritative here.
+  /// Account Summary, the Loan and Finance Summary and the TD Summary are
+  /// the exceptions — multi-column tables, too cramped at half width — and
+  /// so is the Cash Flow Forecast's chart; they span both columns. Pickup
+  /// Points has no catalog entry at all, so the app's sizes are
+  /// authoritative here.
   ///
-  /// The four Term Deposit / Loan widgets take the host catalog's own
-  /// widths and heights instead, so a layout saved from this app opens at
-  /// the same size in the web client: Installments Due is `large 8` there,
-  /// the other three `large 4`. Their bodies (a maturity strip, a gauge, a
-  /// donut) need the catalog height as a floor, which is why they are the
-  /// only specs here carrying a `minHeight`.
-  ///
-  /// Each widget is responsive below its span — under roughly 520px it
-  /// switches to the mobile arrangement — so `large 4` on a wide desktop
-  /// and full width on a phone both render correctly.
+  /// Every Loans / TD / Cash Flow widget is responsive below its span —
+  /// under 460px it switches to its mobile arrangement — so half width on a
+  /// desktop and full width on a phone both render as designed.
   @override
   Map<String, DashboardWidgetSpec> get specs => const {
         CorpComponentNames.financialSummary: _half,
@@ -115,15 +156,26 @@ class CorpWidgetRegistry extends DashboardWidgetRegistry {
         CorpComponentNames.currencyExposure: _half,
         CorpComponentNames.pickupPointCollections: _half,
         CorpComponentNames.accountSummary: DashboardWidgetSpec(large: 12),
-        CorpComponentNames.termDepositOverview:
-            DashboardWidgetSpec(large: 4, medium: 12, minHeight: 320),
-        CorpComponentNames.loanSummary:
-            DashboardWidgetSpec(large: 4, medium: 6, minHeight: 251),
-        CorpComponentNames.loanInstallmentsDue:
-            DashboardWidgetSpec(large: 8, medium: 6, minHeight: 289),
-        CorpComponentNames.loanPortfolio:
-            DashboardWidgetSpec(large: 4, medium: 6, minHeight: 251),
+        CorpComponentNames.loanSummary: _half,
+        CorpComponentNames.loanApplicationTracker: _half,
+        CorpComponentNames.loanInstallmentsDue: _half,
+        CorpComponentNames.loanPortfolio: _half,
+        // An eight-column table, like Account Summary.
+        CorpComponentNames.loansOverview: DashboardWidgetSpec(large: 12),
+        CorpComponentNames.termDepositOverview: _half,
+        // A chart beside a table.
+        CorpComponentNames.termDepositSummary: DashboardWidgetSpec(large: 12),
+        // A year of bars wants the whole width.
+        CorpComponentNames.cashFlowForecast: DashboardWidgetSpec(large: 12),
+        CorpComponentNames.cashFlowSnapshot: _half,
+        CorpComponentNames.cashflowSummary: _half,
+        CorpComponentNames.cashWithdrawalSummary: _half,
       };
 
   static const _half = DashboardWidgetSpec(large: 6, medium: 12);
+
+  /// The accounts card, which always leads the Corporate dashboard and is
+  /// not a catalog widget. It counts toward the widget limit.
+  @override
+  int get fixedTileCount => 1;
 }

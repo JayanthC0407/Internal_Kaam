@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ubci_bank/l10n/app_localizations_en.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/retail_nav.dart';
@@ -153,15 +154,30 @@ void main() {
       ]);
     });
 
-    test('Corporate — every destination, Home first, ids round-trip', () {
-      final items = CorpNavDestination.navItems;
-      expect(items, hasLength(CorpNavDestination.values.length));
+    test('Corporate — Home first, ids round-trip', () {
+      // No Letter of Credit entitlements at all.
+      const noTradeFinance = LcPermissions(
+        viewImport: false,
+        viewExport: false,
+        initiate: false,
+        amend: false,
+        amendmentAcceptance: false,
+        initiateTransfer: false,
+        amendTransfer: false,
+      );
+      final items = CorpNavDestination.navItems(noTradeFinance);
+
       expect(items.first.id, CorpNavDestination.home.name);
       for (final item in items) {
         expect(CorpNavDestination.fromNavId(item.id)?.name, item.id);
       }
-      // Retail's groups are Retail's.
-      expect(items.any((item) => item.isGroup), isFalse);
+      // Trade Finance is left out for a user who may do none of it; every
+      // other destination is there.
+      expect(
+        items.map((item) => item.id),
+        isNot(contains(CorpNavDestination.tradeFinance.name)),
+      );
+      expect(items, hasLength(CorpNavDestination.values.length - 1));
     });
   });
 }

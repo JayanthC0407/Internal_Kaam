@@ -13,6 +13,8 @@ import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_customize_bar.dart';
+import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
@@ -157,7 +159,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     );
   }
 
-  void _selectDestination(CorpNavDestination destination, {LcMenuAction? lcAction}) {
+  void _selectDestination(CorpNavDestination destination,
+      {LcMenuAction? lcAction}) {
     // A menu choice replaces whatever was opened on top.
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() {
@@ -190,10 +193,20 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     return _destination.name;
   }
 
-  /// Opens the Personalize panel as a side sheet rather than a full page,
-  /// so the dashboard stays visible behind it and updates live as widgets
-  /// are saved.
-  void _openPersonalize() => _scaffoldKey.currentState?.openEndDrawer();
+  /// Opens Personalize — a bottom sheet on phones, the side panel elsewhere
+  /// (see [PersonalizeLauncher]) — never a full page, so the dashboard stays
+  /// visible and updates live as widgets are saved.
+  void _openPersonalize() {
+    PersonalizeLauncher.open(
+      context,
+      scaffold: _scaffoldKey.currentState,
+      userSegment: _userSegment,
+      registry: _registry,
+      onClosed: () {
+        if (mounted) DashboardArrange.panelClosed(ref);
+      },
+    );
+  }
 
   /// §17's segment half. `corporateuser` is the role that routed us to this
   /// dashboard, so it is the segment the catalog is filtered against.
@@ -276,7 +289,10 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       onEndDrawerChanged: (open) {
         if (!open) DashboardArrange.panelClosed(ref);
       },
-      endDrawer: ref.watch(personalizationProvider).isUnavailable
+      // None on phones: they use the bottom sheet, and an edge swipe must
+      // not pull a side panel in.
+      endDrawer: ref.watch(personalizationProvider).isUnavailable ||
+              PersonalizeLauncher.usesSheet(context)
           ? null
           : Drawer(
               backgroundColor: CorpColors.card(context),
@@ -494,7 +510,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                 // Two columns, like the Retail home — cards keep their own
                 // heights rather than being stretched to a row's tallest.
                 // One column below the width the accounts card stacks at.
-                return DashboardTileGrid(
+                final grid = DashboardTileGrid(
                   tiles: tiles,
                   layout: DashboardGridLayout.twoColumns,
                   collapseBelow: 900,
@@ -507,6 +523,20 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                             target: target,
                           )
                       : null,
+                );
+
+                // Phone: Personalize right above the widgets, as on Retail
+                // — the top bar's settings menu is easy to miss there.
+                final showCustomize = PersonalizeLauncher.usesSheet(context) &&
+                    !ref.watch(personalizationProvider).isUnavailable;
+                if (!showCustomize) return grid;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DashboardCustomizeBar(onCustomize: _openPersonalize),
+                    const SizedBox(height: 8),
+                    grid,
+                  ],
                 );
               },
             ),

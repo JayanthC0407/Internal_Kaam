@@ -75,6 +75,36 @@ class CorpApiConst {
   /// Collection types the pickup-point capture requests.
   static const List<String> pickupCollectionTypes = ['CASH', 'PAPERBASE'];
 
+  // ── Loans / TD / cash-management widgets ─────────────────────────────
+  //
+  // From `HAR for widgets.har` / `HAR for widgets - 2.har`, the corporate
+  // dashboard with the Loans, Term Deposit and Cash Flow widgets on it.
+  // The loan list ([loansApi]) and deposit list ([depositsApi]) above are
+  // the same calls those widgets make.
+
+  /// Cash collections of one transaction type, per interval —
+  /// `GET …/cashmanagement/collections/{type}?queryParams=…&sortBy=…`.
+  ///
+  /// The capture requests type `CW` (cash withdrawal), interval `D` over the
+  /// last five days and interval `M` over the last five months. Both calls
+  /// were refused by the host (400, `DATE006` "The date is not valid"), so
+  /// the success payload has not been seen.
+  static String cashCollectionsApi(String transactionType) =>
+      '/digx-cms/cms/v1/cashmanagement/collections/$transactionType';
+
+  /// Cash withdrawal, the transaction type the widgets request.
+  static const String cashWithdrawalType = 'CW';
+
+  /// Process-management records for one module and party —
+  /// `GET /digx-processmanagement/v1/processManagement?moduleId=…&partyId=…`.
+  /// The captured party had none (`processManagementDTOs: []`).
+  static const String processManagementApi =
+      '/digx-processmanagement/v1/processManagement';
+
+  /// Corporate lending process management — the module whose records back
+  /// the Loan Application Tracker.
+  static const String loanProcessModuleId = 'OBCLPM';
+
   // The personalized-dashboard endpoints are not here: they serve every
   // user type, so they live in `DashboardApiConst`
   // (`infra/network/dashboard_api_constants.dart`).
