@@ -17,7 +17,7 @@ class CorpCashFlowSnapshotWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final day = data ?? CorpCashFlowSampleData.today;
     final isSample = data == null;
-    const symbol = CorpCashFlowSampleData.currencySymbol;
+    final symbol = CorpCurrency.of(context);
     String money(double v) =>
         CorpFigures.compact(v, symbol: symbol, precise: true);
 
@@ -64,11 +64,12 @@ class CorpCashFlowSnapshotWidget extends StatelessWidget {
                 value: CorpFigures.signedCompact(day.net, symbol: symbol),
                 tone: day.net >= 0 ? CorpTone.green : CorpTone.red,
                 stacked: compact,
-                detail: compact
-                    ? '${day.inflowCount} in • ${day.outflowCount} out • '
-                        '${day.pendingCount} pending'
-                    : '${day.inflowCount} inflows • ${day.outflowCount} '
-                        'outflows • ${day.pendingCount} pending',
+                detail: CorpFigures.activity(
+                  day.inflowCount,
+                  day.outflowCount,
+                  day.pendingCount,
+                  short: compact,
+                ),
               ),
               const SizedBox(height: 6),
               Align(

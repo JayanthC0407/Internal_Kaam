@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/core/models/corp/corp_cash_collection.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_loan_application.dart';
 import 'package:ubci_bank/src/core/models/corp/corp_loan_record.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_cash_management_api.dart';
@@ -17,6 +18,8 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_cash_management_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_lending_repository.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_widget_data_providers.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_data.dart';
+import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_widgets.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_data.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
@@ -114,6 +117,43 @@ CorpLoanRecord _loan(
   );
 }
 
+CorpAccountActivity _activity(
+  String id, {
+  String currency = 'GBP',
+  required List<(double, bool)> moves,
+  double? opening,
+  double? closing,
+  double balance = 1000,
+}) {
+  return (
+    account: CorpAccount(
+      id: id,
+      displayNumber: id,
+      status: 'ACTIVE',
+      currencyCode: currency,
+      group: CorpAccountGroup.casa,
+      availableBalance: MoneyAmount(amount: balance, currency: currency),
+    ),
+    result: CasaTransactionsResult(
+      transactions: [
+        for (var i = 0; i < moves.length; i++)
+          CasaTransaction(
+            id: '$id-$i',
+            title: 'Move $i',
+            amount: MoneyAmount(amount: moves[i].$1, currency: currency),
+            isCredit: moves[i].$2,
+          ),
+      ],
+      openingBalance: opening == null
+          ? null
+          : MoneyAmount(amount: opening, currency: currency),
+      closingBalance: closing == null
+          ? null
+          : MoneyAmount(amount: closing, currency: currency),
+    ),
+  );
+}
+
 final _today = DateTime(2026, 9, 24);
 
 void main() {
@@ -188,7 +228,7 @@ void main() {
         },
         groupOverride: CorpAccountGroup.deposit,
       ).single;
-      expect(account.maturityDate, DateTime(2026, 10, 15));
+      expect(account.maturityDateTime, DateTime(2026, 10, 15));
       expect(account.interestRate, 6.75);
     });
 
@@ -350,6 +390,60 @@ void main() {
     expect(book.deposits.first.maturityValue, 100);
   });
 
+  group('the cash flow figures, from account transactions', () {
+    final ledger = CorpCashFlowLedger(
+      today: _today,
+      accounts: [
+        _activity('A', moves: [(500, true), (200, false)], opening: 1000),
+        // No opening from the host: worked back from the balance.
+        _activity('B', moves: [(300, true), (100, false)], balance: 2000),
+        // Another currency, fewer accounts — left out.
+        _activity('C', currency: 'AED', moves: [(9999, true)]),
+      ],
+    );
+
+    test('one currency, the one most accounts are in', () {
+      expect(ledger.currency, 'GBP');
+      expect(ledger.accounts, hasLength(2));
+    });
+
+    test('today: credits in, debits out, and how many', () {
+      final day = ledger.day();
+      expect(day.inflow, 800);
+      expect(day.outflow, 300);
+      expect(day.net, 500);
+      expect(day.inflowCount, 2);
+      expect(day.outflowCount, 2);
+      // OBDX reports no pending count here; none is shown.
+      expect(day.pendingCount, isNull);
+    });
+
+    test("the month: opening is the host's, else closing less movement", () {
+      final month = ledger.month();
+      // A: 1000 from the host; B: 2000 − (300 − 100).
+      expect(month.openingBalance, 1000 + 1800);
+      expect(month.closingBalance, 2800 + 500);
+    });
+
+    test('accounts that did not move still count, as no activity', () {
+      final quiet = CorpCashFlowLedger(
+        today: _today,
+        accounts: [_activity('Q', moves: const [])],
+      );
+      expect(quiet.isEmpty, isFalse);
+      expect(quiet.day().inflow, 0);
+    });
+  });
+
+  test('the counts line leaves out pending when it is not known', () {
+    expect(
+      CorpFigures.activity(28, 19, 3),
+      '28 inflows • 19 outflows • 3 pending',
+    );
+    expect(CorpFigures.activity(1, 0, null), '1 inflow • 0 outflows');
+    expect(CorpFigures.activity(2, 1, null, short: true), '2 in • 1 out');
+  });
+
   test('the registry builds the live widgets for the captured components', () {
     const registry = CorpWidgetRegistry();
     expect(
@@ -357,6 +451,14 @@ void main() {
       isA<CorpLiveLoanSummaryWidget>(),
     );
     expect(registry.builders['td-summary']!(), isA<CorpLiveTdSummaryWidget>());
+    expect(
+      registry.builders['cash-flow-snapshot']!(),
+      isA<CorpLiveCashFlowSnapshotWidget>(),
+    );
+    expect(
+      registry.builders['cashflow-summary']!(),
+      isA<CorpLiveCashflowSummaryWidget>(),
+    );
   });
 
   group('a live widget shows', () {
@@ -446,6 +548,42 @@ void main() {
       expect(find.text('AED 300K'), findsOneWidget);
       expect(find.text('7.00%'), findsOneWidget);
       expect(find.byType(CorpSampleDataTag), findsNothing);
+    });
+
+    testWidgets("cash flow: today's figures, in the accounts' currency",
+        (tester) async {
+      await pump(tester, const CorpLiveCashFlowSnapshotWidget(), [
+        corpCashFlowActivityProvider(CorpCashFlowPeriod.today).overrideWith(
+          (ref) async => (
+            accounts: [
+              _activity(
+                'A',
+                currency: 'USD',
+                moves: [(1500, true), (400, false)],
+              ),
+            ],
+            today: _today,
+          ),
+        ),
+      ]);
+      await tester.pumpAndSettle();
+      expect(find.text(r'+$1.1K'), findsOneWidget);
+      expect(find.text('1 inflow • 1 outflow'), findsOneWidget);
+      expect(find.byType(CorpSampleDataTag), findsNothing);
+    });
+
+    testWidgets('cash flow: no current or savings accounts', (tester) async {
+      await pump(tester, const CorpLiveCashflowSummaryWidget(), [
+        corpCashFlowActivityProvider(CorpCashFlowPeriod.thisMonth)
+            .overrideWith(
+          (ref) async => (accounts: <CorpAccountActivity>[], today: _today),
+        ),
+      ]);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('You have no current or savings accounts.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('term deposits: none', (tester) async {

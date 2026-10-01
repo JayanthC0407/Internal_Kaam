@@ -20,7 +20,7 @@ class CorpCashflowSummaryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final month = data ?? CorpCashFlowSampleData.month;
     final isSample = data == null;
-    const symbol = CorpCashFlowSampleData.currencySymbol;
+    final symbol = CorpCurrency.of(context);
     String money(double v) => CorpFigures.compact(v, symbol: symbol);
     final rising = month.net >= 0;
 
@@ -76,8 +76,12 @@ class CorpCashflowSummaryWidget extends StatelessWidget {
                 tone: rising ? CorpTone.green : CorpTone.red,
                 stacked: compact,
                 detail: compact
-                    ? '${month.inflowCount} in • ${month.outflowCount} out • '
-                        '${month.pendingCount} pending'
+                    ? CorpFigures.activity(
+                        month.inflowCount,
+                        month.outflowCount,
+                        month.pendingCount,
+                        short: true,
+                      )
                     : rising
                         ? 'Positive movement vs opening balance'
                         : 'Negative movement vs opening balance',

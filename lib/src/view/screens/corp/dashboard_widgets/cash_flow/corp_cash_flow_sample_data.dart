@@ -272,7 +272,7 @@ class CorpCashFlowDay {
     required this.outflow,
     required this.inflowCount,
     required this.outflowCount,
-    required this.pendingCount,
+    this.pendingCount,
   });
 
   final DateTime date;
@@ -280,7 +280,9 @@ class CorpCashFlowDay {
   final double outflow;
   final int inflowCount;
   final int outflowCount;
-  final int pendingCount;
+
+  /// Null where the host does not report pending items.
+  final int? pendingCount;
 
   double get net => inflow - outflow;
 }
@@ -294,7 +296,7 @@ class CorpCashFlowMonth {
     required this.outflow,
     required this.inflowCount,
     required this.outflowCount,
-    required this.pendingCount,
+    this.pendingCount,
   });
 
   final DateTime month;
@@ -303,7 +305,9 @@ class CorpCashFlowMonth {
   final double outflow;
   final int inflowCount;
   final int outflowCount;
-  final int pendingCount;
+
+  /// Null where the host does not report pending items.
+  final int? pendingCount;
 
   double get net => inflow - outflow;
   double get closingBalance => openingBalance + net;
