@@ -56,6 +56,7 @@ class LcInitiateDraft {
     this.instructions,
     this.draftName,
     this.customerReferenceNo,
+    this.parentLcId,
   });
 
   final LcProduct? product;
@@ -93,6 +94,13 @@ class LcInitiateDraft {
   /// Draft label (`name`) — generated when saving a draft.
   final String? draftName;
   final String? customerReferenceNo;
+
+  /// Export LC backing this one — set for a Back to Back LC. Sent as
+  /// `parentReferenceLCs` (the field the LC detail carries, H1 #48).
+  /// ASSUMPTION: no captured back-to-back initiation; confirm with a capture.
+  final String? parentLcId;
+
+  bool get isBackToBack => parentLcId != null;
 
   static const empty = LcInitiateDraft();
 
@@ -161,6 +169,7 @@ class LcInitiateDraft {
     List<TradeCode>? additionalConditions,
     String? instructions,
     String? draftName,
+    String? parentLcId,
   }) {
     return LcInitiateDraft(
       product: product ?? this.product,
@@ -189,6 +198,7 @@ class LcInitiateDraft {
       instructions: instructions ?? this.instructions,
       draftName: draftName ?? this.draftName,
       customerReferenceNo: customerReferenceNo,
+      parentLcId: parentLcId ?? this.parentLcId,
     );
   }
 
@@ -219,7 +229,10 @@ class LcInitiateDraft {
       'approvalParty': TfId.empty.toJson(),
       'totalRecords': null,
       'id': id,
-      'partyId': partyId.toJson(),
+            // The host takes the applicant from the session, as the web portal does
+      // (partyId null). Sending the masked party id here made the host reject
+      // that id afterwards (DIGX_LC_042 "Invalid Party" on the next LC list).
+      'partyId': TfId.empty.toJson(),
       'collateralDTO': {
         'account': TfId.empty.toJson(),
         'linkedPartyId': TfId.empty.toJson(),
@@ -233,7 +246,7 @@ class LcInitiateDraft {
         'outstandingAmount': {'currency': null, 'amount': null},
         'accountCurrency': null,
       },
-      'partyName': partyName,
+      'partyName': null,
       'partyAddress': LcAddress.empty.toJson(),
       'branchId': branchId,
       'applicationDate': null,
@@ -329,11 +342,12 @@ class LcInitiateDraft {
       'policyDTOs': const <dynamic>[],
       'newApplicant': false,
       'letterOfCreditProductDTO': product?.toRequestJson(),
-      'accounteeId': partyId.toJson(),
-      'accounteeName': partyName,
+      'accounteeId': TfId.empty.toJson(),
+      'accounteeName': null,
       'accounteeAddress': LcAddress.empty.toJson(),
       'primaryCustCIF': TfId.empty.toJson(),
       'autoSaved': autoSaved,
+      'parentReferenceLCs': [if (parentLcId != null) parentLcId],
     };
   }
 

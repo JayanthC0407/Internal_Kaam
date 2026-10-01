@@ -654,5 +654,10 @@
   "transferValidateFailed": "Unable to validate transfer. Please check the details and try again.",
   "transferWhen": "Transfer When",
   "viewLimits": "View Limits",
-  "youSend": "You Send"
+  "youSend": "You Send",
+  "forgotSecurityQuestionsTitle": "Security Questions",
+  "forgotSecurityQuestionsSubtitle": "Answer your security questions to continue.",
+  "forgotSecurityAnswerLabel": "Answer",
+  "forgotSecurityAnswerRequired": "Please enter an answer",
+  "errorSecurityAnswersInvalid": "One or more answers are incorrect. Please try again."
 }

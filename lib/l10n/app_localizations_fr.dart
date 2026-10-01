@@ -1902,4 +1902,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get youSend => 'You Send';
+
+  @override
+  String get forgotSecurityQuestionsTitle => 'Questions de sécurité';
+
+  @override
+  String get forgotSecurityQuestionsSubtitle =>
+      'Répondez à vos questions de sécurité pour continuer.';
+
+  @override
+  String get forgotSecurityAnswerLabel => 'Réponse';
+
+  @override
+  String get forgotSecurityAnswerRequired => 'Veuillez saisir une réponse';
+
+  @override
+  String get errorSecurityAnswersInvalid =>
+      'Une ou plusieurs réponses sont incorrectes. Veuillez réessayer.';
 }

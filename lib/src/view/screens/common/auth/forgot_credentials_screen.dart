@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
 import 'package:ubci_bank/src/view/providers/common/forgot_credentials_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_flow_success_panel.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_labeled_field.dart';
@@ -22,7 +23,7 @@ class ForgotCredentialsArgs {
   final ForgotCredentialsKind kind;
 }
 
-enum _ForgotStep { details, otp, success }
+enum _ForgotStep { details, otp, securityQuestions, success }
 
 class ForgotCredentialsScreen extends ConsumerStatefulWidget {
   const ForgotCredentialsScreen({super.key, required this.kind});
@@ -37,6 +38,7 @@ class ForgotCredentialsScreen extends ConsumerStatefulWidget {
 class _ForgotCredentialsScreenState
     extends ConsumerState<ForgotCredentialsScreen> {
   final _detailsFormKey = GlobalKey<FormState>();
+  final _securityFormKey = GlobalKey<FormState>();
   final _emailOrUserController = TextEditingController();
   final _otpController = TextEditingController();
   final _otpFocusNode = FocusNode();
@@ -44,6 +46,7 @@ class _ForgotCredentialsScreenState
   _ForgotStep _step = _ForgotStep.details;
   DateTime? _dateOfBirth;
   ForgotCredentialsPending? _pending;
+  List<TextEditingController> _answerControllers = const [];
 
   bool get _isUsername => widget.kind == ForgotCredentialsKind.username;
 
@@ -53,7 +56,22 @@ class _ForgotCredentialsScreenState
     _emailOrUserController.dispose();
     _otpController.dispose();
     _otpFocusNode.dispose();
+    _disposeAnswerControllers();
     super.dispose();
+  }
+
+  void _disposeAnswerControllers() {
+    for (final c in _answerControllers) {
+      c.dispose();
+    }
+    _answerControllers = const [];
+  }
+
+  void _syncAnswerControllers(ForgotCredentialsPending pending) {
+    final count = pending.securityQuestions.length;
+    if (_answerControllers.length == count) return;
+    _disposeAnswerControllers();
+    _answerControllers = List.generate(count, (_) => TextEditingController());
   }
 
   String _formatDobApi(DateTime date) => DateOfBirthFormat.toApi(date);
@@ -117,6 +135,33 @@ class _ForgotCredentialsScreenState
     _handleFlowResult(result);
   }
 
+  Future<void> _submitSecurityAnswers() async {
+    final l10n = AppLocalizations.of(context);
+    final pending = _pending;
+    if (pending == null) return;
+    if (!(_securityFormKey.currentState?.validate() ?? false)) return;
+
+    final answers = <({String questionId, String answer})>[];
+    for (var i = 0; i < pending.securityQuestions.length; i++) {
+      final answer = _answerControllers[i].text.trim();
+      if (answer.isEmpty) {
+        ref.read(forgotErrorMessageProvider.notifier).state =
+            l10n.forgotSecurityAnswerRequired;
+        return;
+      }
+      answers.add((
+        questionId: pending.securityQuestions[i].id,
+        answer: answer,
+      ));
+    }
+
+    final result = await ref
+        .read(forgotCredentialsScreenVmProvider)
+        .submitSecurityAnswers(answers: answers);
+    if (!mounted || result == null) return;
+    _handleFlowResult(result);
+  }
+
   void _handleFlowResult(
     ResponseHandler<ForgotCredentialsFlowResult> result,
   ) {
@@ -125,6 +170,16 @@ class _ForgotCredentialsScreenState
       if (_step == _ForgotStep.otp) {
         _otpController.clear();
         _otpFocusNode.requestFocus();
+      } else if (_step == _ForgotStep.securityQuestions) {
+        for (final c in _answerControllers) {
+          c.clear();
+        }
+        final repoPending =
+            ref.read(forgotCredentialsRepositoryProvider).pending;
+        if (repoPending != null) {
+          _pending = repoPending;
+          _syncAnswerControllers(repoPending);
+        }
       }
       setState(() {});
       return;
@@ -136,6 +191,18 @@ class _ForgotCredentialsScreenState
         _pending = flow.pending;
         _step = _ForgotStep.otp;
         _otpController.clear();
+      });
+      return;
+    }
+
+    if (flow is ForgotSecurityQuestionsRequired) {
+      setState(() {
+        _pending = flow.pending;
+        _step = _ForgotStep.securityQuestions;
+        _syncAnswerControllers(flow.pending);
+        for (final c in _answerControllers) {
+          c.clear();
+        }
       });
       return;
     }
@@ -169,7 +236,7 @@ class _ForgotCredentialsScreenState
   void _onBack() {
     final isLoading = ref.read(forgotIsLoadingProvider);
     if (isLoading) return;
-    if (_step == _ForgotStep.otp) {
+    if (_step == _ForgotStep.otp || _step == _ForgotStep.securityQuestions) {
       setState(() => _step = _ForgotStep.details);
       return;
     }
@@ -209,6 +276,16 @@ class _ForgotCredentialsScreenState
               ),
             ),
           _ForgotStep.otp => _buildOtpStep(l10n, isLoading, errorMessage),
+          _ForgotStep.securityQuestions => AuthFormShell(
+              onBack: isLoading ? null : _onBack,
+              title: l10n.forgotSecurityQuestionsTitle,
+              subtitle: l10n.forgotSecurityQuestionsSubtitle,
+              child: _buildSecurityQuestionsForm(
+                l10n,
+                isLoading,
+                errorMessage,
+              ),
+            ),
           _ForgotStep.success => AuthFlowSuccessPanel(
               title: l10n.forgotSuccessHeading,
               message: _isUsername
@@ -288,6 +365,58 @@ class _ForgotCredentialsScreenState
             l10n: l10n,
             colors: colors,
             isUsername: _isUsername,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecurityQuestionsForm(
+    AppLocalizations l10n,
+    bool isLoading,
+    String? errorMessage,
+  ) {
+    final pending = _pending;
+    final questions = pending?.securityQuestions ?? const [];
+
+    return Form(
+      key: _securityFormKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < questions.length; i++) ...[
+            if (i > 0) const SizedBox(height: 12),
+            AuthLabeledField(
+              label: questions[i].text,
+              hint: l10n.forgotSecurityAnswerLabel,
+              required: true,
+              controller: _answerControllers[i],
+              enabled: !isLoading,
+              obscureText: true,
+              autocorrect: false,
+              textInputAction: i == questions.length - 1
+                  ? TextInputAction.done
+                  : TextInputAction.next,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: (value) {
+                if ((value?.trim() ?? '').isEmpty) {
+                  return l10n.forgotSecurityAnswerRequired;
+                }
+                return null;
+              },
+            ),
+          ],
+          if (errorMessage != null && errorMessage.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            AuthFormErrorBanner(message: errorMessage),
+          ],
+          const SizedBox(height: 24),
+          AuthFormPrimaryButton(
+            label: isLoading
+                ? l10n.registrationSubmitting
+                : l10n.forgotSubmit,
+            isLoading: isLoading,
+            onPressed: _submitSecurityAnswers,
           ),
         ],
       ),

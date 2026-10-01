@@ -87,6 +87,37 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     });
   }
 
+  /// `GET …/letterofcredits` with free search criteria — OBDX spec
+  /// `LetterOfCredit.list` (`lcNumber`, `beneName`, `applicantName`,
+  /// `fromAmount`/`toAmount`, `currency`, `issueDatefrom`/`to`,
+  /// `expiryDatefrom`/`to`, `lcStatus`, `lcType`, `partyIds`…). Used by the
+  /// Copy & Initiate and Back to Back LC searches.
+  Future<ResponseHandler<Map<String, dynamic>>> searchLetterOfCredits(
+    Map<String, dynamic> query,
+  ) {
+    return _get(CorpTradeFinanceApiConst.letterOfCreditsApi, {
+      ...query,
+      'transactionType': _conventional,
+    });
+  }
+
+  /// `GET …/letterofcredits/templates` — H1 #37.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchTemplates() {
+    return _get(CorpTradeFinanceApiConst.templatesApi, {
+      'transactionType': _conventional,
+    });
+  }
+
+  /// `GET …/letterofcredits/templates/{id}` — OBDX spec `readTemplate`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchTemplate(String id) {
+    return _get(CorpTradeFinanceApiConst.templateApi(id));
+  }
+
+  /// `GET …/letterofcredits/drafts/{id}` — OBDX spec `readDraft`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDraft(String id) {
+    return _get(CorpTradeFinanceApiConst.draftApi(id));
+  }
+
   /// `GET …/letterofcredits/drafts` — H1 #90.
   Future<ResponseHandler<Map<String, dynamic>>> fetchDrafts() {
     return _get(CorpTradeFinanceApiConst.draftsApi, {
