@@ -93,11 +93,16 @@ class LcDocument {
   final int originals;
   final int copies;
 
-  LcDocument copyWith({int? originals, int? copies}) => LcDocument(
+  LcDocument copyWith({
+    int? originals,
+    int? copies,
+    List<TradeCode>? clauses,
+  }) =>
+      LcDocument(
         id: id,
         name: name,
         docType: docType,
-        clauses: clauses,
+        clauses: clauses ?? this.clauses,
         originals: originals ?? this.originals,
         copies: copies ?? this.copies,
       );

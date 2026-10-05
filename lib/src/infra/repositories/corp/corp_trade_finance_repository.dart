@@ -169,6 +169,53 @@ class CorpTradeFinanceRepository extends CorpRepositoryBase {
     return parseBody(result, LcDocument.listFromPayload);
   }
 
+  /// Reference data for the Initiate LC sections (H3 #49 #58 #63 #67 #70
+  /// #72 #73 #75), fetched in parallel. Never fails: a lookup that fails
+  /// leaves its list empty, so the form still opens.
+  Future<LcInitiateSupport> fetchInitiateSupport({String? partyId}) async {
+    final results = await Future.wait([
+      _api.fetchBeneficiaries(),
+      _api.fetchTradeDocuments(),
+      _api.fetchInsurancePolicies(partyId),
+      _api.fetchAccounts(chargeAccounts: true),
+      _api.fetchAccounts(),
+      _api.fetchDocumentCategories(),
+      _api.fetchEnumeration(CorpTradeFinanceApiConst.enumConfirmationParty),
+      _api.fetchMaintainedConditions(partyId),
+    ]);
+
+    Future<T> soft<T>(
+      ResponseHandler<Map<String, dynamic>> r,
+      T Function(Map<String, dynamic>) parse,
+      T fallback,
+    ) async {
+      final parsed = await parseBody(r, parse);
+      return parsed is Success<T> ? (parsed.data ?? fallback) : fallback;
+    }
+
+    return LcInitiateSupport(
+      beneficiaries:
+          await soft(results[0], LcBeneficiary.listFromPayload, const []),
+      tradeDocuments:
+          await soft(results[1], LcDocument.listFromPayload, const []),
+      insurancePolicies:
+          await soft(results[2], LcInsurancePolicy.listFromPayload, const []),
+      chargeAccounts:
+          await soft(results[3], LcAccount.listFromPayload, const []),
+      linkageAccounts:
+          await soft(results[4], LcAccount.listFromPayload, const []),
+      documentCategories:
+          await soft(results[5], LcDocumentCategory.listFromPayload, const []),
+      confirmationParties:
+          await soft(results[6], TradeCode.fromEnumeration, const []),
+      maintainedConditions: await soft(
+        results[7],
+        (b) => TradeCode.listFrom(b['list']),
+        const <TradeCode>[],
+      ),
+    );
+  }
+
   /// Resolves a SWIFT code; success with `null` means "not found".
   Future<ResponseHandler<TradeBank?>> lookupBic(String swiftCode) async {
     final result = await _api.lookupBic(swiftCode.trim().toUpperCase());
