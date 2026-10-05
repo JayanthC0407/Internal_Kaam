@@ -6,6 +6,7 @@ export 'lc_amendment_draft.dart';
 export 'lc_common.dart';
 export 'lc_export_models.dart';
 export 'lc_initiate_draft.dart';
+export 'lc_initiate_support.dart';
 export 'lc_lookups.dart';
 export 'lc_product.dart';
 export 'lc_search.dart';

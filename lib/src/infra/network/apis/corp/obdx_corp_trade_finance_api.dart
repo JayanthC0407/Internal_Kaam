@@ -337,6 +337,54 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     return _get(CorpTradeFinanceApiConst.additionalConditionsApi);
   }
 
+  // ── Initiate LC sections (H3 = `LC_inititation complete flow.har`) ──
+
+  /// Maintained beneficiaries — H3 #49.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBeneficiaries() {
+    return _get(CorpTradeFinanceApiConst.beneficiariesApi, {
+      'transactionType': CorpTradeFinanceApiConst.beneficiaryTransactionType,
+    });
+  }
+
+  /// Document master — H3 #58.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchTradeDocuments() {
+    return _get(CorpTradeFinanceApiConst.tradeDocumentsApi);
+  }
+
+  /// Party-maintained additional conditions — H3 #63.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchMaintainedConditions(
+    String? partyId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.additionalConditionMaintenanceApi, {
+      if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
+    });
+  }
+
+  /// Insurance policies — H3 #72.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchInsurancePolicies(
+    String? partyId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.insurancePoliciesApi, {
+      if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
+    });
+  }
+
+  /// CASA accounts — H3 #67, or the LC charge accounts (H3 #73) when
+  /// [chargeAccounts] is set.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchAccounts({
+    bool chargeAccounts = false,
+  }) {
+    return _get(CorpTradeFinanceApiConst.accountsApi, {
+      if (chargeAccounts)
+        'taskCode': CorpTradeFinanceApiConst.chargeAccountTaskCode,
+    });
+  }
+
+  /// Attachment categories — H3 #75.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDocumentCategories() {
+    return _get(CorpTradeFinanceApiConst.documentCategoriesApi);
+  }
+
   /// H1 #143.
   Future<ResponseHandler<Map<String, dynamic>>> lookupBic(String swiftCode) {
     return _get(CorpTradeFinanceApiConst.bicCodesApi, {
