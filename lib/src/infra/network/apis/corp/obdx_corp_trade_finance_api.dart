@@ -385,6 +385,80 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     return _get(CorpTradeFinanceApiConst.documentCategoriesApi);
   }
 
+  // ── View LC tabs (H4 = `view_LC_details.har`) ─────────────────────
+
+  /// Amendments of one LC — H4 #49.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchLcAmendments(
+    String lcId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.amendmentsApi(lcId), {
+      'transactionType': _conventional,
+    });
+  }
+
+  /// Bills drawn under an LC — H4 #51. [billType] is `IMPORT` / `EXPORT`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBills({
+    required String lcId,
+    required String billType,
+  }) {
+    return _get(CorpTradeFinanceApiConst.billsApi, {
+      'q': _criteria([
+        {
+          'operand': 'billType',
+          'operator': 'EQUALS',
+          'value': [billType],
+        },
+        {
+          'operand': 'lcRefNo',
+          'operator': 'EQUALS',
+          'value': [lcId],
+        },
+        {
+          'operand': 'transactionType',
+          'operator': 'EQUALS',
+          'value': [_conventional],
+        },
+      ]),
+    });
+  }
+
+  /// Shipping guarantees linked to an LC — H4 #53.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchShippingGuarantees(
+    String lcId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.shippingGuaranteesApi, {
+      'q': _criteria([
+        {
+          'operand': 'islclinkage',
+          'operator': 'EQUALS',
+          'value': ['Y'],
+        },
+        {
+          'operand': 'lcid',
+          'operator': 'EQUALS',
+          'value': [lcId],
+        },
+        {
+          'operand': 'type',
+          'operator': 'ENUM',
+          'value': [_conventional],
+        },
+      ]),
+    });
+  }
+
+  /// Charges booked on an LC — H4 #56.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchLcCharges(String lcId) {
+    return _get(CorpTradeFinanceApiConst.lcChargesApi(lcId), {
+      'transactionType': _conventional,
+    });
+  }
+
+  /// Bank branches — H4 #26.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBranches() {
+    return _get(CorpTradeFinanceApiConst.branchesApi);
+  }
+
   /// H1 #143.
   Future<ResponseHandler<Map<String, dynamic>>> lookupBic(String swiftCode) {
     return _get(CorpTradeFinanceApiConst.bicCodesApi, {
