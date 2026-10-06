@@ -11,3 +11,4 @@ export 'lc_lookups.dart';
 export 'lc_product.dart';
 export 'lc_search.dart';
 export 'lc_submit_outcome.dart';
+export 'lc_view_models.dart';
