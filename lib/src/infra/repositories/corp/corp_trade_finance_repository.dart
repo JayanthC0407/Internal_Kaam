@@ -103,7 +103,7 @@ class CorpTradeFinanceRepository extends CorpRepositoryBase {
   Future<ResponseHandler<List<CorpExportBill>>> searchExportBills(
     Map<String, dynamic> query,
   ) async {
-    final result = await _api.fetchBills(query);
+    final result = await _api.searchBills(query);
     return parseBody(result, CorpExportBill.listFromPayload);
   }
 
