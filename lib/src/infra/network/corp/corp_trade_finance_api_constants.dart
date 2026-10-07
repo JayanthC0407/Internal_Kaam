@@ -80,6 +80,20 @@ class CorpTradeFinanceApiConst {
   static String transfersApi(String lcId) =>
       '$_base/letterofcredits/${Uri.encodeComponent(lcId)}/transfers';
 
+  // ── Export Bills ─────────────────────────────────────────────────────
+
+  /// `GET` bill list — `partyIds` + a `q` criteria filter (billType,
+  /// transactionType, status, billReferenceNo, ccy, drawee, billAmtFrom /
+  /// To, billDateFrom / To). From the OBDX web client's own bill screens in
+  /// the Export LC captures; the call itself returned 400 there (the
+  /// host's trade back office was unreachable), so the response has not
+  /// been seen.
+  static const String billsApi = '$_base/bills';
+
+  /// `GET` one bill — answers `bill`. Same source as [billsApi].
+  static String billApi(String billReferenceNo) =>
+      '$_base/bills/${Uri.encodeComponent(billReferenceNo)}';
+
   // ── Products & configuration ─────────────────────────────────────────
 
   /// LC products — H1 #51.

@@ -16,6 +16,13 @@ class CorpRoutesConst {
   static const String lcAcceptanceScreen = '/corp_lc_acceptance_screen';
   static const String lcTransferScreen = '/corp_lc_transfer_screen';
 
+  /// View Export LC — the tabbed detail of one export LC.
+  static const String exportLcDetailScreen = '/corp_export_lc_detail_screen';
+
+  /// View Export Bill — one export bill.
+  static const String exportBillDetailScreen =
+      '/corp_export_bill_detail_screen';
+
   /// Every corporate route name, used by `Routes` to decide whether to
   /// delegate a given settings name to [CorpRoutes].
   static const Set<String> all = {
@@ -25,5 +32,7 @@ class CorpRoutesConst {
     lcAmendScreen,
     lcAcceptanceScreen,
     lcTransferScreen,
+    exportLcDetailScreen,
+    exportBillDetailScreen,
   };
 }

@@ -13,6 +13,7 @@ import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.d
 ///    └─ Export Letter of Credit
 ///       ├─ View Letter of Credit
 ///       ├─ LC Amendment Acceptance
+///       ├─ View Bills
 ///       ├─ Initiate Transfer LC
 ///       └─ Amend Transfer LC
 /// ```
@@ -64,6 +65,14 @@ enum LcMenuAction {
     Icons.fact_check_outlined,
     'Accept or reject amendments made to your export LCs.',
   ),
+  /// View Export Bill (manual ch. 14). Allowed with View Export LC: the
+  /// bank's own component name for it was not in any capture.
+  exportViewBills(
+    LcMenuGroup.exportLc,
+    'View Bills',
+    Icons.receipt_long_outlined,
+    'Bills you have presented under your export LCs.',
+  ),
   exportInitiateTransfer(
     LcMenuGroup.exportLc,
     'Initiate Transfer LC',
@@ -91,13 +100,11 @@ enum LcMenuAction {
         LcMenuAction.importView => p.viewImport,
         LcMenuAction.exportView => p.viewExport,
         LcMenuAction.exportAmendmentAcceptance => p.amendmentAcceptance,
+        LcMenuAction.exportViewBills => p.viewExport,
         LcMenuAction.exportInitiateTransfer => p.initiateTransfer,
         LcMenuAction.exportAmendTransfer => p.amendTransfer,
       };
 
-  /// Breadcrumb from the module root down to this option.
-  List<String> get breadcrumb =>
-      ['Trade Finance', 'Letter of Credit', group.label, label];
 }
 
 extension LcMenuGroupPermissions on LcMenuGroup {
