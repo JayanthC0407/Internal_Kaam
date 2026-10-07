@@ -88,6 +88,9 @@ class CorpTradeFinanceApiConst {
   /// the Export LC captures; the call itself returned 400 there (the
   /// host's trade back office was unreachable), so the response has not
   /// been seen.
+  ///
+  /// Also the View LC Bills tab: bills under an LC — H4 #51 (`q` criteria:
+  /// billType, lcRefNo, transactionType). 400 on pre-sales.
   static const String billsApi = '$_base/bills';
 
   /// `GET` one bill — answers `bill`. Same source as [billsApi].
@@ -161,10 +164,6 @@ class CorpTradeFinanceApiConst {
   static const String beneficiaryTransactionType = 'LETTEROFCREDIT';
 
   // ── View LC tabs (`view_LC_details.har` → H4 #n) ─────────────────────
-
-  /// Bills under an LC — H4 #51 (`q` criteria: billType, lcRefNo,
-  /// transactionType). 400 on pre-sales.
-  static const String billsApi = '$_base/bills';
 
   /// Shipping guarantees linked to an LC — H4 #53 (`q` criteria:
   /// islclinkage, lcid, type).

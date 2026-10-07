@@ -143,8 +143,9 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     }
   }
 
-  /// `GET …/bills?partyIds=…&q=…` — the bill list.
-  Future<ResponseHandler<Map<String, dynamic>>> fetchBills(
+  /// `GET …/bills?partyIds=…&q=…` — the bill list for a ready query
+  /// (Export Bills search). [fetchBills] is the bills under one LC.
+  Future<ResponseHandler<Map<String, dynamic>>> searchBills(
     Map<String, dynamic> query,
   ) {
     return _get(CorpTradeFinanceApiConst.billsApi, query);
