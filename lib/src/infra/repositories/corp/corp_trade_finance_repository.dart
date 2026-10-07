@@ -1,5 +1,6 @@
 import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:ubci_bank/src/core/models/corp/trade_finance/export_bill.dart';
 import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_trade_finance_api.dart';
@@ -68,6 +69,59 @@ class CorpTradeFinanceRepository extends CorpRepositoryBase {
         fallbackType: criteria.lcType,
       ),
     );
+  }
+
+  /// Export LC search (View Export LC) with a ready query — see
+  /// `ExportLcSearch.toQuery`.
+  Future<ResponseHandler<List<CorpLetterOfCredit>>> searchExportLetterOfCredits(
+    Map<String, dynamic> query,
+  ) async {
+    final result = await _api.searchLetterOfCredits(query);
+    return parseBody(
+      result,
+      (body) => CorpLetterOfCredit.listFromPayload(
+        body,
+        fallbackType: LcType.exportLc,
+      ),
+    );
+  }
+
+  /// The LC list for [query] as a PDF or CSV file.
+  Future<ResponseHandler<List<int>>> downloadLetterOfCredits(
+    Map<String, dynamic> query, {
+    required String media,
+    required String mediaFormat,
+  }) {
+    return _api.downloadLetterOfCredits(
+      query,
+      media: media,
+      mediaFormat: mediaFormat,
+    );
+  }
+
+  /// Export bills for a ready query — see `ExportBillSearch.toQuery`.
+  Future<ResponseHandler<List<CorpExportBill>>> searchExportBills(
+    Map<String, dynamic> query,
+  ) async {
+    final result = await _api.fetchBills(query);
+    return parseBody(result, CorpExportBill.listFromPayload);
+  }
+
+  Future<ResponseHandler<CorpExportBill>> fetchExportBill(String id) async {
+    final result = await _api.fetchBill(id);
+    return parseBody(result, (body) {
+      final bill = CorpExportBill.fromDetailPayload(body);
+      if (bill == null) throw const FormatException('bill missing');
+      return bill;
+    });
+  }
+
+  Future<ResponseHandler<List<int>>> downloadExportBills(
+    Map<String, dynamic> query, {
+    required String media,
+    required String mediaFormat,
+  }) {
+    return _api.downloadBills(query, media: media, mediaFormat: mediaFormat);
   }
 
   /// Saved templates (H1 #37 — `letterOfCreditDTOs`).

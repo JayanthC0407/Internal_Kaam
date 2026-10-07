@@ -36,12 +36,16 @@ class LcScreenScaffold extends StatelessWidget {
     required this.body,
     this.bottomBar,
     this.actions,
+    this.subtitle,
   });
 
   final String title;
   final Widget body;
   final Widget? bottomBar;
   final List<Widget>? actions;
+
+  /// An optional small line under the title, e.g. OBDX's "Party | ***801".
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -53,14 +57,7 @@ class LcScreenScaffold extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0.5,
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: CorpColors.textPrimary(context),
-          ),
-        ),
+        title: _title(context),
         actions: actions,
       ),
       body: SafeArea(
@@ -94,6 +91,35 @@ class LcScreenScaffold extends StatelessWidget {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _title(BuildContext context) {
+    final heading = Text(
+      title,
+      style: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        color: CorpColors.textPrimary(context),
+      ),
+    );
+    if (subtitle == null) return heading;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        heading,
+        Text(
+          subtitle!,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: CorpColors.textSecondary(context),
+          ),
+        ),
+      ],
     );
   }
 }

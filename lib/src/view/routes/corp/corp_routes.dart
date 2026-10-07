@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_detail_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_detail_screen.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_acceptance_screen.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_amend_screen.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_detail_screen.dart';
@@ -31,6 +33,14 @@ class CorpRoutes {
       case CorpRoutesConst.lcDetailScreen:
         if (args is! LcDetailArgs) return null;
         return _page(routeSettings, LcDetailScreen(args: args));
+
+      case CorpRoutesConst.exportLcDetailScreen:
+        if (args is! LcDetailArgs) return null;
+        return _page(routeSettings, ExportLcDetailScreen(args: args));
+
+      case CorpRoutesConst.exportBillDetailScreen:
+        if (args is! ExportBillArgs) return null;
+        return _page(routeSettings, ExportBillDetailScreen(args: args));
 
       case CorpRoutesConst.lcInitiateScreen:
         return _page(
