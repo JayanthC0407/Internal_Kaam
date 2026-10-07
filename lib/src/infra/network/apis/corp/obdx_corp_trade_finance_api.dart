@@ -433,6 +433,128 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     return _get(CorpTradeFinanceApiConst.additionalConditionsApi);
   }
 
+  // ── Initiate LC sections (H3 = `LC_inititation complete flow.har`) ──
+
+  /// Maintained beneficiaries — H3 #49.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBeneficiaries() {
+    return _get(CorpTradeFinanceApiConst.beneficiariesApi, {
+      'transactionType': CorpTradeFinanceApiConst.beneficiaryTransactionType,
+    });
+  }
+
+  /// Document master — H3 #58.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchTradeDocuments() {
+    return _get(CorpTradeFinanceApiConst.tradeDocumentsApi);
+  }
+
+  /// Party-maintained additional conditions — H3 #63.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchMaintainedConditions(
+    String? partyId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.additionalConditionMaintenanceApi, {
+      if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
+    });
+  }
+
+  /// Insurance policies — H3 #72.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchInsurancePolicies(
+    String? partyId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.insurancePoliciesApi, {
+      if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
+    });
+  }
+
+  /// CASA accounts — H3 #67, or the LC charge accounts (H3 #73) when
+  /// [chargeAccounts] is set.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchAccounts({
+    bool chargeAccounts = false,
+  }) {
+    return _get(CorpTradeFinanceApiConst.accountsApi, {
+      if (chargeAccounts)
+        'taskCode': CorpTradeFinanceApiConst.chargeAccountTaskCode,
+    });
+  }
+
+  /// Attachment categories — H3 #75.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDocumentCategories() {
+    return _get(CorpTradeFinanceApiConst.documentCategoriesApi);
+  }
+
+  // ── View LC tabs (H4 = `view_LC_details.har`) ─────────────────────
+
+  /// Amendments of one LC — H4 #49.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchLcAmendments(
+    String lcId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.amendmentsApi(lcId), {
+      'transactionType': _conventional,
+    });
+  }
+
+  /// Bills drawn under an LC — H4 #51. [billType] is `IMPORT` / `EXPORT`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBills({
+    required String lcId,
+    required String billType,
+  }) {
+    return _get(CorpTradeFinanceApiConst.billsApi, {
+      'q': _criteria([
+        {
+          'operand': 'billType',
+          'operator': 'EQUALS',
+          'value': [billType],
+        },
+        {
+          'operand': 'lcRefNo',
+          'operator': 'EQUALS',
+          'value': [lcId],
+        },
+        {
+          'operand': 'transactionType',
+          'operator': 'EQUALS',
+          'value': [_conventional],
+        },
+      ]),
+    });
+  }
+
+  /// Shipping guarantees linked to an LC — H4 #53.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchShippingGuarantees(
+    String lcId,
+  ) {
+    return _get(CorpTradeFinanceApiConst.shippingGuaranteesApi, {
+      'q': _criteria([
+        {
+          'operand': 'islclinkage',
+          'operator': 'EQUALS',
+          'value': ['Y'],
+        },
+        {
+          'operand': 'lcid',
+          'operator': 'EQUALS',
+          'value': [lcId],
+        },
+        {
+          'operand': 'type',
+          'operator': 'ENUM',
+          'value': [_conventional],
+        },
+      ]),
+    });
+  }
+
+  /// Charges booked on an LC — H4 #56.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchLcCharges(String lcId) {
+    return _get(CorpTradeFinanceApiConst.lcChargesApi(lcId), {
+      'transactionType': _conventional,
+    });
+  }
+
+  /// Bank branches — H4 #26.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBranches() {
+    return _get(CorpTradeFinanceApiConst.branchesApi);
+  }
+
   /// H1 #143.
   Future<ResponseHandler<Map<String, dynamic>>> lookupBic(String swiftCode) {
     return _get(CorpTradeFinanceApiConst.bicCodesApi, {

@@ -223,6 +223,117 @@ class CorpTradeFinanceRepository extends CorpRepositoryBase {
     return parseBody(result, LcDocument.listFromPayload);
   }
 
+  /// Reference data for the Initiate LC sections (H3 #49 #58 #63 #67 #70
+  /// #72 #73 #75), fetched in parallel. Never fails: a lookup that fails
+  /// leaves its list empty, so the form still opens.
+  Future<LcInitiateSupport> fetchInitiateSupport({String? partyId}) async {
+    final results = await Future.wait([
+      _api.fetchBeneficiaries(),
+      _api.fetchTradeDocuments(),
+      _api.fetchInsurancePolicies(partyId),
+      _api.fetchAccounts(chargeAccounts: true),
+      _api.fetchAccounts(),
+      _api.fetchDocumentCategories(),
+      _api.fetchEnumeration(CorpTradeFinanceApiConst.enumConfirmationParty),
+      _api.fetchMaintainedConditions(partyId),
+    ]);
+
+    Future<T> soft<T>(
+      ResponseHandler<Map<String, dynamic>> r,
+      T Function(Map<String, dynamic>) parse,
+      T fallback,
+    ) async {
+      final parsed = await parseBody(r, parse);
+      return parsed is Success<T> ? (parsed.data ?? fallback) : fallback;
+    }
+
+    return LcInitiateSupport(
+      beneficiaries:
+          await soft(results[0], LcBeneficiary.listFromPayload, const []),
+      tradeDocuments:
+          await soft(results[1], LcDocument.listFromPayload, const []),
+      insurancePolicies:
+          await soft(results[2], LcInsurancePolicy.listFromPayload, const []),
+      chargeAccounts:
+          await soft(results[3], LcAccount.listFromPayload, const []),
+      linkageAccounts:
+          await soft(results[4], LcAccount.listFromPayload, const []),
+      documentCategories:
+          await soft(results[5], LcDocumentCategory.listFromPayload, const []),
+      confirmationParties:
+          await soft(results[6], TradeCode.fromEnumeration, const []),
+      maintainedConditions: await soft(
+        results[7],
+        (b) => TradeCode.listFrom(b['list']),
+        const <TradeCode>[],
+      ),
+    );
+  }
+
+  // ── View LC tabs (H4 = `view_LC_details.har`) ─────────────────────
+
+  /// Amendment history of one LC — H4 #49.
+  Future<ResponseHandler<List<CorpLcAmendment>>> fetchLcAmendments(
+    String lcId,
+  ) async {
+    final result = await _api.fetchLcAmendments(lcId);
+    return parseBody(result, CorpLcAmendment.listFromPayload);
+  }
+
+  /// Bills drawn under an LC — H4 #51.
+  Future<ResponseHandler<List<LcBill>>> fetchBills(
+    String lcId,
+    LcType lcType,
+  ) async {
+    final result = await _api.fetchBills(
+      lcId: lcId,
+      billType: lcType == LcType.exportLc ? 'EXPORT' : 'IMPORT',
+    );
+    return parseBody(result, LcBill.listFromPayload);
+  }
+
+  /// Shipping guarantees linked to an LC — H4 #53.
+  Future<ResponseHandler<List<LcShippingGuarantee>>> fetchShippingGuarantees(
+    String lcId,
+  ) async {
+    final result = await _api.fetchShippingGuarantees(lcId);
+    return parseBody(result, LcShippingGuarantee.listFromPayload);
+  }
+
+  /// Charges booked on an LC — H4 #56. The response key is NOT CAPTURED
+  /// (400 on pre-sales), so the usual names are tried in turn.
+  Future<ResponseHandler<List<LcCharge>>> fetchLcCharges(String lcId) async {
+    final result = await _api.fetchLcCharges(lcId);
+    return parseBody(result, (body) {
+      final root = TfJson.root(body);
+      return LcCharge.listFrom(
+        root['charges'] ?? root['lcChargesDTOs'] ?? root['chargesList'],
+      );
+    });
+  }
+
+  /// Branch id → name (H4 #26). Never fails: empty on error.
+  Future<Map<String, String>> fetchBranchNames() async {
+    final parsed =
+        await parseBody(await _api.fetchBranches(), LcBranchNames.fromPayload);
+    return parsed is Success<Map<String, String>>
+        ? (parsed.data ?? const {})
+        : const {};
+  }
+
+  /// `tradeEnumerations/confirmationParty` (H4 #34). Never fails.
+  Future<List<TradeCode>> fetchConfirmationParties() async {
+    final parsed = await parseBody(
+      await _api.fetchEnumeration(
+        CorpTradeFinanceApiConst.enumConfirmationParty,
+      ),
+      TradeCode.fromEnumeration,
+    );
+    return parsed is Success<List<TradeCode>>
+        ? (parsed.data ?? const [])
+        : const [];
+  }
+
   /// Resolves a SWIFT code; success with `null` means "not found".
   Future<ResponseHandler<TradeBank?>> lookupBic(String swiftCode) async {
     final result = await _api.lookupBic(swiftCode.trim().toUpperCase());
