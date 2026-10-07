@@ -135,8 +135,49 @@ class CorpTradeFinanceApiConst {
   /// SWIFT/BIC lookup — H1 #143 (`q` criteria `swiftCode EQUALS`).
   static const String bicCodesApi = '$_base/tradeBicCodes';
 
-  /// Maintained LC beneficiaries — H1 #99 (empty for the captured party).
+  /// Maintained LC beneficiaries — H1 #99, H3 #49
+  /// (`transactionType=LETTEROFCREDIT`; empty for the captured party).
   static const String beneficiariesApi = '$_base/beneficiaries';
+
+  // ── Initiate LC sections (`LC_inititation complete flow.har` → H3 #n) ──
+
+  /// Insurance policies of the party — H3 #72 (`partyId=`).
+  static const String insurancePoliciesApi = '$_base/insurancePolicies';
+
+  /// Party-maintained additional conditions — H3 #63 (`partyId=`).
+  static const String additionalConditionMaintenanceApi =
+      '$_base/additionalConditionMaintenance';
+
+  /// Attachment document categories — H3 #75.
+  static const String documentCategoriesApi =
+      '$_base/documentcontent/documentcategories';
+
+  /// CASA accounts — H3 #67 (linkages) and H3 #73 with
+  /// `taskCode=[chargeAccountTaskCode]` (charge accounts).
+  static const String accountsApi = '/digx-common/dda/v1/demandDeposit';
+  static const String chargeAccountTaskCode = 'TF_AF_CLC';
+
+  /// `transactionType` the beneficiary maintenance is filtered on (H3 #49).
+  static const String beneficiaryTransactionType = 'LETTEROFCREDIT';
+
+  // ── View LC tabs (`view_LC_details.har` → H4 #n) ─────────────────────
+
+  /// Bills under an LC — H4 #51 (`q` criteria: billType, lcRefNo,
+  /// transactionType). 400 on pre-sales.
+  static const String billsApi = '$_base/bills';
+
+  /// Shipping guarantees linked to an LC — H4 #53 (`q` criteria:
+  /// islclinkage, lcid, type).
+  static const String shippingGuaranteesApi = '$_base/shippingGuarantees';
+
+  /// Charges booked on an LC — H4 #56 (OBDX spec `listCharges`; 400 on
+  /// pre-sales).
+  static String lcChargesApi(String lcId) =>
+      '${letterOfCreditApi(lcId)}/charges';
+
+  /// Bank branches (id → name) for the LC branch — H4 #26.
+  static const String branchesApi =
+      '/digx-common/location/v1/locations/country/all/city/all/branchCode';
 
   // ── UI component names (authorization set from `me/components`) ──────
 

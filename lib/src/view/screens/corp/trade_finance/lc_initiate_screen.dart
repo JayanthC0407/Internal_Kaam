@@ -5,15 +5,20 @@ import 'package:ubci_bank/src/view/providers/corp/corp_lc_initiate_providers.dar
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_sections.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
 import 'package:ubci_bank/src/view/widgets/payment_otp_sheet_view.dart';
 
-/// Initiate Import LC — five-step wizard over [corpLcInitiateProvider].
+/// Initiate Letter of Credit — the eight "Application Sections" of the
+/// design (LC Details → Goods & Shipment → Documents & Conditions →
+/// Linkages → Instructions → Insurance → Charges → Attachments) over
+/// [corpLcInitiateProvider].
 ///
-/// Lookups: H1 #42 #44 #51 #102 #104 #106 #115 #142 #143 #159.
-/// Draft save: H1 #71 (POST) / #74 (PUT). Charges: H1 #121.
-/// Submit: see `CorpTradeFinanceRepository.submitInitiation` (NOT CAPTURED).
+/// APIs: lookups H1 #42 #44 #51 #102 #104 #106 #115 #142 #143 #159;
+/// section data from `LC_inititation complete flow.har` (H3 #49 #58 #63
+/// #67 #70 #72 #73 #75); charges H3 #74; draft save H1 #71 / #74.
+/// Submit: NOT CAPTURED — see [CorpLcInitiateNotifier.submit].
 class LcInitiateScreen extends ConsumerStatefulWidget {
   const LcInitiateScreen({super.key, this.args = const LcInitiateArgs()});
 
@@ -24,6 +29,7 @@ class LcInitiateScreen extends ConsumerStatefulWidget {
 }
 
 class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
+  final _scroll = ScrollController();
   bool _ready = false;
   bool _otpOpen = false;
   List<String> _errors = const [];
@@ -32,6 +38,12 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepare());
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _prepare() async {
@@ -63,14 +75,55 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
   CorpLcInitiateNotifier get _notifier =>
       ref.read(corpLcInitiateProvider.notifier);
 
-  void _next() {
-    final errors = _notifier.next();
-    setState(() => _errors = errors);
+  void _toTop() {
+    if (_scroll.hasClients) {
+      _scroll.animateTo(
+        0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
-  void _back() {
+  void _next() {
+    final state = ref.read(corpLcInitiateProvider);
+    if (state.section.isLast) {
+      setState(() => _errors = const []);
+      _notifier.submit();
+      return;
+    }
+    final errors = _notifier.next();
+    setState(() => _errors = errors);
+    _toTop();
+  }
+
+  void _goTo(LcInitiateSection section) {
     setState(() => _errors = const []);
-    _notifier.back();
+    _notifier.goTo(section);
+    _toTop();
+  }
+
+  Future<void> _cancel() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel this application?'),
+        content: const Text(
+          'Changes since your last saved draft will be lost.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Cancel application'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) Navigator.of(context).pop();
   }
 
   Future<void> _openOtpSheet() async {
@@ -87,8 +140,8 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
       _notifier.cancelOtp();
     }
   }
-  
-    Future<void> _deleteDraft() async {
+
+  Future<void> _deleteDraft() async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -113,6 +166,7 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
       Navigator.of(context).pop();
     }
   }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<CorpLcInitiateState>(corpLcInitiateProvider, (prev, next) {
@@ -125,14 +179,19 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(info)));
       }
+      final error = next.errorMessage;
+      if (error != null && error != prev?.errorMessage) _toTop();
     });
 
     final lookupsState = ref.watch(corpLcLookupsProvider);
     final state = ref.watch(corpLcInitiateProvider);
+    // Keeps the section reference data (H3) alive for the whole form, so
+    // moving between sections does not refetch it.
+    ref.watch(corpLcInitiateSupportProvider);
     final title = state.draft.isBackToBack ||
             widget.args.source == LcInitiateSource.backToBack
         ? 'Initiate Back to Back LC'
-        : 'Initiate Import LC';
+        : 'Initiate Letter of Credit';
 
     if (!_ready) {
       return LcScreenScaffold(
@@ -176,9 +235,26 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
       );
     }
 
-    final isReview = state.step == LcInitiateStep.review;
-    // Icons are dropped on narrow phones so Back / Save / Next fit one row.
-    final narrow = MediaQuery.sizeOf(context).width < 420;
+    final section = state.section;
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (state.draft.parentLcId != null)
+          LcMessageBanner(
+            isError: false,
+            message:
+                'Back to Back LC, backed by Export LC ${state.draft.parentLcId}.',
+          ),
+        for (final e in _errors) LcMessageBanner(message: e),
+        if (state.errorMessage != null)
+          LcMessageBanner(message: state.errorMessage!),
+        KeyedSubtree(
+          key: ValueKey(section),
+          child: LcInitiateSectionBody(section: section),
+        ),
+      ],
+    );
+
     return LcScreenScaffold(
       title: title,
       actions: [
@@ -189,935 +265,635 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
             onPressed: state.isBusy ? null : _deleteDraft,
           ),
       ],
-      body: Column(
-        children: [
-          _StepIndicator(current: state.step),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-              children: [
-                if (state.draft.parentLcId != null)
-                  LcMessageBanner(
-                    isError: false,
-                    message:
-                        'Back to Back LC, backed by Export LC ${state.draft.parentLcId}.',
-                  ),
-                for (final e in _errors) LcMessageBanner(message: e),
-                if (state.errorMessage != null)
-                  LcMessageBanner(message: state.errorMessage!),
-                KeyedSubtree(
-                  key: ValueKey(state.step),
-                  child: switch (state.step) {
-                    LcInitiateStep.details => const _DetailsStep(),
-                    LcInitiateStep.parties => const _PartiesStep(),
-                    LcInitiateStep.shipment => const _ShipmentStep(),
-                    LcInitiateStep.documents => const _DocumentsStep(),
-                    LcInitiateStep.review => const _ReviewStep(),
-                  },
-                ),
+      body: LayoutBuilder(
+        builder: (context, box) {
+          final wide = box.maxWidth >= 900;
+          return ListView(
+            controller: _scroll,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            children: [
+              _ApplicationHeader(section: section),
+              const SizedBox(height: 12),
+              _SectionBar(state: state, onTap: _goTo),
+              const SizedBox(height: 16),
+              if (wide)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 270, child: _SidePanel(state: state)),
+                    const SizedBox(width: 18),
+                    Expanded(child: body),
+                  ],
+                )
+              else ...[
+                _SidePanel(state: state, compact: true),
+                const SizedBox(height: 4),
+                body,
               ],
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
-      bottomBar: Row(
-        children: [
-          if (state.step.index > 0) ...[
-            LcSecondaryButton(
-              label: 'Back',
-              icon: narrow ? null : Icons.arrow_back_rounded,
-              onPressed: state.isBusy ? null : _back,
-            ),
-            const SizedBox(width: 10),
-          ],
-          LcSecondaryButton(
-            label: narrow ? 'Save' : 'Save draft',
-            icon: narrow ? null : Icons.save_outlined,
-            loading: state.isSaving,
-            onPressed: state.isBusy ? null : () => _notifier.saveDraft(),
-          ),
-          const Spacer(),
-          LcPrimaryButton(
-            label: isReview ? 'Submit' : 'Next',
-            icon: narrow
-                ? null
-                : (isReview ? Icons.send_rounded : Icons.arrow_forward_rounded),
-            loading: state.isSubmitting,
-            onPressed: state.isBusy
-                ? null
-                : (isReview ? () => _notifier.submit() : _next),
-          ),
-        ],
+      bottomBar: _Footer(
+        state: state,
+        onCancel: _cancel,
+        onSave: () => _notifier.saveDraft(),
+        onNext: _next,
       ),
     );
   }
 }
 
-// ── Step indicator ──────────────────────────────────────────────────────
+// ── Header ──────────────────────────────────────────────────────────────
 
-class _StepIndicator extends StatelessWidget {
-  const _StepIndicator({required this.current});
+/// "LC TEST4 | ***401" with the step pill.
+class _ApplicationHeader extends ConsumerWidget {
+  const _ApplicationHeader({required this.section});
 
-  final LcInitiateStep current;
+  final LcInitiateSection section;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(corpProfileProvider);
+    final party = profile.party;
+    final brand = CorpColors.brand(context);
+    final subtitle = [
+      if (profile.entityName != null) profile.entityName!,
+      if (party?.idDisplay != null) party!.idDisplay!,
+    ].join('  |  ');
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            subtitle.isEmpty ? 'Import Letter of Credit' : subtitle,
+            style: TextStyle(
+              fontSize: 13,
+              color: CorpColors.textSecondary(context),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: brand.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: brand.withValues(alpha: 0.25)),
+          ),
+          child: Text(
+            'Step ${section.index + 1} of ${LcInitiateSection.values.length}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: brand,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Application Sections bar ────────────────────────────────────────────
+
+class _SectionBar extends StatelessWidget {
+  const _SectionBar({required this.state, required this.onTap});
+
+  final CorpLcInitiateState state;
+  final ValueChanged<LcInitiateSection> onTap;
 
   @override
   Widget build(BuildContext context) {
     final brand = CorpColors.brand(context);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: CorpColors.card(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CorpColors.cardBorder(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final step in LcInitiateStep.values) ...[
-            if (step.index > 0)
-              Container(
-                width: 18,
-                height: 1.5,
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                color: CorpColors.divider(context),
-              ),
-            CircleAvatar(
-              radius: 12,
-              backgroundColor: step.index <= current.index
-                  ? brand
-                  : CorpColors.divider(context),
-              child: step.index < current.index
-                  ? const Icon(Icons.check, size: 14, color: Colors.white)
-                  : Text(
-                      '${step.index + 1}',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: step.index <= current.index
-                            ? Colors.white
-                            : CorpColors.textSecondary(context),
-                      ),
-                    ),
+          Text(
+            'Application Sections',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: CorpColors.textPrimary(context),
             ),
-            const SizedBox(width: 6),
-            Text(
-              step.label,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight:
-                    step == current ? FontWeight.w700 : FontWeight.w500,
-                color: step == current
-                    ? CorpColors.textPrimary(context)
-                    : CorpColors.textSecondary(context),
-              ),
+          ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final s in LcInitiateSection.values) ...[
+                  if (s.index > 0) const SizedBox(width: 8),
+                  _SectionChip(
+                    section: s,
+                    active: s == state.section,
+                    done: state.completed.contains(s),
+                    enabled: state.canOpen(s) && !state.isBusy,
+                    brand: brand,
+                    onTap: () => onTap(s),
+                  ),
+                ],
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-// ── Step 1: LC details ──────────────────────────────────────────────────
+class _SectionChip extends StatelessWidget {
+  const _SectionChip({
+    required this.section,
+    required this.active,
+    required this.done,
+    required this.enabled,
+    required this.brand,
+    required this.onTap,
+  });
 
-class _DetailsStep extends ConsumerWidget {
-  const _DetailsStep();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lookups = ref.watch(corpLcLookupsProvider).lookups;
-    final d = ref.watch(corpLcInitiateProvider.select((s) => s.draft));
-    final notifier = ref.read(corpLcInitiateProvider.notifier);
-    final applicant = ref.watch(corpProfileProvider).entityName;
-
-    TradeCode? currency;
-    for (final c in lookups.currencies) {
-      if (c.code == d.currency) currency = c;
-    }
-    TradeCode? confirmation;
-    for (final c in lookups.confirmationOptions) {
-      if (c.code == d.confirmationInstruction) confirmation = c;
-    }
-    TradeCode? availableBy;
-    for (final c in LcAvailableBy.values) {
-      if (c.code == d.availableBy) availableBy = c;
-    }
-    final today = DateTime.now();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LcSectionCard(
-          title: 'Applicant',
-          children: [
-            LcInfoGrid(items: [
-              ('Applicant', lcOrDash(applicant)),
-              ('LC type', 'Import LC'),
-            ]),
-          ],
-        ),
-        LcSectionCard(
-          title: 'LC details',
-          children: [
-            LcPickerField<LcProduct>(
-              label: 'LC product',
-              options: lookups.products,
-              selected: d.product,
-              labelOf: (p) => p.label,
-              subtitleOf: (p) =>
-                  '${p.periodIndicator ?? ''}${p.revolving ? ' · Revolving' : ''}',
-              onSelected: notifier.selectProduct,
-            ),
-            LcFieldRow(children: [
-              LcPickerField<TradeCode>(
-                label: 'Currency',
-                options: lookups.currencies,
-                selected: currency,
-                labelOf: (c) => c.code,
-                subtitleOf: (c) => c.description ?? '',
-                onSelected: (c) =>
-                    notifier.update((x) => x.copyWith(currency: c.code)),
-              ),
-              LcTextField(
-                label: 'LC amount',
-                numeric: true,
-                initialValue: d.amount?.toStringAsFixed(2),
-                onChanged: (v) => notifier.update(
-                  (x) => x.copyWith(amount: double.tryParse(v) ?? 0),
-                ),
-              ),
-            ]),
-            LcFieldRow(children: [
-              LcDateField(
-                label: 'Expiry date',
-                value: d.expiryDate,
-                firstDate: today.add(const Duration(days: 1)),
-                onChanged: (v) =>
-                    notifier.update((x) => x.copyWith(expiryDate: v)),
-              ),
-              LcTextField(
-                label: 'Place of expiry',
-                initialValue: d.expiryPlace,
-                onChanged: (v) =>
-                    notifier.update((x) => x.copyWith(expiryPlace: v)),
-              ),
-            ]),
-            LcFieldRow(children: [
-              LcTextField(
-                key: ValueKey('tolA-${d.product?.id}'),
-                label: 'Tolerance above (%)',
-                numeric: true,
-                initialValue: d.toleranceAbove.toStringAsFixed(0),
-                onChanged: (v) => notifier.update(
-                  (x) => x.copyWith(toleranceAbove: double.tryParse(v) ?? 0),
-                ),
-              ),
-              LcTextField(
-                key: ValueKey('tolU-${d.product?.id}'),
-                label: 'Tolerance below (%)',
-                numeric: true,
-                initialValue: d.toleranceUnder.toStringAsFixed(0),
-                onChanged: (v) => notifier.update(
-                  (x) => x.copyWith(toleranceUnder: double.tryParse(v) ?? 0),
-                ),
-              ),
-            ]),
-            LcFieldRow(children: [
-              LcPickerField<TradeCode>(
-                label: 'Available by',
-                options: LcAvailableBy.values,
-                selected: availableBy,
-                labelOf: (c) => c.label,
-                onSelected: (c) =>
-                    notifier.update((x) => x.copyWith(availableBy: c.code)),
-              ),
-              LcPickerField<TradeCode>(
-                label: 'Confirmation instruction',
-                options: lookups.confirmationOptions,
-                selected: confirmation,
-                labelOf: (c) => c.label,
-                onSelected: (c) => notifier.update(
-                  (x) => x.copyWith(confirmationInstruction: c.code),
-                ),
-              ),
-            ]),
-            LcTextField(
-              label: 'Documents to be presented within (days)',
-              numeric: true,
-              initialValue: '${d.documentPresentationDays}',
-              onChanged: (v) => notifier.update((x) => x.copyWith(
-                    documentPresentationDays: int.tryParse(v.split('.').first),
-                  )),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// ── Step 2: beneficiary & bank ──────────────────────────────────────────
-
-class _PartiesStep extends ConsumerStatefulWidget {
-  const _PartiesStep();
-
-  @override
-  ConsumerState<_PartiesStep> createState() => _PartiesStepState();
-}
-
-class _PartiesStepState extends ConsumerState<_PartiesStep> {
-  late String _swift =
-      ref.read(corpLcInitiateProvider).draft.advisingBankCode ?? '';
+  final LcInitiateSection section;
+  final bool active;
+  final bool done;
+  final bool enabled;
+  final Color brand;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final lookups = ref.watch(corpLcLookupsProvider).lookups;
-    final state = ref.watch(corpLcInitiateProvider);
-    final d = state.draft;
-    final notifier = ref.read(corpLcInitiateProvider.notifier);
-
-    TradeCode? country;
-    for (final c in lookups.countries) {
-      if (c.code == d.beneficiaryAddress.country) country = c;
-    }
-    TradeCode? borneBy;
-    for (final c in LcChargesBorneBy.values) {
-      if (c.code == d.chargesBorneBy) borneBy = c;
-    }
-    final bank = d.advisingBank;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LcSectionCard(
-          title: 'Beneficiary',
-          children: [
-            LcTextField(
-              label: 'Beneficiary name',
-              initialValue: d.beneficiaryName,
-              onChanged: (v) =>
-                  notifier.update((x) => x.copyWith(beneficiaryName: v)),
-            ),
-            LcTextField(
-              label: 'Address line 1',
-              initialValue: d.beneficiaryAddress.line1,
-              onChanged: (v) => notifier.update((x) => x.copyWith(
-                    beneficiaryAddress: x.beneficiaryAddress.copyWith(line1: v),
-                  )),
-            ),
-            LcFieldRow(children: [
-              LcTextField(
-                label: 'Address line 2',
-                initialValue: d.beneficiaryAddress.line2,
-                onChanged: (v) => notifier.update((x) => x.copyWith(
-                      beneficiaryAddress:
-                          x.beneficiaryAddress.copyWith(line2: v),
-                    )),
-              ),
-              LcTextField(
-                label: 'Address line 3',
-                initialValue: d.beneficiaryAddress.line3,
-                onChanged: (v) => notifier.update((x) => x.copyWith(
-                      beneficiaryAddress:
-                          x.beneficiaryAddress.copyWith(line3: v),
-                    )),
-              ),
-            ]),
-            LcPickerField<TradeCode>(
-              label: 'Country',
-              options: lookups.countries,
-              selected: country,
-              labelOf: (c) => c.label,
-              subtitleOf: (c) => c.code,
-              onSelected: (c) => notifier.update((x) => x.copyWith(
-                    beneficiaryAddress:
-                        x.beneficiaryAddress.copyWith(country: c.code),
-                  )),
-            ),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Advising bank',
-          children: [
-            LcTextField(
-              label: 'SWIFT / BIC code',
-              uppercase: true,
-              maxLength: 11,
-              initialValue: _swift,
-              helper: 'Also used as "available with".',
-              onChanged: (v) {
-                _swift = v;
-                notifier.update((x) => x.copyWith(
-                      advisingBankCode: v,
-                      clearAdvisingBank: true,
-                    ));
-              },
-              suffix: state.isLookingUpBic
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                  : TextButton(
-                      onPressed: () => notifier.lookupAdvisingBank(_swift),
-                      child: const Text('Verify'),
-                    ),
-            ),
-            if (bank != null)
-              LcMessageBanner(
-                isError: false,
-                message:
-                    '${bank.name ?? bank.code}\n${bank.address.singleLine}',
-              )
-            else if (state.bicMessage != null)
-              LcMessageBanner(message: state.bicMessage!),
-            LcPickerField<TradeCode>(
-              label: 'Charges borne by',
-              options: LcChargesBorneBy.values,
-              selected: borneBy,
-              labelOf: (c) => c.label,
-              onSelected: (c) =>
-                  notifier.update((x) => x.copyWith(chargesBorneBy: c.code)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// ── Step 3: shipment & goods ────────────────────────────────────────────
-
-class _ShipmentStep extends ConsumerWidget {
-  const _ShipmentStep();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lookups = ref.watch(corpLcLookupsProvider).lookups;
-    final d = ref.watch(corpLcInitiateProvider.select((s) => s.draft));
-    final notifier = ref.read(corpLcInitiateProvider.notifier);
-    final s = d.shipment;
-
-    void ship(LcShipmentDetails Function(LcShipmentDetails) change) =>
-        notifier.update((x) => x.copyWith(shipment: change(x.shipment)));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LcSectionCard(
-          title: 'Shipment',
-          children: [
-            LcFieldRow(children: [
-              LcTextField(
-                label: 'Place of dispatch',
-                initialValue: s.source,
-                onChanged: (v) => ship((x) => x.copyWith(source: v)),
-              ),
-              LcTextField(
-                label: 'Final destination',
-                initialValue: s.destination,
-                onChanged: (v) => ship((x) => x.copyWith(destination: v)),
-              ),
-            ]),
-            LcFieldRow(children: [
-              LcTextField(
-                label: 'Port of loading',
-                initialValue: s.loadingPort,
-                onChanged: (v) => ship((x) => x.copyWith(loadingPort: v)),
-              ),
-              LcTextField(
-                label: 'Port of discharge',
-                initialValue: s.dischargePort,
-                onChanged: (v) => ship((x) => x.copyWith(dischargePort: v)),
-              ),
-            ]),
-            LcFieldRow(children: [
-              LcDateField(
-                label: 'Latest shipment date',
-                value: s.latestShipmentDate,
-                firstDate: DateTime.now(),
-                lastDate: d.expiryDate,
-                onChanged: (v) =>
-                    ship((x) => x.copyWith(latestShipmentDate: v)),
-              ),
-              LcTextField(
-                label: 'Shipment period (days)',
-                numeric: true,
-                initialValue: s.period,
-                onChanged: (v) => ship((x) => x.copyWith(period: v)),
-              ),
-            ]),
-            LcSwitchField(
-              label: 'Partial shipment',
-              subtitle: 'Goods may be shipped in more than one lot',
-              value: s.partialAllowed,
-              onChanged: (v) => ship((x) => x.copyWith(partialAllowed: v)),
-            ),
-            LcSwitchField(
-              label: 'Transshipment',
-              subtitle: 'Goods may be moved between vessels / carriers',
-              value: s.transshipmentAllowed,
-              onChanged: (v) =>
-                  ship((x) => x.copyWith(transshipmentAllowed: v)),
-            ),
-            LcPickerField<TradeCode>(
-              label: 'Incoterm (optional)',
-              options: lookups.incoterms,
-              selected: d.incoterm,
-              labelOf: (c) => '${c.code} — ${c.description ?? ''}',
-              onSelected: (c) =>
-                  notifier.update((x) => x.copyWith(incoterm: c)),
-            ),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Goods',
-          trailing: TextButton.icon(
-            onPressed: () async {
-              final goods = await _showAddGoodsDialog(
-                context,
-                lookups.goods,
-                d.currency,
-              );
-              if (goods != null) notifier.addGoods(goods);
-            },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add goods'),
-          ),
-          children: [
-            if (d.goods.isEmpty)
-              Text(
-                'No goods added. Add the goods covered by this LC.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CorpColors.textSecondary(context),
-                ),
-              ),
-            for (var i = 0; i < d.goods.length; i++)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(
-                  d.goods[i].description ?? d.goods[i].code,
-                  style: TextStyle(color: CorpColors.textPrimary(context)),
-                ),
-                subtitle: Text(
-                  '${d.goods[i].noOfUnits ?? 0} × ${lcAmount(d.goods[i].pricePerUnit, d.currency)}'
-                  ' = ${lcAmount(d.goods[i].total, d.currency)}',
-                  style: TextStyle(color: CorpColors.textSecondary(context)),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  color: CorpColors.of(context).error,
-                  onPressed: () => notifier.removeGoodsAt(i),
-                ),
-              ),
-            if (d.goods.isNotEmpty && d.amount != null && d.goodsTotal > d.amount!)
-              const LcMessageBanner(
-                message: 'Goods value exceeds the LC amount.',
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-Future<LcGoods?> _showAddGoodsDialog(
-  BuildContext context,
-  List<TradeCode> master,
-  String? currency,
-) {
-  TradeCode? selected;
-  var units = '';
-  var price = '';
-  return showDialog<LcGoods>(
-    context: context,
-    builder: (ctx) => StatefulBuilder(
-      builder: (ctx, setState) => AlertDialog(
-        backgroundColor: CorpColors.card(ctx),
-        title: const Text('Add goods'),
-        content: SizedBox(
-          width: 420,
-          child: Column(
+    final highlighted = active || done;
+    final fg = highlighted
+        ? CorpColors.textPrimary(context)
+        : CorpColors.textSecondary(context);
+    return Material(
+      color: highlighted ? brand.withValues(alpha: 0.14) : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: active ? BorderSide(color: brand, width: 1.2) : BorderSide.none,
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: enabled ? onTap : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              LcPickerField<TradeCode>(
-                label: 'Goods',
-                options: master,
-                selected: selected,
-                labelOf: (c) => c.label,
-                subtitleOf: (c) => c.code,
-                onSelected: (c) => setState(() => selected = c),
+              if (highlighted) ...[
+                Icon(
+                  done ? Icons.check_circle_outline : Icons.radio_button_checked,
+                  size: 16,
+                  color: brand,
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                section.number,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: fg,
+                ),
               ),
-              LcTextField(
-                label: 'Number of units',
-                numeric: true,
-                onChanged: (v) => setState(() => units = v),
-              ),
-              LcTextField(
-                label: 'Price per unit${currency == null ? '' : ' ($currency)'}',
-                numeric: true,
-                onChanged: (v) => setState(() => price = v),
+              const SizedBox(width: 8),
+              Text(
+                section.label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: highlighted ? FontWeight.w700 : FontWeight.w500,
+                  color: fg,
+                ),
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: selected == null ||
-                    (double.tryParse(units) ?? 0) <= 0 ||
-                    (double.tryParse(price) ?? 0) <= 0
-                ? null
-                : () => Navigator.of(ctx).pop(LcGoods(
-                      code: selected!.code,
-                      description: selected!.description,
-                      noOfUnits: double.tryParse(units),
-                      pricePerUnit: double.tryParse(price),
-                    )),
-            child: const Text('Add'),
-          ),
-        ],
       ),
-    ),
-  );
-}
-
-// ── Step 4: documents & conditions ──────────────────────────────────────
-
-class _DocumentsStep extends ConsumerWidget {
-  const _DocumentsStep();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lookups = ref.watch(corpLcLookupsProvider).lookups;
-    final state = ref.watch(corpLcInitiateProvider);
-    final d = state.draft;
-    final notifier = ref.read(corpLcInitiateProvider.notifier);
-
-    LcDocument? selectedOf(LcDocument doc) {
-      for (final s in d.documents) {
-        if (s.id == doc.id) return s;
-      }
-      return null;
-    }
-
-    final remaining = [
-      for (final c in lookups.additionalConditions)
-        if (!d.additionalConditions.contains(c)) c,
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LcSectionCard(
-          title: 'Documents required',
-          children: [
-            if (state.documentsLoading)
-              const Center(child: CircularProgressIndicator(strokeWidth: 2))
-            else if (state.productDocuments.isEmpty)
-              Text(
-                'The selected product lists no documents.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CorpColors.textSecondary(context),
-                ),
-              ),
-            for (final doc in state.productDocuments)
-              _DocumentTile(
-                document: doc,
-                selected: selectedOf(doc),
-                onToggle: (v) => notifier.toggleDocument(doc, v),
-                onChanged: notifier.updateDocument,
-              ),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Additional conditions',
-          trailing: TextButton.icon(
-            onPressed: remaining.isEmpty
-                ? null
-                : () async {
-                    final picked = await showModalBottomSheet<TradeCode>(
-                      context: context,
-                      backgroundColor: CorpColors.card(context),
-                      builder: (ctx) => ListView(
-                        children: [
-                          for (final c in remaining)
-                            ListTile(
-                              title: Text(c.label),
-                              subtitle: Text(c.code),
-                              onTap: () => Navigator.of(ctx).pop(c),
-                            ),
-                        ],
-                      ),
-                    );
-                    if (picked != null) notifier.toggleCondition(picked, true);
-                  },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add'),
-          ),
-          children: [
-            if (d.additionalConditions.isEmpty)
-              Text(
-                'No additional conditions.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CorpColors.textSecondary(context),
-                ),
-              ),
-            for (final c in d.additionalConditions)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(
-                  c.label,
-                  style: TextStyle(color: CorpColors.textPrimary(context)),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => notifier.toggleCondition(c, false),
-                ),
-              ),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Instructions to bank',
-          children: [
-            LcTextField(
-              label: 'Instructions (optional)',
-              maxLines: 3,
-              initialValue: d.instructions,
-              onChanged: (v) =>
-                  notifier.update((x) => x.copyWith(instructions: v)),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
 
-class _DocumentTile extends StatelessWidget {
-  const _DocumentTile({
-    required this.document,
-    required this.selected,
-    required this.onToggle,
-    required this.onChanged,
-  });
+// ── Left summary panel ──────────────────────────────────────────────────
 
-  final LcDocument document;
-  final LcDocument? selected;
-  final ValueChanged<bool> onToggle;
-  final ValueChanged<LcDocument> onChanged;
+class _SidePanel extends ConsumerWidget {
+  const _SidePanel({required this.state, this.compact = false});
+
+  final CorpLcInitiateState state;
+
+  /// Phones: the panel sits above the section, so only the most useful
+  /// card is shown.
+  final bool compact;
 
   @override
-  Widget build(BuildContext context) {
-    final current = selected;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          value: current != null,
-          activeColor: CorpColors.brand(context),
-          onChanged: (v) => onToggle(v ?? false),
-          title: Text(
-            document.name,
-            style: TextStyle(color: CorpColors.textPrimary(context)),
-          ),
-          subtitle: document.clauses.isEmpty
-              ? null
-              : Text(
-                  document.clauses.map((c) => c.label).join('; '),
-                  style: TextStyle(color: CorpColors.textSecondary(context)),
-                ),
-        ),
-        if (current != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 48, bottom: 8),
-            child: Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lookups = ref.watch(corpLcLookupsProvider).lookups;
+    final d = state.draft;
+    final section = state.section;
+    final cards = <Widget>[
+      switch (section) {
+        LcInitiateSection.lcDetails => const _LimitsCard(),
+        LcInitiateSection.goodsShipment => _ShipmentSummaryCard(draft: d),
+        LcInitiateSection.instructions =>
+          _ProgressCard(state: state, title: 'Instruction status'),
+        _ => _ProgressCard(state: state, title: 'Application progress'),
+      },
+      if (!compact)
+        switch (section) {
+          LcInitiateSection.lcDetails => _PanelCard(
+              title: 'Next',
               children: [
-                _Counter(
-                  label: 'Originals',
-                  value: current.originals,
-                  onChanged: (v) => onChanged(current.copyWith(originals: v)),
-                ),
-                const SizedBox(width: 16),
-                _Counter(
-                  label: 'Copies',
-                  value: current.copies,
-                  onChanged: (v) => onChanged(current.copyWith(copies: v)),
+                _PanelLink(LcInitiateSection.goodsShipment.label),
+                const _PanelNote(
+                  'Continue when all required LC fields are complete.',
                 ),
               ],
             ),
-          ),
-      ],
-    );
-  }
-}
-
-class _Counter extends StatelessWidget {
-  const _Counter({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String label;
-  final int value;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.5,
-            color: CorpColors.textSecondary(context),
-          ),
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.remove_circle_outline, size: 20),
-          onPressed: value > 0 ? () => onChanged(value - 1) : null,
-        ),
-        Text(
-          '$value',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: CorpColors.textPrimary(context),
-          ),
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.add_circle_outline, size: 20),
-          onPressed: value < 9 ? () => onChanged(value + 1) : null,
-        ),
-      ],
-    );
-  }
-}
-
-// ── Step 5: review ──────────────────────────────────────────────────────
-
-class _ReviewStep extends ConsumerWidget {
-  const _ReviewStep();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lookups = ref.watch(corpLcLookupsProvider).lookups;
-    final state = ref.watch(corpLcInitiateProvider);
-    final notifier = ref.read(corpLcInitiateProvider.notifier);
-    final d = state.draft;
-    final s = d.shipment;
-
-    Widget edit(LcInitiateStep step) => TextButton(
-          onPressed: () => notifier.goTo(step),
-          child: const Text('Edit'),
-        );
-
+          LcInitiateSection.goodsShipment =>
+            _ProgressCard(state: state, title: 'Application progress'),
+          LcInitiateSection.documents => _PanelCard(
+              title: 'Selection summary',
+              children: [
+                _PanelHighlight('${d.documents.length} documents selected'),
+                _PanelNote(
+                  '${d.additionalConditions.length} additional condition(s)',
+                ),
+                _PanelNote('Presentation • ${d.documentPresentationDays} days'),
+                if (d.incoterm != null)
+                  _PanelLink('Incoterms • ${d.incoterm!.code}'),
+              ],
+            ),
+          LcInitiateSection.linkages => _PanelCard(
+              title: 'Linkage summary',
+              children: [
+                _PanelHighlight('${d.depositLinkages.length} account(s) linked'),
+                _PanelNote('Linked amount • ${d.linkedTotal.toStringAsFixed(2)}'),
+              ],
+            ),
+          LcInitiateSection.instructions => _PanelCard(
+              title: 'Instruction summary',
+              children: [
+                _PanelNote('Advising bank • ${d.advisingBank.summary}'),
+                _PanelNote('Advise through • ${d.adviseThroughBank.summary}'),
+                _PanelNote(
+                  'Confirmation • ${_label(lookups.confirmationOptions, d.confirmationInstruction)}',
+                ),
+                if (d.standardInstructionsAccepted)
+                  const _PanelLink('Standard instructions • ✓'),
+              ],
+            ),
+          LcInitiateSection.insurance => _PanelCard(
+              title: 'Selected policy',
+              children: [
+                _PanelHighlight(d.insurancePolicy?.policyNumber ?? 'None'),
+                if (d.insurancePolicy?.companyName != null)
+                  _PanelNote(d.insurancePolicy!.companyName!),
+              ],
+            ),
+          LcInitiateSection.charges => _PanelCard(
+              title: 'Charges',
+              children: [
+                _PanelNote(
+                  'Borne by • ${_label(LcChargesBorneBy.values, d.chargesBorneBy)}',
+                ),
+                _PanelNote('Account • ${lcOrDash(d.chargingAccount?.label)}'),
+                for (final e in LcCharge.totalsByCurrency(state.charges ?? const []).entries)
+                  _PanelHighlight('${e.key} ${e.value.toStringAsFixed(2)}'),
+              ],
+            ),
+          LcInitiateSection.attachments => _PanelCard(
+              title: 'Ready to submit',
+              children: [
+                _PanelNote(
+                  '${state.completed.length} of '
+                  '${LcInitiateSection.values.length - 1} earlier sections completed',
+                ),
+              ],
+            ),
+        },
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        LcSectionCard(
-          title: 'LC details',
-          trailing: edit(LcInitiateStep.details),
-          children: [
-            LcInfoGrid(items: [
-              ('Product', lcOrDash(d.product?.label)),
-              ('Amount', lcAmount(d.amount, d.currency)),
-              ('Expiry date', TfDate.display(d.expiryDate)),
-              ('Place of expiry', lcOrDash(d.expiryPlace)),
-              (
-                'Tolerance (+/−)',
-                '${d.toleranceAbove.toStringAsFixed(0)}% / ${d.toleranceUnder.toStringAsFixed(0)}%',
-              ),
-              ('Confirmation', d.confirmationInstruction),
-              ('Presentation period', '${d.documentPresentationDays} days'),
-            ]),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Beneficiary & bank',
-          trailing: edit(LcInitiateStep.parties),
-          children: [
-            LcInfoGrid(items: [
-              ('Beneficiary', lcOrDash(d.beneficiaryName)),
-              (
-                'Address',
-                [
-                  ...d.beneficiaryAddress.lines,
-                  lookups.countryName(d.beneficiaryAddress.country),
-                ].join(', '),
-              ),
-              (
-                'Advising bank',
-                d.advisingBank == null
-                    ? lcOrDash(d.advisingBankCode)
-                    : '${d.advisingBank!.code} · ${d.advisingBank!.name ?? ''}',
-              ),
-              ('Charges borne by', d.chargesBorneBy),
-            ]),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Shipment & goods',
-          trailing: edit(LcInitiateStep.shipment),
-          children: [
-            LcInfoGrid(items: [
-              ('Port of loading', lcOrDash(s.loadingPort)),
-              ('Port of discharge', lcOrDash(s.dischargePort)),
-              ('Latest shipment date', TfDate.display(s.latestShipmentDate)),
-              ('Partial shipment', lcYesNo(s.partialAllowed)),
-              ('Transshipment', lcYesNo(s.transshipmentAllowed)),
-              ('Goods', '${d.goods.length} item(s)'),
-            ]),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Documents & conditions',
-          trailing: edit(LcInitiateStep.documents),
-          children: [
-            LcInfoGrid(items: [
-              (
-                'Documents',
-                d.documents.isEmpty
-                    ? 'None'
-                    : d.documents
-                        .map((x) => '${x.name} (${x.originals}+${x.copies})')
-                        .join(', '),
-              ),
-              ('Additional conditions', '${d.additionalConditions.length}'),
-            ]),
-          ],
-        ),
-        LcSectionCard(
-          title: 'Charges, commissions & taxes',
-          children: [
-            LcChargesList(
-              charges: state.charges,
-              loading: state.chargesLoading,
-              message: state.chargesMessage,
+        for (final card in cards) ...[card, const SizedBox(height: 12)],
+      ],
+    );
+  }
+
+  static String _label(List<TradeCode> codes, String code) {
+    for (final c in codes) {
+      if (c.code == code) return c.label;
+    }
+    return code;
+  }
+}
+
+class _PanelCard extends StatelessWidget {
+  const _PanelCard({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: CorpColors.card(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CorpColors.cardBorder(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+              color: CorpColors.textPrimary(context),
             ),
-          ],
+          ),
+          const SizedBox(height: 8),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _PanelHighlight extends StatelessWidget {
+  const _PanelHighlight(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w800,
+          color: CorpColors.brand(context),
         ),
-        Text(
-          'By submitting, you confirm the details above. The request follows '
-          'your corporate approval rules and is then processed by the bank '
-          'under UCP 600.',
-          style: TextStyle(
-            fontSize: 12,
-            height: 1.4,
-            color: CorpColors.textSecondary(context),
+      ),
+    );
+  }
+}
+
+class _PanelNote extends StatelessWidget {
+  const _PanelNote(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12.5,
+          height: 1.3,
+          color: CorpColors.textSecondary(context),
+        ),
+      ),
+    );
+  }
+}
+
+class _PanelLink extends StatelessWidget {
+  const _PanelLink(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+          color: CorpColors.brand(context),
+        ),
+      ),
+    );
+  }
+}
+
+/// "N of 8 sections reviewed" with a progress bar.
+class _ProgressCard extends StatelessWidget {
+  const _ProgressCard({required this.state, required this.title});
+
+  final CorpLcInitiateState state;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = LcInitiateSection.values.length;
+    final done = state.completed.length;
+    final next = state.section.next;
+    return _PanelCard(
+      title: title,
+      children: [
+        _PanelHighlight('$done of $total sections reviewed'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: done / total,
+            minHeight: 6,
+            color: CorpColors.brand(context),
+            backgroundColor: CorpColors.divider(context),
           ),
         ),
+        const SizedBox(height: 8),
+        _PanelLink(state.section.label),
+        _PanelNote(next == null ? 'Next • Submit' : 'Next • ${next.label}'),
+      ],
+    );
+  }
+}
+
+/// Shipment summary — loading → discharge, destination, date, terms.
+class _ShipmentSummaryCard extends StatelessWidget {
+  const _ShipmentSummaryCard({required this.draft});
+
+  final LcInitiateDraft draft;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = draft.shipment;
+    final terms = [
+      draft.shipmentByPeriod ? 'Period' : 'Date',
+      if (s.partialAllowed) 'Partial',
+      if (s.transshipmentAllowed) 'Trans-shipment',
+    ];
+    return _PanelCard(
+      title: 'Shipment summary',
+      children: [
+        _PanelHighlight(
+          '${lcOrDash(s.loadingPort)}  →  ${lcOrDash(s.dischargePort)}',
+        ),
+        const _PanelNote('Port of loading → Port of discharge'),
+        const Divider(height: 16),
+        _SummaryTile(label: 'Final destination', value: lcOrDash(s.destination)),
+        _SummaryTile(
+          label: draft.shipmentByPeriod ? 'Shipment period' : 'Shipment date',
+          value: draft.shipmentByPeriod
+              ? lcOrDash(s.period)
+              : TfDate.display(s.latestShipmentDate),
+        ),
+        _SummaryTile(
+          label: 'Shipment terms',
+          value: '${terms.first} • ${terms.length > 1 ? terms.skip(1).join(' + ') : 'No partial / trans-shipment'}',
+          tinted: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _SummaryTile extends StatelessWidget {
+  const _SummaryTile({
+    required this.label,
+    required this.value,
+    this.tinted = false,
+  });
+
+  final String label;
+  final String value;
+  final bool tinted;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = CorpColors.brand(context);
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: tinted
+            ? brand.withValues(alpha: 0.08)
+            : CorpColors.tableHeaderBg(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: tinted ? brand : CorpColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: tinted ? brand : CorpColors.textPrimary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Limits card of the LC Details section.
+///
+/// NOT CAPTURED: the initiation capture has no limits call, so no figures
+/// are shown — wire the facility/limits API here once it is captured.
+class _LimitsCard extends StatelessWidget {
+  const _LimitsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PanelCard(
+      title: 'Limits',
+      children: [
+        _PanelHighlight('—'),
+        _PanelNote(
+          'Limit details are not available for this application. The bank '
+          'checks your available limit when the LC is processed.',
+        ),
+      ],
+    );
+  }
+}
+
+// ── Footer ──────────────────────────────────────────────────────────────
+
+class _Footer extends StatelessWidget {
+  const _Footer({
+    required this.state,
+    required this.onCancel,
+    required this.onSave,
+    required this.onNext,
+  });
+
+  final CorpLcInitiateState state;
+  final VoidCallback onCancel;
+  final VoidCallback onSave;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final error = CorpColors.of(context).error;
+    final narrow = MediaQuery.sizeOf(context).width < 520;
+    final isLast = state.section.isLast;
+
+    final cancel = OutlinedButton(
+      onPressed: state.isBusy ? null : onCancel,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: error,
+        side: BorderSide(color: CorpColors.textSecondary(context)),
+        minimumSize: const Size(0, 46),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      child: const Text('Cancel'),
+    );
+    final save = LcSecondaryButton(
+      label: narrow ? 'Save' : 'Save As draft',
+      loading: state.isSaving,
+      onPressed: state.isBusy ? null : onSave,
+    );
+    final next = LcPrimaryButton(
+      label: isLast ? 'Submit' : 'Next',
+      loading: state.isSubmitting,
+      onPressed: state.isBusy ? null : onNext,
+    );
+
+    if (narrow) {
+      return Row(
+        children: [
+          Expanded(child: cancel),
+          const SizedBox(width: 8),
+          Expanded(child: save),
+          const SizedBox(width: 8),
+          Expanded(child: next),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        const Spacer(),
+        SizedBox(width: 140, child: cancel),
+        const SizedBox(width: 12),
+        SizedBox(width: 160, child: save),
+        const SizedBox(width: 12),
+        SizedBox(width: 140, child: next),
       ],
     );
   }
