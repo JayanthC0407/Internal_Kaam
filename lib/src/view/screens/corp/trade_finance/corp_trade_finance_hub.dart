@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_list_page.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_list_page.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_hub.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
@@ -65,10 +67,8 @@ class CorpTradeFinanceWorkspace extends StatelessWidget {
                 kind: LcListKind.importLc,
                 onOpen: _openDetail,
               ),
-            LcMenuAction.exportView => _LcListPage(
-                kind: LcListKind.exportLc,
-                onOpen: _openDetail,
-              ),
+            LcMenuAction.exportView => const ExportLcListPage(),
+            LcMenuAction.exportViewBills => const ExportBillListPage(),
             LcMenuAction.exportAmendmentAcceptance =>
               const _AmendmentAcceptancePage(),
             LcMenuAction.exportInitiateTransfer => _LcListPage(
@@ -120,8 +120,6 @@ class _PageHeader extends StatelessWidget {
       fontSize: 12.5,
       color: CorpColors.textSecondary(context),
     );
-    // "Trade Finance › Letter of Credit › Import Letter of Credit"
-    final trail = action.breadcrumb.sublist(0, action.breadcrumb.length - 1);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,8 +152,6 @@ class _PageHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(trail.join('  ›  '), style: muted),
-              const SizedBox(height: 2),
               Text(
                 action.label,
                 style: TextStyle(

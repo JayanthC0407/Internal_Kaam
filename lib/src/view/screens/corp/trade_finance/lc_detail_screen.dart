@@ -136,35 +136,38 @@ class _LcDetailScreenState extends ConsumerState<LcDetailScreen> {
         ),
       ],
       body: body,
-      bottomBar: (canAmend || canCopy)
-          ? Row(
-              children: [
-                if (canCopy)
-                  Expanded(
-                    child: LcSecondaryButton(
-                      label: 'Copy & initiate',
-                      icon: Icons.copy_rounded,
-                      onPressed: () => Navigator.of(context).pushNamed(
-                        CorpRoutesConst.lcInitiateScreen,
-                        arguments: LcInitiateArgs.copyOf(lc!),
-                      ),
-                    ),
+      // As on the OBDX "View Import Letter Of Credit" screen: Copy &
+      // Initiate and Back. (Amend LC has its own menu entry.)
+      bottomBar: LayoutBuilder(
+        builder: (context, constraints) {
+          final copy = canCopy
+              ? LcPrimaryButton(
+                  label: 'Copy & Initiate',
+                  onPressed: () => Navigator.of(context).pushNamed(
+                    CorpRoutesConst.lcInitiateScreen,
+                    arguments: LcInitiateArgs(seed: lc),
                   ),
-                if (canCopy && canAmend) const SizedBox(width: 12),
-                if (canAmend)
-                  Expanded(
-                    child: LcPrimaryButton(
-                      label: 'Amend LC',
-                      icon: Icons.edit_note_rounded,
-                      onPressed: () => Navigator.of(context).pushNamed(
-                        CorpRoutesConst.lcAmendScreen,
-                        arguments: LcAmendArgs(lcId: lc!.id),
-                      ),
-                    ),
-                  ),
+                )
+              : null;
+          final back = LcSecondaryButton(
+            label: 'Back',
+            onPressed: () => Navigator.of(context).maybePop(),
+          );
+          // A phone: Copy & Initiate takes the room Back leaves, so the
+          // main action is the big target. Wider: both at their natural
+          // size, from the left, as on the web.
+          final phone = constraints.maxWidth < 600;
+          return Row(
+            children: [
+              if (copy != null) ...[
+                phone ? Expanded(child: copy) : copy,
+                const SizedBox(width: 12),
               ],
-            )
-          : null,
+              back,
+            ],
+          );
+        },
+      ),
     );
   }
 }
