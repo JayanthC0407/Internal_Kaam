@@ -101,6 +101,102 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     });
   }
 
+  /// `GET …/letterofcredits` with `media` / `mediaFormat` — the LC list as
+  /// a file (`application/pdf` + `pdf`, or `text/csv` + `csv`), as the View
+  /// Export LC capture downloads it. Returns the file's bytes.
+  Future<ResponseHandler<List<int>>> downloadLetterOfCredits(
+    Map<String, dynamic> query, {
+    required String media,
+    required String mediaFormat,
+  }) async {
+    try {
+      final response = await dio.get<List<int>>(
+        ObdxApiUtils.appendLocaleQuery(
+          CorpTradeFinanceApiConst.letterOfCreditsApi,
+        ),
+        queryParameters: {
+          ...query,
+          'media': media,
+          'mediaFormat': mediaFormat,
+          'transactionType': _conventional,
+        },
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 60),
+          headers: {
+            'Accept': '$media, application/octet-stream, application/json, */*',
+          },
+        ),
+      );
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) {
+        return ResponseHandler.exceptionError();
+      }
+      return ResponseHandler.success(
+        List<int>.from(bytes),
+        code: response.statusCode ?? 0,
+      );
+    } on DioException catch (error) {
+      return getErrorResponse<List<int>>(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse<List<int>>(exc, stack);
+    }
+  }
+
+  /// `GET …/bills?partyIds=…&q=…` — the bill list.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBills(
+    Map<String, dynamic> query,
+  ) {
+    return _get(CorpTradeFinanceApiConst.billsApi, query);
+  }
+
+  /// `GET …/bills/{billReferenceNo}` — one bill.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBill(String id) {
+    return _get(
+      CorpTradeFinanceApiConst.billApi(id),
+      {'transactionType': _conventional},
+    );
+  }
+
+  /// The bill list as a file. The web client downloads it from the same
+  /// call; the `media` / `mediaFormat` pair is the LC list's (captured),
+  /// assumed to apply here too.
+  Future<ResponseHandler<List<int>>> downloadBills(
+    Map<String, dynamic> query, {
+    required String media,
+    required String mediaFormat,
+  }) async {
+    try {
+      final response = await dio.get<List<int>>(
+        ObdxApiUtils.appendLocaleQuery(CorpTradeFinanceApiConst.billsApi),
+        queryParameters: {
+          ...query,
+          'media': media,
+          'mediaFormat': mediaFormat,
+        },
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 60),
+          headers: {
+            'Accept': '$media, application/octet-stream, application/json, */*',
+          },
+        ),
+      );
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) {
+        return ResponseHandler.exceptionError();
+      }
+      return ResponseHandler.success(
+        List<int>.from(bytes),
+        code: response.statusCode ?? 0,
+      );
+    } on DioException catch (error) {
+      return getErrorResponse<List<int>>(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse<List<int>>(exc, stack);
+    }
+  }
+
   /// `GET …/letterofcredits/templates` — H1 #37.
   Future<ResponseHandler<Map<String, dynamic>>> fetchTemplates() {
     return _get(CorpTradeFinanceApiConst.templatesApi, {

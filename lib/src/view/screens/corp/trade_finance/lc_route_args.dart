@@ -80,3 +80,10 @@ class LcTransferArgs {
 
   final String lcId;
 }
+
+/// One export bill — View Export Bill.
+class ExportBillArgs {
+  const ExportBillArgs({required this.billId});
+
+  final String billId;
+}
