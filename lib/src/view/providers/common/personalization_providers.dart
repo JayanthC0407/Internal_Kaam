@@ -403,6 +403,11 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
   /// when the user has none.
   DashboardDescriptor? _descriptor;
 
+  /// True while [_descriptor] is the role template a new user starts from:
+  /// their first save creates their own dashboard rather than writing to
+  /// the shared one. See [DashboardDescriptorAbsent.template].
+  bool _createsOnSave = false;
+
   DashboardDescriptor? get descriptor => _descriptor;
 
   /// Loads once per user from [lookup], which the caller builds from the
@@ -479,6 +484,7 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     _pendingLoad = null;
     _lookup = const DashboardDescriptorUnknown();
     _descriptor = null;
+    _createsOnSave = false;
     state = PersonalizationState(breakpoint: state.breakpoint);
   }
 
@@ -541,22 +547,30 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
       _lookup = resolved;
     }
 
-    if (resolved is DashboardDescriptorAbsent) {
-      _descriptor = null;
-      _loadedOnce = true;
-      state = state.copyWith(isLoading: false, isUnavailable: true);
-      return;
+    final DashboardDescriptor descriptor;
+    switch (resolved) {
+      case DashboardDescriptorFound(descriptor: final own):
+        descriptor = own;
+        _createsOnSave = false;
+      case DashboardDescriptorAbsent(template: final template?):
+        // No dashboard of their own yet: start from their role's, as the
+        // OBDX web client does. The first save creates theirs.
+        descriptor = template;
+        _createsOnSave = true;
+      case DashboardDescriptorAbsent():
+        _descriptor = null;
+        _loadedOnce = true;
+        state = state.copyWith(isLoading: false, isUnavailable: true);
+        return;
+      case DashboardDescriptorUnknown():
+        // Unreachable: a `me` read always resolves. Fail rather than guess.
+        await _failLoad(
+          epoch,
+          null,
+          fallback: 'Could not load your dashboard.',
+        );
+        return;
     }
-    if (resolved is! DashboardDescriptorFound) {
-      // Unreachable: a `me` read always resolves. Fail rather than guess.
-      await _failLoad(
-        epoch,
-        null,
-        fallback: 'Could not load your dashboard.',
-      );
-      return;
-    }
-    final descriptor = resolved.descriptor;
     _descriptor = descriptor;
 
     state = state.copyWith(
@@ -791,9 +805,15 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
     // host could answer a CUSTOM request with the factory dashboard for a
     // user who has none — and the factory record is shared by every user
     // of the type.
-    if (!descriptor.isUserCustom ||
-        !config.isUserCustom ||
-        config.dashboardId != descriptor.dashboardId) {
+    final ownDashboard = descriptor.isUserCustom &&
+        config.isUserCustom &&
+        config.dashboardId == descriptor.dashboardId;
+    // Or, for a new user, the role template they were shown — which is
+    // never written: the save creates their own dashboard from it.
+    final firstSave = _createsOnSave &&
+        !config.isUserCustom &&
+        config.dashboardId == descriptor.dashboardId;
+    if (!ownDashboard && !firstSave) {
       return 'This dashboard cannot be personalized yet.';
     }
     if (!state.isAuthorizationLoaded) {
@@ -826,6 +846,9 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
       state = state.copyWith(saveErrorMessage: blocked);
       return false;
     }
+    // A create in flight: a second save now would create a second
+    // dashboard. It is refused; the draft stays for the user to save again.
+    if (_createsOnSave && state.isSaving) return false;
 
     final epoch = _epoch();
     state = state.copyWith(isSaving: true, clearSaveError: true);
@@ -859,13 +882,30 @@ class PersonalizationNotifier extends StateNotifier<PersonalizationState> {
           ),
     ];
 
-    final result = await _ref
-        .read(dashboardRepositoryProvider)
-        .saveConfig(config.withLayout(state.breakpoint, items));
+    final repository = _ref.read(dashboardRepositoryProvider);
+    final edited = config.withLayout(state.breakpoint, items);
+    final creating = _createsOnSave;
+    final result = creating
+        ? await repository.createConfig(edited)
+        : await repository.saveConfig(edited);
 
     if (!_isCurrent(epoch)) return false;
 
     if (result is Success<DashboardConfig>) {
+      final created = result.data;
+      if (creating && created != null) {
+        // From now on, this user's own dashboard — later saves update it.
+        _createsOnSave = false;
+        final own = DashboardDescriptor(
+          dashboardId: created.dashboardId,
+          dashboardClass: created.dashboardClass ?? 'CUSTOM',
+          dashboardClassValue: created.dashboardClassValue ?? 'custom',
+          enterpriseRole: created.enterpriseRole,
+          isFactory: created.isFactory,
+        );
+        _descriptor = own;
+        _lookup = DashboardDescriptorFound(own);
+      }
       state = state.copyWith(
         isSaving: false,
         config: result.data,

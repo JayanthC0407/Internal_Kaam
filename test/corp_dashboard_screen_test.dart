@@ -249,10 +249,14 @@ Future<void> _pumpDashboard(
   bool failAuthorization = false,
   bool failConfig = false,
   Size size = const Size(1440, 1000),
+  Map<String, Object>? me,
 }) async {
-  final profileResponse = config == null && !failConfig
-      ? _meResponseWithoutCustomDashboard
-      : _meResponse;
+  // A user with no dashboard at all is the one state that renders the
+  // designed default arrangement; [me] picks another user.
+  final profileResponse = me ??
+      (config == null && !failConfig
+          ? _meResponseWithoutDashboards
+          : _meResponse);
 
   // The design is a desktop layout; size the surface accordingly so the
   // persistent sidebar and the side-by-side panels are the ones exercised
@@ -699,12 +703,55 @@ void main() {
 
     testWidgets('Personalize is not offered without a dashboard to save to',
         (tester) async {
+      // No dashboard at all — not even the bank's role one to start from.
       await _pumpDashboard(tester);
 
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
 
       expect(find.text('Personalize Dashboard'), findsNothing);
+    });
+
+    testWidgets(
+        'a first-time user personalizes, starting from the role dashboard',
+        (tester) async {
+      // Only the bank's `corporateuser` dashboard, as OBDX shows a new user;
+      // their first save creates their own (see dashboard_first_save_test).
+      await _pumpDashboard(
+        tester,
+        me: _meResponseWithoutCustomDashboard,
+        config: DashboardConfig.fromPayload(const {
+          'dashboardDTO': {
+            'dashboardId': '18',
+            'dashboardName': 'Corporate',
+            'dashboardDescription': 'Corporate dashboard',
+            'dashboardClass': 'USER_TYPE',
+            'dashboardClassValue': 'corporateuser',
+            'factory': true,
+            'layout': {
+              'layout': {
+                'defaultLayout': [],
+                'large': [
+                  {
+                    'componentName': 'currency-exposure',
+                    'module': 'corporateDashboard',
+                  },
+                ],
+                'medium': [],
+                'small': [],
+              },
+            },
+          },
+        }),
+      );
+
+      // The role dashboard's widgets, not the designed defaults.
+      expect(find.text('Currency Exposure'), findsWidgets);
+      expect(find.text('Pickup Points'), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.pumpAndSettle();
+      expect(find.text('Personalize Dashboard'), findsOneWidget);
     });
 
     testWidgets('hovering a module heading flies out its widgets',
@@ -877,11 +924,11 @@ void main() {
       expect(find.text('Work Snapshot'), findsNothing);
     });
 
-    testWidgets('uses the designed layout when the user has no own dashboard',
+    testWidgets('uses the designed layout when the user has no dashboard',
         (tester) async {
-      // `me` lists no CUSTOM dashboard, so there is no saved layout at all
-      // and the dashboard must not be blank — the only state that shows the
-      // defaults.
+      // `me` lists no dashboard at all — no CUSTOM one, and no role one to
+      // start from — so the dashboard must not be blank: the only state
+      // that shows the defaults.
       await _pumpDashboard(tester);
 
       expect(find.text('Financial Summary'), findsOneWidget);
@@ -1063,7 +1110,8 @@ const _meResponse = {
 };
 
 /// [_meResponse] for a user with only the bank's factory dashboard — no
-/// CUSTOM one of their own, so personalization is unavailable.
+/// CUSTOM one of their own yet. They start from the factory one and their
+/// first save creates theirs.
 const _meResponseWithoutCustomDashboard = {
   'statusCode': 200,
   'body': {
@@ -1089,6 +1137,30 @@ const _meResponseWithoutCustomDashboard = {
           'factory': true,
         },
       ],
+    },
+    'inactiveSessionTimeout': 600000,
+  },
+};
+
+/// [_meResponse] for a user with no dashboard at all — the one state the
+/// designed default arrangement is for.
+const _meResponseWithoutDashboards = {
+  'statusCode': 200,
+  'body': {
+    'status': {'result': 'SUCCESSFUL', 'apiType': 'user'},
+    'userProfile': {
+      'userName': 'nazcorp',
+      'firstName': 'Pooja',
+      'lastName': 'Jha',
+      'partyId': {'displayValue': '***401', 'value': 'PARTY-401'},
+      'roles': ['corporateuser', 'Maker'],
+      'homeEntity': 'OBDX_BU',
+      'accessibleEntityDTOs': [
+        {'entityId': 'OBDX_BU', 'partyName': 'LC TEST4'},
+      ],
+    },
+    'dashboardResponse': {
+      'dashboardDTOs': [],
     },
     'inactiveSessionTimeout': 600000,
   },

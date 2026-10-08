@@ -23,6 +23,12 @@ class RoutesConst {
   static const String loanAccountsListScreen = '/loan_accounts_list_screen';
   static const String loanAccountDetailsScreen = '/loan_account_details_screen';
   static const String loanRepaymentScreen = '/loan_repayment_screen';
+  static const String termDepositsListScreen = '/term_deposits_list_screen';
+  static const String termDepositDetailsScreen = '/term_deposit_details_screen';
+  static const String tdTopUpScreen = '/td_top_up_screen';
+  static const String tdRedeemScreen = '/td_redeem_screen';
+  static const String tdMaturityEditScreen = '/td_maturity_edit_screen';
+  static const String tdOpenScreen = '/td_open_screen';
   static const String internalPaymentScreen = '/internal_payment_screen';
   static const String internationalPaymentScreen = '/international_payment_screen';
   static const String transfersModuleScreen = '/transfers_module_screen';

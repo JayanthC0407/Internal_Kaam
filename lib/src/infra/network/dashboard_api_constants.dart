@@ -22,6 +22,10 @@ class DashboardApiConst {
   static const String dashboardModulesApi =
       '/digx-admin/config/v1/dashboards/modules';
 
+  /// Creates a user's own dashboard — `POST`, answering 201 with the new
+  /// `dashboardDTO` (`customize for new user.har` #26).
+  static const String dashboardsUserApi = '/digx-admin/config/v1/dashboards/user';
+
   /// Personalization save — `widgets(corp).har` entry #4.
   /// `PUT /digx-admin/config/v1/dashboards/user/{dashboardId}`
   static String dashboardUserApi(String dashboardId) =>

@@ -126,6 +126,60 @@ class ApiConst {
   static String loanRepaymentsApi(String loanId) =>
       '/digx-common/loan/v1/loan/${Uri.encodeComponent(loanId)}/repayments';
 
+  // ── Term deposits (retail TD capture, `TD.har`) ──────────────────────────
+
+  /// TD list — `GET .../td/v1/deposit?module=CON&module=ISL&status=ACTIVE`
+  /// (`&status=CLOSED` for closed too; `taskCode=TD_F_TTD` / `TD_F_RTD` /
+  /// `TD_N_ATD` for the deposits a top-up / redeem / maturity edit allows).
+  /// Also the open-deposit `POST`.
+  static const String termDepositsApi = '/digx-common/td/v1/deposit';
+
+  /// One TD. OBDX addresses it with a matrix parameter, `;module=` (left
+  /// empty by the web client) — `GET .../deposit/{id};module=`.
+  static String termDepositApi(String depositId, {String module = ''}) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)};module=$module';
+
+  /// `GET .../deposit/{id}/payOutInstructions;module=` — where principal
+  /// and interest go at maturity.
+  static String termDepositPayoutApi(String depositId, {String module = ''}) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)}'
+      '/payOutInstructions;module=$module';
+
+  /// `GET .../deposit/{id}/transactions?searchBy=CPR&transactionType=A`.
+  static String termDepositTransactionsApi(String depositId) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)}/transactions';
+
+  /// `POST .../deposit/{id}/topUps` (`?simulation=true` to validate first).
+  static String termDepositTopUpsApi(String depositId) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)}/topUps';
+
+  /// `POST .../deposit/{id}/penalities` — the redemption quote (OBDX's own
+  /// spelling).
+  static String termDepositPenaltiesApi(String depositId) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)}/penalities';
+
+  /// `POST .../deposit/{id}/redemptions` — redeem.
+  static String termDepositRedemptionsApi(String depositId) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)}/redemptions';
+
+  /// `PUT .../deposit/{id}` — maturity instructions edit.
+  static String termDepositUpdateApi(String depositId) =>
+      '$termDepositsApi/${Uri.encodeComponent(depositId)}';
+
+  /// `GET .../td/v1/termDepositProducts?depositProductType=CON&productModule=TD`.
+  static const String termDepositProductsApi =
+      '/digx-common/td/v1/termDepositProducts';
+
+  /// `GET .../td/v1/enumerations/{name}` — `rollOverType`, `payOutOption`,
+  /// `correspondanceChargeType`.
+  static String termDepositEnumerationApi(String name) =>
+      '/digx-common/td/v1/enumerations/$name';
+
+  /// Branch name + address — `GET .../location/v1/locations/branches
+  /// ?branchCode=000` → `addressDTO[0]` (TD capture).
+  static const String branchLocationsApi =
+      '/digx-common/location/v1/locations/branches';
+
   // ── First-time Login Flow Wizard (LFW) — ported from vendor branch ──────
 
   /// OBDX returns this when first-time Login Flow Wizard (LFW) is incomplete.

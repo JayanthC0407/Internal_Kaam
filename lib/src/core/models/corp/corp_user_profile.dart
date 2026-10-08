@@ -68,6 +68,12 @@ class CorpUserProfile {
   DashboardDescriptor? get personalizableDashboard =>
       DashboardDescriptor.personalizableFrom(dashboards);
 
+  /// The role dashboard a user with no [personalizableDashboard] starts
+  /// from — their first save creates their own (see
+  /// [DashboardDescriptor.templateFrom]).
+  DashboardDescriptor? get templateDashboard =>
+      DashboardDescriptor.templateFrom(dashboards);
+
   /// `Pooja Jha` — falls back to the login username.
   String get fullName {
     final parts = [firstName, middleName, lastName]

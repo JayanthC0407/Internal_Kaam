@@ -10,6 +10,9 @@ import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/casa_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
+import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
@@ -96,6 +99,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   String? _selectedCasaAccountId;
   LoanAccount? _selectedLoanAccount;
+  TermDeposit? _selectedTermDeposit;
 
   bool _addPayeeOpenedFromManage = false;
 
@@ -457,6 +461,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           _openAccountsDestination(WebAccountsDestination.casa),
       onCasaAccountTap: _openCasaAccountDetails,
       onLoanAccountTap: _openLoanAccountDetails,
+      onDepositTap: _openTermDepositDetails,
+      onViewAllDeposits: () =>
+          _openAccountsDestination(WebAccountsDestination.termDeposits),
+      onOpenDeposit: () =>
+          Navigator.of(context).pushNamed(RoutesConst.tdOpenScreen),
       isWide: isWide,
       displayName: _displayNameFromTrace(),
       onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
@@ -624,6 +633,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen);
   }
 
+  void _openTermDepositsList() {
+    Navigator.of(context).pushNamed(RoutesConst.termDepositsListScreen);
+  }
+
   /// "Accounts" ▸ CASA / Loans from the side panel / nav drawer. On the
   /// wide/desktop shell both destinations embed next to the persistent
   /// sidebar (CASA at index 9, Loans at index 10 — see
@@ -670,6 +683,45 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           _selectedCasaAccountId = null;
           _openLoanAccountsList();
         }
+
+      case WebAccountsDestination.termDeposits:
+        // Same as Loans: embedded at index 18 beside the sidebar on wide
+        // screens, its own pushed screen on phones.
+        if (Responsive.of(context).useWideHome) {
+          setState(() {
+            _selectedAccountsDestination =
+                WebAccountsDestination.termDeposits;
+            _selectedPayeeDestination = null;
+            _selectedCasaAccountId = null;
+            _selectedLoanAccount = null;
+            _selectedTermDeposit = null;
+            _selectedBottomNavIndex = 18;
+          });
+        } else {
+          _selectedAccountsDestination = WebAccountsDestination.termDeposits;
+          _selectedPayeeDestination = null;
+          _openTermDepositsList();
+        }
+    }
+  }
+
+  /// A term deposit tapped on Home — embeds at index 18 on wide screens,
+  /// otherwise pushes its details screen.
+  void _openTermDepositDetails(TermDeposit deposit) {
+    if (Responsive.of(context).useWideHome) {
+      setState(() {
+        _selectedAccountsDestination = WebAccountsDestination.termDeposits;
+        _selectedTermDeposit = deposit;
+        _selectedPayeeDestination = null;
+        _selectedCasaAccountId = null;
+        _selectedLoanAccount = null;
+        _selectedBottomNavIndex = 18;
+      });
+    } else {
+      Navigator.of(context).pushNamed(
+        RoutesConst.termDepositDetailsScreen,
+        arguments: TermDepositDetailsArgs(deposit: deposit),
+      );
     }
   }
 
@@ -748,6 +800,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return RetailNav.accountsCasa;
       case WebAccountsDestination.loans:
         return RetailNav.accountsLoans;
+      case WebAccountsDestination.termDeposits:
+        return RetailNav.accountsTermDeposits;
       case null:
         break;
     }
@@ -765,6 +819,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case RetailNav.accountsLoans:
         _openAccountsDestination(WebAccountsDestination.loans);
         return;
+      case RetailNav.accountsTermDeposits:
+        _openAccountsDestination(WebAccountsDestination.termDeposits);
+        return;
     }
     final index = RetailNav.tabIds.indexOf(id);
     if (index < 0) return;
@@ -776,6 +833,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       _selectedAccountsDestination = null;
       _selectedCasaAccountId = null;
       _selectedLoanAccount = null;
+      _selectedTermDeposit = null;
     });
   }
 
@@ -1288,6 +1346,30 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 _selectedBottomNavIndex = 0;
               });
             },
+          ),
+        );
+
+      case 18:
+        if (_selectedTermDeposit != null) {
+          return SafeArea(
+            child: TermDepositDetailsScreen(
+              args: TermDepositDetailsArgs(deposit: _selectedTermDeposit!),
+              embedded: true,
+              onBack: () => setState(() => _selectedTermDeposit = null),
+            ),
+          );
+        }
+        return SafeArea(
+          child: TermDepositsListScreen(
+            embedded: true,
+            onDepositSelected: (deposit) =>
+                setState(() => _selectedTermDeposit = deposit),
+            onBack: () => setState(() {
+              _selectedAccountsDestination = null;
+              _selectedTermDeposit = null;
+              _selectedPayeeDestination = null;
+              _selectedBottomNavIndex = 0;
+            }),
           ),
         );
 
