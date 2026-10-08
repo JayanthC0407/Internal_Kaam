@@ -1904,4 +1904,460 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get errorSecurityAnswersInvalid =>
       'إجابة واحدة أو أكثر غير صحيحة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get tdTermDeposit => 'Term Deposit';
+
+  @override
+  String get tdLoadFailed =>
+      'We couldn\'t load your term deposits. Please try again.';
+
+  @override
+  String get tdDetailsLoadFailed =>
+      'We couldn\'t load this deposit. Please try again.';
+
+  @override
+  String get tdPayoutLoadFailed => 'Payout instructions couldn\'t be loaded.';
+
+  @override
+  String get tdTransactionsLoadFailed =>
+      'We couldn\'t load the transactions. Please try again.';
+
+  @override
+  String get tdProductsLoadFailed =>
+      'We couldn\'t load the deposit products. Please try again.';
+
+  @override
+  String get tdActionFailed =>
+      'We couldn\'t complete this request. Please try again.';
+
+  @override
+  String get tdContinue => 'Continue';
+
+  @override
+  String get tdDone => 'Done';
+
+  @override
+  String get tdEdit => 'Edit';
+
+  @override
+  String get tdCurrent => 'Current';
+
+  @override
+  String get tdStepDetails => 'Details';
+
+  @override
+  String get tdStepReview => 'Review';
+
+  @override
+  String get tdStepDone => 'Done';
+
+  @override
+  String get tdReviewTitle => 'Review and confirm';
+
+  @override
+  String get tdReferenceNumber => 'Reference number';
+
+  @override
+  String get tdOpenDeposit => 'Open deposit';
+
+  @override
+  String get tdActive => 'Active';
+
+  @override
+  String get tdClosed => 'Closed';
+
+  @override
+  String get tdTotalInvested => 'Total invested';
+
+  @override
+  String get tdMaturityValue => 'Maturity value';
+
+  @override
+  String get tdExpectedInterest => 'Expected interest';
+
+  @override
+  String get tdDepositCount => 'Deposits';
+
+  @override
+  String get tdShowAmounts => 'Show amounts';
+
+  @override
+  String get tdHideAmounts => 'Hide amounts';
+
+  @override
+  String get tdNoDeposits => 'You don\'t have any active term deposits yet.';
+
+  @override
+  String get tdNoClosed => 'You have no closed term deposits.';
+
+  @override
+  String tdMaturesInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Matures in $days days',
+      one: 'Matures in 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tdMatured => 'Matured';
+
+  @override
+  String get tdCurrentBalance => 'Current balance';
+
+  @override
+  String get tdMaturityAmount => 'Maturity amount';
+
+  @override
+  String get tdMaturityDate => 'Maturity date';
+
+  @override
+  String get tdInterestRate => 'Interest rate';
+
+  @override
+  String get tdTopUp => 'Top up';
+
+  @override
+  String get tdRedeem => 'Redeem';
+
+  @override
+  String get tdEditMaturity => 'Edit maturity';
+
+  @override
+  String get tdDepositDetails => 'Deposit details';
+
+  @override
+  String get tdOriginalPrincipal => 'Original principal';
+
+  @override
+  String get tdCurrentPrincipal => 'Current principal';
+
+  @override
+  String get tdDepositDate => 'Deposit date';
+
+  @override
+  String get tdDepositTerm => 'Deposit term';
+
+  @override
+  String get tdHoldAmount => 'Hold amount';
+
+  @override
+  String get tdMaturityDetails => 'Maturity';
+
+  @override
+  String get tdMaturityInstruction => 'Maturity instruction';
+
+  @override
+  String get tdPayoutInstructions => 'Payout instructions';
+
+  @override
+  String tdPayoutLine(String percentage, String component, String account) {
+    return '$percentage% of $component to $account';
+  }
+
+  @override
+  String get tdPrincipal => 'principal';
+
+  @override
+  String get tdInterest => 'interest';
+
+  @override
+  String get tdPrincipalAndInterest => 'principal and interest';
+
+  @override
+  String get tdGeneralDetails => 'General details';
+
+  @override
+  String get tdAccountNumber => 'Deposit number';
+
+  @override
+  String get tdHoldingPattern => 'Holding pattern';
+
+  @override
+  String get tdHoldingSingle => 'Single';
+
+  @override
+  String get tdHoldingJoint => 'Joint';
+
+  @override
+  String get tdPrimaryHolder => 'Primary holder';
+
+  @override
+  String get tdBranch => 'Branch';
+
+  @override
+  String get tdTransactions => 'Transactions';
+
+  @override
+  String get tdPeriodCurrentMonth => 'This month';
+
+  @override
+  String get tdPeriodPreviousMonth => 'Last month';
+
+  @override
+  String get tdPeriodPreviousQuarter => 'Last quarter';
+
+  @override
+  String get tdPeriodLastTen => 'Last 10';
+
+  @override
+  String get tdTxnAll => 'All';
+
+  @override
+  String get tdTxnCredits => 'Credits';
+
+  @override
+  String get tdTxnDebits => 'Debits';
+
+  @override
+  String get tdNoTransactions => 'No transactions in this period.';
+
+  @override
+  String get tdSelectAccount => 'Select an account';
+
+  @override
+  String get tdSelectAccountError => 'Select an account.';
+
+  @override
+  String get tdLoadingAccounts => 'Loading accounts…';
+
+  @override
+  String get tdNoAccounts => 'No eligible accounts.';
+
+  @override
+  String get tdAvailable => 'Available';
+
+  @override
+  String get tdEnterAmount => 'Enter an amount.';
+
+  @override
+  String get tdInsufficientBalance =>
+      'The amount is more than the account\'s available balance.';
+
+  @override
+  String get tdPayFrom => 'Pay from';
+
+  @override
+  String get tdPayTo => 'Pay to';
+
+  @override
+  String get tdPayoutOwnAccount => 'My account';
+
+  @override
+  String get tdPayoutInternalAccount => 'Another account';
+
+  @override
+  String get tdAccountNumberHint => 'Account number';
+
+  @override
+  String get tdPayoutRequired => 'Choose where the money goes.';
+
+  @override
+  String get tdDepositAccount => 'Deposit account';
+
+  @override
+  String get tdRevisedPrincipal => 'Revised principal';
+
+  @override
+  String get tdRevisedMaturityAmount => 'Revised maturity amount';
+
+  @override
+  String get tdRevisedInterestRate => 'Revised interest rate';
+
+  @override
+  String get tdTopUpTitle => 'Top up deposit';
+
+  @override
+  String get tdTopUpAmount => 'Top-up amount';
+
+  @override
+  String get tdConfirmTopUp => 'Confirm top-up';
+
+  @override
+  String get tdTopUpDone => 'Deposit topped up';
+
+  @override
+  String get tdTopUpDoneMessage => 'Your top-up has been added to the deposit.';
+
+  @override
+  String get tdRedeemTitle => 'Redeem deposit';
+
+  @override
+  String get tdRedemptionType => 'Redemption type';
+
+  @override
+  String get tdRedeemFull => 'Full';
+
+  @override
+  String get tdRedeemPartial => 'Partial';
+
+  @override
+  String get tdRedeemAmount => 'Redeem amount';
+
+  @override
+  String tdRedeemableAmount(String amount) {
+    return 'Redeemable: $amount';
+  }
+
+  @override
+  String get tdPartialTooLarge =>
+      'A partial redemption must be less than the full amount.';
+
+  @override
+  String get tdRedeemPenaltyNote =>
+      'Redeeming before maturity may attract a penalty. You will see the charges and the final amount before you confirm.';
+
+  @override
+  String get tdChargesPenalty => 'Charges / penalty';
+
+  @override
+  String get tdFinalRedemptionAmount => 'Final redemption amount';
+
+  @override
+  String get tdConfirmRedeem => 'Confirm redemption';
+
+  @override
+  String get tdRedeemDone => 'Redemption requested';
+
+  @override
+  String get tdRedeemDoneMessage =>
+      'Your deposit redemption has been submitted.';
+
+  @override
+  String get tdEditMaturityTitle => 'Edit maturity instructions';
+
+  @override
+  String get tdEditMaturityIntro =>
+      'Choose what happens to this deposit when it matures.';
+
+  @override
+  String get tdSelectMaturityOption => 'Choose a maturity instruction.';
+
+  @override
+  String get tdRollOverAmount => 'Roll-over amount';
+
+  @override
+  String tdRollOverTooLarge(String amount) {
+    return 'The roll-over amount cannot exceed $amount.';
+  }
+
+  @override
+  String get tdPayPrincipalAndInterestTo => 'Pay principal and interest to';
+
+  @override
+  String get tdPayInterestTo => 'Pay interest to';
+
+  @override
+  String get tdPayRemainingTo => 'Pay the remaining amount to';
+
+  @override
+  String get tdCurrentInstruction => 'Current instruction';
+
+  @override
+  String get tdNewInstruction => 'New instruction';
+
+  @override
+  String get tdConfirmChanges => 'Confirm changes';
+
+  @override
+  String get tdMaturityUpdated => 'Maturity instructions updated';
+
+  @override
+  String get tdMaturityUpdatedMessage =>
+      'The new instructions will apply when the deposit matures.';
+
+  @override
+  String get tdOpenTitle => 'Open a term deposit';
+
+  @override
+  String get tdOpenIntro =>
+      'Choose a product to see its currencies and tenure.';
+
+  @override
+  String get tdProduct => 'Product';
+
+  @override
+  String get tdSelectProduct => 'Select a product';
+
+  @override
+  String get tdSelectProductError => 'Select a product.';
+
+  @override
+  String get tdNoProducts =>
+      'No deposit products are available right now. Please try again later or contact the bank.';
+
+  @override
+  String get tdDepositAmount => 'Deposit amount';
+
+  @override
+  String tdMin(String amount) {
+    return 'Min $amount';
+  }
+
+  @override
+  String tdMax(String amount) {
+    return 'Max $amount';
+  }
+
+  @override
+  String tdAmountBelowMin(String amount) {
+    return 'The minimum amount is $amount.';
+  }
+
+  @override
+  String tdAmountAboveMax(String amount) {
+    return 'The maximum amount is $amount.';
+  }
+
+  @override
+  String get tdYears => 'Years';
+
+  @override
+  String get tdMonths => 'Months';
+
+  @override
+  String get tdDays => 'Days';
+
+  @override
+  String get tdEnterTenure => 'Enter the deposit term.';
+
+  @override
+  String tdTenureRange(String min, String max) {
+    return 'Term $min to $max';
+  }
+
+  @override
+  String tdTenureBelowMin(String min) {
+    return 'The minimum term is $min.';
+  }
+
+  @override
+  String tdTenureAboveMax(String max) {
+    return 'The maximum term is $max.';
+  }
+
+  @override
+  String get tdPayAtMaturityTo => 'Pay at maturity to';
+
+  @override
+  String get tdConfirmOpen => 'Open deposit';
+
+  @override
+  String get tdOpenDone => 'Deposit opened';
+
+  @override
+  String get tdOpenDoneMessage => 'Your new term deposit is open.';
+
+  @override
+  String get tdOtpTitle => 'Verify it\'s you';
+
+  @override
+  String get tdOtpSubtitle =>
+      'Enter the one-time password sent to your registered mobile number.';
+
+  @override
+  String get tdOtpVerify => 'Verify';
 }

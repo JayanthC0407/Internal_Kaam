@@ -13,6 +13,13 @@ import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_accounts_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_repayment_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_transactions_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_maturity_edit_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_open_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_redeem_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_top_up_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/biometric_setup_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/biometric_unlock_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/device_blocked_screen.dart';
@@ -312,6 +319,54 @@ class Routes {
           );
         }
         return _splashFallback(routeSettings);
+      case RoutesConst.termDepositsListScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: TermDepositsListScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.termDepositDetailsScreen:
+        final tdArgs = routeSettings.arguments;
+        if (tdArgs is TermDepositDetailsArgs) {
+          return PageTransition(
+            settings: routeSettings,
+            child: AuthenticatedSessionGate(
+              child: TermDepositDetailsScreen(args: tdArgs),
+            ),
+            type: PageTransitionType.rightToLeft,
+            duration: pageAnimDuration,
+          );
+        }
+        return _splashFallback(routeSettings);
+      case RoutesConst.tdTopUpScreen:
+      case RoutesConst.tdRedeemScreen:
+      case RoutesConst.tdMaturityEditScreen:
+        final actionArgs = routeSettings.arguments;
+        if (actionArgs is TdActionArgs) {
+          return PageTransition(
+            settings: routeSettings,
+            child: AuthenticatedSessionGate(
+              child: switch (routeSettings.name) {
+                RoutesConst.tdTopUpScreen => TdTopUpScreen(args: actionArgs),
+                RoutesConst.tdRedeemScreen => TdRedeemScreen(args: actionArgs),
+                _ => TdMaturityEditScreen(args: actionArgs),
+              },
+            ),
+            type: PageTransitionType.rightToLeft,
+            duration: pageAnimDuration,
+          );
+        }
+        return _splashFallback(routeSettings);
+      case RoutesConst.tdOpenScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(child: TdOpenScreen()),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
       case RoutesConst.internalPaymentScreen:
         return PageTransition(
           settings: routeSettings,

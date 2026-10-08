@@ -43,6 +43,29 @@ class ObdxDashboardApi extends ObdxApiBase {
     }
   }
 
+  /// `POST /digx-admin/config/v1/dashboards/user` — creates the user's own
+  /// `CUSTOM` dashboard. [payload] has the same three keys as the PUT
+  /// (`dashboardName`, `dashboardDescription`, `layout`); the host answers
+  /// 201 with the new `dashboardDTO` (`customize for new user.har` #26).
+  Future<ResponseHandler<Map<String, dynamic>>> createDashboardConfig({
+    required Map<String, dynamic> payload,
+  }) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(DashboardApiConst.dashboardsUserApi),
+        data: payload,
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
   /// `PUT /digx-admin/config/v1/dashboards/user/{dashboardId}`
   ///
   /// [payload] must be a complete configuration — the host replaces the

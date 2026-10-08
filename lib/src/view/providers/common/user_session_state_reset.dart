@@ -4,6 +4,7 @@ import 'package:ubci_bank/src/view/providers/retail/loan_detail_providers.dart';
 import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/payee_providers.dart';
 import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
+import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
@@ -31,6 +32,13 @@ void resetUserSessionState(Ref ref) {
   ref.invalidate(loanAccountsProvider);
   ref.invalidate(selectedLoanCurrencyProvider);
   ref.invalidate(loanAccountDetailProvider);
+
+  ref.invalidate(termDepositsProvider);
+  ref.invalidate(termDepositDetailProvider);
+  ref.invalidate(termDepositTransactionsProvider);
+  ref.invalidate(tdPayAccountsProvider);
+  ref.invalidate(tdEligibleDepositsProvider);
+  ref.invalidate(tdBusinessDateProvider);
 
   ref.invalidate(payeesProvider);
   ref.invalidate(recentTransactionsWidgetProvider);
