@@ -482,6 +482,87 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     return _get(CorpTradeFinanceApiConst.documentCategoriesApi);
   }
 
+  // ── Initiate LC, per section (H5 captures) ─────────────────────────
+
+  /// `me/party` — H5 LC Details / Insurance.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchMeParty() {
+    return _get(CorpTradeFinanceApiConst.mePartyApi);
+  }
+
+  /// `me/party/relations` — H5 LC Details.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchPartyRelations() {
+    return _get(CorpTradeFinanceApiConst.partyRelationsApi);
+  }
+
+  /// `branchdate/{branchCode}` — H5 LC Details.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBranchDate(
+    String branchCode,
+  ) {
+    return _get(CorpTradeFinanceApiConst.branchDateApi(branchCode));
+  }
+
+  /// `corporateDeposit` — H5 Linkages (term deposits).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchCorporateDeposits() {
+    return _get(CorpTradeFinanceApiConst.corporateDepositApi);
+  }
+
+  /// `customerInstructions` — H5 Instructions. [productCode] goes out as
+  /// `null` when no product is chosen yet, as the web sends it.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchCustomerInstructions(
+    String? productCode,
+  ) {
+    return _get(CorpTradeFinanceApiConst.customerInstructionsApi, {
+      'queryParams': _criteria([
+        {
+          'operand': 'transactionType',
+          'operator': 'EQUALS',
+          'value': [CorpTradeFinanceApiConst.customerInstructionTransactionType],
+        },
+        {
+          'operand': 'productCode',
+          'operator': 'EQUALS',
+          'value': [productCode],
+        },
+      ]),
+    });
+  }
+
+  /// Uploads one attachment — `upload api.har` (see
+  /// [CorpTradeFinanceApiConst.contentUploadApi]). [index] is the file's
+  /// position in the batch, appended to `fileName` as the web does
+  /// (`main.dart.js0`).
+  Future<ResponseHandler<Map<String, dynamic>>> uploadContent({
+    required List<int> bytes,
+    required String fileName,
+    required String mimeType,
+    required int index,
+    required int fileCount,
+    String? documentTypeId,
+    String? documentCategoryId,
+    String comment = '',
+  }) {
+    return _run(() => dio.post(
+          ObdxApiUtils.appendLocaleQuery(
+            CorpTradeFinanceApiConst.contentUploadApi,
+          ),
+          queryParameters: {'fileName': '$fileName$index'},
+          data: FormData.fromMap({
+            'file': MultipartFile.fromBytes(
+              bytes,
+              filename: fileName,
+              contentType: DioMediaType.parse(mimeType),
+            ),
+            'transactionType': CorpTradeFinanceApiConst.uploadTransactionType,
+            'moduleIdentifier': CorpTradeFinanceApiConst.uploadModuleIdentifier,
+            'fileCount': '$fileCount',
+            'documentTypeId': documentTypeId ?? '',
+            'documentCategoryId': documentCategoryId ?? '',
+            'comment': comment,
+          }),
+          options: Options(contentType: 'multipart/form-data'),
+        ));
+  }
+
   // ── View LC tabs (H4 = `view_LC_details.har`) ─────────────────────
 
   /// Amendments of one LC — H4 #49.
