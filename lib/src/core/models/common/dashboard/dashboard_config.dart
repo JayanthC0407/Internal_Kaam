@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
@@ -224,7 +225,41 @@ class DashboardConfig {
     );
   }
 
-  /// The PUT body, in the shape the captured request used.
+  /// This configuration under another identity — a newly created
+  /// dashboard's id, names and class — with every layout kept.
+  DashboardConfig withIdentity({
+    String? dashboardId,
+    String? dashboardName,
+    String? dashboardDescription,
+    String? enterpriseRole,
+    String? dashboardClass,
+    String? dashboardClassValue,
+    bool? isFactory,
+  }) {
+    return DashboardConfig(
+      dashboardId: dashboardId ?? this.dashboardId,
+      dashboardName: dashboardName ?? this.dashboardName,
+      dashboardDescription: dashboardDescription ?? this.dashboardDescription,
+      layoutsByBreakpoint: layoutsByBreakpoint,
+      enterpriseRole: enterpriseRole ?? this.enterpriseRole,
+      dashboardClass: dashboardClass ?? this.dashboardClass,
+      dashboardClassValue: dashboardClassValue ?? this.dashboardClassValue,
+      isFactory: isFactory ?? this.isFactory,
+      waterfallLayout: waterfallLayout,
+    );
+  }
+
+  /// A fresh opaque dashboard name / description, in the form the OBDX
+  /// web client sends when it creates one: `obdx` + 36 random lowercase
+  /// letters and digits (`customize for new user.har` #26).
+  static String newOpaqueName([Random? random]) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final r = random ?? Random.secure();
+    return 'obdx${List.generate(36, (_) => chars[r.nextInt(chars.length)]).join()}';
+  }
+
+  /// The PUT body, in the shape the captured request used. The create
+  /// (`POST`) body is the same three keys.
   ///
   /// [waterfallLayout] is sent back exactly as it was received. The captured
   /// web-client PUT happened to omit it, but that capture's waterfall was

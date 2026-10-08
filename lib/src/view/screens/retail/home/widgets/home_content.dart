@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
+import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_inline_panel.dart';
 
 import 'package:flutter/material.dart';
 
@@ -36,7 +38,17 @@ class HomeContent extends StatelessWidget {
     this.onTransferTap,
     this.onCasaAccountTap,
     this.onLoanAccountTap,
+    this.onDepositTap,
+    this.onViewAllDeposits,
+    this.onOpenDeposit,
   });
+
+  /// A term deposit tapped in the Accounts tab's "Term Deposits"
+  /// category; "View all" there; and the "Term Deposit" quick action,
+  /// which opens a new one.
+  final ValueChanged<TermDeposit>? onDepositTap;
+  final VoidCallback? onViewAllDeposits;
+  final VoidCallback? onOpenDeposit;
 
   final int selectedTopTabIndex;
   final ValueChanged<int> onTopTabSelected;
@@ -121,6 +133,8 @@ class HomeContent extends StatelessWidget {
           onRetryAccounts: onRetryAccounts,
           onCasaAccountTap: onCasaAccountTap,
           onLoanAccountTap: onLoanAccountTap,
+          onDepositTap: onDepositTap,
+          onViewAllDeposits: onViewAllDeposits,
         );
       case 2:
         return Column(
@@ -149,6 +163,7 @@ class HomeContent extends StatelessWidget {
           onViewAllAccountsTap: onViewAllAccountsTap ?? () => onTopTabSelected(1),
           onViewAllLoans: onViewAllLoans,
           onLoanAccountTap: onLoanAccountTap,
+          onOpenDeposit: onOpenDeposit,
         );
     }
   }
@@ -171,6 +186,8 @@ class _AccountsSectionContent extends StatefulWidget {
     this.onRetryAccounts,
     this.onCasaAccountTap,
     this.onLoanAccountTap,
+    this.onDepositTap,
+    this.onViewAllDeposits,
   });
 
   final List<CasaAccount> accounts;
@@ -181,6 +198,8 @@ class _AccountsSectionContent extends StatefulWidget {
   final VoidCallback? onRetryAccounts;
   final ValueChanged<CasaAccount>? onCasaAccountTap;
   final ValueChanged<LoanAccount>? onLoanAccountTap;
+  final ValueChanged<TermDeposit>? onDepositTap;
+  final VoidCallback? onViewAllDeposits;
 
   @override
   State<_AccountsSectionContent> createState() =>
@@ -233,10 +252,9 @@ class _AccountsSectionContentState extends State<_AccountsSectionContent> {
       case _AccountCategory.loan:
         return LoanAccountsInlinePanel(onLoanTap: widget.onLoanAccountTap);
       case _AccountCategory.termDeposit:
-        return _FeaturePlaceholder(
-          icon: Icons.savings_outlined,
-          title: l10n.menuTermDeposits,
-          message: l10n.featureComingSoon,
+        return TermDepositsInlinePanel(
+          onDepositTap: widget.onDepositTap,
+          onViewAll: widget.onViewAllDeposits,
         );
       case _AccountCategory.recurringDeposit:
         return _FeaturePlaceholder(
@@ -347,6 +365,7 @@ class _OverviewContent extends StatelessWidget {
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
     this.onLoanAccountTap,
+    this.onOpenDeposit,
   });
 
   final bool isWide;
@@ -358,6 +377,7 @@ class _OverviewContent extends StatelessWidget {
   final VoidCallback? onViewAllAccountsTap;
   final VoidCallback? onViewAllLoans;
   final ValueChanged<LoanAccount>? onLoanAccountTap;
+  final VoidCallback? onOpenDeposit;
 
   void _comingSoon(BuildContext context, String label) {
     final l10n = AppLocalizations.of(context);
@@ -381,7 +401,8 @@ class _OverviewContent extends StatelessWidget {
     );
     final quickActions = QuickActionsGrid(
       title: isWide ? 'Activity Centre' : l10n.quickActions,
-      onTermDeposit: () => _comingSoon(context, 'Term Deposit'),
+      onTermDeposit:
+          onOpenDeposit ?? () => _comingSoon(context, 'Term Deposit'),
       onViewStatement: () => _comingSoon(context, 'View Statement'),
       onChequeBook: () => _comingSoon(context, 'Cheque Book'),
       onPassbook: () => _comingSoon(context, 'Passbook'),

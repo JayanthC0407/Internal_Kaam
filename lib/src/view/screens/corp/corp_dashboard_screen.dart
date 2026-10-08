@@ -137,6 +137,9 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                 ? const DashboardDescriptorUnknown()
                 : DashboardDescriptorLookup.resolved(
                     profile.personalizableDashboard,
+                    // A first-time user starts from their role's dashboard;
+                    // their first save creates their own.
+                    template: profile.templateDashboard,
                   ),
             userKey: profile?.userName ?? widget.args.userName,
           );

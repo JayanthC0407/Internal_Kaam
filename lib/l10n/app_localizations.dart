@@ -3621,6 +3621,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One or more answers are incorrect. Please try again.'**
   String get errorSecurityAnswersInvalid;
+
+  /// No description provided for @tdTermDeposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposit'**
+  String get tdTermDeposit;
+
+  /// No description provided for @tdLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your term deposits. Please try again.'**
+  String get tdLoadFailed;
+
+  /// No description provided for @tdDetailsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load this deposit. Please try again.'**
+  String get tdDetailsLoadFailed;
+
+  /// No description provided for @tdPayoutLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout instructions couldn\'t be loaded.'**
+  String get tdPayoutLoadFailed;
+
+  /// No description provided for @tdTransactionsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the transactions. Please try again.'**
+  String get tdTransactionsLoadFailed;
+
+  /// No description provided for @tdProductsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the deposit products. Please try again.'**
+  String get tdProductsLoadFailed;
+
+  /// No description provided for @tdActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t complete this request. Please try again.'**
+  String get tdActionFailed;
+
+  /// No description provided for @tdContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get tdContinue;
+
+  /// No description provided for @tdDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tdDone;
+
+  /// No description provided for @tdEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get tdEdit;
+
+  /// No description provided for @tdCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get tdCurrent;
+
+  /// No description provided for @tdStepDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get tdStepDetails;
+
+  /// No description provided for @tdStepReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get tdStepReview;
+
+  /// No description provided for @tdStepDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tdStepDone;
+
+  /// No description provided for @tdReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and confirm'**
+  String get tdReviewTitle;
+
+  /// No description provided for @tdReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference number'**
+  String get tdReferenceNumber;
+
+  /// No description provided for @tdOpenDeposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Open deposit'**
+  String get tdOpenDeposit;
+
+  /// No description provided for @tdActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get tdActive;
+
+  /// No description provided for @tdClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get tdClosed;
+
+  /// No description provided for @tdTotalInvested.
+  ///
+  /// In en, this message translates to:
+  /// **'Total invested'**
+  String get tdTotalInvested;
+
+  /// No description provided for @tdMaturityValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity value'**
+  String get tdMaturityValue;
+
+  /// No description provided for @tdExpectedInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected interest'**
+  String get tdExpectedInterest;
+
+  /// No description provided for @tdDepositCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposits'**
+  String get tdDepositCount;
+
+  /// No description provided for @tdShowAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts'**
+  String get tdShowAmounts;
+
+  /// No description provided for @tdHideAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide amounts'**
+  String get tdHideAmounts;
+
+  /// No description provided for @tdNoDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any active term deposits yet.'**
+  String get tdNoDeposits;
+
+  /// No description provided for @tdNoClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no closed term deposits.'**
+  String get tdNoClosed;
+
+  /// No description provided for @tdMaturesInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{Matures in 1 day} other{Matures in {days} days}}'**
+  String tdMaturesInDays(int days);
+
+  /// No description provided for @tdMatured.
+  ///
+  /// In en, this message translates to:
+  /// **'Matured'**
+  String get tdMatured;
+
+  /// No description provided for @tdCurrentBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get tdCurrentBalance;
+
+  /// No description provided for @tdMaturityAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity amount'**
+  String get tdMaturityAmount;
+
+  /// No description provided for @tdMaturityDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity date'**
+  String get tdMaturityDate;
+
+  /// No description provided for @tdInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest rate'**
+  String get tdInterestRate;
+
+  /// No description provided for @tdTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up'**
+  String get tdTopUp;
+
+  /// No description provided for @tdRedeem.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get tdRedeem;
+
+  /// No description provided for @tdEditMaturity.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit maturity'**
+  String get tdEditMaturity;
+
+  /// No description provided for @tdDepositDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit details'**
+  String get tdDepositDetails;
+
+  /// No description provided for @tdOriginalPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original principal'**
+  String get tdOriginalPrincipal;
+
+  /// No description provided for @tdCurrentPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'Current principal'**
+  String get tdCurrentPrincipal;
+
+  /// No description provided for @tdDepositDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit date'**
+  String get tdDepositDate;
+
+  /// No description provided for @tdDepositTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit term'**
+  String get tdDepositTerm;
+
+  /// No description provided for @tdHoldAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold amount'**
+  String get tdHoldAmount;
+
+  /// No description provided for @tdMaturityDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity'**
+  String get tdMaturityDetails;
+
+  /// No description provided for @tdMaturityInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity instruction'**
+  String get tdMaturityInstruction;
+
+  /// No description provided for @tdPayoutInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout instructions'**
+  String get tdPayoutInstructions;
+
+  /// No description provided for @tdPayoutLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{percentage}% of {component} to {account}'**
+  String tdPayoutLine(String percentage, String component, String account);
+
+  /// No description provided for @tdPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'principal'**
+  String get tdPrincipal;
+
+  /// No description provided for @tdInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'interest'**
+  String get tdInterest;
+
+  /// No description provided for @tdPrincipalAndInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'principal and interest'**
+  String get tdPrincipalAndInterest;
+
+  /// No description provided for @tdGeneralDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'General details'**
+  String get tdGeneralDetails;
+
+  /// No description provided for @tdAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit number'**
+  String get tdAccountNumber;
+
+  /// No description provided for @tdHoldingPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding pattern'**
+  String get tdHoldingPattern;
+
+  /// No description provided for @tdHoldingSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get tdHoldingSingle;
+
+  /// No description provided for @tdHoldingJoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint'**
+  String get tdHoldingJoint;
+
+  /// No description provided for @tdPrimaryHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary holder'**
+  String get tdPrimaryHolder;
+
+  /// No description provided for @tdBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get tdBranch;
+
+  /// No description provided for @tdTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get tdTransactions;
+
+  /// No description provided for @tdPeriodCurrentMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get tdPeriodCurrentMonth;
+
+  /// No description provided for @tdPeriodPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get tdPeriodPreviousMonth;
+
+  /// No description provided for @tdPeriodPreviousQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Last quarter'**
+  String get tdPeriodPreviousQuarter;
+
+  /// No description provided for @tdPeriodLastTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 10'**
+  String get tdPeriodLastTen;
+
+  /// No description provided for @tdTxnAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get tdTxnAll;
+
+  /// No description provided for @tdTxnCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits'**
+  String get tdTxnCredits;
+
+  /// No description provided for @tdTxnDebits.
+  ///
+  /// In en, this message translates to:
+  /// **'Debits'**
+  String get tdTxnDebits;
+
+  /// No description provided for @tdNoTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions in this period.'**
+  String get tdNoTransactions;
+
+  /// No description provided for @tdSelectAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account'**
+  String get tdSelectAccount;
+
+  /// No description provided for @tdSelectAccountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account.'**
+  String get tdSelectAccountError;
+
+  /// No description provided for @tdLoadingAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading accounts…'**
+  String get tdLoadingAccounts;
+
+  /// No description provided for @tdNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No eligible accounts.'**
+  String get tdNoAccounts;
+
+  /// No description provided for @tdAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get tdAvailable;
+
+  /// No description provided for @tdEnterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount.'**
+  String get tdEnterAmount;
+
+  /// No description provided for @tdInsufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount is more than the account\'s available balance.'**
+  String get tdInsufficientBalance;
+
+  /// No description provided for @tdPayFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get tdPayFrom;
+
+  /// No description provided for @tdPayTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay to'**
+  String get tdPayTo;
+
+  /// No description provided for @tdPayoutOwnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'My account'**
+  String get tdPayoutOwnAccount;
+
+  /// No description provided for @tdPayoutInternalAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Another account'**
+  String get tdPayoutInternalAccount;
+
+  /// No description provided for @tdAccountNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Account number'**
+  String get tdAccountNumberHint;
+
+  /// No description provided for @tdPayoutRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where the money goes.'**
+  String get tdPayoutRequired;
+
+  /// No description provided for @tdDepositAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit account'**
+  String get tdDepositAccount;
+
+  /// No description provided for @tdRevisedPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'Revised principal'**
+  String get tdRevisedPrincipal;
+
+  /// No description provided for @tdRevisedMaturityAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Revised maturity amount'**
+  String get tdRevisedMaturityAmount;
+
+  /// No description provided for @tdRevisedInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Revised interest rate'**
+  String get tdRevisedInterestRate;
+
+  /// No description provided for @tdTopUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up deposit'**
+  String get tdTopUpTitle;
+
+  /// No description provided for @tdTopUpAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Top-up amount'**
+  String get tdTopUpAmount;
+
+  /// No description provided for @tdConfirmTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm top-up'**
+  String get tdConfirmTopUp;
+
+  /// No description provided for @tdTopUpDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit topped up'**
+  String get tdTopUpDone;
+
+  /// No description provided for @tdTopUpDoneMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your top-up has been added to the deposit.'**
+  String get tdTopUpDoneMessage;
+
+  /// No description provided for @tdRedeemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem deposit'**
+  String get tdRedeemTitle;
+
+  /// No description provided for @tdRedemptionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Redemption type'**
+  String get tdRedemptionType;
+
+  /// No description provided for @tdRedeemFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get tdRedeemFull;
+
+  /// No description provided for @tdRedeemPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get tdRedeemPartial;
+
+  /// No description provided for @tdRedeemAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem amount'**
+  String get tdRedeemAmount;
+
+  /// No description provided for @tdRedeemableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeemable: {amount}'**
+  String tdRedeemableAmount(String amount);
+
+  /// No description provided for @tdPartialTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'A partial redemption must be less than the full amount.'**
+  String get tdPartialTooLarge;
+
+  /// No description provided for @tdRedeemPenaltyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeeming before maturity may attract a penalty. You will see the charges and the final amount before you confirm.'**
+  String get tdRedeemPenaltyNote;
+
+  /// No description provided for @tdChargesPenalty.
+  ///
+  /// In en, this message translates to:
+  /// **'Charges / penalty'**
+  String get tdChargesPenalty;
+
+  /// No description provided for @tdFinalRedemptionAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Final redemption amount'**
+  String get tdFinalRedemptionAmount;
+
+  /// No description provided for @tdConfirmRedeem.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm redemption'**
+  String get tdConfirmRedeem;
+
+  /// No description provided for @tdRedeemDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Redemption requested'**
+  String get tdRedeemDone;
+
+  /// No description provided for @tdRedeemDoneMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your deposit redemption has been submitted.'**
+  String get tdRedeemDoneMessage;
+
+  /// No description provided for @tdEditMaturityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit maturity instructions'**
+  String get tdEditMaturityTitle;
+
+  /// No description provided for @tdEditMaturityIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what happens to this deposit when it matures.'**
+  String get tdEditMaturityIntro;
+
+  /// No description provided for @tdSelectMaturityOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a maturity instruction.'**
+  String get tdSelectMaturityOption;
+
+  /// No description provided for @tdRollOverAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll-over amount'**
+  String get tdRollOverAmount;
+
+  /// No description provided for @tdRollOverTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The roll-over amount cannot exceed {amount}.'**
+  String tdRollOverTooLarge(String amount);
+
+  /// No description provided for @tdPayPrincipalAndInterestTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay principal and interest to'**
+  String get tdPayPrincipalAndInterestTo;
+
+  /// No description provided for @tdPayInterestTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay interest to'**
+  String get tdPayInterestTo;
+
+  /// No description provided for @tdPayRemainingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the remaining amount to'**
+  String get tdPayRemainingTo;
+
+  /// No description provided for @tdCurrentInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Current instruction'**
+  String get tdCurrentInstruction;
+
+  /// No description provided for @tdNewInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'New instruction'**
+  String get tdNewInstruction;
+
+  /// No description provided for @tdConfirmChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm changes'**
+  String get tdConfirmChanges;
+
+  /// No description provided for @tdMaturityUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity instructions updated'**
+  String get tdMaturityUpdated;
+
+  /// No description provided for @tdMaturityUpdatedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The new instructions will apply when the deposit matures.'**
+  String get tdMaturityUpdatedMessage;
+
+  /// No description provided for @tdOpenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a term deposit'**
+  String get tdOpenTitle;
+
+  /// No description provided for @tdOpenIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a product to see its currencies and tenure.'**
+  String get tdOpenIntro;
+
+  /// No description provided for @tdProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get tdProduct;
+
+  /// No description provided for @tdSelectProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a product'**
+  String get tdSelectProduct;
+
+  /// No description provided for @tdSelectProductError.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a product.'**
+  String get tdSelectProductError;
+
+  /// No description provided for @tdNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No deposit products are available right now. Please try again later or contact the bank.'**
+  String get tdNoProducts;
+
+  /// No description provided for @tdDepositAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit amount'**
+  String get tdDepositAmount;
+
+  /// No description provided for @tdMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min {amount}'**
+  String tdMin(String amount);
+
+  /// No description provided for @tdMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {amount}'**
+  String tdMax(String amount);
+
+  /// No description provided for @tdAmountBelowMin.
+  ///
+  /// In en, this message translates to:
+  /// **'The minimum amount is {amount}.'**
+  String tdAmountBelowMin(String amount);
+
+  /// No description provided for @tdAmountAboveMax.
+  ///
+  /// In en, this message translates to:
+  /// **'The maximum amount is {amount}.'**
+  String tdAmountAboveMax(String amount);
+
+  /// No description provided for @tdYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get tdYears;
+
+  /// No description provided for @tdMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get tdMonths;
+
+  /// No description provided for @tdDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get tdDays;
+
+  /// No description provided for @tdEnterTenure.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the deposit term.'**
+  String get tdEnterTenure;
+
+  /// No description provided for @tdTenureRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Term {min} to {max}'**
+  String tdTenureRange(String min, String max);
+
+  /// No description provided for @tdTenureBelowMin.
+  ///
+  /// In en, this message translates to:
+  /// **'The minimum term is {min}.'**
+  String tdTenureBelowMin(String min);
+
+  /// No description provided for @tdTenureAboveMax.
+  ///
+  /// In en, this message translates to:
+  /// **'The maximum term is {max}.'**
+  String tdTenureAboveMax(String max);
+
+  /// No description provided for @tdPayAtMaturityTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay at maturity to'**
+  String get tdPayAtMaturityTo;
+
+  /// No description provided for @tdConfirmOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open deposit'**
+  String get tdConfirmOpen;
+
+  /// No description provided for @tdOpenDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit opened'**
+  String get tdOpenDone;
+
+  /// No description provided for @tdOpenDoneMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new term deposit is open.'**
+  String get tdOpenDoneMessage;
+
+  /// No description provided for @tdOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify it\'s you'**
+  String get tdOtpTitle;
+
+  /// No description provided for @tdOtpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the one-time password sent to your registered mobile number.'**
+  String get tdOtpSubtitle;
+
+  /// No description provided for @tdOtpVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get tdOtpVerify;
 }
 
 class _AppLocalizationsDelegate

@@ -4,9 +4,9 @@ import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigatio
 
 enum WebPayeeDestination { manage, add, addDemandDraft, addPeerToPeer }
 
-/// "Accounts" ▸ CASA / Loans — both open a screen in the dashboard's
-/// content area, next to the side menu.
-enum WebAccountsDestination { casa, loans }
+/// "Accounts" ▸ CASA / Loans / Term Deposits — each opens a screen in
+/// the dashboard's content area, next to the side menu.
+enum WebAccountsDestination { casa, loans, termDeposits }
 
 /// The Retail dashboard's side-menu entries, for the shared
 /// [DashboardNavigationSidebar] / [DashboardNavDrawer].
@@ -24,6 +24,7 @@ class RetailNav {
   static const accounts = 'accounts';
   static const accountsCasa = 'accounts.casa';
   static const accountsLoans = 'accounts.loans';
+  static const accountsTermDeposits = 'accounts.termDeposits';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -54,17 +55,22 @@ class RetailNav {
           id: accounts,
           label: l10n.accounts,
           icon: Icons.account_balance_outlined,
-          children: const [
+          children: [
             // TODO(l10n): sub-item labels.
-            DashboardNavItem(
+            const DashboardNavItem(
               id: accountsCasa,
               label: 'CASA',
               icon: Icons.account_balance_wallet_outlined,
             ),
-            DashboardNavItem(
+            const DashboardNavItem(
               id: accountsLoans,
               label: 'Loans',
               icon: Icons.request_quote_outlined,
+            ),
+            DashboardNavItem(
+              id: accountsTermDeposits,
+              label: l10n.menuTermDeposits,
+              icon: Icons.savings_outlined,
             ),
           ],
         ),
