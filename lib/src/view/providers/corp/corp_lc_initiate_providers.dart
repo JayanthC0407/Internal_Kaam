@@ -43,6 +43,7 @@ class CorpLcInitiateState {
     this.documentsLoading = false,
     this.draftId,
     this.isSaving = false,
+    this.isUploading = false,
     this.isSubmitting = false,
     this.bankLookups = const {},
     this.bankMessages = const {},
@@ -73,6 +74,9 @@ class CorpLcInitiateState {
   final String? draftId;
 
   final bool isSaving;
+
+  /// Attachment upload running.
+  final bool isUploading;
   final bool isSubmitting;
 
   /// Roles whose SWIFT lookup is running.
@@ -96,7 +100,7 @@ class CorpLcInitiateState {
   /// Set once the LC has been submitted — the screen shows the result.
   final LcSubmitted? outcome;
 
-  bool get isBusy => isSaving || isSubmitting;
+  bool get isBusy => isSaving || isSubmitting || isUploading;
 
   /// Every document the 46A table lists: product documents first, then the
   /// ones added from the master.
@@ -124,6 +128,7 @@ class CorpLcInitiateState {
     bool? documentsLoading,
     String? draftId,
     bool? isSaving,
+    bool? isUploading,
     bool? isSubmitting,
     Set<LcBankRole>? bankLookups,
     Map<LcBankRole, String>? bankMessages,
@@ -149,6 +154,7 @@ class CorpLcInitiateState {
       documentsLoading: documentsLoading ?? this.documentsLoading,
       draftId: draftId ?? this.draftId,
       isSaving: isSaving ?? this.isSaving,
+      isUploading: isUploading ?? this.isUploading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       bankLookups: bankLookups ?? this.bankLookups,
       bankMessages: bankMessages ?? this.bankMessages,
@@ -167,14 +173,91 @@ class CorpLcInitiateState {
   }
 }
 
-/// Reference data for the sections (beneficiaries, document master,
-/// insurance policies, accounts, attachment categories…). Never fails —
-/// see [CorpTradeFinanceRepository.fetchInitiateSupport].
-final corpLcInitiateSupportProvider =
-    FutureProvider.autoDispose<LcInitiateSupport>((ref) {
+// ── Per-section reference data ──────────────────────────────────────────
+//
+// One provider per section, loaded the first time the section opens —
+// the calls each section's capture shows (H5). The screen keeps the
+// providers of visited sections alive until it closes, so moving back
+// and forth does not refetch. Goods (`tradeGoods`), conditions
+// (`additionalConditions`) and incoterms (`tradeIncoterms`) come with
+// `corpLcLookupsProvider`, which the form loads when it opens.
+
+/// 01 LC Details — `beneficiaries`, `me/party/relations`,
+/// `branchdate/{TRADE_BRANCH_CODE}`.
+final corpLcDetailsSectionProvider =
+    FutureProvider.autoDispose<LcDetailsSectionData>((ref) {
+  final branch =
+      ref.read(corpLcLookupsProvider).lookups.configuration.branchCode;
   return ref
       .read(corpTradeFinanceRepositoryProvider)
-      .fetchInitiateSupport(partyId: currentLcParty(ref).value);
+      .fetchLcDetailsSection(branchCode: branch);
+});
+
+/// 03 Documents & Conditions — `tradeDocument`,
+/// `additionalConditionMaintenance?partyId=`.
+final corpLcDocumentsSectionProvider =
+    FutureProvider.autoDispose<LcDocumentsSectionData>((ref) {
+  return ref
+      .read(corpTradeFinanceRepositoryProvider)
+      .fetchDocumentsSection(partyId: currentLcParty(ref).value);
+});
+
+/// 04 Linkages — `corporateDeposit`, `currencies`, `demandDeposit`.
+final corpLcLinkagesSectionProvider =
+    FutureProvider.autoDispose<LcLinkagesSectionData>((ref) {
+  return ref.read(corpTradeFinanceRepositoryProvider).fetchLinkagesSection();
+});
+
+/// 05 Instructions, per product — `confirmationInstruction`,
+/// `confirmationParty`, `customerInstructions` (productCode).
+final corpLcInstructionsSectionProvider = FutureProvider.autoDispose
+    .family<LcInstructionsSectionData, String?>((ref, productCode) {
+  return ref
+      .read(corpTradeFinanceRepositoryProvider)
+      .fetchInstructionsSection(productCode: productCode);
+});
+
+Future<T> _orThrow<T>(
+  Future<ResponseHandler<T>> call,
+  String fallback,
+  T empty,
+) async {
+  final result = await call;
+  if (result is Success<T>) return result.data ?? empty;
+  throw Exception(await lcFailureMessage(result, fallback: fallback) ?? fallback);
+}
+
+/// 06 Insurance — `me/party`, then `insurancePolicies?partyId=`.
+final corpLcInsuranceSectionProvider =
+    FutureProvider.autoDispose<List<LcInsurancePolicy>>((ref) {
+  return _orThrow(
+    ref.read(corpTradeFinanceRepositoryProvider).fetchInsuranceSection(
+          fallbackPartyId: currentLcParty(ref).value,
+        ),
+    'Insurance policies could not be loaded.',
+    const <LcInsurancePolicy>[],
+  );
+});
+
+/// 07 Charges — `demandDeposit?taskCode=TF_AF_CLC` (the preview itself is
+/// [CorpLcInitiateNotifier.loadCharges]).
+final corpLcChargeAccountsProvider =
+    FutureProvider.autoDispose<List<LcAccount>>((ref) {
+  return _orThrow(
+    ref.read(corpTradeFinanceRepositoryProvider).fetchChargeAccounts(),
+    'Charge accounts could not be loaded.',
+    const <LcAccount>[],
+  );
+});
+
+/// 08 Attachments — `documentcontent/documentcategories`.
+final corpLcAttachmentCategoriesProvider =
+    FutureProvider.autoDispose<List<LcDocumentCategory>>((ref) {
+  return _orThrow(
+    ref.read(corpTradeFinanceRepositoryProvider).fetchDocumentCategories(),
+    'Document categories could not be loaded.',
+    const <LcDocumentCategory>[],
+  );
 });
 
 class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
@@ -529,8 +612,11 @@ class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
         }
       case LcInitiateSection.insurance:
       case LcInitiateSection.charges:
-      case LcInitiateSection.attachments:
         break;
+      case LcInitiateSection.attachments:
+        if (!d.termsAccepted) {
+          errors.add('Accept the Terms & Conditions to submit.');
+        }
     }
     return errors;
   }
@@ -604,6 +690,40 @@ class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
     );
   }
 
+  /// "Save Template" on the Attachments section — `template save api.har`:
+  /// the full body with `state: TEMPLATE`, the template `name` and
+  /// `visibility`, posted as a new LC (`id` null). Returns true on success.
+  Future<bool> saveTemplate() async {
+    final name = state.draft.templateName?.trim() ?? '';
+    if (name.isEmpty) {
+      state = state.copyWith(errorMessage: 'Enter a name for the template.');
+      return false;
+    }
+    final generation = SessionGeneration.current;
+    state = state.copyWith(isSaving: true, clearMessages: true);
+    final body = _body(lcState: 'TEMPLATE')
+      ..['name'] = name
+      ..['visibility'] = state.draft.templateVisibility;
+    final result = await _repo.saveTemplate(body);
+    if (!SessionGeneration.isCurrent(generation) || !mounted) return false;
+    if (result is Success<String>) {
+      state = state.copyWith(
+        isSaving: false,
+        infoMessage: 'Template "$name" saved.',
+      );
+      refreshLcListIfOpen(_ref, LcListKind.templates);
+      return true;
+    }
+    state = state.copyWith(
+      isSaving: false,
+      errorMessage: await lcFailureMessage(
+        result,
+        fallback: 'Could not save the template.',
+      ),
+    );
+    return false;
+  }
+
   /// Saves (POST, then PUT) the current form as a draft — H1 #71 / #74.
   Future<bool> saveDraft() async {
     final generation = SessionGeneration.current;
@@ -665,6 +785,102 @@ class CorpLcInitiateNotifier extends StateNotifier<CorpLcInitiateState> {
       ),
     );
     return false;
+  }
+
+  // ── 08 Attachments ────────────────────────────────────────────────────
+
+  int _attachmentSeq = 0;
+
+  /// Adds picked files to the list under [category] / [documentType]. They
+  /// are uploaded only when the user taps Upload ([uploadAttachments]), as
+  /// on the web. Returns the files rejected by the upload rules (type,
+  /// 5 MB, file name), one message each.
+  List<String> addAttachments(
+    List<(String name, List<int> bytes)> files, {
+    String? category,
+    String? documentType,
+  }) {
+    final rejected = <String>[];
+    final added = <LcAttachment>[];
+    for (final (name, bytes) in files) {
+      final problem = LcAttachment.ruleViolation(name, bytes.length);
+      if (problem != null) {
+        rejected.add(problem);
+        continue;
+      }
+      added.add(LcAttachment(
+        key: '${DateTime.now().microsecondsSinceEpoch}-${_attachmentSeq++}',
+        fileName: name,
+        bytes: bytes,
+        mimeType: LcAttachment.mimeFor(name),
+        category: category,
+        documentType: documentType,
+      ));
+    }
+    if (added.isNotEmpty) {
+      update((d) => d.copyWith(attachments: [...d.attachments, ...added]));
+    }
+    return rejected;
+  }
+
+  /// "Upload" — posts every file not uploaded yet, one at a time
+  /// (`upload api.har`).
+  Future<void> uploadAttachments() async {
+    if (state.isUploading) return;
+    final pending = [
+      for (final a in state.draft.attachments)
+        if (!a.isUploaded) a,
+    ];
+    if (pending.isEmpty) return;
+    final generation = SessionGeneration.current;
+    state = state.copyWith(isUploading: true, clearMessages: true);
+    for (var i = 0; i < pending.length; i++) {
+      final file = pending[i];
+      _replaceAttachment(file.copyWith(uploading: true, clearError: true));
+      final result = await _repo.uploadAttachment(
+        file,
+        index: i,
+        fileCount: pending.length,
+      );
+      if (!SessionGeneration.isCurrent(generation) || !mounted) return;
+      if (result is Success<String>) {
+        _replaceAttachment(
+          file.copyWith(uploading: false, contentId: result.data ?? ''),
+        );
+      } else {
+        final message =
+            await lcFailureMessage(result, fallback: 'Upload failed.');
+        if (!mounted) return;
+        _replaceAttachment(
+          file.copyWith(uploading: false, error: message ?? 'Upload failed.'),
+        );
+      }
+    }
+    state = state.copyWith(isUploading: false);
+  }
+
+  /// Writes [attachment] without clearing messages or the charge preview.
+  void _replaceAttachment(LcAttachment attachment) {
+    state = state.copyWith(
+      draft: state.draft.copyWith(attachments: [
+        for (final a in state.draft.attachments)
+          a.key == attachment.key ? attachment : a,
+      ]),
+    );
+  }
+
+  void updateAttachment(LcAttachment attachment) {
+    update((d) => d.copyWith(attachments: [
+          for (final a in d.attachments)
+            a.key == attachment.key ? attachment : a,
+        ]));
+  }
+
+  void removeAttachment(String key) {
+    update((d) => d.copyWith(attachments: [
+          for (final a in d.attachments)
+            if (a.key != key) a,
+        ]));
   }
 
   /// Submits the LC; call again with [otp] after an [LcAwaitingOtp].

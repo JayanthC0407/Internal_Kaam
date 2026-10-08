@@ -163,6 +163,45 @@ class CorpTradeFinanceApiConst {
   /// `transactionType` the beneficiary maintenance is filtered on (H3 #49).
   static const String beneficiaryTransactionType = 'LETTEROFCREDIT';
 
+  // ── Initiate LC, per section (one capture per section → H5) ─────────
+  //
+  // `create lcdetails screen api.har`, `goods and shipment api.har`,
+  // `document and condition api.har`, `linkage api.har`,
+  // `instructions api.har`, `insurance api.har`,
+  // `charges commission and taxes api.har`, `attachment api.har`.
+
+  /// The logged-in party — H5 LC Details / Insurance (`me/party`).
+  static const String mePartyApi = '/digx-common/user/v1/me/party';
+
+  /// Related parties (other applicants the user may act for) — H5 LC
+  /// Details (`partyToPartyRelationship`, empty in the capture).
+  static const String partyRelationsApi =
+      '/digx-common/user/v1/me/party/relations';
+
+  /// Host business date of a branch — H5 LC Details
+  /// (`branchdate/{TRADE_BRANCH_CODE}`; 400 DIGX_DT_001 on pre-sales).
+  static String branchDateApi(String branchCode) =>
+      '$_base/branchdate/${Uri.encodeComponent(branchCode)}';
+
+  /// Term deposits for linkages — H5 Linkages (500 on pre-sales).
+  static const String corporateDepositApi = '$_base/corporateDeposit';
+
+  /// Standard customer instructions — H5 Instructions (`queryParams`
+  /// criteria transactionType = LETTER_OF_CREDIT, productCode; 500 on
+  /// pre-sales).
+  static const String customerInstructionsApi = '$_base/customerInstructions';
+  static const String customerInstructionTransactionType = 'LETTER_OF_CREDIT';
+
+  /// Attachment upload — `upload api.har`: multipart `POST` with query
+  /// `fileName=<name><index>` and the form fields `file`, `transactionType`
+  /// (`LC`), `moduleIdentifier` (`LC_DOC_ATTACHMENT`), `fileCount`,
+  /// `documentTypeId`, `documentCategoryId`, `comment`. The capture
+  /// answered DIGX_CM_0005 (file too large), so the success body has not
+  /// been seen.
+  static const String contentUploadApi = '/digx-common/content/v1/contents';
+  static const String uploadTransactionType = 'LC';
+  static const String uploadModuleIdentifier = 'LC_DOC_ATTACHMENT';
+
   // ── View LC tabs (`view_LC_details.har` → H4 #n) ─────────────────────
 
   /// Shipping guarantees linked to an LC — H4 #53 (`q` criteria:
