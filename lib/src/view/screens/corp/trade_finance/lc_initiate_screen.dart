@@ -185,9 +185,29 @@ class _LcInitiateScreenState extends ConsumerState<LcInitiateScreen> {
 
     final lookupsState = ref.watch(corpLcLookupsProvider);
     final state = ref.watch(corpLcInitiateProvider);
-    // Keeps the section reference data (H3) alive for the whole form, so
-    // moving between sections does not refetch it.
-    ref.watch(corpLcInitiateSupportProvider);
+    // Each section loads its own data when first opened (H5 captures).
+    // Watching the providers of every visited section keeps that data for
+    // the life of the form, so going back does not refetch it.
+    for (final s in {...state.completed, state.section}) {
+      switch (s) {
+        case LcInitiateSection.lcDetails:
+          ref.watch(corpLcDetailsSectionProvider);
+        case LcInitiateSection.documents:
+          ref.watch(corpLcDocumentsSectionProvider);
+        case LcInitiateSection.linkages:
+          ref.watch(corpLcLinkagesSectionProvider);
+        case LcInitiateSection.instructions:
+          ref.watch(corpLcInstructionsSectionProvider(state.draft.product?.id));
+        case LcInitiateSection.insurance:
+          ref.watch(corpLcInsuranceSectionProvider);
+        case LcInitiateSection.charges:
+          ref.watch(corpLcChargeAccountsProvider);
+        case LcInitiateSection.attachments:
+          ref.watch(corpLcAttachmentCategoriesProvider);
+        case LcInitiateSection.goodsShipment:
+          break; // goods come with the LC lookups
+      }
+    }
     final title = state.draft.isBackToBack ||
             widget.args.source == LcInitiateSource.backToBack
         ? 'Initiate Back to Back LC'
@@ -565,15 +585,7 @@ class _SidePanel extends ConsumerWidget {
                   _PanelHighlight('${e.key} ${e.value.toStringAsFixed(2)}'),
               ],
             ),
-          LcInitiateSection.attachments => _PanelCard(
-              title: 'Ready to submit',
-              children: [
-                _PanelNote(
-                  '${state.completed.length} of '
-                  '${LcInitiateSection.values.length - 1} earlier sections completed',
-                ),
-              ],
-            ),
+          LcInitiateSection.attachments => _AttachmentPanel(draft: d),
         },
     ];
     return Column(
@@ -685,6 +697,65 @@ class _PanelLink extends StatelessWidget {
           color: CorpColors.brand(context),
         ),
       ),
+    );
+  }
+}
+
+/// Attachments side cards (design): attachment status, the upload rules
+/// reminder and the consent state.
+class _AttachmentPanel extends StatelessWidget {
+  const _AttachmentPanel({required this.draft});
+
+  final LcInitiateDraft draft;
+
+  @override
+  Widget build(BuildContext context) {
+    final files = draft.attachments;
+    final uploaded = files.where((a) => a.isUploaded).length;
+    final brand = CorpColors.brand(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _PanelCard(
+          title: 'Attachment status',
+          children: [
+            _PanelHighlight('$uploaded files attached'),
+            _PanelNote(
+              files.isEmpty
+                  ? 'No attachment uploaded yet'
+                  : '${files.length - uploaded} of ${files.length} not uploaded yet',
+            ),
+            const _PanelNote('Max 5 MB / file'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          decoration: BoxDecoration(
+            color: brand.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: brand.withValues(alpha: 0.25)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PanelLink('Before upload'),
+              Text(
+                'Check file type and filename rules before attaching documents.',
+                style: TextStyle(fontSize: 12.5, color: brand),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        _PanelCard(
+          title: 'Submit',
+          children: [
+            _PanelLink(draft.termsAccepted ? 'Consent given' : 'Pending consent'),
+            const _PanelNote('Accept Terms & Conditions'),
+          ],
+        ),
+      ],
     );
   }
 }

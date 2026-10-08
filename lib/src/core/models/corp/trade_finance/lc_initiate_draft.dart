@@ -97,6 +97,14 @@ class LcInitiateDraft {
     // 07 Charges
     this.chargingAccount,
     this.chargesBorneBy = 'BYAPPLICANT',
+    // 08 Attachments
+    this.attachments = const [],
+    this.saveAsTemplate = false,
+    this.templateName,
+    this.templateVisibility = 'PRIVATE',
+    this.termsAccepted = false,
+    // 50 Applicant (null = the logged-in party)
+    this.applicant,
     // Meta
     this.draftName,
     this.customerReferenceNo,
@@ -196,6 +204,26 @@ class LcInitiateDraft {
   /// 07 — `chargingAccountId`.
   final LcAccount? chargingAccount;
   final String chargesBorneBy;
+
+  /// 08 — files picked for upload (see [LcAttachment]).
+  final List<LcAttachment> attachments;
+
+  /// "Save As Template" — shows the template name / visibility and the
+  /// Save Template button on the Attachments section.
+  final bool saveAsTemplate;
+  final String? templateName;
+
+  /// Template `visibility` — `PRIVATE` / `PUBLIC` (the capture saved one
+  /// as PUBLIC).
+  final String templateVisibility;
+
+  /// "I accept the Terms & Conditions" — required to submit.
+  final bool termsAccepted;
+
+  /// 50 — a related party chosen as applicant (`me/party/relations`);
+  /// null = the logged-in party, which the host takes from the session.
+  /// Display only for now (not sent — not captured).
+  final LcRelatedParty? applicant;
 
   /// Draft label (`name`) — generated when saving a draft.
   final String? draftName;
@@ -354,6 +382,13 @@ class LcInitiateDraft {
     bool clearInsurancePolicy = false,
     LcAccount? chargingAccount,
     String? chargesBorneBy,
+    List<LcAttachment>? attachments,
+    bool? saveAsTemplate,
+    String? templateName,
+    String? templateVisibility,
+    bool? termsAccepted,
+    LcRelatedParty? applicant,
+    bool clearApplicant = false,
     String? draftName,
     bool clearDraftName = false,
     String? parentLcId,
@@ -411,6 +446,12 @@ class LcInitiateDraft {
           : (insurancePolicy ?? this.insurancePolicy),
       chargingAccount: chargingAccount ?? this.chargingAccount,
       chargesBorneBy: chargesBorneBy ?? this.chargesBorneBy,
+      attachments: attachments ?? this.attachments,
+      saveAsTemplate: saveAsTemplate ?? this.saveAsTemplate,
+      templateName: templateName ?? this.templateName,
+      templateVisibility: templateVisibility ?? this.templateVisibility,
+      termsAccepted: termsAccepted ?? this.termsAccepted,
+      applicant: clearApplicant ? null : (applicant ?? this.applicant),
       draftName: clearDraftName ? null : (draftName ?? this.draftName),
       customerReferenceNo: customerReferenceNo,
       parentLcId: parentLcId ?? this.parentLcId,
@@ -523,6 +564,8 @@ class LcInitiateDraft {
       'visibility': 'PRIVATE',
       'state': state,
       'outstandingAmount': money,
+      // Files are uploaded on their own (`upload api.har`); how the LC
+      // request references them is not captured yet, so none are listed.
       'attachedDocuments': const <dynamic>[],
       'deletedDocuments': const <dynamic>[],
       'currentUser': null,
@@ -562,6 +605,8 @@ class LcInitiateDraft {
       'policyDTOs': [if (insurancePolicy != null) insurancePolicy!.raw],
       'newApplicant': false,
       'letterOfCreditProductDTO': product?.toRequestJson(),
+      // A related-party applicant is shown in the form only: how the web
+      // sends it is not captured yet.
       'accounteeId': TfId.empty.toJson(),
       'accounteeName': null,
       'accounteeAddress': LcAddress.empty.toJson(),

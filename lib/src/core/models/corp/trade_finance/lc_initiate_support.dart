@@ -379,9 +379,12 @@ class LcAccount {
     this.currency,
     this.availableBalance,
     this.productName,
+    this.isTermDeposit = false,
   });
 
   final TfId id;
+  /// From `corporateDeposit` (term deposit) rather than `demandDeposit`.
+  final bool isTermDeposit;
   final String? displayName;
   final String? currency;
   final MoneyAmount? availableBalance;
@@ -393,20 +396,34 @@ class LcAccount {
         if (productName != null) productName!,
       ].join(' · ');
 
-  static List<LcAccount> listFromPayload(dynamic data) {
+  /// `accounts[]` of `demandDeposit` (H3 #67/#73). [termDeposits] reads a
+  /// `corporateDeposit` answer instead (H5 Linkages — 500 on pre-sales, so
+  /// its list key is NOT CAPTURED; the usual names are tried).
+  static List<LcAccount> listFromPayload(
+    dynamic data, {
+    bool termDeposits = false,
+  }) {
     final root = TfJson.root(data);
+    final raw = root['accounts'] ??
+        root['termDepositDTOs'] ??
+        root['depositDTOs'] ??
+        root['corporateDepositDTOs'];
     return [
-      for (final map in TfJson.maps(root['accounts']))
+      for (final map in TfJson.maps(raw))
         if (TfId.fromJson(map['id']) case final id when !id.isEmpty)
           LcAccount(
             id: id,
             displayName: TfJson.str(map['displayName']),
-            currency: TfJson.str(map['currencyCode']),
-            availableBalance: map['availableBalance'] == null
-                ? null
-                : MoneyAmount.fromJson(map['availableBalance']),
+            currency: TfJson.str(map['currencyCode']) ??
+                TfJson.str(map['currency']),
+            availableBalance: map['availableBalance'] != null
+                ? MoneyAmount.fromJson(map['availableBalance'])
+                : (map['principalAmount'] == null
+                    ? null
+                    : MoneyAmount.fromJson(map['principalAmount'])),
             productName:
                 TfJson.str(TfJson.map(map['productDTO'])['description']),
+            isTermDeposit: termDeposits,
           ),
     ];
   }
@@ -446,7 +463,7 @@ class LcDepositLinkage {
 
   Map<String, dynamic> toJson() => {
         'accountId': account.id.toJson(),
-        'depositType': 'CASA',
+        'depositType': account.isTermDeposit ? 'TD' : 'CASA',
         'accountCurrency': account.currency,
         'linkedAmount': {'currency': account.currency, 'amount': amount},
       };
@@ -482,43 +499,248 @@ class LcDocumentCategory {
   }
 }
 
-// ── Aggregate ───────────────────────────────────────────────────────────
+// ── 01 LC Details ───────────────────────────────────────────────────────
 
-class LcInitiateSupport {
-  const LcInitiateSupport({
-    this.beneficiaries = const [],
-    this.tradeDocuments = const [],
-    this.insurancePolicies = const [],
-    this.chargeAccounts = const [],
-    this.linkageAccounts = const [],
-    this.documentCategories = const [],
-    this.confirmationParties = const [],
-    this.maintainedConditions = const [],
+/// A party the user may initiate for, from `me/party/relations`
+/// (`partyToPartyRelationship`, empty in H5 LC Details). Entry names are
+/// NOT CAPTURED and read tolerantly.
+class LcRelatedParty {
+  const LcRelatedParty({required this.id, required this.name});
+
+  final TfId id;
+  final String name;
+
+  static List<LcRelatedParty> listFromPayload(dynamic data) {
+    final root = TfJson.root(data);
+    final result = <LcRelatedParty>[];
+    for (final map in TfJson.maps(root['partyToPartyRelationship'])) {
+      final related = map['relatedParty'] ?? map['relatedPartyId'] ?? map['party'];
+      final id = related is Map ? TfId.fromJson(related) : TfId(value: TfJson.str(related));
+      final name = TfJson.str(map['relatedPartyName']) ??
+          TfJson.str(map['partyName']) ??
+          TfJson.str(map['name']);
+      if (id.isEmpty) continue;
+      result.add(LcRelatedParty(id: id, name: name ?? id.displayValue ?? id.value!));
+    }
+    return result;
+  }
+}
+
+/// `branchdate/{branch}` (H5 LC Details) — the bank's business date, used
+/// as the earliest expiry date. 400 on pre-sales, so the field name is NOT
+/// CAPTURED; the usual names are tried.
+class LcBranchDate {
+  LcBranchDate._();
+
+  static DateTime? fromPayload(dynamic data) {
+    final root = TfJson.root(data);
+    final inner = TfJson.map(root['branchDate'] ?? root['branchDateDTO']);
+    for (final source in [inner, root]) {
+      for (final key in ['currentWorkingDate', 'currentDate', 'date', 'businessDate']) {
+        final date = TfJson.date(source[key]);
+        if (date != null) return DateTime(date.year, date.month, date.day);
+      }
+    }
+    return null;
+  }
+}
+
+/// Standard instructions text from `customerInstructions` (H5
+/// Instructions; 500 on pre-sales, so the shape is NOT CAPTURED).
+class LcStandardInstructions {
+  LcStandardInstructions._();
+
+  static List<String> fromPayload(dynamic data) {
+    final root = TfJson.root(data);
+    final raw = root['customerInstructionsDTOs'] ??
+        root['customerInstructions'] ??
+        root['instructions'] ??
+        root['list'];
+    return [
+      for (final map in TfJson.maps(raw))
+        if ((TfJson.str(map['instructionText']) ??
+                TfJson.str(map['description']) ??
+                TfJson.str(map['instruction']) ??
+                TfJson.str(map['value'])) case final text?)
+          text,
+    ];
+  }
+}
+
+// ── 08 Attachments ──────────────────────────────────────────────────────
+
+/// A file picked on the Attachments section.
+class LcAttachment {
+  const LcAttachment({
+    required this.key,
+    required this.fileName,
+    required this.bytes,
+    required this.mimeType,
+    this.category,
+    this.documentType,
+    this.contentId,
+    this.uploading = false,
+    this.error,
   });
 
-  /// H3 #49.
+  /// Local identity (the same file name may be picked twice).
+  final String key;
+  final String fileName;
+  final List<int> bytes;
+  final String mimeType;
+
+  /// `documentCategoryDTOList[].category` / `.type[].type` (H5).
+  final String? category;
+  final String? documentType;
+
+  /// Host content id once uploaded ('' when the answer carried none).
+  final String? contentId;
+  final bool uploading;
+  final String? error;
+
+  int get size => bytes.length;
+  bool get isUploaded => contentId != null;
+
+  /// Allowed by the design's upload rules: JPEG, PNG, DOC, PDF, TXT.
+  static const allowedExtensions = ['jpg', 'jpeg', 'png', 'doc', 'docx', 'pdf', 'txt'];
+
+  /// 5 MB per file.
+  static const maxBytes = 5 * 1024 * 1024;
+
+  /// Alphanumeric, dot, underscore and space only.
+  static final fileNamePattern = RegExp(r'^[A-Za-z0-9._ ]+$');
+
+  static String mimeFor(String fileName) {
+    final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase() : '';
+    return switch (ext) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'pdf' => 'application/pdf',
+      'txt' => 'text/plain',
+      'doc' => 'application/msword',
+      'docx' =>
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      _ => 'application/octet-stream',
+    };
+  }
+
+  /// Why [fileName] / [size] break the upload rules, or null.
+  static String? ruleViolation(String fileName, int size) {
+    final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase() : '';
+    if (!allowedExtensions.contains(ext)) {
+      return '$fileName: only JPEG, PNG, DOC, PDF and TXT files are supported.';
+    }
+    if (size > maxBytes) return '$fileName is larger than 5 MB.';
+    if (!fileNamePattern.hasMatch(fileName)) {
+      return '$fileName: use only letters, numbers, dot, underscore and space.';
+    }
+    return null;
+  }
+
+  /// Content id from the upload answer. NOT CAPTURED — the usual OBDX
+  /// content fields are read; null when none is present.
+  static String? contentIdFrom(dynamic data) {
+    final root = TfJson.root(data);
+    final list = root['contentDTOList'];
+    final first = list is List && list.isNotEmpty ? list.first : null;
+    for (final source in [
+      TfJson.map(first),
+      TfJson.map(root['contentDTO']),
+      root,
+    ]) {
+      final id = source['contentId'];
+      final text = id is Map ? TfJson.str(id['value']) : TfJson.str(id);
+      if (text != null) return text;
+    }
+    return null;
+  }
+
+  LcAttachment copyWith({
+    String? category,
+    String? documentType,
+    String? contentId,
+    bool? uploading,
+    String? error,
+    bool clearError = false,
+  }) =>
+      LcAttachment(
+        key: key,
+        fileName: fileName,
+        bytes: bytes,
+        mimeType: mimeType,
+        category: category ?? this.category,
+        documentType: documentType ?? this.documentType,
+        contentId: contentId ?? this.contentId,
+        uploading: uploading ?? this.uploading,
+        error: clearError ? null : (error ?? this.error),
+      );
+
+}
+
+// ── Per-section reference data ──────────────────────────────────────────
+//
+// Each section loads its own data the first time it opens, as the web does
+// (H5 captures). Lookups that fail leave their lists empty and add a
+// [warnings] line, so a section always opens.
+
+/// 01 LC Details — `me/party`, `beneficiaries`, `me/party/relations`,
+/// `branchdate/{branch}`.
+class LcDetailsSectionData {
+  const LcDetailsSectionData({
+    this.beneficiaries = const [],
+    this.relatedParties = const [],
+    this.branchDate,
+    this.warnings = const [],
+  });
+
   final List<LcBeneficiary> beneficiaries;
+  final List<LcRelatedParty> relatedParties;
+  final DateTime? branchDate;
+  final List<String> warnings;
+}
 
-  /// Document master for "+ Add Document" — H3 #58.
+/// 03 Documents & Conditions — `tradeDocument`,
+/// `additionalConditionMaintenance` (conditions and incoterms come with
+/// the LC lookups).
+class LcDocumentsSectionData {
+  const LcDocumentsSectionData({
+    this.tradeDocuments = const [],
+    this.maintainedConditions = const [],
+    this.warnings = const [],
+  });
+
   final List<LcDocument> tradeDocuments;
-
-  /// H3 #72.
-  final List<LcInsurancePolicy> insurancePolicies;
-
-  /// H3 #73.
-  final List<LcAccount> chargeAccounts;
-
-  /// H3 #67.
-  final List<LcAccount> linkageAccounts;
-
-  /// H3 #75.
-  final List<LcDocumentCategory> documentCategories;
-
-  /// `tradeEnumerations/confirmationParty` — H3 #70.
-  final List<TradeCode> confirmationParties;
-
-  /// Party-maintained additional conditions — H3 #63.
   final List<TradeCode> maintainedConditions;
+  final List<String> warnings;
+}
 
-  static const empty = LcInitiateSupport();
+/// 04 Linkages — `corporateDeposit`, `tradeEnumerations/currencies`,
+/// `demandDeposit`.
+class LcLinkagesSectionData {
+  const LcLinkagesSectionData({
+    this.accounts = const [],
+    this.currencies = const [],
+    this.warnings = const [],
+  });
+
+  /// CASA accounts first, then term deposits.
+  final List<LcAccount> accounts;
+  final List<TradeCode> currencies;
+  final List<String> warnings;
+}
+
+/// 05 Instructions — `confirmationInstruction`, `confirmationParty`,
+/// `customerInstructions`.
+class LcInstructionsSectionData {
+  const LcInstructionsSectionData({
+    this.confirmationInstructions = const [],
+    this.confirmationParties = const [],
+    this.standardInstructions = const [],
+    this.warnings = const [],
+  });
+
+  final List<TradeCode> confirmationInstructions;
+  final List<TradeCode> confirmationParties;
+  final List<String> standardInstructions;
+  final List<String> warnings;
 }
