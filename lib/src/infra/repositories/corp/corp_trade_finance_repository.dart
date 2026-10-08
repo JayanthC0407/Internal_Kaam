@@ -223,50 +223,221 @@ class CorpTradeFinanceRepository extends CorpRepositoryBase {
     return parseBody(result, LcDocument.listFromPayload);
   }
 
-  /// Reference data for the Initiate LC sections (H3 #49 #58 #63 #67 #70
-  /// #72 #73 #75), fetched in parallel. Never fails: a lookup that fails
-  /// leaves its list empty, so the form still opens.
-  Future<LcInitiateSupport> fetchInitiateSupport({String? partyId}) async {
+  // ── Initiate LC, per section (H5 = one capture per section) ────────
+
+  Future<T> _soft<T>(
+    ResponseHandler<Map<String, dynamic>> result,
+    T Function(Map<String, dynamic>) parse,
+    T fallback, {
+    List<String>? warnings,
+    String? warning,
+  }) async {
+    final parsed = await parseBody(result, parse);
+    if (parsed is Success<T>) return parsed.data ?? fallback;
+    if (warnings != null && warning != null) warnings.add(warning);
+    return fallback;
+  }
+
+  /// The logged-in party id from `me/party` (H5 LC Details / Insurance),
+  /// or [fallback] when the call fails.
+  Future<String?> fetchMePartyId({String? fallback}) async {
+    final result = await _api.fetchMeParty();
+    final id = await _soft<String?>(
+      result,
+      (b) => TfJson.str(TfJson.map(TfJson.map(b['party'])['id'])['value']),
+      null,
+    );
+    return id ?? fallback;
+  }
+
+  /// 01 LC Details — beneficiaries, related parties and the branch date.
+  Future<LcDetailsSectionData> fetchLcDetailsSection({
+    String? branchCode,
+  }) async {
+    final warnings = <String>[];
     final results = await Future.wait([
       _api.fetchBeneficiaries(),
+      _api.fetchPartyRelations(),
+      if (branchCode != null) _api.fetchBranchDate(branchCode),
+    ]);
+    return LcDetailsSectionData(
+      beneficiaries: await _soft(
+        results[0],
+        LcBeneficiary.listFromPayload,
+        const <LcBeneficiary>[],
+        warnings: warnings,
+        warning: 'Maintained beneficiaries could not be loaded.',
+      ),
+      relatedParties: await _soft(
+        results[1],
+        LcRelatedParty.listFromPayload,
+        const <LcRelatedParty>[],
+      ),
+      // DIGX_DT_001 on pre-sales — the date then falls back to today.
+      branchDate: results.length > 2
+          ? await _soft<DateTime?>(results[2], LcBranchDate.fromPayload, null)
+          : null,
+      warnings: warnings,
+    );
+  }
+
+  /// 03 Documents & Conditions — document master and party conditions.
+  Future<LcDocumentsSectionData> fetchDocumentsSection({
+    String? partyId,
+  }) async {
+    final warnings = <String>[];
+    final results = await Future.wait([
       _api.fetchTradeDocuments(),
-      _api.fetchInsurancePolicies(partyId),
-      _api.fetchAccounts(chargeAccounts: true),
-      _api.fetchAccounts(),
-      _api.fetchDocumentCategories(),
-      _api.fetchEnumeration(CorpTradeFinanceApiConst.enumConfirmationParty),
       _api.fetchMaintainedConditions(partyId),
     ]);
-
-    Future<T> soft<T>(
-      ResponseHandler<Map<String, dynamic>> r,
-      T Function(Map<String, dynamic>) parse,
-      T fallback,
-    ) async {
-      final parsed = await parseBody(r, parse);
-      return parsed is Success<T> ? (parsed.data ?? fallback) : fallback;
-    }
-
-    return LcInitiateSupport(
-      beneficiaries:
-          await soft(results[0], LcBeneficiary.listFromPayload, const []),
-      tradeDocuments:
-          await soft(results[1], LcDocument.listFromPayload, const []),
-      insurancePolicies:
-          await soft(results[2], LcInsurancePolicy.listFromPayload, const []),
-      chargeAccounts:
-          await soft(results[3], LcAccount.listFromPayload, const []),
-      linkageAccounts:
-          await soft(results[4], LcAccount.listFromPayload, const []),
-      documentCategories:
-          await soft(results[5], LcDocumentCategory.listFromPayload, const []),
-      confirmationParties:
-          await soft(results[6], TradeCode.fromEnumeration, const []),
-      maintainedConditions: await soft(
-        results[7],
+    return LcDocumentsSectionData(
+      tradeDocuments: await _soft(
+        results[0],
+        LcDocument.listFromPayload,
+        const <LcDocument>[],
+        warnings: warnings,
+        warning: 'The document list could not be loaded.',
+      ),
+      maintainedConditions: await _soft(
+        results[1],
         (b) => TradeCode.listFrom(b['list']),
         const <TradeCode>[],
       ),
+      warnings: warnings,
+    );
+  }
+
+  /// 04 Linkages — term deposits, currencies and CASA accounts.
+  Future<LcLinkagesSectionData> fetchLinkagesSection() async {
+    final warnings = <String>[];
+    final results = await Future.wait([
+      _api.fetchCorporateDeposits(),
+      _api.fetchEnumeration(CorpTradeFinanceApiConst.enumCurrencies),
+      _api.fetchAccounts(),
+    ]);
+    final deposits = await _soft(
+      results[0],
+      (b) => LcAccount.listFromPayload(b, termDeposits: true),
+      const <LcAccount>[],
+      warnings: warnings,
+      // 500 DIGX_CO_0003 on pre-sales.
+      warning: 'Term deposits are not available right now.',
+    );
+    final casa = await _soft(
+      results[2],
+      LcAccount.listFromPayload,
+      const <LcAccount>[],
+      warnings: warnings,
+      warning: 'Current and savings accounts could not be loaded.',
+    );
+    return LcLinkagesSectionData(
+      accounts: [...casa, ...deposits],
+      currencies: await _soft(
+        results[1],
+        TradeCode.fromEnumeration,
+        const <TradeCode>[],
+      ),
+      warnings: warnings,
+    );
+  }
+
+  /// 05 Instructions — confirmation options, parties and the standard
+  /// instructions for [productCode].
+  Future<LcInstructionsSectionData> fetchInstructionsSection({
+    String? productCode,
+  }) async {
+    final warnings = <String>[];
+    final results = await Future.wait([
+      _api.fetchEnumeration(
+        CorpTradeFinanceApiConst.enumConfirmationInstruction,
+      ),
+      _api.fetchEnumeration(CorpTradeFinanceApiConst.enumConfirmationParty),
+      _api.fetchCustomerInstructions(productCode),
+    ]);
+    return LcInstructionsSectionData(
+      confirmationInstructions: await _soft(
+        results[0],
+        TradeCode.fromEnumeration,
+        const <TradeCode>[],
+      ),
+      confirmationParties: await _soft(
+        results[1],
+        TradeCode.fromEnumeration,
+        const <TradeCode>[],
+      ),
+      standardInstructions: await _soft(
+        results[2],
+        LcStandardInstructions.fromPayload,
+        const <String>[],
+        warnings: warnings,
+        // 500 DIGX_CO_0003 on pre-sales.
+        warning: 'The standard instructions could not be loaded.',
+      ),
+      warnings: warnings,
+    );
+  }
+
+  /// 06 Insurance — `me/party`, then the party's policies (H5 Insurance).
+  Future<ResponseHandler<List<LcInsurancePolicy>>> fetchInsuranceSection({
+    String? fallbackPartyId,
+  }) async {
+    final partyId = await fetchMePartyId(fallback: fallbackPartyId);
+    final result = await _api.fetchInsurancePolicies(partyId);
+    return parseBody(result, LcInsurancePolicy.listFromPayload);
+  }
+
+  /// 07 Charges — the accounts allowed for LC charges (`taskCode`).
+  Future<ResponseHandler<List<LcAccount>>> fetchChargeAccounts() async {
+    final result = await _api.fetchAccounts(chargeAccounts: true);
+    return parseBody(result, LcAccount.listFromPayload);
+  }
+
+  /// 08 Attachments — document categories (H5 Attachments).
+  Future<ResponseHandler<List<LcDocumentCategory>>> fetchDocumentCategories()
+      async {
+    final result = await _api.fetchDocumentCategories();
+    return parseBody(result, LcDocumentCategory.listFromPayload);
+  }
+
+  /// Saves the form as a template — `template save api.har`: the
+  /// Attachments section's Save posts the full LC body to
+  /// `POST …/letterofcredits` with `state: TEMPLATE`, `name` and
+  /// `visibility`. The capture answered 400 (pre-sales field-validation
+  /// setup), so success is read like the draft create (H1 #71: 201 +
+  /// `letterOfCredit.id`).
+  Future<ResponseHandler<String>> saveTemplate(
+    Map<String, dynamic> body,
+  ) async {
+    final result = await _api.createLetterOfCredit(body);
+    return parseBody(
+      result,
+      (b) => CorpLetterOfCredit.fromDetailPayload(b)?.id ?? '',
+      successCodes: _created,
+    );
+  }
+
+  /// Uploads [attachment] (`upload api.har`); returns its content id.
+  /// The success body was not captured (the capture failed with
+  /// DIGX_CM_0005), so the id is read from the usual OBDX content fields;
+  /// an answer without one still counts as uploaded.
+  Future<ResponseHandler<String>> uploadAttachment(
+    LcAttachment attachment, {
+    required int index,
+    required int fileCount,
+  }) async {
+    final result = await _api.uploadContent(
+      bytes: attachment.bytes,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      index: index,
+      fileCount: fileCount,
+      documentTypeId: attachment.documentType,
+      documentCategoryId: attachment.category,
+    );
+    return parseBody(
+      result,
+      (b) => LcAttachment.contentIdFrom(b) ?? '',
+      successCodes: _created,
     );
   }
 
