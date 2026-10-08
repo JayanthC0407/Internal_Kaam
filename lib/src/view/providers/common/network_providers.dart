@@ -3,6 +3,7 @@ import 'package:ubci_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_credentials_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/retail/obdx_loan_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_login_wizard_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_payments_api.dart';
@@ -38,6 +39,10 @@ final obdxAccountsApiProvider = Provider(
 
 final obdxLoanApiProvider = Provider(
   (ref) => ObdxLoanApi(ref.watch(obdxDioClientProvider)),
+);
+
+final obdxTermDepositApiProvider = Provider(
+  (ref) => ObdxTermDepositApi(ref.watch(obdxDioClientProvider)),
 );
 
 final obdxMobileApiProvider = Provider(

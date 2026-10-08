@@ -97,6 +97,39 @@ class DashboardDescriptor {
     return null;
   }
 
+  /// The dashboard a user with no `CUSTOM` one starts from — their role's
+  /// `USER_TYPE` dashboard, as the OBDX web client shows it (it reads
+  /// `dashboards/modules?class=USER_TYPE&value=retailuser` for such a user;
+  /// `customize for new user.har` #4). Prefers the entry whose value is the
+  /// user's role (`retailuser`, the one the admin set up) over a factory
+  /// one.
+  ///
+  /// Only ever *read*: it is shared by every user of the role. Their first
+  /// save creates their own `CUSTOM` dashboard instead (see
+  /// `DashboardRepository.createConfig`).
+  static DashboardDescriptor? templateFrom(
+    List<DashboardDescriptor> dashboards,
+  ) {
+    final roles = [
+      for (final d in dashboards)
+        if (d.isUsable && d.dashboardClass.toUpperCase() == 'USER_TYPE') d,
+    ];
+    bool forRole(DashboardDescriptor d) =>
+        d.enterpriseRole != null &&
+        d.dashboardClassValue.toLowerCase() == d.enterpriseRole!.toLowerCase();
+    for (final pick in [
+      (DashboardDescriptor d) => forRole(d) && !d.isFactory,
+      forRole,
+      (DashboardDescriptor d) => !d.isFactory,
+      (DashboardDescriptor d) => true,
+    ]) {
+      for (final d in roles) {
+        if (pick(d)) return d;
+      }
+    }
+    return null;
+  }
+
   /// Convenience for callers that hold only the raw `me` response — which
   /// is what the Retail dashboard has, since it never parses a typed
   /// profile the way Corporate does.
@@ -136,9 +169,15 @@ sealed class DashboardDescriptorLookup {
 
   /// From a descriptor the caller has already resolved out of a `me`
   /// response it holds: null means that response has no `CUSTOM` entry.
-  factory DashboardDescriptorLookup.resolved(DashboardDescriptor? descriptor) =>
+  ///
+  /// [template] is the dashboard to start from when there is none — given,
+  /// the user can personalize and their first save creates their own.
+  factory DashboardDescriptorLookup.resolved(
+    DashboardDescriptor? descriptor, {
+    DashboardDescriptor? template,
+  }) =>
       descriptor == null
-          ? const DashboardDescriptorAbsent()
+          ? DashboardDescriptorAbsent(template: template)
           : DashboardDescriptorFound(descriptor);
 
   /// From a raw `me` response, which may be missing.
@@ -148,8 +187,12 @@ sealed class DashboardDescriptorLookup {
     if (!DashboardDescriptor.isProfileResponse(profileResponse)) {
       return const DashboardDescriptorUnknown();
     }
+    final dashboards = DashboardDescriptor.listFromProfileResponse(
+      profileResponse,
+    );
     return DashboardDescriptorLookup.resolved(
-      DashboardDescriptor.personalizableFromProfileResponse(profileResponse),
+      DashboardDescriptor.personalizableFrom(dashboards),
+      template: DashboardDescriptor.templateFrom(dashboards),
     );
   }
 }
@@ -161,10 +204,16 @@ final class DashboardDescriptorFound extends DashboardDescriptorLookup {
   final DashboardDescriptor descriptor;
 }
 
-/// `me` was read and has no `CUSTOM` dashboard for this user. Final:
-/// personalization is unavailable.
+/// `me` was read and has no `CUSTOM` dashboard for this user.
+///
+/// With a [template] (the role dashboard), personalization starts from it
+/// and the first save creates the user's own dashboard — what OBDX does for
+/// a new user. Without one, personalization is unavailable. Final either
+/// way.
 final class DashboardDescriptorAbsent extends DashboardDescriptorLookup {
-  const DashboardDescriptorAbsent();
+  const DashboardDescriptorAbsent({this.template});
+
+  final DashboardDescriptor? template;
 }
 
 /// No `me` response is in hand. Not final: the dashboard's personalization

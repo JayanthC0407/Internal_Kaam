@@ -8,6 +8,7 @@ import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_cata
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
 import 'package:ubci_bank/src/infra/network/dashboard_api_constants.dart';
+import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
@@ -53,9 +54,9 @@ class DashboardRepository extends ObdxRepositoryBase {
         if (!DashboardDescriptor.isProfileResponse(body)) {
           throw StateError('Not a me response');
         }
-        return DashboardDescriptorLookup.resolved(
-          DashboardDescriptor.personalizableFromProfileResponse(body),
-        );
+        // With the role template, as the login path resolves it, so a
+        // first-time user can personalize either way.
+        return DashboardDescriptorLookup.fromProfileResponse(body);
       });
     } catch (_) {
       return ResponseHandler.exceptionError();
@@ -122,6 +123,65 @@ class DashboardRepository extends ObdxRepositoryBase {
         return refreshed;
       }
       return ResponseHandler.success(config, code: 200);
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// Creates the user's own `CUSTOM` dashboard from [edited] — their role
+  /// dashboard with their changes — the way the OBDX web client does on a
+  /// new user's first save (`customize for new user.har`: `POST
+  /// .../dashboards/user` → 201, then `me`, then `CUSTOM/custom`).
+  ///
+  /// Sent under fresh opaque names, never [edited]'s own: those belong to
+  /// the shared role dashboard. The host's answer carries only the new
+  /// dashboard's identity, so the layout is re-read; if that fails, what
+  /// was sent — under the new id — stands in, since the host accepted it.
+  Future<ResponseHandler<DashboardConfig>> createConfig(
+    DashboardConfig edited,
+  ) async {
+    try {
+      final draft = edited.withIdentity(
+        dashboardName: DashboardConfig.newOpaqueName(),
+        dashboardDescription: DashboardConfig.newOpaqueName(),
+      );
+      final result = await _api.createDashboardConfig(
+        payload: draft.toUpdatePayload(),
+      );
+      final created = await parseBody(
+        result,
+        (body) {
+          final dto = DashboardDescriptor.fromJson(
+            ObdxApiUtils.asMap(body['dashboardDTO']),
+          );
+          if (!dto.isUsable) throw StateError('No dashboardId in response');
+          return dto;
+        },
+        successCodes: const {200, 201},
+      );
+      if (created is! Success<DashboardDescriptor> || created.data == null) {
+        return mapFailure<DashboardConfig>(created);
+      }
+
+      final dto = created.data!;
+      final local = draft.withIdentity(
+        dashboardId: dto.dashboardId,
+        enterpriseRole: dto.enterpriseRole,
+        dashboardClass: dto.dashboardClass.isEmpty ? 'CUSTOM' : dto.dashboardClass,
+        dashboardClassValue: dto.dashboardClassValue.isEmpty
+            ? 'custom'
+            : dto.dashboardClassValue,
+        isFactory: dto.isFactory,
+      );
+      final refreshed = await fetchConfig(
+        dashboardClass: local.dashboardClass!,
+        dashboardClassValue: local.dashboardClassValue!,
+      );
+      if (refreshed is Success<DashboardConfig> &&
+          refreshed.data?.dashboardId == dto.dashboardId) {
+        return refreshed;
+      }
+      return ResponseHandler.success(local, code: 201);
     } catch (_) {
       return ResponseHandler.exceptionError();
     }
