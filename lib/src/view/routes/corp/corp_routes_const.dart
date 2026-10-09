@@ -23,6 +23,21 @@ class CorpRoutesConst {
   static const String exportBillDetailScreen =
       '/corp_export_bill_detail_screen';
 
+  // ── Trade Finance · Bank Guarantee ─────────────────────────────────────
+
+  /// One inward guarantee / kafalah.
+  static const String bgDetailScreen = '/corp_bg_detail_screen';
+
+  /// One amendment awaiting acceptance (read-only).
+  static const String bgAmendmentScreen = '/corp_bg_amendment_screen';
+
+  /// Review and send an approve / reject decision.
+  static const String bgAcceptanceReviewScreen =
+      '/corp_bg_acceptance_review_screen';
+
+  /// Lodge a claim under one guarantee.
+  static const String bgClaimScreen = '/corp_bg_claim_screen';
+
   /// Every corporate route name, used by `Routes` to decide whether to
   /// delegate a given settings name to [CorpRoutes].
   static const Set<String> all = {
@@ -34,5 +49,9 @@ class CorpRoutesConst {
     lcTransferScreen,
     exportLcDetailScreen,
     exportBillDetailScreen,
+    bgDetailScreen,
+    bgAmendmentScreen,
+    bgAcceptanceReviewScreen,
+    bgClaimScreen,
   };
 }
