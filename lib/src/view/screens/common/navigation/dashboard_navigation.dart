@@ -219,7 +219,40 @@ class _DashboardNavContentState extends State<DashboardNavContent> {
   @override
   void didUpdateWidget(covariant DashboardNavContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedId != oldWidget.selectedId) _expandSelectedGroup();
+    if (widget.selectedId != oldWidget.selectedId) {
+      _collapseGroupsLeftBy(oldWidget.selectedId);
+      _expandSelectedGroup();
+    }
+  }
+
+  /// Closes every group that held [previousId] but does not hold the new
+  /// selection — e.g. the back arrow on a Trade Finance option returns to
+  /// Home, so the Trade Finance tree folds away instead of staying open.
+  /// A closed group's open sub-groups close with it, so reopening it later
+  /// starts from its top level. Groups still holding the selection (moving
+  /// between two options of the same group) stay open.
+  void _collapseGroupsLeftBy(String? previousId) {
+    if (previousId == null) return;
+
+    void closeWithDescendants(DashboardNavItem item) {
+      _expanded.remove(item.id);
+      for (final child in item.children) {
+        if (child.isGroup) closeWithDescendants(child);
+      }
+    }
+
+    void walk(List<DashboardNavItem> items) {
+      for (final item in items) {
+        if (!item.isGroup) continue;
+        if (item.contains(previousId) && !item.contains(widget.selectedId)) {
+          closeWithDescendants(item);
+        } else {
+          walk(item.children);
+        }
+      }
+    }
+
+    walk(widget.items);
   }
 
   /// Opens every group that holds the selected item, at any depth, so a

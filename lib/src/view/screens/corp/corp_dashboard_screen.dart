@@ -185,13 +185,13 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   }
 
   /// The nav widget's selected id — the destination's plain name, except
-  /// while a Letter of Credit option is open, when it is that option's full
+  /// while a Trade Finance option is open, when it is that option's full
   /// leaf id so the nav tree highlights it and keeps its ancestor groups
   /// expanded (see `DashboardNavContent._expandSelectedGroup`).
   String? get _selectedNavId {
     final action = _lcAction;
     if (_destination == CorpNavDestination.tradeFinance && action != null) {
-      return '${CorpNavDestination.tradeFinance.name}.${action.group.name}.${action.name}';
+      return CorpNavDestination.navIdForLcAction(action);
     }
     return _destination.name;
   }
