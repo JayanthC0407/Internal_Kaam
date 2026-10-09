@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
 import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_amendment_acceptance_page.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_list_page.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_lodge_claim_page.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_list_page.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_list_page.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
@@ -12,7 +16,8 @@ import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
-/// A Trade Finance screen, rendered *inside* the corporate shell (the
+/// A Trade Finance screen — Letter of Credit or Bank Guarantee — rendered
+/// *inside* the corporate shell (the
 /// sidebar, header and session handling stay live).
 ///
 /// Shown only while an option picked in the sidebar tree is open — there is
@@ -91,6 +96,28 @@ class CorpTradeFinanceWorkspace extends StatelessWidget {
                   arguments: LcAmendArgs(lcId: lc.id),
                 ),
               ),
+
+            // ── Bank Guarantee · Inward ─────────────────────────────────
+            LcMenuAction.inwardViewGuarantee =>
+              const BgListPage(category: BgCategory.conventional),
+            LcMenuAction.inwardViewKafalah =>
+              const BgListPage(category: BgCategory.islamic),
+            LcMenuAction.inwardAmendAcceptance => BgAmendmentAcceptancePage(
+                category: BgCategory.conventional,
+                onCancel: onBack,
+              ),
+            LcMenuAction.inwardAmendAcceptanceKafalah =>
+              BgAmendmentAcceptancePage(
+                category: BgCategory.islamic,
+                onCancel: onBack,
+              ),
+            LcMenuAction.inwardLodgeClaim =>
+              const BgLodgeClaimPage(category: BgCategory.conventional),
+            LcMenuAction.inwardLodgeClaimIslamic =>
+              const BgLodgeClaimPage(category: BgCategory.islamic),
+
+            // ── Bank Guarantee · Outward (not built yet) ────────────────
+            LcMenuAction.outwardOverview => const _OutwardPlaceholder(),
           },
         ),
         ],
@@ -549,6 +576,26 @@ class _LcTile extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Outward Bank Guarantee (placeholder) ────────────────────────────────
+
+/// Stands in for the Outward Bank Guarantee options until they are
+/// captured and built (see `LcMenuGroup.outwardGuarantee`).
+class _OutwardPlaceholder extends StatelessWidget {
+  const _OutwardPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CorpCardShell(
+      child: LcEmptyState(
+        icon: Icons.call_made_rounded,
+        title: 'Outward guarantees are coming soon',
+        message: 'Guarantees and standby LCs issued on your behalf will '
+            'appear here.',
       ),
     );
   }

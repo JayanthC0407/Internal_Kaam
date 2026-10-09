@@ -6,6 +6,7 @@ import 'package:ubci_bank/src/view/providers/common/payee_providers.dart';
 import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
 import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
+import 'package:ubci_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_lc_amend_providers.dart';
@@ -59,6 +60,15 @@ void resetUserSessionState(Ref ref) {
   ref.invalidate(corpLcExportAmendmentsProvider);
   ref.invalidate(corpLcAcceptanceProvider);
   ref.invalidate(corpLcTransferProvider);
+
+  // Trade Finance (Bank Guarantee).
+  ref.invalidate(bgLookupsProvider);
+  ref.invalidate(corpBgSearchProvider);
+  ref.invalidate(corpBgDetailProvider);
+  ref.invalidate(corpBgAmendmentsProvider);
+  ref.invalidate(corpBgAmendmentViewProvider);
+  ref.invalidate(corpBgAcceptanceProvider);
+  ref.invalidate(corpBgClaimProvider);
 
   // Shared by both dashboards — one user's saved widget selection must
   // never be visible, even briefly, on the next user's dashboard.
