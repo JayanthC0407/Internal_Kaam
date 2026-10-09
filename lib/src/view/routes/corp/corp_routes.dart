@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_acceptance_review_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_amendment_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_claim_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_detail_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_detail_screen.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_detail_screen.dart';
 import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_acceptance_screen.dart';
@@ -61,6 +66,22 @@ class CorpRoutes {
       case CorpRoutesConst.lcTransferScreen:
         if (args is! LcTransferArgs) return null;
         return _page(routeSettings, LcTransferScreen(args: args));
+
+      case CorpRoutesConst.bgDetailScreen:
+        if (args is! BgDetailArgs) return null;
+        return _page(routeSettings, BgDetailScreen(args: args));
+
+      case CorpRoutesConst.bgAmendmentScreen:
+        if (args is! BgAmendmentArgs) return null;
+        return _page(routeSettings, BgAmendmentScreen(args: args));
+
+      case CorpRoutesConst.bgAcceptanceReviewScreen:
+        if (args is! BgAcceptanceReviewArgs) return null;
+        return _page(routeSettings, BgAcceptanceReviewScreen(args: args));
+
+      case CorpRoutesConst.bgClaimScreen:
+        if (args is! BgClaimArgs) return null;
+        return _page(routeSettings, BgClaimScreen(args: args));
 
       default:
         return null;
