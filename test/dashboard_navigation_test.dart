@@ -154,6 +154,12 @@ void main() {
       ]);
     });
 
+    test('Retail — Transfer is one entry: its hub lists the ways to pay', () {
+      final transfer = RetailNav.items(AppLocalizationsEn())
+          .firstWhere((item) => item.id == RetailNav.transfer);
+      expect(transfer.children, isEmpty);
+    });
+
     test('Corporate — Home first, ids round-trip', () {
       // No Letter of Credit entitlements at all.
       const noTradeFinance = LcPermissions(

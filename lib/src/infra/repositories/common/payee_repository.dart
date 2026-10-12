@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http_status_code/http_status_code.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
@@ -309,6 +310,81 @@ class PayeeRepository {
             .toList()
         : <PayeeSummary>[];
     return ResponseHandler.success(list, code: bodyResult.statusCode);
+  }
+
+  /// Demand-draft or peer-to-peer payees — [GroupPayee.demandDraft] or
+  /// [GroupPayee.peerToPeer].
+  Future<ResponseHandler<List<GroupPayee>>> fetchGroupPayees(String type) async {
+    final result = await _payeeApi.fetchPayeeGroups(type);
+    final bodyResult = _body(result);
+    if (bodyResult == null) return _mapFailure(result);
+    final body = bodyResult.body;
+    if (!_isSuccess(body, bodyResult.statusCode)) {
+      return _businessFailure(bodyResult.statusCode, body);
+    }
+    return ResponseHandler.success(
+      GroupPayee.listFromPayload(body),
+      code: bodyResult.statusCode,
+    );
+  }
+
+  /// Deletes a payee. The bank may ask for an OTP first: the outcome then
+  /// carries its challenge, and the call is repeated with [otp].
+  Future<ResponseHandler<PayeeDeleteOutcome>> deletePayee(
+    PayeeDeleteTarget target, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final path = target.path;
+    if (path == null) {
+      return ResponseHandler.error(
+        StatusCode.BAD_REQUEST,
+        "This payee can't be deleted here.",
+      );
+    }
+    final otpValue = otp?.trim() ?? '';
+    final otpSubmitted = challenge != null && otpValue.isNotEmpty;
+    final result = await _payeeApi.deletePayee(
+      path,
+      challengeResponseHeader:
+          otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
+    );
+    final bodyResult = _body(result);
+    if (bodyResult == null) return _mapFailure(result);
+    final status = bodyResult.statusCode;
+    final body = bodyResult.body;
+
+    if (status == StatusCode.EXPECTATION_FAILED) {
+      final next = ObdxChallenge.fromPaymentChallengeHeaders(
+        (result as Success<Map<String, dynamic>>).data!['headers'],
+      );
+      if (next != null) {
+        return ResponseHandler.success(
+          PayeeDeleteOutcome.otpRequired(next, invalidOtp: otpSubmitted),
+          code: status,
+        );
+      }
+      final error = otpSubmitted
+          ? ObdxErrorMapper.fromChallengeResponse(status, body)
+          : ObdxErrorMapper.fromHttpResponse(status, body);
+      return ResponseHandler.error(
+        error.httpStatusCode ?? status,
+        error.userMessage,
+        obdxError: error,
+      );
+    }
+
+    final accepted = status == StatusCode.ACCEPTED;
+    if (!accepted && !_isSuccess(body, status)) return _businessFailure(status, body);
+    final reference = ObdxApiUtils.asMap(body['status'])['referenceNumber'] ??
+        body['externalReferenceId'];
+    return ResponseHandler.success(
+      PayeeDeleteOutcome.deleted(
+        reference: reference?.toString(),
+        pendingApproval: accepted,
+      ),
+      code: status,
+    );
   }
 
   Future<ResponseHandler<List<PayeeAccountTypeOption>>> fetchAccountTypes() async {

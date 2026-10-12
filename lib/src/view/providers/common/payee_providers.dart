@@ -68,6 +68,17 @@ class PayeesState {
   }
 }
 
+/// Demand-draft or peer-to-peer payees, by [GroupPayee] type — fetched
+/// when Manage Payees shows that tab.
+final groupPayeesProvider =
+    FutureProvider.autoDispose.family<List<GroupPayee>, String>((ref, type) async {
+  final result = await ref.read(payeeRepositoryProvider).fetchGroupPayees(type);
+  if (result is Success<List<GroupPayee>>) return result.data ?? const [];
+  throw Exception(
+    result is Error<List<GroupPayee>> ? result.error : "We couldn't load these payees.",
+  );
+});
+
 final payeesProvider = StateNotifierProvider<PayeesNotifier, PayeesState>(
   (ref) => PayeesNotifier(ref),
 );

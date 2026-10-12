@@ -1,3 +1,5 @@
+import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+
 class PayeeAccountTypeOption {
   const PayeeAccountTypeOption({
     required this.code,
@@ -394,4 +396,163 @@ class PayeeSummary {
     }
     return null;
   }
+}
+
+/// A demand-draft or peer-to-peer payee, from `payments/payeeGroup` — a
+/// group per payee, the payee being its `listPayees[0]`.
+class GroupPayee {
+  const GroupPayee({
+    required this.id,
+    required this.groupId,
+    required this.nickname,
+    required this.kind,
+    required this.detail,
+    required this.type,
+    this.name,
+    this.groupSize = 1,
+  });
+
+  /// `DEMANDDRAFT` or `PEERTOPEER`.
+  static const demandDraft = 'DEMANDDRAFT';
+  static const peerToPeer = 'PEERTOPEER';
+
+  final String id;
+  final String groupId;
+  final String nickname;
+
+  /// The group's name, when it differs from [nickname].
+  final String? name;
+
+  /// "Domestic draft", "International draft", "Email", "Mobile"…
+  final String kind;
+
+  /// Where a draft is payable / delivered, or the email or number paid.
+  final String detail;
+
+  /// [demandDraft] or [peerToPeer].
+  final String type;
+
+  /// How many payees the group holds (its `listPayees`).
+  final int groupSize;
+
+  static List<GroupPayee> listFromPayload(Map<String, dynamic> body) {
+    final groups = body['payeeGroups'];
+    if (groups is! List) return const [];
+    return [
+      for (final group in groups)
+        if (group is Map)
+          if (_fromGroup(Map<String, dynamic>.from(group)) case final payee?) payee,
+    ];
+  }
+
+  static GroupPayee? _fromGroup(Map<String, dynamic> group) {
+    final list = group['listPayees'];
+    if (list is! List || list.isEmpty || list.first is! Map) return null;
+    final p = Map<String, dynamic>.from(list.first as Map);
+    String? str(dynamic v) {
+      final t = v?.toString().trim();
+      return t == null || t.isEmpty || t == 'null' ? null : t;
+    }
+
+    final groupName = str(group['name']);
+    final nickname = str(p['nickName']) ?? groupName ?? str(p['name']);
+    if (nickname == null) return null;
+
+    final String kind;
+    final String detail;
+    final draftType = str(p['demandDraftPayeeType']);
+    final isDraft = draftType != null || str(p['payeeType']) == demandDraft;
+    if (isDraft) {
+      kind = draftType == 'INT' ? 'International draft' : 'Domestic draft';
+      final delivery = p['demandDraftDeliveryDTO'] is Map
+          ? Map<String, dynamic>.from(p['demandDraftDeliveryDTO'] as Map)
+          : const <String, dynamic>{};
+      final mode = switch (str(delivery['deliveryMode'])) {
+        'BRN' => 'Collect at branch',
+        'MAI' => 'By mail',
+        'OTHADD' => 'To another address',
+        _ => null,
+      };
+      final payAt = [str(p['payAtCity']), str(p['payAtCountry'])].whereType<String>().join(', ');
+      detail = [if (payAt.isNotEmpty) 'Payable at $payAt', if (mode != null) mode].join(' · ');
+    } else {
+      final mode = str(p['transferMode']);
+      kind = switch (mode?.toUpperCase()) {
+        'EMAIL' => 'Email',
+        'MOBILE' => 'Mobile',
+        'ACC' => 'Account',
+        null => 'Peer to peer',
+        _ => mode![0].toUpperCase() + mode.substring(1).toLowerCase(),
+      };
+      detail = str(p['transferValue']) ?? '';
+    }
+
+    return GroupPayee(
+      id: str(p['id']) ?? '',
+      groupId: str(group['groupId']) ?? str(p['groupId']) ?? '',
+      nickname: nickname,
+      name: groupName != null && groupName != nickname ? groupName : null,
+      kind: kind,
+      detail: detail,
+      type: isDraft ? demandDraft : peerToPeer,
+      groupSize: list.length,
+    );
+  }
+}
+
+/// A payee to delete. Its type decides the OBDX path, as the bank's own
+/// payee details screen does (`components/payee/payee-details`).
+class PayeeDeleteTarget {
+  const PayeeDeleteTarget({
+    required this.payeeType,
+    required this.payeeId,
+    this.groupId,
+  });
+
+  /// `INTERNAL`, `INTERNATIONAL`, `GENERICDOMESTIC`, `DOMESTIC`,
+  /// `PEERTOPEER` or `DEMANDDRAFT`.
+  final String payeeType;
+  final String payeeId;
+
+  /// Needed by the payee-group paths.
+  final String? groupId;
+
+  /// The path after `…/payment/v1/payments/`, or null when this payee
+  /// can't be deleted (an unknown type, or no group for a group path).
+  String? get path {
+    final id = Uri.encodeComponent(payeeId);
+    final group = groupId == null || groupId!.isEmpty ? null : Uri.encodeComponent(groupId!);
+    String? inGroup(String kind) => group == null ? null : 'payeeGroup/$group/payees/$kind/$id';
+    if (payeeId.isEmpty) return null;
+    return switch (payeeType.toUpperCase()) {
+      'INTERNAL' => 'payeesv3/internal/$id',
+      'INTERNATIONAL' => 'payeesv3/international/$id',
+      'GENERICDOMESTIC' => 'payeesv3/domestic/$id',
+      'DOMESTIC' => inGroup('domestic'),
+      'PEERTOPEER' => inGroup('peerToPeer'),
+      'DEMANDDRAFT' => inGroup('demandDraft'),
+      _ => null,
+    };
+  }
+}
+
+/// What a delete came to: done (or sent for approval), or the OTP the bank
+/// wants first.
+class PayeeDeleteOutcome {
+  const PayeeDeleteOutcome.deleted({this.reference, this.pendingApproval = false})
+      : challenge = null,
+        invalidOtp = false;
+
+  const PayeeDeleteOutcome.otpRequired(ObdxChallenge this.challenge, {this.invalidOtp = false})
+      : reference = null,
+        pendingApproval = false;
+
+  final String? reference;
+
+  /// 202 — an approver has to agree first (corporate makers).
+  final bool pendingApproval;
+  final ObdxChallenge? challenge;
+
+  /// The OTP sent with this attempt was not accepted.
+  final bool invalidOtp;
 }

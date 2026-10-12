@@ -33,9 +33,9 @@ import 'package:ubci_bank/src/view/screens/common/payees/add_demand_draft_payee_
 import 'package:ubci_bank/src/view/screens/common/payees/add_peer_to_peer_payee_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payees/payee_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payees/payees_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/adhoc_payee_transfer_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/internal_payment_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/international_payment_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/multiple_transfers_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/other_transfers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/transfer_money_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/transfers_module_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/registration_screen.dart';
@@ -367,11 +367,13 @@ class Routes {
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,
         );
+      // The Existing / Adhoc payee and International Low Value Payment
+      // routes now open the real transfer flow.
       case RoutesConst.internalPaymentScreen:
         return PageTransition(
           settings: routeSettings,
           child: const AuthenticatedSessionGate(
-            child: InternalPaymentScreen(),
+            child: NetworkTransferScreen(mode: NetworkTransferMode.existingPayee),
           ),
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,
@@ -380,7 +382,9 @@ class Routes {
         return PageTransition(
           settings: routeSettings,
           child: const AuthenticatedSessionGate(
-            child: InternationalPaymentScreen(),
+            child: NetworkTransferScreen(
+              mode: NetworkTransferMode.internationalLowValue,
+            ),
           ),
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,
@@ -407,7 +411,43 @@ class Routes {
         return PageTransition(
           settings: routeSettings,
           child: const AuthenticatedSessionGate(
-            child: AdhocPayeeTransferScreen(),
+            child: NetworkTransferScreen(mode: NetworkTransferMode.adhocPayee),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.networkTransferScreen:
+        // A mode, or the mode and a payee picked on the Transfer hub.
+        final args = routeSettings.arguments;
+        return PageTransition(
+          settings: routeSettings,
+          child: AuthenticatedSessionGate(
+            child: NetworkTransferScreen(
+              mode: switch (args) {
+                NetworkTransferArgs(:final mode) => mode,
+                NetworkTransferMode mode => mode,
+                _ => NetworkTransferMode.existingPayee,
+              },
+              initialPayee: args is NetworkTransferArgs ? args.payee : null,
+            ),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.otherTransfersScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: OtherTransfersScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.multipleTransfersScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: MultipleTransfersScreen(),
           ),
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,
