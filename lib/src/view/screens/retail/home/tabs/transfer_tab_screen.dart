@@ -1,330 +1,415 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/src/core/theme/app_radius.dart';
-import 'package:ubci_bank/src/core/theme/app_spacing.dart';
+import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
+import 'package:ubci_bank/src/view/providers/common/network_transfer_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
-import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
 
-/// Payments Home. Cross-checked against the real OBDX Payments menu:
+/// Starts a payee transfer in [mode], with [payee] already chosen when the
+/// person picked one on the hub.
+typedef TransferStart = void Function(NetworkTransferMode mode, TransferPayee? payee);
+
+/// The Transfer hub — where every way of moving money starts:
 ///
-/// - "Favorites" and "Saved Drafts" are flat, top-level items in the real
-///   menu (no submenu arrow) — they live in Quick Actions here.
-/// - "Repeat" is not a real top-level item (only "Repeat Transfers -
-///   Existing/Adhoc Payee" inside Transfers), so it isn't a Quick Action.
-/// - "Payee" is a real submenu (Manage Payees / Add Account Payee / Add
-///   Draft Payee / Add Peer To Peer Payee) — routes to [PayeeHubScreen].
-/// - "International Low Value Payment" is NOT surfaced here. It's a
-///   narrow product that only lives inside the Transfers module. The
-///   actual international transfer capability is reached via
-///   Transfers → Transfer Money → Adhoc Payee (beneficiary type:
-///   International), not from a shortcut on this screen.
-class TransferTabScreen extends StatelessWidget {
+///  - **Send to**: the saved payees as a strip of avatars; one tap starts a
+///    transfer to that person, "New" starts one to someone unsaved.
+///  - **Ways to pay**: the OBDX Transfers menu in plain words — a saved or
+///    new payee, between own accounts, repeat, abroad (low value), several
+///    at once.
+///  - **Manage**: payees, and the payment services still to come.
+///
+/// Wide layouts put Manage in a column beside the rest; phones stack it.
+class TransferTabScreen extends ConsumerWidget {
   const TransferTabScreen({
     super.key,
+    this.onTransferTap,
     this.onOwnAccountTransferTap,
-    this.onTransfersTap,
     this.onPayeeHubTap,
-    this.onTransferMoneyTap,
+    this.onMultipleTransfersTap,
   });
 
-  /// Opens "Between My Accounts" as an embedded Home tab instead of a
-  /// pushed full screen, so the drawer (mobile/tablet) / persistent
-  /// sidebar (desktop) stays visible there instead of being covered by a
-  /// full-page route. Falls back to the old push-a-route behavior if not
-  /// supplied (e.g. if this screen is ever used outside Home's tabs).
+  /// Opens a payee transfer inside the dashboard; pushes it otherwise.
+  final TransferStart? onTransferTap;
+
+  /// Opens "Between My Accounts" inside the dashboard.
   final VoidCallback? onOwnAccountTransferTap;
 
-  /// Same idea for "Transfers" (the pre-existing Transfer Money / Adhoc
-  /// Payee module) — opens it embedded instead of pushed.
-  final VoidCallback? onTransfersTap;
-
-  /// Same idea for "Payee" — opens [PayeeHubScreen] embedded instead of
-  /// pushed. Used by both the Quick Actions "Payee" button and the
-  /// Payment Services "Payee" list item below.
+  /// Opens the payee hub inside the dashboard.
   final VoidCallback? onPayeeHubTap;
 
-  /// Same idea for the Quick Actions "Transfer" button — opens
-  /// [TransferMoneyScreen] embedded instead of pushed.
-  final VoidCallback? onTransferMoneyTap;
+  /// Opens Multiple Transfers inside the dashboard.
+  final VoidCallback? onMultipleTransfersTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final responsive = Responsive.of(context);
-    final textPrimary = HomeColors.textPrimary(context);
-    final textSecondary = HomeColors.textSecondary(context);
-    final brand = HomeColors.brand(context);
+
+    void start(NetworkTransferMode mode, [TransferPayee? payee]) {
+      final tap = onTransferTap;
+      if (tap != null) return tap(mode, payee);
+      Navigator.of(context).pushNamed(
+        RoutesConst.networkTransferScreen,
+        arguments: NetworkTransferArgs(mode, payee: payee),
+      );
+    }
+
+    void push(String route) => Navigator.of(context).pushNamed(route);
+    final openPayees = onPayeeHubTap ?? () => push(RoutesConst.payeeHubScreen);
+
+    final ways = [
+      PayOptionTile(
+        icon: Icons.person_outline_rounded,
+        title: 'Send money',
+        subtitle: 'To one of your saved payees',
+        onTap: () => start(NetworkTransferMode.existingPayee),
+      ),
+      PayOptionTile(
+        icon: Icons.person_add_alt_1_outlined,
+        title: 'Pay someone new',
+        subtitle: 'No need to save them first',
+        onTap: () => start(NetworkTransferMode.adhocPayee),
+      ),
+      PayOptionTile(
+        icon: Icons.sync_alt_rounded,
+        title: 'Between my accounts',
+        subtitle: 'Move money instantly',
+        onTap: onOwnAccountTransferTap ?? () => push(RoutesConst.ownAccountTransferScreen),
+      ),
+      PayOptionTile(
+        icon: Icons.event_repeat_rounded,
+        title: 'Repeat payment',
+        subtitle: 'Pay on a schedule',
+        onTap: () => start(NetworkTransferMode.repeatExistingPayee),
+      ),
+      PayOptionTile(
+        icon: Icons.public_rounded,
+        title: 'Pay abroad',
+        subtitle: 'Low-value payment over SWIFT gpi',
+        onTap: () => start(NetworkTransferMode.internationalLowValue),
+      ),
+      PayOptionTile(
+        icon: Icons.dynamic_feed_rounded,
+        title: 'Pay several at once',
+        subtitle: 'Up to 10 payees in one go',
+        onTap: onMultipleTransfersTap ?? () => push(RoutesConst.multipleTransfersScreen),
+      ),
+    ];
 
     return SafeArea(
-      child: ResponsiveBody(
-        maxWidth: 900,
-        padding: EdgeInsets.fromLTRB(
-          responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-          // Top offset matches the side menu's top padding (22) around the
-          // sidebar logo, and the dashboard header's top padding — so
-          // "Payments" sits on the same line as the Demobank logo instead
-          // of floating above it (desktop/wide only; phones keep AppSpacing.xl).
-          responsive.isPhone ? AppSpacing.xl : 22,
-          responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-          AppSpacing.xxxl,
-        ),
-        child: ListView(
-          children: [
-            Row(
-              children: [
-                // Desktop always shows the persistent sidebar, so it has no
-                // need for this — only mobile/tablet needs a way to reach
-                // the drawer from a tab that (unlike Home) has no header of
-                // its own.
-                if (!responsive.isDesktop) ...[
-                  HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
-                  const SizedBox(width: AppSpacing.md),
-                ],
-                Expanded(
-                  child: Text(
-                    'Payments',
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: responsive.fontScale(phone: 28, tablet: 32),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Manage payees and transfer money securely.',
-              style: TextStyle(color: textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final wide = width >= kPayWideFlow;
+          final phone = width < 600;
+          final pad = phone ? 16.0 : 32.0;
 
-            // --- Quick Actions ---
-            const _SectionHeader('Quick Actions'),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.send_rounded,
-                    label: 'Transfer',
-                    onTap: onTransferMoneyTap ??
-                        () => Navigator.of(context)
-                            .pushNamed(RoutesConst.transferMoneyScreen),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.people_alt_outlined,
-                    label: 'Payee',
-                    onTap: onPayeeHubTap ??
-                        () => Navigator.of(context)
-                            .pushNamed(RoutesConst.payeeHubScreen),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.star_border_rounded,
-                    label: 'Favorites',
-                    onTap: () => _comingSoon(context, 'Favorites'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.drafts_outlined,
-                    label: 'Saved Drafts',
-                    onTap: () => _comingSoon(context, 'Saved Drafts'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xxl),
+          final sendTo = _SendToCard(
+            onPayee: (p) => start(NetworkTransferMode.existingPayee, p),
+            onNew: () => start(NetworkTransferMode.adhocPayee),
+            onAllPayees: openPayees,
+          );
+          final waysSection = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _SectionTitle('Ways to pay'),
+              const SizedBox(height: 12),
+              PayGrid(columns: phone ? 2 : 3, children: ways),
+            ],
+          );
+          final manage = _ManageSection(onPayees: openPayees);
 
-            // --- Payment Services ---
-            const _SectionHeader('Payment Services'),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              decoration: BoxDecoration(
-                color: HomeColors.card(context),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: HomeColors.divider(context)),
-                boxShadow: [
-                  BoxShadow(
-                    color: HomeColors.brandLight(context).withValues(alpha: 0.30),
-                    blurRadius: 15,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 0),
+          return ListView(
+            padding: EdgeInsets.fromLTRB(pad, phone ? 16 : 22, pad, 32),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1180),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          // The desktop sidebar is always there; smaller
+                          // layouts reach the drawer from here.
+                          if (!responsive.isDesktop) ...[
+                            HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
+                            const SizedBox(width: 12),
+                          ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Transfer',
+                                  style: TextStyle(
+                                    color: HomeColors.textPrimary(context),
+                                    fontSize: phone ? 26 : 30,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Send money to anyone, at home or abroad.',
+                                  style: TextStyle(color: HomeColors.textSecondary(context)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      if (wide)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [sendTo, const SizedBox(height: 28), waysSection],
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            SizedBox(width: 340, child: manage),
+                          ],
+                        )
+                      else ...[
+                        sendTo,
+                        const SizedBox(height: 24),
+                        waysSection,
+                        const SizedBox(height: 24),
+                        manage,
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                    leading: CircleAvatar(
-                      backgroundColor: brand.withValues(alpha: 0.1),
-                      child: Icon(Icons.swap_horiz_rounded, color: brand),
-                    ),
-                    title: const Text('Transfers'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: onTransfersTap ??
-                        () => Navigator.of(context)
-                            .pushNamed(RoutesConst.transfersModuleScreen),
-                  ),
-                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
-                  ListTile(
-                    contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                    leading: CircleAvatar(
-                      backgroundColor: brand.withValues(alpha: 0.1),
-                      child: Icon(Icons.sync_alt_rounded, color: brand),
-                    ),
-                    title: const Text('Between My Accounts'),
-                    subtitle: const Text('Quick own-account transfer'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: onOwnAccountTransferTap ??
-                        () => Navigator.of(context)
-                            .pushNamed(RoutesConst.ownAccountTransferScreen),
-                  ),
-                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
-                  ListTile(
-                    contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                    leading: CircleAvatar(
-                      backgroundColor: brand.withValues(alpha: 0.1),
-                      child: Icon(Icons.people_alt_outlined, color: brand),
-                    ),
-                    title: const Text('Payee'),
-                    subtitle: const Text('Manage payees, add account/draft/P2P payees'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: onPayeeHubTap ??
-                        () => Navigator.of(context)
-                            .pushNamed(RoutesConst.payeeHubScreen),
-                  ),
-                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
-                  const ComingSoonTile(
-                    icon: Icons.receipt_long_rounded,
-                    title: 'Payment Inquiries',
-                    subtitle: 'Payment status and repeat-transfer inquiries',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-
-            // --- More ---
-            const _SectionHeader('More'),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              decoration: BoxDecoration(
-                color: HomeColors.card(context),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: HomeColors.divider(context)),
-                boxShadow: [
-                  BoxShadow(
-                    color: HomeColors.brandLight(context).withValues(alpha: 0.30),
-                    blurRadius: 15,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                children: [
-                  const ComingSoonTile(icon: Icons.description_outlined, title: 'Demand Draft'),
-                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
-                  const ComingSoonTile(icon: Icons.dynamic_feed_rounded, title: 'Multiple Transfers'),
-                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
-                  const ComingSoonTile(icon: Icons.verified_outlined, title: 'Positive Pay'),
-                  Divider(height: 1, color: HomeColors.divider(context), indent: 68),
-                  const ComingSoonTile(icon: Icons.groups_outlined, title: 'Debtors'),
-                ],
-              ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
-    );
-  }
-
-  void _comingSoon(BuildContext context, String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label — coming soon')),
     );
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
 
   final String title;
 
   @override
+  Widget build(BuildContext context) => Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: HomeColors.textPrimary(context),
+        ),
+      );
+}
+
+/// The saved payees as avatars — the quickest way to pay someone again.
+class _SendToCard extends ConsumerWidget {
+  const _SendToCard({
+    required this.onPayee,
+    required this.onNew,
+    required this.onAllPayees,
+  });
+
+  final ValueChanged<TransferPayee> onPayee;
+  final VoidCallback onNew;
+  final VoidCallback onAllPayees;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final payees = ref.watch(transferPayeesProvider);
+    final list = (payees.valueOrNull ?? const <TransferPayee>[])
+        .where((p) => p.kind != null)
+        .toList();
+    return PaySection(
+      title: 'Send to',
+      trailing: TextButton(onPressed: onAllPayees, child: const Text('All payees')),
+      child: payees.hasError
+          ? PayErrorRetry(
+              message: "We couldn't load your payees.",
+              onRetry: () => ref.invalidate(transferPayeesProvider),
+            )
+          : SizedBox(
+              height: 92,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _PayeeBubble(
+                    label: 'New',
+                    tooltip: 'Pay someone new',
+                    avatar: const PayAvatar(name: 'New', size: 54, icon: Icons.add_rounded),
+                    onTap: onNew,
+                  ),
+                  if (payees.isLoading)
+                    for (var i = 0; i < 4; i++) const _PayeeBubble.placeholder()
+                  else if (list.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8, top: 16),
+                      child: Text(
+                        'Your saved payees appear here.',
+                        style: TextStyle(fontSize: 13, color: HomeColors.textSecondary(context)),
+                      ),
+                    )
+                  else
+                    for (final p in list)
+                      _PayeeBubble(
+                        label: p.title.split(' ').first,
+                        tooltip: 'Pay ${p.title}',
+                        avatar: PayAvatar(name: p.title, size: 54),
+                        onTap: () => onPayee(p),
+                      ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class _PayeeBubble extends StatelessWidget {
+  const _PayeeBubble({
+    required this.label,
+    required this.tooltip,
+    required this.avatar,
+    required this.onTap,
+  });
+
+  const _PayeeBubble.placeholder()
+      : label = null,
+        tooltip = null,
+        avatar = null,
+        onTap = null;
+
+  final String? label;
+  final String? tooltip;
+  final Widget? avatar;
+  final VoidCallback? onTap;
+
+  @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.4,
-        color: HomeColors.textSecondary(context),
+    final body = SizedBox(
+      width: 76,
+      child: Column(
+        children: [
+          avatar ??
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: HomeColors.divider(context),
+                  shape: BoxShape.circle,
+                ),
+              ),
+          const SizedBox(height: 8),
+          if (label != null)
+            Text(
+              label!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: HomeColors.textPrimary(context),
+              ),
+            )
+          else
+            Container(
+              width: 40,
+              height: 10,
+              decoration: BoxDecoration(
+                color: HomeColors.divider(context),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+        ],
+      ),
+    );
+    if (onTap == null) return Padding(padding: const EdgeInsets.only(right: 4), child: body);
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Tooltip(
+        message: tooltip!,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: body),
+        ),
       ),
     );
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+/// Payees, and the OBDX payment services the app does not offer yet.
+class _ManageSection extends StatelessWidget {
+  const _ManageSection({required this.onPayees});
 
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+  final VoidCallback onPayees;
+
+  static const _soon = [
+    (Icons.receipt_long_rounded, 'Payment status'),
+    (Icons.event_note_outlined, 'Standing instructions'),
+    (Icons.description_outlined, 'Demand drafts'),
+    (Icons.star_border_rounded, 'Favourites & drafts'),
+    (Icons.verified_outlined, 'Positive pay'),
+    (Icons.groups_outlined, 'Debtors'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final brand = HomeColors.brand(context);
-    final textPrimary = HomeColors.textPrimary(context);
-
-    return Material(
-      color: HomeColors.card(context),
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.lg,
-            horizontal: AppSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: HomeColors.divider(context)),
-          ),
-          child: Column(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _SectionTitle('Manage'),
+        const SizedBox(height: 12),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.people_alt_outlined,
+          title: 'Payees',
+          subtitle: 'View, add and manage the people you pay',
+          onTap: onPayees,
+        ),
+        const SizedBox(height: 12),
+        PaySection(
+          title: 'Coming soon',
+          icon: Icons.schedule_rounded,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Icon(icon, color: brand),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                label,
-                style: TextStyle(color: textPrimary, fontWeight: FontWeight.w600),
-              ),
+              for (final (icon, label) in _soon)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: HomeColors.bg(context),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: HomeColors.divider(context)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 16, color: HomeColors.textSecondary(context)),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: TextStyle(fontSize: 12.5, color: HomeColors.textSecondary(context)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -45,6 +45,8 @@ class RetailNav {
           id: transfer,
           label: l10n.transfer,
           icon: Icons.swap_horiz_rounded,
+          // One entry, no submenu: it opens the Transfer hub, which lays out
+          // every way to pay on one page — the sidebar doesn't repeat them.
         ),
         DashboardNavItem(
           id: rewards,
