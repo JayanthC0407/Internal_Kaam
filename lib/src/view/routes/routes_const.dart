@@ -38,6 +38,7 @@ class RoutesConst {
   static const String networkTransferScreen = '/network_transfer_screen';
   static const String otherTransfersScreen = '/other_transfers_screen';
   static const String multipleTransfersScreen = '/multiple_transfers_screen';
+  static const String repeatTransfersScreen = '/repeat_transfers_screen';
 
   /// Own-account transfer — ported from vendor branch. Distinct from the
   /// existing Payments module ([transfersModuleScreen] / [transferMoneyScreen]).

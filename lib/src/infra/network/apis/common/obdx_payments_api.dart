@@ -260,6 +260,80 @@ class ObdxPaymentsApi extends ObdxApiBase {
   Future<ResponseHandler<Map<String, dynamic>>> fetchFrequencies() =>
       _get(ApiConst.paymentsFrequencyEnumApi);
 
+  /// `GET …/payments/instructions` — repeat transfers, a page at a time.
+  /// [status] `ACTIVE` or `CANCELLED`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchInstructions({
+    required String status,
+    int pageSize = 50,
+    int pageNumber = 1,
+  }) =>
+      _get(ApiConst.paymentsInstructionsApi, {
+        'status': status,
+        'pageSize': pageSize,
+        'pageNumber': pageNumber,
+      });
+
+  /// `GET …/payments/instructions/{reference}?partyId=` — with its history.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchInstruction(
+    String reference, {
+    String? partyId,
+  }) =>
+      _get(ApiConst.paymentsInstructionApi(reference), {
+        if (partyId != null && partyId.isNotEmpty) 'partyId': partyId,
+      });
+
+  /// Stopping an instruction, step 1 of 2: `POST …/sicancellation/{ref}`.
+  Future<ResponseHandler<Map<String, dynamic>>> startInstructionStop(
+    String reference,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(ApiConst.paymentsInstructionStopApi(reference)),
+        data: body,
+        options: Options(headers: _jsonHeaders),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  /// Step 2 of 2: `PATCH …/sicancellation/{ref}` confirms the stop. The bank
+  /// may answer 417 + `X-CHALLENGE` (OTP) — answered, not thrown, and
+  /// repeated with [challengeResponseHeader] — or 202 when an approver has
+  /// to agree.
+  Future<ResponseHandler<Map<String, dynamic>>> confirmInstructionStop(
+    String reference,
+    Map<String, dynamic> body, {
+    String? challengeResponseHeader,
+  }) async {
+    try {
+      final response = await dio.patch(
+        ObdxApiUtils.appendLocaleQuery(ApiConst.paymentsInstructionStopApi(reference)),
+        data: body,
+        options: Options(
+          headers: {
+            ..._jsonHeaders,
+            if (challengeResponseHeader != null && challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          validateStatus: (status) =>
+              status == StatusCode.OK ||
+              status == StatusCode.ACCEPTED ||
+              status == ApiConst.expectationFailed,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
   Future<ResponseHandler<Map<String, dynamic>>> _get(
     String path, [
     Map<String, dynamic> query = const {},

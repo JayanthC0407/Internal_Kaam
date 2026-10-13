@@ -70,28 +70,28 @@ class _PayeeHubScreenState extends ConsumerState<PayeeHubScreen> {
       PayOptionTile(
         horizontal: true,
         icon: Icons.account_balance_outlined,
-        title: 'Bank account',
+        title: 'Add Account Payee',
         subtitle: 'Pay them by account number',
         onTap: widget.onAddAccountPayeeTap ?? () => _push(RoutesConst.addBankAccountPayeeScreen),
       ),
       PayOptionTile(
         horizontal: true,
         icon: Icons.description_outlined,
-        title: 'Demand draft',
+        title: 'Add Draft Payee',
         subtitle: 'Pay them with a bank draft',
         onTap: widget.onAddDraftPayeeTap ?? () => _push(RoutesConst.addDemandDraftPayeeScreen),
       ),
       PayOptionTile(
         horizontal: true,
         icon: Icons.alternate_email_rounded,
-        title: 'Peer to peer',
+        title: 'Add Peer To Peer Payee',
         subtitle: 'Pay them by mobile number or email',
         onTap: widget.onAddPeerToPeerPayeeTap ?? () => _push(RoutesConst.addPeerToPeerPayeeScreen),
       ),
     ];
 
     return PayMenuPage(
-      title: 'Payees',
+      title: 'Payee',
       subtitle: 'The people and businesses you pay',
       onBack: widget.embedded ? widget.onBack : null,
       builder: (context, wide) {
@@ -100,7 +100,7 @@ class _PayeeHubScreenState extends ConsumerState<PayeeHubScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add a payee',
+              'Add Payee',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -180,7 +180,7 @@ class _PayeeHubScreenState extends ConsumerState<PayeeHubScreen> {
           ? null
           : TextButton(
               onPressed: widget.onManagePayeesTap ?? () => _push(RoutesConst.payeesScreen),
-              child: Text(all.length > _preview ? 'See all ${all.length}' : 'Manage'),
+              child: Text(all.length > _preview ? 'Manage Payees (${all.length})' : 'Manage Payees'),
             ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

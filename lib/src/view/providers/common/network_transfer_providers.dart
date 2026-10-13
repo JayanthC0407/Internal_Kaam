@@ -3,6 +3,7 @@ import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
 import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
+import 'package:ubci_bank/src/core/models/common/payment/standing_instruction.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
@@ -163,3 +164,23 @@ final transferSubmissionProvider = StateNotifierProvider.autoDispose<
     TransferSubmissionNotifier, TransferSubmissionState>(
   (ref) => TransferSubmissionNotifier(),
 );
+
+/// Repeat transfers by status — `ACTIVE` or `CANCELLED`.
+final standingInstructionsProvider = FutureProvider.autoDispose
+    .family<StandingInstructionPage, String>((ref, status) async {
+  final result = await ref.read(networkTransferRepositoryProvider).fetchInstructions(status);
+  if (result is Success<StandingInstructionPage> && result.data != null) return result.data!;
+  throw Exception(
+    result is Error<StandingInstructionPage> ? result.error : "We couldn't load your repeat transfers.",
+  );
+});
+
+/// One repeat transfer's payment history.
+final standingInstructionDetailProvider = FutureProvider.autoDispose
+    .family<StandingInstructionDetail, StandingInstruction>((ref, instruction) async {
+  final result = await ref.read(networkTransferRepositoryProvider).fetchInstructionDetail(instruction);
+  if (result is Success<StandingInstructionDetail> && result.data != null) return result.data!;
+  throw Exception(
+    result is Error<StandingInstructionDetail> ? result.error : "We couldn't load the payment history.",
+  );
+});

@@ -48,6 +48,7 @@ import '../common/payments/transfer_money_screen.dart';
 import '../common/payments/multiple_transfers_screen.dart';
 import '../common/payments/network_transfer_screen.dart';
 import '../common/payments/other_transfers_screen.dart';
+import '../common/payments/repeat_transfers_screen.dart';
 import '../common/payees/payee_hub_screen.dart';
 import '../common/payees/add_bank_account_payee_screen.dart';
 import '../common/payees/add_demand_draft_payee_screen.dart';
@@ -823,9 +824,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   /// The hub (2) and what opens from it: Between My Accounts (11), the
   /// Transfers list (12), Payees (14), the old chooser and its steps (13,
-  /// 15–17), a payee transfer (19), Other Transfers (20) and Multiple
-  /// Transfers (21).
-  static const _transferScreens = {2, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21};
+  /// 15–17), a payee transfer (19), Other Transfers (20), Multiple
+  /// Transfers (21) and Repeat transfers (22).
+  static const _transferScreens = {2, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22};
 
   void _onNavSelected(String id) {
     switch (id) {
@@ -883,11 +884,15 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             _transferPayee = payee;
             _selectedBottomNavIndex = 19;
           }),
-          onOwnAccountTransferTap: () =>
-              setState(() => _selectedBottomNavIndex = 11),
+          // OBDX's Other Transfers (My Accounts, Demand Draft, Peer To
+          // Peer); My Accounts there opens Own Account Transfer (11).
+          onOtherTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 20),
           onPayeeHubTap: () => setState(() => _selectedBottomNavIndex = 14),
           onMultipleTransfersTap: () =>
               setState(() => _selectedBottomNavIndex = 21),
+          onRepeatTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 22),
         );
       case 3:
         return const RewardsTabScreen();
@@ -1025,6 +1030,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 2),
           onOwnAccountTap: () => setState(() => _selectedBottomNavIndex = 11),
+        );
+      case 22:
+        // Repeat transfers (standing instructions): "New" starts the
+        // Repeat Transfers - Existing Payee flow (19); back returns to the hub.
+        return RepeatTransfersScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onNewTap: () => setState(() {
+            _transferMode = NetworkTransferMode.repeatExistingPayee;
+            _transferPayee = null;
+            _selectedBottomNavIndex = 19;
+          }),
         );
       case 21:
         return MultipleTransfersScreen(

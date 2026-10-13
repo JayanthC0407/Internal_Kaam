@@ -187,19 +187,19 @@ void main() {
           PayeesScreen(embedded: true, onBack: () {}, onPayTap: (p) => paid.add(p.id)),
           width: width,
         );
-        expect(find.text('Accounts (2)'), findsOneWidget, reason: 'at $width');
+        expect(find.text('Account (2)'), findsOneWidget, reason: 'at $width');
         expect(find.text('John'), findsOneWidget);
         expect(find.text('Ana Lopez'), findsOneWidget);
         await tester.tap(find.byTooltip('Pay John'));
         expect(paid, ['P1']);
 
-        await tester.tap(find.text('Drafts (1)'));
+        await tester.tap(find.text('Demand Drafts (1)'));
         await tester.pumpAndSettle();
         expect(find.text('City Housing'), findsOneWidget);
         // Drafts can't be paid by a transfer — no "Pay".
         expect(find.byTooltip('Pay City Housing'), findsNothing);
 
-        await tester.tap(find.text('Peer to peer (1)'));
+        await tester.tap(find.text('Peer To Peer (1)'));
         await tester.pumpAndSettle();
         expect(find.text('Sam'), findsOneWidget);
         expect(find.textContaining('sam@example.com'), findsOneWidget);
@@ -224,9 +224,9 @@ void main() {
         tester,
         PayeesScreen(embedded: true, onBack: () {}, onAddPayee: added.add),
       );
-      await tester.tap(find.text('Add payee'));
+      await tester.tap(find.text('Add New'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Demand draft'));
+      await tester.tap(find.text('Add Draft Payee'));
       await tester.pumpAndSettle();
       expect(added, [AddPayeeFlow.demandDraft]);
     });
@@ -286,7 +286,7 @@ void main() {
 
         await tester.tap(find.byTooltip('More for John'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Delete payee'));
+        await tester.tap(find.text('Delete Payee'));
         await tester.pumpAndSettle();
         expect(find.text('Delete John?'), findsOneWidget);
         await tester.tap(find.text('Delete'));
@@ -309,7 +309,7 @@ void main() {
       await _pump(tester, PayeesScreen(embedded: true, onBack: () {}), api: api);
       await tester.tap(find.byTooltip('More for Ana Lopez'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete payee'));
+      await tester.tap(find.text('Delete Payee'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
@@ -343,7 +343,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('More for $name'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete payee'));
+      await tester.tap(find.text('Delete Payee'));
       await tester.pumpAndSettle();
     }
 

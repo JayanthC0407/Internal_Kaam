@@ -28,12 +28,14 @@ enum NetworkTransferMode {
   bool get startsAdhoc => this == adhocPayee || this == repeatAdhocPayee;
   bool get isLowValue => this == internationalLowValue;
 
-  /// The flow's title. Saved and new payees share one flow (a switch at
-  /// the top), so the title names the kind of payment, not the payee.
-  String get title => switch (this) {
-        existingPayee || adhocPayee => 'Send money',
-        repeatExistingPayee || repeatAdhocPayee => 'Repeat payment',
-        internationalLowValue => 'Pay abroad · low value',
+  /// The flow's title — OBDX's menu name for the payment, following the
+  /// Existing / Adhoc Payee switch at the top.
+  String title({required bool adhoc}) => switch (this) {
+        existingPayee || adhocPayee =>
+          adhoc ? 'Transfers - Adhoc Payee' : 'Transfers - Existing Payee',
+        repeatExistingPayee || repeatAdhocPayee =>
+          adhoc ? 'Repeat Transfers - Adhoc Payee' : 'Repeat Transfers - Existing Payee',
+        internationalLowValue => 'International Low Value Payment',
       };
 
   String intro({required bool adhoc}) => switch (this) {
@@ -508,7 +510,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
     };
 
     return PayFlowScaffold(
-      title: mode.title,
+      title: mode.title(adhoc: _adhoc),
       subtitle: switch (_step) {
         0 => mode.intro(adhoc: _adhoc),
         1 => 'Review and confirm',
@@ -572,7 +574,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PaySegmented<bool>(
-              options: const [(false, 'Saved payee'), (true, 'New payee')],
+              options: const [(false, 'Existing Payee'), (true, 'Adhoc Payee')],
               selected: _adhoc,
               onChanged: _switchPayeeMode,
             ),
@@ -1129,7 +1131,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
   Widget _result(TransferSubmissionState submission) {
     final r = _request!;
     return PayResultView(
-      title: r.isRepeat ? 'Repeat transfer set up' : 'Transfer submitted',
+      title: r.isRepeat ? 'Repeat Transfer set up' : 'Transfer submitted',
       message: r.isRepeat
           ? '${r.schedule!.frequency.label} transfers to ${r.payeeLabel} start on '
               '${payDate(r.schedule!.startDate)}.'
