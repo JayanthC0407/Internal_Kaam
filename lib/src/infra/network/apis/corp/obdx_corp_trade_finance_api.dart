@@ -527,42 +527,6 @@ class ObdxCorpTradeFinanceApi extends ObdxApiBase {
     });
   }
 
-  /// Uploads one attachment — `upload api.har` (see
-  /// [CorpTradeFinanceApiConst.contentUploadApi]). [index] is the file's
-  /// position in the batch, appended to `fileName` as the web does
-  /// (`main.dart.js0`).
-  Future<ResponseHandler<Map<String, dynamic>>> uploadContent({
-    required List<int> bytes,
-    required String fileName,
-    required String mimeType,
-    required int index,
-    required int fileCount,
-    String? documentTypeId,
-    String? documentCategoryId,
-    String comment = '',
-  }) {
-    return _run(() => dio.post(
-          ObdxApiUtils.appendLocaleQuery(
-            CorpTradeFinanceApiConst.contentUploadApi,
-          ),
-          queryParameters: {'fileName': '$fileName$index'},
-          data: FormData.fromMap({
-            'file': MultipartFile.fromBytes(
-              bytes,
-              filename: fileName,
-              contentType: DioMediaType.parse(mimeType),
-            ),
-            'transactionType': CorpTradeFinanceApiConst.uploadTransactionType,
-            'moduleIdentifier': CorpTradeFinanceApiConst.uploadModuleIdentifier,
-            'fileCount': '$fileCount',
-            'documentTypeId': documentTypeId ?? '',
-            'documentCategoryId': documentCategoryId ?? '',
-            'comment': comment,
-          }),
-          options: Options(contentType: 'multipart/form-data'),
-        ));
-  }
-
   // ── View LC tabs (H4 = `view_LC_details.har`) ─────────────────────
 
   /// Amendments of one LC — H4 #49.
