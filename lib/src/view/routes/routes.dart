@@ -34,6 +34,7 @@ import 'package:ubci_bank/src/view/screens/common/payees/add_peer_to_peer_payee_
 import 'package:ubci_bank/src/view/screens/common/payees/payee_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payees/payees_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/multiple_transfers_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/repeat_transfers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/other_transfers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/transfer_money_screen.dart';
@@ -439,6 +440,15 @@ class Routes {
           settings: routeSettings,
           child: const AuthenticatedSessionGate(
             child: OtherTransfersScreen(),
+          ),
+          type: PageTransitionType.rightToLeft,
+          duration: pageAnimDuration,
+        );
+      case RoutesConst.repeatTransfersScreen:
+        return PageTransition(
+          settings: routeSettings,
+          child: const AuthenticatedSessionGate(
+            child: RepeatTransfersScreen(),
           ),
           type: PageTransitionType.rightToLeft,
           duration: pageAnimDuration,

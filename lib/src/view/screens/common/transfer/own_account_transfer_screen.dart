@@ -417,7 +417,7 @@ class _OwnAccountTransferScreenState
       child: Scaffold(
         backgroundColor: HomeColors.bg(context),
         appBar: TransferMobileAppBar(
-          title: l10n.transferMoney,
+          title: l10n.ownAccountTransfer,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(12),
             child: Padding(
