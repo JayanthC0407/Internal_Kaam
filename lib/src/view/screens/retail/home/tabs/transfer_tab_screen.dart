@@ -14,36 +14,43 @@ import 'package:ubci_bank/src/view/screens/retail/home/widgets/home_menu_button.
 /// person picked one on the hub.
 typedef TransferStart = void Function(NetworkTransferMode mode, TransferPayee? payee);
 
-/// The Transfer hub — where every way of moving money starts:
+/// Payments — where every way of moving money starts, under the names
+/// OBDX's own menu uses (`framework/json/menu/retail.json`):
 ///
-///  - **Send to**: the saved payees as a strip of avatars; one tap starts a
-///    transfer to that person, "New" starts one to someone unsaved.
-///  - **Ways to pay**: the OBDX Transfers menu in plain words — a saved or
-///    new payee, between own accounts, repeat, abroad (low value), several
-///    at once.
-///  - **Manage**: payees, and the payment services still to come.
+///  - **Send to**: the saved payees as a strip of avatars; one tap starts
+///    Transfers - Existing Payee for that person, "Adhoc Payee" starts
+///    Transfers - Adhoc Payee.
+///  - **Transfers**: OBDX's seven Transfers items, in its order.
+///  - **Manage**: Payee, Repeat Transfers Inquiry, and the Payments items
+///    still to come.
 ///
 /// Wide layouts put Manage in a column beside the rest; phones stack it.
 class TransferTabScreen extends ConsumerWidget {
   const TransferTabScreen({
     super.key,
     this.onTransferTap,
-    this.onOwnAccountTransferTap,
+    this.onOtherTransfersTap,
     this.onPayeeHubTap,
     this.onMultipleTransfersTap,
+    this.onRepeatTransfersTap,
   });
 
   /// Opens a payee transfer inside the dashboard; pushes it otherwise.
   final TransferStart? onTransferTap;
 
-  /// Opens "Between My Accounts" inside the dashboard.
-  final VoidCallback? onOwnAccountTransferTap;
+  /// Opens Other Transfers (My Accounts, Demand Draft, Peer To Peer)
+  /// inside the dashboard.
+  final VoidCallback? onOtherTransfersTap;
 
   /// Opens the payee hub inside the dashboard.
   final VoidCallback? onPayeeHubTap;
 
   /// Opens Multiple Transfers inside the dashboard.
   final VoidCallback? onMultipleTransfersTap;
+
+  /// Opens the repeat transfers (standing instructions) inside the
+  /// dashboard.
+  final VoidCallback? onRepeatTransfersTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,41 +68,48 @@ class TransferTabScreen extends ConsumerWidget {
     void push(String route) => Navigator.of(context).pushNamed(route);
     final openPayees = onPayeeHubTap ?? () => push(RoutesConst.payeeHubScreen);
 
+    // OBDX's Payments ▸ Transfers menu: its names, in its order.
     final ways = [
       PayOptionTile(
         icon: Icons.person_outline_rounded,
-        title: 'Send money',
-        subtitle: 'To one of your saved payees',
+        title: 'Transfers - Existing Payee',
+        subtitle: 'Pay one of your saved payees',
         onTap: () => start(NetworkTransferMode.existingPayee),
       ),
       PayOptionTile(
         icon: Icons.person_add_alt_1_outlined,
-        title: 'Pay someone new',
-        subtitle: 'No need to save them first',
+        title: 'Transfers - Adhoc Payee',
+        subtitle: "Pay someone you haven't saved",
         onTap: () => start(NetworkTransferMode.adhocPayee),
       ),
       PayOptionTile(
-        icon: Icons.sync_alt_rounded,
-        title: 'Between my accounts',
-        subtitle: 'Move money instantly',
-        onTap: onOwnAccountTransferTap ?? () => push(RoutesConst.ownAccountTransferScreen),
-      ),
-      PayOptionTile(
         icon: Icons.event_repeat_rounded,
-        title: 'Repeat payment',
-        subtitle: 'Pay on a schedule',
+        title: 'Repeat Transfers - Existing Payee',
+        subtitle: 'Pay a saved payee on a schedule',
         onTap: () => start(NetworkTransferMode.repeatExistingPayee),
       ),
       PayOptionTile(
+        icon: Icons.update_rounded,
+        title: 'Repeat Transfers - Adhoc Payee',
+        subtitle: 'Pay someone new on a schedule',
+        onTap: () => start(NetworkTransferMode.repeatAdhocPayee),
+      ),
+      PayOptionTile(
+        icon: Icons.sync_alt_rounded,
+        title: 'Other Transfers',
+        subtitle: 'My Accounts, Demand Draft, Peer To Peer',
+        onTap: onOtherTransfersTap ?? () => push(RoutesConst.otherTransfersScreen),
+      ),
+      PayOptionTile(
         icon: Icons.public_rounded,
-        title: 'Pay abroad',
-        subtitle: 'Low-value payment over SWIFT gpi',
+        title: 'International Low Value Payment',
+        subtitle: 'Fast payment abroad over SWIFT gpi',
         onTap: () => start(NetworkTransferMode.internationalLowValue),
       ),
       PayOptionTile(
         icon: Icons.dynamic_feed_rounded,
-        title: 'Pay several at once',
-        subtitle: 'Up to 10 payees in one go',
+        title: 'Multiple Transfers',
+        subtitle: 'Pay up to 10 payees in one go',
         onTap: onMultipleTransfersTap ?? () => push(RoutesConst.multipleTransfersScreen),
       ),
     ];
@@ -116,12 +130,15 @@ class TransferTabScreen extends ConsumerWidget {
           final waysSection = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _SectionTitle('Ways to pay'),
+              const _SectionTitle('Transfers'),
               const SizedBox(height: 12),
               PayGrid(columns: phone ? 2 : 3, children: ways),
             ],
           );
-          final manage = _ManageSection(onPayees: openPayees);
+          final manage = _ManageSection(
+            onPayees: openPayees,
+            onRepeatTransfers: onRepeatTransfersTap ?? () => push(RoutesConst.repeatTransfersScreen),
+          );
 
           return ListView(
             padding: EdgeInsets.fromLTRB(pad, phone ? 16 : 22, pad, 32),
@@ -145,7 +162,7 @@ class TransferTabScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Transfer',
+                                  'Payments',
                                   style: TextStyle(
                                     color: HomeColors.textPrimary(context),
                                     fontSize: phone ? 26 : 30,
@@ -232,20 +249,20 @@ class _SendToCard extends ConsumerWidget {
         .toList();
     return PaySection(
       title: 'Send to',
-      trailing: TextButton(onPressed: onAllPayees, child: const Text('All payees')),
+      trailing: TextButton(onPressed: onAllPayees, child: const Text('Manage Payees')),
       child: payees.hasError
           ? PayErrorRetry(
               message: "We couldn't load your payees.",
               onRetry: () => ref.invalidate(transferPayeesProvider),
             )
           : SizedBox(
-              height: 92,
+              height: 106,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
                   _PayeeBubble(
-                    label: 'New',
-                    tooltip: 'Pay someone new',
+                    label: 'Adhoc Payee',
+                    tooltip: 'Transfers - Adhoc Payee',
                     avatar: const PayAvatar(name: 'New', size: 54, icon: Icons.add_rounded),
                     onTap: onNew,
                   ),
@@ -312,7 +329,8 @@ class _PayeeBubble extends StatelessWidget {
           if (label != null)
             Text(
               label!,
-              maxLines: 1,
+              maxLines: 2,
+              textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 12.5,
@@ -349,16 +367,17 @@ class _PayeeBubble extends StatelessWidget {
 
 /// Payees, and the OBDX payment services the app does not offer yet.
 class _ManageSection extends StatelessWidget {
-  const _ManageSection({required this.onPayees});
+  const _ManageSection({required this.onPayees, required this.onRepeatTransfers});
 
   final VoidCallback onPayees;
+  final VoidCallback onRepeatTransfers;
 
   static const _soon = [
-    (Icons.receipt_long_rounded, 'Payment status'),
-    (Icons.event_note_outlined, 'Standing instructions'),
-    (Icons.description_outlined, 'Demand drafts'),
-    (Icons.star_border_rounded, 'Favourites & drafts'),
-    (Icons.verified_outlined, 'Positive pay'),
+    (Icons.star_border_rounded, 'Favorites'),
+    (Icons.drafts_outlined, 'Saved Drafts'),
+    (Icons.receipt_long_rounded, 'Payment Status Inquiry'),
+    (Icons.description_outlined, 'Demand Draft'),
+    (Icons.verified_outlined, 'Positive Pay'),
     (Icons.groups_outlined, 'Debtors'),
   ];
 
@@ -372,9 +391,17 @@ class _ManageSection extends StatelessWidget {
         PayOptionTile(
           horizontal: true,
           icon: Icons.people_alt_outlined,
-          title: 'Payees',
-          subtitle: 'View, add and manage the people you pay',
+          title: 'Payee',
+          subtitle: 'Manage Payees, add account, draft and peer to peer payees',
           onTap: onPayees,
+        ),
+        const SizedBox(height: 12),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.event_repeat_rounded,
+          title: 'Repeat Transfers Inquiry',
+          subtitle: 'View and stop your repeat transfers',
+          onTap: onRepeatTransfers,
         ),
         const SizedBox(height: 12),
         PaySection(

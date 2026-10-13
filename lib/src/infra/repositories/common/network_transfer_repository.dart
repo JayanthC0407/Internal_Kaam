@@ -3,6 +3,7 @@ import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
 import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
+import 'package:ubci_bank/src/core/models/common/payment/standing_instruction.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
@@ -171,6 +172,97 @@ class NetworkTransferRepository extends ObdxRepositoryBase {
       error.httpStatusCode ?? statusCode,
       error.userMessage,
       obdxError: error,
+    );
+  }
+
+  // ── Repeat transfers (standing instructions) ────────────────────────
+
+  /// [status] `ACTIVE` or `CANCELLED`.
+  Future<ResponseHandler<StandingInstructionPage>> fetchInstructions(String status) async =>
+      parseBody(
+        await _payments.fetchInstructions(status: status),
+        StandingInstructionPage.fromPayload,
+      );
+
+  Future<ResponseHandler<StandingInstructionDetail>> fetchInstructionDetail(
+    StandingInstruction instruction,
+  ) async =>
+      parseBody(
+        await _payments.fetchInstruction(instruction.reference, partyId: instruction.partyId),
+        StandingInstructionDetail.fromPayload,
+      );
+
+  /// Stops [instruction]: `POST` then `PATCH` `…/sicancellation/{ref}`, as
+  /// OBDX's detail screen does. When the bank asks for an OTP the outcome
+  /// carries its challenge; call again with [otp] and only the `PATCH` is
+  /// repeated.
+  Future<ResponseHandler<InstructionStopOutcome>> stopInstruction(
+    StandingInstruction instruction, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final body = <String, dynamic>{
+      if (instruction.partyId != null) 'partyId': instruction.partyId,
+      if (instruction.debitAccountValue != null)
+        'debitAccountNumber': {
+          'value': instruction.debitAccountValue,
+          'displayValue': instruction.debitAccount,
+        },
+    };
+    final otpValue = otp?.trim() ?? '';
+    final otpSubmitted = challenge != null && otpValue.isNotEmpty;
+
+    if (!otpSubmitted) {
+      final started = await _payments.startInstructionStop(instruction.reference, body);
+      if (started is! Success<Map<String, dynamic>> || started.data == null) {
+        return mapFailure(started);
+      }
+      final status = started.data!['statusCode'] as int? ?? 0;
+      final startBody = ObdxApiUtils.asMap(started.data!['body'] ?? started.data!['rawBody']);
+      if ((status != StatusCode.OK && status != StatusCode.CREATED) ||
+          ObdxApiUtils.hasErrorMessage(startBody)) {
+        final error = ObdxErrorMapper.fromHttpResponse(status, startBody);
+        return ResponseHandler.error(error.httpStatusCode ?? status, error.userMessage, obdxError: error);
+      }
+    }
+
+    final result = await _payments.confirmInstructionStop(
+      instruction.reference,
+      body,
+      challengeResponseHeader:
+          otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
+    );
+    if (result is! Success<Map<String, dynamic>> || result.data == null) {
+      return mapFailure(result);
+    }
+    final wrapped = result.data!;
+    final status = wrapped['statusCode'] as int? ?? 0;
+    final responseBody = ObdxApiUtils.asMap(wrapped['body'] ?? wrapped['rawBody']);
+
+    if (status == ApiConst.expectationFailed) {
+      final next = ObdxChallenge.fromPaymentChallengeHeaders(wrapped['headers']);
+      if (next != null) {
+        return ResponseHandler.success(
+          InstructionStopOutcome.otpRequired(next, invalidOtp: otpSubmitted),
+          code: status,
+        );
+      }
+      final error = otpSubmitted
+          ? ObdxErrorMapper.fromChallengeResponse(status, responseBody)
+          : ObdxErrorMapper.fromHttpResponse(status, responseBody);
+      return ResponseHandler.error(error.httpStatusCode ?? status, error.userMessage, obdxError: error);
+    }
+
+    final accepted = status == StatusCode.ACCEPTED;
+    if (!accepted && ObdxApiUtils.hasErrorMessage(responseBody)) {
+      final error = ObdxErrorMapper.fromHttpResponse(status, responseBody);
+      return ResponseHandler.error(error.httpStatusCode ?? status, error.userMessage, obdxError: error);
+    }
+    final reference = ObdxApiUtils.asMap(responseBody['status'])['referenceNumber'] ??
+        responseBody['externalReferenceId'];
+    return ResponseHandler.success(
+      InstructionStopOutcome.stopped(reference: reference?.toString(), pendingApproval: accepted),
+      code: status,
     );
   }
 

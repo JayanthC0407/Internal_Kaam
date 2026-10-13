@@ -31,7 +31,7 @@ class OtherTransfersScreen extends StatelessWidget {
         PayOptionTile(
           horizontal: true,
           icon: Icons.sync_alt_rounded,
-          title: 'Between My Accounts',
+          title: 'My Accounts',
           subtitle: 'Move money between your own accounts',
           onTap: onOwnAccountTap ??
               () => Navigator.of(context).pushNamed(RoutesConst.ownAccountTransferScreen),
@@ -48,7 +48,7 @@ class OtherTransfersScreen extends StatelessWidget {
           horizontal: true,
           comingSoon: true,
           icon: Icons.alternate_email_rounded,
-          title: 'Peer to Peer',
+          title: 'Peer To Peer',
           subtitle: 'Pay someone by email or mobile number',
           onTap: null,
         ),

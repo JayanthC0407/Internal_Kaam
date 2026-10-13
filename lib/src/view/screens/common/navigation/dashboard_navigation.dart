@@ -510,9 +510,12 @@ class _SubNavRow extends StatelessWidget {
               Icon(icon, size: 16, color: foreground),
               const SizedBox(width: 10),
               Expanded(
+                // Two lines rather than an ellipsis: OBDX's menu names
+                // ("Current & Savings", "Loans & Finances") are long for
+                // the sidebar's width.
                 child: Text(
                   label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: foreground,

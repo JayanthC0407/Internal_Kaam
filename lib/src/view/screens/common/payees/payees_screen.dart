@@ -150,23 +150,23 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen> {
   Future<void> _chooseAddPayee() async {
     final flow = await showPayPicker<AddPayeeFlow>(
       context,
-      title: 'Add a payee',
+      title: 'Add New',
       options: const [
         PayOption(
           value: AddPayeeFlow.bankAccount,
-          title: 'Bank account',
+          title: 'Add Account Payee',
           subtitle: 'Pay them by account number',
           icon: Icons.account_balance_outlined,
         ),
         PayOption(
           value: AddPayeeFlow.demandDraft,
-          title: 'Demand draft',
+          title: 'Add Draft Payee',
           subtitle: 'Pay them with a bank draft',
           icon: Icons.description_outlined,
         ),
         PayOption(
           value: AddPayeeFlow.peerToPeer,
-          title: 'Peer to peer',
+          title: 'Add Peer To Peer Payee',
           subtitle: 'Pay them by mobile number or email',
           icon: Icons.alternate_email_rounded,
         ),
@@ -389,9 +389,10 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen> {
 
     String count(int n, bool loaded) => loaded ? ' ($n)' : '';
     final tabs = [
-      (_PayeeTab.accounts, 'Accounts${count(accountRows.length, !accounts.isLoading)}'),
-      (_PayeeTab.drafts, 'Drafts${count(draftRows.length, drafts.hasValue)}'),
-      (_PayeeTab.peerToPeer, 'Peer to peer${count(p2pRows.length, p2p.hasValue)}'),
+      // OBDX's own tab names (payee-list).
+      (_PayeeTab.accounts, 'Account${count(accountRows.length, !accounts.isLoading)}'),
+      (_PayeeTab.drafts, 'Demand Drafts${count(draftRows.length, drafts.hasValue)}'),
+      (_PayeeTab.peerToPeer, 'Peer To Peer${count(p2pRows.length, p2p.hasValue)}'),
     ];
 
     final (rows, loading, error, retry) = switch (_tab) {
@@ -418,7 +419,7 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen> {
     final shown = q.isEmpty ? rows : rows.where((r) => r.matches(q)).toList();
 
     return PayMenuPage(
-      title: 'Manage payees',
+      title: 'Manage Payees',
       subtitle: total == 0 ? 'The people and businesses you pay' : '$total saved payees',
       onBack: _goBack,
       builder: (context, wide) {
@@ -426,7 +427,7 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen> {
           onChanged: (v) => setState(() => _query = v),
           decoration: payInputDecoration(
             context,
-            hint: 'Search name, account, email…',
+            hint: 'Search By Payee Name',
             prefixIcon: Padding(
               padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
               child: Icon(Icons.search_rounded, size: 20, color: HomeColors.textSecondary(context)),
@@ -434,7 +435,7 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen> {
           ),
         );
         final add = PayPrimaryButton(
-          label: 'Add payee',
+          label: 'Add New',
           icon: Icons.person_add_alt_1_rounded,
           onPressed: _chooseAddPayee,
         );
@@ -465,7 +466,7 @@ class _PayeesScreenState extends ConsumerState<PayeesScreen> {
                   Expanded(child: search),
                   const SizedBox(width: 10),
                   Tooltip(
-                    message: 'Add payee',
+                    message: 'Add New',
                     child: SizedBox(
                       width: 52,
                       height: 52,
@@ -747,7 +748,7 @@ class _PayeeLine extends StatelessWidget {
                               children: [
                                 Icon(Icons.delete_outline_rounded, size: 20, color: HomeColors.error(context)),
                                 const SizedBox(width: 10),
-                                Text('Delete payee', style: TextStyle(color: HomeColors.error(context))),
+                                Text('Delete Payee', style: TextStyle(color: HomeColors.error(context))),
                               ],
                             ),
                           ),
@@ -798,17 +799,17 @@ class _EmptyTab extends StatelessWidget {
       _PayeeTab.accounts => (
           'No account payees yet',
           'Save someone you pay by account number, then pay them in a tap.',
-          'Add a bank account payee',
+          'Add Account Payee',
         ),
       _PayeeTab.drafts => (
           'No draft payees yet',
           'Save who your demand drafts are made out to.',
-          'Add a draft payee',
+          'Add Draft Payee',
         ),
       _PayeeTab.peerToPeer => (
           'No peer-to-peer payees yet',
           'Save someone you pay by mobile number or email.',
-          'Add a peer-to-peer payee',
+          'Add Peer To Peer Payee',
         ),
     };
     return Padding(
