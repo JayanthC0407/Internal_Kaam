@@ -1,142 +1,97 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/core/theme/app_spacing.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/coming_soon_tile.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 
-/// Transfers module. Consolidates transfer choices into user-oriented
-/// journeys.
+/// The OBDX "Transfers" menu: its seven items, in the bank's order and
+/// under the bank's names.
 ///
-/// "International Low Value Payment" is the real OBDX name for this
-/// capability and is only ever shown here — it must not be relabelled
-/// "International Transfer" or surfaced outside Transfers, since the
-/// broader "international transfer" experience is actually delivered via
-/// Adhoc Payee Transfer (beneficiary type: Internal / Domestic /
-/// International), not via this module.
+/// Each item calls back when [embedded] in the dashboard (so the side menu
+/// stays), and otherwise pushes its own screen.
 class TransfersModuleScreen extends StatelessWidget {
   const TransfersModuleScreen({
     super.key,
     this.embedded = false,
     this.onBack,
-    this.onTransferMoneyTap,
-    this.onInternationalPaymentTap,
+    this.onTransferTap,
+    this.onOtherTransfersTap,
+    this.onMultipleTransfersTap,
   });
 
-  /// When true, runs as a Home tab (see [HomeDashboardScreen]) instead of a
-  /// pushed full screen, so the drawer (mobile/tablet) / persistent sidebar
-  /// (desktop) stays visible instead of being covered by a full-page route.
   final bool embedded;
-
-  /// Returns to the Transfer tab. Only meaningful (and only supplied) when
-  /// [embedded] — a pushed route just pops normally instead.
   final VoidCallback? onBack;
 
-  /// Opens Transfer Money as another embedded Home tab instead of pushing
-  /// a route. Only meaningful (and only supplied) when [embedded] — a
-  /// pushed route just pushes [TransferMoneyScreen] normally instead.
-  final VoidCallback? onTransferMoneyTap;
-
-  /// Opens "International Low Value Payment" ([InternationalPaymentScreen])
-  /// as another embedded Home tab instead of pushing a route. Only
-  /// meaningful (and only supplied) when [embedded] — a pushed route just
-  /// pushes [InternationalPaymentScreen] normally instead.
-  final VoidCallback? onInternationalPaymentTap;
+  /// Opens a payee transfer in [NetworkTransferMode] inside the dashboard.
+  final ValueChanged<NetworkTransferMode>? onTransferTap;
+  final VoidCallback? onOtherTransfersTap;
+  final VoidCallback? onMultipleTransfersTap;
 
   @override
   Widget build(BuildContext context) {
-    final responsive = Responsive.of(context);
-    final textPrimary = HomeColors.textPrimary(context);
-    final brand = HomeColors.brand(context);
+    void transfer(NetworkTransferMode mode) {
+      final tap = onTransferTap;
+      if (tap != null) return tap(mode);
+      Navigator.of(context).pushNamed(RoutesConst.networkTransferScreen, arguments: mode);
+    }
 
-    return Scaffold(
-      backgroundColor: HomeColors.bg(context),
-      appBar: AppBar(
-        title: const Text('Transfers'),
-        backgroundColor: HomeColors.bg(context),
-        foregroundColor: textPrimary,
-        elevation: 0,
-        // A plain AppBar only auto-adds a back arrow when there's a route
-        // to pop — embedded swaps tab content instead of pushing a route,
-        // so without this, embedded left no way back to the Transfer tab.
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: embedded ? onBack : () => Navigator.of(context).maybePop(),
+    return PayMenuPage(
+      title: 'Transfers',
+      subtitle: 'Every way to send money',
+      onBack: embedded ? onBack : null,
+      tiles: [
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.person_outline_rounded,
+          title: 'Transfers - Existing Payee',
+          subtitle: 'Pay a saved payee — within the bank, domestic or international',
+          onTap: () => transfer(NetworkTransferMode.existingPayee),
         ),
-      ),
-      body: SafeArea(
-        child: ResponsiveBody(
-          maxWidth: 900,
-          padding: EdgeInsets.fromLTRB(
-            responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-            AppSpacing.xl,
-            responsive.isPhone ? AppSpacing.lg : AppSpacing.xxxl,
-            AppSpacing.xxxl,
-          ),
-          child: ListView(
-            children: [
-              Card(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                  leading: CircleAvatar(
-                    backgroundColor: brand.withValues(alpha: 0.1),
-                    child: Icon(Icons.send_rounded, color: brand),
-                  ),
-                  title: const Text('Transfer Money'),
-                  subtitle: const Text('Existing or adhoc payee — internal, domestic or international'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: onTransferMoneyTap ??
-                      () => Navigator.of(context).pushNamed(
-                            RoutesConst.transferMoneyScreen,
-                          ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Card(
-                child: ComingSoonTile(
-                  icon: Icons.replay_rounded,
-                  title: 'Repeat Transfer',
-                  subtitle: 'Existing or adhoc payee',
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Card(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                  leading: CircleAvatar(
-                    backgroundColor: brand.withValues(alpha: 0.1),
-                    child: Icon(Icons.public_rounded, color: brand),
-                  ),
-                  title: const Text('International Low Value Payment'),
-                  subtitle: const Text('Low-value cross-border payment'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: onInternationalPaymentTap ??
-                      () => Navigator.of(context).pushNamed(
-                            RoutesConst.internationalPaymentScreen,
-                          ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Card(
-                child: ComingSoonTile(
-                  icon: Icons.dynamic_feed_rounded,
-                  title: 'Multiple Transfers',
-                  subtitle: 'Pay several beneficiaries at once',
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Card(
-                child: ComingSoonTile(
-                  icon: Icons.more_horiz_rounded,
-                  title: 'Other Transfers',
-                  subtitle: 'More transfer options',
-                ),
-              ),
-            ],
-          ),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.person_add_alt_1_outlined,
+          title: 'Transfers - Adhoc Payee',
+          subtitle: "Pay someone you haven't saved as a payee",
+          onTap: () => transfer(NetworkTransferMode.adhocPayee),
         ),
-      ),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.event_repeat_rounded,
+          title: 'Repeat Transfers - Existing Payee',
+          subtitle: 'Pay a saved payee on a schedule',
+          onTap: () => transfer(NetworkTransferMode.repeatExistingPayee),
+        ),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.update_rounded,
+          title: 'Repeat Transfers - Adhoc Payee',
+          subtitle: 'Pay someone new on a schedule',
+          onTap: () => transfer(NetworkTransferMode.repeatAdhocPayee),
+        ),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.more_horiz_rounded,
+          title: 'Other Transfers',
+          subtitle: 'Between your accounts and more',
+          onTap: onOtherTransfersTap ??
+              () => Navigator.of(context).pushNamed(RoutesConst.otherTransfersScreen),
+        ),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.public_rounded,
+          title: 'International Low Value Payment',
+          subtitle: 'Fast, low-value payment abroad over SWIFT gpi',
+          onTap: () => transfer(NetworkTransferMode.internationalLowValue),
+        ),
+        PayOptionTile(
+          horizontal: true,
+          icon: Icons.dynamic_feed_rounded,
+          title: 'Multiple Transfers',
+          subtitle: 'Pay several payees from one account',
+          onTap: onMultipleTransfersTap ??
+              () => Navigator.of(context).pushNamed(RoutesConst.multipleTransfersScreen),
+        ),
+      ],
     );
   }
 }

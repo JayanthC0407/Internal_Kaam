@@ -266,6 +266,63 @@ class ApiConst {
   static const String paymentsPayNetworkApi =
       '/digx-payments/payment/v1/payments/pay/network';
 
+  // ── Transfers to payees (OBDX 22.2 `digx-payments` server, read from its
+  // REST resources) ──────────────────────────────────────────────────────
+
+  /// Repeat (standing-instruction) transfers — `POST`, body
+  /// `NetworkPaymentInstructionDTO` (`pay/network`'s body plus frequency,
+  /// startDate, endDate, instances).
+  static const String paymentsPayNetworkInstructionApi =
+      '/digx-payments/payment/v1/payments/pay/networkInstruction';
+
+  /// International Low Value Payment (SWIFT GPI) currencies with per
+  /// currency min/max — `GET`.
+  static const String paymentsGpiCurrenciesApi =
+      '/digx-payments/payment/v1/payments/pay/network/currencies';
+
+  /// Purposes allowed on a network — `GET ?networkCode=` →
+  /// `purposes[]{purposeCode, purposeDescription}`.
+  static const String paymentsNetworkPurposesApi =
+      '/digx-payments/payment/v1/payments/maintenances/networkPurposeMapping';
+
+  /// A bank by clearing code on a network — `GET …/{clearingCode}?network=`.
+  static String paymentsNetworkCodeDetailsApi(String clearingCode) =>
+      '/digx-payments/payment/v1/payments/fetchNetworkCodeDetails/'
+      '${Uri.encodeComponent(clearingCode)}';
+
+  /// A bank by SWIFT/BIC — `GET …/bicCodeDetails/{BICCode}`.
+  static String paymentsBicDetailsApi(String bic) =>
+      '/digx-payments/payment/v1/payments/financialInstitution/'
+      'bicCodeDetails/${Uri.encodeComponent(bic)}';
+
+  /// The `digx-payments` batch servlet (`/batch/*` in its web.xml): several
+  /// payment calls in one multipart `POST` — see `ObdxBatchEncoder`. No
+  /// `/payment/v1`: each part names its own application and path.
+  static const String paymentsBatchApi = '/digx-payments/batch';
+
+  /// `Application-Id` of a part bound for the payment REST application.
+  static const String paymentsBatchApplicationId = 'digx-payments/payment';
+
+  /// Repeat transfers (standing instructions) — `GET ?status=&pageSize=
+  /// &pageNumber=` → `instructionsList[]` (OBDX
+  /// `components/payments/standing-instructions-list`).
+  static const String paymentsInstructionsApi =
+      '/digx-payments/payment/v1/payments/instructions';
+
+  /// One instruction and its payment history — `GET ?partyId=` →
+  /// `instructionDetails.paymentDetailsList[]`.
+  static String paymentsInstructionApi(String reference) =>
+      '$paymentsInstructionsApi/${Uri.encodeComponent(reference)}';
+
+  /// Stopping an instruction: `POST` starts it, `PATCH` confirms it (and is
+  /// where the bank asks for an OTP) — `standing-instruction-detail`.
+  static String paymentsInstructionStopApi(String reference) =>
+      '$paymentsInstructionsApi/sicancellation/${Uri.encodeComponent(reference)}';
+
+  /// Repeat frequencies — `GET` → `enumRepresentations[0].data[]`.
+  static const String paymentsFrequencyEnumApi =
+      '/digx-payments/payment/v1/enumerations/paymentFrequency';
+
   /// Transfer-eligible accounts (digx-ui task code for self transfer).
   static const String transferAccountsApi = '/digx-common/account/v1/accounts';
 

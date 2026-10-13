@@ -830,6 +830,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuTermDeposits => 'Term Deposits';
 
   @override
+  String get menuPayments => 'Payments';
+
+  @override
+  String get ownAccountTransfer => 'Own Account Transfer';
+
+  @override
   String get menuRecurringDeposits => 'Recurring Deposits';
 
   @override
@@ -2018,13 +2024,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tdInterestRate => 'Interest rate';
 
   @override
-  String get tdTopUp => 'Top up';
+  String get tdTopUp => 'Top Up';
 
   @override
   String get tdRedeem => 'Redeem';
 
   @override
-  String get tdEditMaturity => 'Edit maturity';
+  String get tdEditMaturity => 'Edit Maturity Instructions';
 
   @override
   String get tdDepositDetails => 'Deposit details';
@@ -2168,7 +2174,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tdRevisedInterestRate => 'Revised interest rate';
 
   @override
-  String get tdTopUpTitle => 'Top up deposit';
+  String get tdTopUpTitle => 'Top Up';
 
   @override
   String get tdTopUpAmount => 'Top-up amount';
@@ -2183,7 +2189,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tdTopUpDoneMessage => 'Your top-up has been added to the deposit.';
 
   @override
-  String get tdRedeemTitle => 'Redeem deposit';
+  String get tdRedeemTitle => 'Redeem Term Deposit';
 
   @override
   String get tdRedemptionType => 'Redemption type';
@@ -2227,7 +2233,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'Your deposit redemption has been submitted.';
 
   @override
-  String get tdEditMaturityTitle => 'Edit maturity instructions';
+  String get tdEditMaturityTitle => 'Edit Maturity Instructions';
 
   @override
   String get tdEditMaturityIntro =>
@@ -2270,7 +2276,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'The new instructions will apply when the deposit matures.';
 
   @override
-  String get tdOpenTitle => 'Open a term deposit';
+  String get tdOpenTitle => 'New Term Deposit';
 
   @override
   String get tdOpenIntro =>

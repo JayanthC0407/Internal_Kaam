@@ -43,8 +43,10 @@ class RetailNav {
         ),
         DashboardNavItem(
           id: transfer,
-          label: l10n.transfer,
+          label: l10n.menuPayments,
           icon: Icons.swap_horiz_rounded,
+          // OBDX's Payments. One entry, no submenu: it opens the Payments
+          // hub, which lays out every transfer on one page.
         ),
         DashboardNavItem(
           id: rewards,
@@ -59,12 +61,12 @@ class RetailNav {
             // TODO(l10n): sub-item labels.
             const DashboardNavItem(
               id: accountsCasa,
-              label: 'CASA',
+              label: 'Current & Savings',
               icon: Icons.account_balance_wallet_outlined,
             ),
             const DashboardNavItem(
               id: accountsLoans,
-              label: 'Loans',
+              label: 'Loans & Finances',
               icon: Icons.request_quote_outlined,
             ),
             DashboardNavItem(

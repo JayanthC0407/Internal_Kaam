@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
@@ -44,9 +45,10 @@ import 'home/widgets/retail_nav.dart';
 // under `screens/common/` rather than in the Retail tree.
 import '../common/payments/transfers_module_screen.dart';
 import '../common/payments/transfer_money_screen.dart';
-import '../common/payments/internal_payment_screen.dart';
-import '../common/payments/adhoc_payee_transfer_screen.dart';
-import '../common/payments/international_payment_screen.dart';
+import '../common/payments/multiple_transfers_screen.dart';
+import '../common/payments/network_transfer_screen.dart';
+import '../common/payments/other_transfers_screen.dart';
+import '../common/payments/repeat_transfers_screen.dart';
 import '../common/payees/payee_hub_screen.dart';
 import '../common/payees/add_bank_account_payee_screen.dart';
 import '../common/payees/add_demand_draft_payee_screen.dart';
@@ -110,11 +112,17 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// any caller that doesn't set it explicitly.
   int _payeeFlowHomeIndex = 0;
 
-  /// Tab to return to when "Transfer Money" (index 13) is closed — it has
-  /// two entry points (the Transfer tab's own "Transfer" Quick Action, and
-  /// the "Transfers" module's "Transfer Money" tile), so this records
-  /// which one was actually used. Set right before switching to 13.
-  int _transferMoneyReturnIndex = 2;
+  /// Tab to return to when "Transfer Money" (index 13) is closed. Nothing
+  /// opens 13 since the Transfer hub replaced its chooser (the hub starts
+  /// each kind of transfer directly); 13, 15, 16 and 17 stay until the old
+  /// chooser screens are removed.
+  final int _transferMoneyReturnIndex = 2;
+
+  /// The payee transfer shown at index 19, chosen from the Transfers menu.
+  NetworkTransferMode _transferMode = NetworkTransferMode.existingPayee;
+
+  /// The saved payee picked on the Transfer hub's payee strip, for 19.
+  TransferPayee? _transferPayee;
 
   bool _hideTotalBalance = true;
   final Set<String> _revealedAccountIds = <String>{};
@@ -806,10 +814,19 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         break;
     }
     final index = _selectedBottomNavIndex;
-    // Tabs past the first five are screens opened from within one (payees,
-    // transfers), which the menu has no entry for.
+    // Every screen started from the Transfer hub keeps Transfer lit, so the
+    // menu always shows where you are.
+    if (_transferScreens.contains(index)) return RetailNav.transfer;
+    // Other tabs past the first five are screens opened from within one
+    // (payees), which the menu has no entry for.
     return index < RetailNav.tabIds.length ? RetailNav.tabIds[index] : null;
   }
+
+  /// The hub (2) and what opens from it: Between My Accounts (11), the
+  /// Transfers list (12), Payees (14), the old chooser and its steps (13,
+  /// 15–17), a payee transfer (19), Other Transfers (20), Multiple
+  /// Transfers (21) and Repeat transfers (22).
+  static const _transferScreens = {2, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22};
 
   void _onNavSelected(String id) {
     switch (id) {
@@ -828,6 +845,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     // A menu choice replaces whatever was opened on top.
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() {
+      _transferPayee = null;
       _selectedBottomNavIndex = index;
       _selectedPayeeDestination = null;
       _selectedAccountsDestination = null;
@@ -858,14 +876,23 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return const InsightsTabScreen();
       case 2:
         return TransferTabScreen(
-          onOwnAccountTransferTap: () =>
-              setState(() => _selectedBottomNavIndex = 11),
-          onTransfersTap: () => setState(() => _selectedBottomNavIndex = 12),
-          onPayeeHubTap: () => setState(() => _selectedBottomNavIndex = 14),
-          onTransferMoneyTap: () => setState(() {
-            _transferMoneyReturnIndex = 2;
-            _selectedBottomNavIndex = 13;
+          // Every way to pay opens embedded: a payee transfer (19, by mode,
+          // with the payee picked on the hub's strip), Between My Accounts
+          // (11), Payees (14) and Multiple Transfers (21).
+          onTransferTap: (mode, payee) => setState(() {
+            _transferMode = mode;
+            _transferPayee = payee;
+            _selectedBottomNavIndex = 19;
           }),
+          // OBDX's Other Transfers (My Accounts, Demand Draft, Peer To
+          // Peer); My Accounts there opens Own Account Transfer (11).
+          onOtherTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 20),
+          onPayeeHubTap: () => setState(() => _selectedBottomNavIndex = 14),
+          onMultipleTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 21),
+          onRepeatTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 22),
         );
       case 3:
         return const RewardsTabScreen();
@@ -874,6 +901,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 5:
         return PayeesScreen(
           embedded: true,
+          // "Pay" on an account payee starts the transfer to them.
+          onPayTap: (payee) => setState(() {
+            _transferMode = NetworkTransferMode.existingPayee;
+            _transferPayee = payee;
+            _selectedBottomNavIndex = 19;
+          }),
           onAddPayee: (flow) => setState(() {
             _addPayeeOpenedFromManage = true;
             _selectedPayeeDestination = switch (flow) {
@@ -929,12 +962,17 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return TransfersModuleScreen(
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 2),
-          onTransferMoneyTap: () => setState(() {
-            _transferMoneyReturnIndex = 12;
-            _selectedBottomNavIndex = 13;
+          // Its seven items open embedded too: a payee transfer (19, by
+          // mode), Other Transfers (20) and Multiple Transfers (21).
+          onTransferTap: (mode) => setState(() {
+            _transferMode = mode;
+            _transferPayee = null;
+            _selectedBottomNavIndex = 19;
           }),
-          onInternationalPaymentTap: () =>
-              setState(() => _selectedBottomNavIndex = 17),
+          onOtherTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 20),
+          onMultipleTransfersTap: () =>
+              setState(() => _selectedBottomNavIndex = 21),
         );
       case 13:
         // "Transfer Money" (Existing/Adhoc Payee chooser) — same reasoning
@@ -954,14 +992,16 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 15:
         // "Existing Payee" transfer, reached from Transfer Money (13) —
         // embedded so the sidebar/drawer never disappears here either.
-        return InternalPaymentScreen(
+        return NetworkTransferScreen(
+          mode: NetworkTransferMode.existingPayee,
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 13),
         );
       case 16:
         // "Adhoc Payee" transfer, reached from Transfer Money (13) — same
         // reasoning as case 15.
-        return AdhocPayeeTransferScreen(
+        return NetworkTransferScreen(
+          mode: NetworkTransferMode.adhocPayee,
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 13),
         );
@@ -969,9 +1009,44 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // "International Low Value Payment", reached from the Transfers
         // module (12) directly (not via Transfer Money) — same reasoning
         // as case 15/16.
-        return InternationalPaymentScreen(
+        return NetworkTransferScreen(
+          mode: NetworkTransferMode.internationalLowValue,
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 12),
+        );
+      case 19:
+        // A payee transfer chosen on the Transfer hub, the menu or the
+        // Transfers list — keyed by its mode and payee so each choice
+        // starts a fresh form. Back returns to the hub.
+        return NetworkTransferScreen(
+          key: ValueKey((_transferMode, _transferPayee?.id)),
+          mode: _transferMode,
+          initialPayee: _transferPayee,
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+        );
+      case 20:
+        return OtherTransfersScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onOwnAccountTap: () => setState(() => _selectedBottomNavIndex = 11),
+        );
+      case 22:
+        // Repeat transfers (standing instructions): "New" starts the
+        // Repeat Transfers - Existing Payee flow (19); back returns to the hub.
+        return RepeatTransfersScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onNewTap: () => setState(() {
+            _transferMode = NetworkTransferMode.repeatExistingPayee;
+            _transferPayee = null;
+            _selectedBottomNavIndex = 19;
+          }),
+        );
+      case 21:
+        return MultipleTransfersScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 2),
         );
       case 14:
         // "Payee" hub — reached directly from the Transfer tab (Quick
@@ -988,6 +1063,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return PayeeHubScreen(
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          // "Pay" on a payee starts the transfer to them, as on the hub.
+          onPayTap: (payee) => setState(() {
+            _transferMode = NetworkTransferMode.existingPayee;
+            _transferPayee = payee;
+            _selectedBottomNavIndex = 19;
+          }),
           onManagePayeesTap: () => setState(() {
             _payeeFlowHomeIndex = 14;
             _selectedBottomNavIndex = 5;

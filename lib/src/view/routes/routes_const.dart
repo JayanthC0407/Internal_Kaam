@@ -34,6 +34,11 @@ class RoutesConst {
   static const String transfersModuleScreen = '/transfers_module_screen';
   static const String transferMoneyScreen = '/transfer_money_screen';
   static const String adhocPayeeTransferScreen = '/adhoc_payee_transfer_screen';
+  /// A payee transfer; arguments: its `NetworkTransferMode`.
+  static const String networkTransferScreen = '/network_transfer_screen';
+  static const String otherTransfersScreen = '/other_transfers_screen';
+  static const String multipleTransfersScreen = '/multiple_transfers_screen';
+  static const String repeatTransfersScreen = '/repeat_transfers_screen';
 
   /// Own-account transfer — ported from vendor branch. Distinct from the
   /// existing Payments module ([transfersModuleScreen] / [transferMoneyScreen]).
