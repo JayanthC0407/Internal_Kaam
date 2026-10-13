@@ -32,9 +32,10 @@ enum CorpNavDestination {
 
   /// The Corporate side-menu entries, for the shared
   /// [DashboardNavigationSidebar] / [DashboardNavDrawer]. Ids are the
-  /// destinations' names, except [tradeFinance]'s Letter of Credit options,
-  /// which nest three levels deep (Trade Finance ▸ Import/Export Letter of
-  /// Credit ▸ option) — see [fromNavId] and [lcActionFromNavId].
+  /// destinations' names, except [tradeFinance]'s options, which nest four
+  /// levels deep (Trade Finance ▸ Letter of Credit / Bank Guarantee ▸
+  /// group ▸ option) — see [fromNavId], [lcActionFromNavId] and
+  /// [navIdForLcAction].
   ///
   /// [lcPermissions] hides options the signed-in user's `me/components`
   /// does not entitle them to, and hides [tradeFinance] entirely when none
@@ -57,40 +58,65 @@ enum CorpNavDestination {
     return items;
   }
 
-  /// Trade Finance ▸ Import/Export Letter of Credit ▸ option — the "Letter
-  /// of Credit" level of the source menu tree is dropped since it has only
-  /// the one child. Null when the user has no Trade Finance entitlements at
-  /// all, so the whole destination disappears from the menu.
+  /// Trade Finance ▸ section ▸ group ▸ option. A section or group the user
+  /// has nothing allowed in is dropped; null when nothing at all is
+  /// allowed, so the whole destination disappears from the menu.
   static DashboardNavItem? _tradeFinanceItem(LcPermissions permissions) {
-    final groups = [
-      for (final group in LcMenuGroup.values)
-        if (group.allowedActions(permissions).isNotEmpty)
-          DashboardNavItem(
-            id: '${tradeFinance.name}.${group.name}',
+    final sections = <DashboardNavItem>[];
+    for (final section in TfMenuSection.values) {
+      final groups = <DashboardNavItem>[];
+      for (final group in section.groups) {
+        final allowed = group.allowedActions(permissions);
+        if (allowed.isEmpty) continue;
+        if (group.isPlaceholder) {
+          // One placeholder option: a plain row, not a one-child folder.
+          groups.add(DashboardNavItem(
+            id: navIdForLcAction(allowed.single),
             label: group.label,
             icon: group.icon,
-            children: [
-              for (final action in group.allowedActions(permissions))
-                DashboardNavItem(
-                  id: '${tradeFinance.name}.${group.name}.${action.name}',
-                  label: action.label,
-                  icon: action.icon,
-                ),
-            ],
-          ),
-    ];
-    if (groups.isEmpty) return null;
+          ));
+          continue;
+        }
+        groups.add(DashboardNavItem(
+          id: '${tradeFinance.name}.${section.name}.${group.name}',
+          label: group.label,
+          icon: group.icon,
+          children: [
+            for (final action in allowed)
+              DashboardNavItem(
+                id: navIdForLcAction(action),
+                label: action.label,
+                icon: action.icon,
+              ),
+          ],
+        ));
+      }
+      if (groups.isEmpty) continue;
+      sections.add(DashboardNavItem(
+        id: '${tradeFinance.name}.${section.name}',
+        label: section.label,
+        icon: section.icon,
+        children: groups,
+      ));
+    }
+    if (sections.isEmpty) return null;
     return DashboardNavItem(
       id: tradeFinance.name,
       label: tradeFinance.label,
       icon: tradeFinance.icon,
-      children: groups,
+      children: sections,
     );
   }
 
+  /// The menu id of a Trade Finance option's row:
+  /// `tradeFinance.<section>.<group>.<action>`.
+  static String navIdForLcAction(LcMenuAction action) =>
+      '${tradeFinance.name}.${action.group.section.name}.'
+      '${action.group.name}.${action.name}';
+
   /// The destination a tapped nav id belongs to — a plain name for every
   /// destination but [tradeFinance], whose ids nest (`tradeFinance`,
-  /// `tradeFinance.<group>`, `tradeFinance.<group>.<action>`).
+  /// `tradeFinance.<section>`, `….<group>`, `….<action>`).
   static CorpNavDestination? fromNavId(String id) {
     for (final destination in values) {
       if (id == destination.name || id.startsWith('${destination.name}.')) {
@@ -100,7 +126,7 @@ enum CorpNavDestination {
     return null;
   }
 
-  /// The Letter of Credit option a [tradeFinance] leaf id selects.
+  /// The Trade Finance option a [tradeFinance] leaf id selects.
   ///
   /// Only leaf ids ever reach `onSelected` — tapping the root or a group
   /// row just expands it (`DashboardNavContent._onItemTap`) — so this only
