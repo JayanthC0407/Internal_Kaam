@@ -1642,6 +1642,18 @@ abstract class AppLocalizations {
   /// **'Term Deposits'**
   String get menuTermDeposits;
 
+  /// The Payments menu entry (OBDX: PAYMENTS_TITLE).
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get menuPayments;
+
+  /// Title of the transfer between the user's own accounts (OBDX: Own Account Transfer).
+  ///
+  /// In en, this message translates to:
+  /// **'Own Account Transfer'**
+  String get ownAccountTransfer;
+
   /// No description provided for @menuRecurringDeposits.
   ///
   /// In en, this message translates to:
@@ -3823,7 +3835,7 @@ abstract class AppLocalizations {
   /// No description provided for @tdTopUp.
   ///
   /// In en, this message translates to:
-  /// **'Top up'**
+  /// **'Top Up'**
   String get tdTopUp;
 
   /// No description provided for @tdRedeem.
@@ -3835,7 +3847,7 @@ abstract class AppLocalizations {
   /// No description provided for @tdEditMaturity.
   ///
   /// In en, this message translates to:
-  /// **'Edit maturity'**
+  /// **'Edit Maturity Instructions'**
   String get tdEditMaturity;
 
   /// No description provided for @tdDepositDetails.
@@ -4117,7 +4129,7 @@ abstract class AppLocalizations {
   /// No description provided for @tdTopUpTitle.
   ///
   /// In en, this message translates to:
-  /// **'Top up deposit'**
+  /// **'Top Up'**
   String get tdTopUpTitle;
 
   /// No description provided for @tdTopUpAmount.
@@ -4147,7 +4159,7 @@ abstract class AppLocalizations {
   /// No description provided for @tdRedeemTitle.
   ///
   /// In en, this message translates to:
-  /// **'Redeem deposit'**
+  /// **'Redeem Term Deposit'**
   String get tdRedeemTitle;
 
   /// No description provided for @tdRedemptionType.
@@ -4225,7 +4237,7 @@ abstract class AppLocalizations {
   /// No description provided for @tdEditMaturityTitle.
   ///
   /// In en, this message translates to:
-  /// **'Edit maturity instructions'**
+  /// **'Edit Maturity Instructions'**
   String get tdEditMaturityTitle;
 
   /// No description provided for @tdEditMaturityIntro.
@@ -4303,7 +4315,7 @@ abstract class AppLocalizations {
   /// No description provided for @tdOpenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Open a term deposit'**
+  /// **'New Term Deposit'**
   String get tdOpenTitle;
 
   /// No description provided for @tdOpenIntro.

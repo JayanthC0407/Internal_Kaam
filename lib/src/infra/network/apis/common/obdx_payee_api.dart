@@ -138,6 +138,43 @@ class ObdxPayeeApi extends ObdxApiBase {
         },
       );
 
+  /// `GET …/payments/payeeGroup?expand=ALL&types=` — how OBDX's Manage
+  /// Payees lists demand-draft (`DEMANDDRAFT`) and peer-to-peer
+  /// (`PEERTOPEER`) payees (`components/payee/payee-list`); each group's
+  /// `listPayees[0]` is the payee.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchPayeeGroups(String types) => _get(
+        _payeeGroup,
+        queryParameters: {'expand': 'ALL', 'types': types},
+      );
+
+  /// `DELETE …/payments/{path}` — the path from `PayeeDeleteTarget.path`.
+  /// OBDX may ask for an OTP (417 + `X-CHALLENGE`); that is answered, not
+  /// thrown, and the call is repeated with [challengeResponseHeader].
+  Future<ResponseHandler<Map<String, dynamic>>> deletePayee(
+    String path, {
+    String? challengeResponseHeader,
+  }) async {
+    try {
+      final response = await dio.delete(
+        ObdxApiUtils.appendLocaleQuery('/digx-payments/payment/v1/payments/$path'),
+        options: Options(
+          headers: {
+            ApiConst.contentTypeKey: ApiConst.contentTypeValue,
+            if (challengeResponseHeader != null && challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          // 200 deleted, 202 sent for approval, 417 OTP needed.
+          validateStatus: (status) => status == 200 || status == 202 || status == 417,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
   Future<ResponseHandler<Map<String, dynamic>>> createInternalPayee({
     required String nickname,
     required String accountNumber,
