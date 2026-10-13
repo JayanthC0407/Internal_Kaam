@@ -18,7 +18,6 @@ import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart'
 /// the profile menu shows who is signed in and holds Log out. The remaining
 /// icons take optional callbacks so their destinations can be plugged in
 /// later without touching this widget.
-/// 
 class DashboardTopBar extends ConsumerWidget {
   const DashboardTopBar({
     super.key,
