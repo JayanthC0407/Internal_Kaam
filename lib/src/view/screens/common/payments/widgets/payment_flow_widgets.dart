@@ -242,7 +242,9 @@ class _FlowHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                maxLines: 1,
+                // OBDX's names ("Repeat Transfers - Existing Payee") need
+                // two lines on a phone.
+                maxLines: wide ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: wide ? 24 : 18,

@@ -809,9 +809,10 @@ void main() {
           Scaffold(
             body: TransferTabScreen(
               onTransferTap: (mode, payee) => started.add('${mode.name}:${payee?.id}'),
-              onOwnAccountTransferTap: () => started.add('own'),
+              onOtherTransfersTap: () => started.add('other'),
               onMultipleTransfersTap: () => started.add('multiple'),
               onPayeeHubTap: () => started.add('payees'),
+              onRepeatTransfersTap: () => started.add('repeat'),
             ),
           ),
           repository: _FakeRepository(),
@@ -820,15 +821,18 @@ void main() {
         );
         // The payee strip: a saved payee, and "New".
         await _tap(tester, 'John');
-        await _tap(tester, 'New');
+        await _tap(tester, 'Adhoc Payee');
+        // OBDX's Transfers menu, in its order, then Manage.
         for (final tile in [
-          'Send money',
-          'Pay someone new',
-          'Between my accounts',
-          'Repeat payment',
-          'Pay abroad',
-          'Pay several at once',
-          'Payees',
+          'Transfers - Existing Payee',
+          'Transfers - Adhoc Payee',
+          'Repeat Transfers - Existing Payee',
+          'Repeat Transfers - Adhoc Payee',
+          'Other Transfers',
+          'International Low Value Payment',
+          'Multiple Transfers',
+          'Payee',
+          'Repeat Transfers Inquiry',
         ]) {
           await _tap(tester, tile);
         }
@@ -837,14 +841,16 @@ void main() {
           'adhocPayee:null',
           'existingPayee:null',
           'adhocPayee:null',
-          'own',
           'repeatExistingPayee:null',
+          'repeatAdhocPayee:null',
+          'other',
           'internationalLowValue:null',
           'multiple',
           'payees',
+          'repeat',
         ], reason: 'at $width');
         // Not built yet — shown, but not offered as a way to pay.
-        expect(find.text('Payment status'), findsOneWidget);
+        expect(find.text('Payment Status Inquiry'), findsOneWidget);
         expect(tester.takeException(), isNull);
       }
     });
@@ -873,10 +879,10 @@ void main() {
         expect(find.text('Ana Lopez'), findsOneWidget);
         await tester.tap(find.byTooltip('Pay Ana Lopez'));
         await tester.pumpAndSettle();
-        await _tap(tester, 'Manage');
-        await _tap(tester, 'Bank account');
-        await _tap(tester, 'Demand draft');
-        await _tap(tester, 'Peer to peer');
+        await _tap(tester, 'Manage Payees');
+        await _tap(tester, 'Add Account Payee');
+        await _tap(tester, 'Add Draft Payee');
+        await _tap(tester, 'Add Peer To Peer Payee');
         expect(tapped, ['pay:P2', 'manage', 'account', 'draft', 'p2p'], reason: 'at $width');
         expect(tester.takeException(), isNull);
       }
@@ -904,10 +910,10 @@ void main() {
         repository: _FakeRepository(),
       );
       expect(find.text('Choose a payee'), findsOneWidget);
-      await _tap(tester, 'New payee');
+      await _tap(tester, 'Adhoc Payee');
       expect(find.text('Account number'), findsWidgets);
       expect(find.text("Payee's name"), findsOneWidget);
-      await _tap(tester, 'Saved payee');
+      await _tap(tester, 'Existing Payee');
       expect(find.text('Choose a payee'), findsOneWidget);
     });
 

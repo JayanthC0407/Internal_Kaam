@@ -303,6 +303,22 @@ class ApiConst {
   /// `Application-Id` of a part bound for the payment REST application.
   static const String paymentsBatchApplicationId = 'digx-payments/payment';
 
+  /// Repeat transfers (standing instructions) — `GET ?status=&pageSize=
+  /// &pageNumber=` → `instructionsList[]` (OBDX
+  /// `components/payments/standing-instructions-list`).
+  static const String paymentsInstructionsApi =
+      '/digx-payments/payment/v1/payments/instructions';
+
+  /// One instruction and its payment history — `GET ?partyId=` →
+  /// `instructionDetails.paymentDetailsList[]`.
+  static String paymentsInstructionApi(String reference) =>
+      '$paymentsInstructionsApi/${Uri.encodeComponent(reference)}';
+
+  /// Stopping an instruction: `POST` starts it, `PATCH` confirms it (and is
+  /// where the bank asks for an OTP) — `standing-instruction-detail`.
+  static String paymentsInstructionStopApi(String reference) =>
+      '$paymentsInstructionsApi/sicancellation/${Uri.encodeComponent(reference)}';
+
   /// Repeat frequencies — `GET` → `enumRepresentations[0].data[]`.
   static const String paymentsFrequencyEnumApi =
       '/digx-payments/payment/v1/enumerations/paymentFrequency';

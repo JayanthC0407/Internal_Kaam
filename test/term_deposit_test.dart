@@ -688,9 +688,9 @@ void main() {
         'Maturity',
         'General details',
         'Transactions',
-        'Top up',
+        'Top Up',
         'Redeem',
-        'Edit maturity',
+        'Edit Maturity Instructions',
         'Close on Maturity',
         '100% of principal to ••8014',
         'NEW DEPOSIT',
@@ -715,7 +715,7 @@ void main() {
         width: 360,
         height: 2600,
       );
-      expect(find.text('Top up'), findsOneWidget);
+      expect(find.text('Top Up'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -727,7 +727,7 @@ void main() {
         ),
         repository: _FakeRepository(),
       );
-      expect(find.text('Top up'), findsNothing);
+      expect(find.text('Top Up'), findsNothing);
       expect(find.text('Redeem'), findsNothing);
     });
 
