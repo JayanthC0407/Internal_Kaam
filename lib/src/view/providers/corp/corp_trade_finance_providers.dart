@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_trade_finance_api.dart';
+import 'package:ubci_bank/src/infra/network/corp/corp_bank_guarantee_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/corp/corp_trade_finance_api_constants.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
@@ -65,6 +66,12 @@ class LcPermissions {
     this.amendmentAcceptance = true,
     this.initiateTransfer = true,
     this.amendTransfer = true,
+    this.bgInwardView = true,
+    this.bgInwardViewIslamic = true,
+    this.bgInwardAmendAcceptance = true,
+    this.bgInwardAmendAcceptanceIslamic = true,
+    this.bgLodgeClaim = true,
+    this.bgLodgeClaimIslamic = true,
   });
 
   final bool viewImport;
@@ -75,15 +82,40 @@ class LcPermissions {
   final bool initiateTransfer;
   final bool amendTransfer;
 
+  // Bank Guarantee — Inward.
+  final bool bgInwardView;
+  final bool bgInwardViewIslamic;
+  final bool bgInwardAmendAcceptance;
+  final bool bgInwardAmendAcceptanceIslamic;
+  final bool bgLodgeClaim;
+  final bool bgLodgeClaimIslamic;
+
   bool get anyImport => viewImport || initiate || amend;
   bool get anyExport =>
       viewExport || amendmentAcceptance || initiateTransfer || amendTransfer;
-  bool get any => anyImport || anyExport;
+  bool get anyInwardGuarantee =>
+      bgInwardView ||
+      bgInwardViewIslamic ||
+      bgInwardAmendAcceptance ||
+      bgInwardAmendAcceptanceIslamic ||
+      bgLodgeClaim ||
+      bgLodgeClaimIslamic;
+  bool get any => anyImport || anyExport || anyInwardGuarantee;
 }
 
 final lcPermissionsProvider = Provider<LcPermissions>((ref) {
   final authorized = ref.watch(personalizationProvider).authorized;
   bool allowed(String name) => authorized.isEmpty || authorized.contains(name);
+
+  // The guarantee component names come from the web menu, not from a
+  // captured `me/components` response. If the set names none of them, the
+  // bank evidently lists guarantees under other names, so they are not
+  // used to hide anything (the host still refuses what the user may not
+  // do); once any of them appears, each option follows its own name.
+  final namesGuarantees =
+      authorized.authorized.any(CorpBankGuaranteeApiConst.allComponents.contains);
+  bool bgAllowed(String name) => !namesGuarantees || allowed(name);
+
   return LcPermissions(
     viewImport: allowed(CorpTradeFinanceApiConst.componentViewImport),
     viewExport: allowed(CorpTradeFinanceApiConst.componentViewExport),
@@ -94,6 +126,16 @@ final lcPermissionsProvider = Provider<LcPermissions>((ref) {
     initiateTransfer:
         allowed(CorpTradeFinanceApiConst.componentInitiateTransfer),
     amendTransfer: allowed(CorpTradeFinanceApiConst.componentAmendTransfer),
+    bgInwardView: bgAllowed(CorpBankGuaranteeApiConst.componentInwardList),
+    bgInwardViewIslamic:
+        bgAllowed(CorpBankGuaranteeApiConst.componentInwardListIslamic),
+    bgInwardAmendAcceptance:
+        bgAllowed(CorpBankGuaranteeApiConst.componentInwardAmendment),
+    bgInwardAmendAcceptanceIslamic:
+        bgAllowed(CorpBankGuaranteeApiConst.componentInwardAmendmentIslamic),
+    bgLodgeClaim: bgAllowed(CorpBankGuaranteeApiConst.componentLodgeClaims),
+    bgLodgeClaimIslamic:
+        bgAllowed(CorpBankGuaranteeApiConst.componentLodgeClaimsIslamic),
   );
 });
 
