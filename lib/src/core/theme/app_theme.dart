@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/core/theme/app_palette.dart';
 import 'package:ubci_bank/src/core/theme/app_radius.dart';
 
 class AppTheme {
   AppTheme._();
 
-  static ThemeData light() => _build(Brightness.light, AppColors.light);
+  static ThemeData light([AppThemePalette palette = AppThemePalette.fallback]) =>
+      _build(Brightness.light, palette.colors(Brightness.light));
 
-  static ThemeData dark() => _build(Brightness.dark, AppColors.dark);
+  static ThemeData dark([AppThemePalette palette = AppThemePalette.fallback]) =>
+      _build(Brightness.dark, palette.colors(Brightness.dark));
 
   static ThemeData _build(Brightness brightness, AppColors colors) {
     final colorScheme = ColorScheme.fromSeed(

@@ -56,6 +56,9 @@ class PrefConst {
   /// SharedPreferences — app theme mode (`light` / `dark` / `system`).
   static const String themeMode = 'themeMode';
 
+  /// SharedPreferences — brand colour palette (`cyan` / `orange` / `indigo`).
+  static const String themePalette = 'themePalette';
+
   /// SharedPreferences — app locale language code (e.g. `en`).
   static const String appLocale = 'appLocale';
 }

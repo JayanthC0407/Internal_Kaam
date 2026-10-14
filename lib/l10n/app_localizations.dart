@@ -598,6 +598,30 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get darkTheme;
 
+  /// No description provided for @colorTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Color theme'**
+  String get colorTheme;
+
+  /// No description provided for @paletteCyan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyan'**
+  String get paletteCyan;
+
+  /// No description provided for @paletteOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get paletteOrange;
+
+  /// No description provided for @paletteIndigo.
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo'**
+  String get paletteIndigo;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
