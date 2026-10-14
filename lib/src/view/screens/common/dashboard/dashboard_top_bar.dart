@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/core/theme/app_palette.dart';
 import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
 import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
 
@@ -14,7 +15,8 @@ import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart'
 /// has a thin adapter (`CorpDashboardHeaderBar`, `WebDashboardHeaderBar`)
 /// that resolves the signed-in user its own way.
 ///
-/// The settings menu holds Personalize Dashboard and the light/dark switch;
+/// The settings menu holds Personalize Dashboard, the light/dark switch and
+/// the colour theme (palette) choice;
 /// the profile menu shows who is signed in and holds Log out. The remaining
 /// icons take optional callbacks so their destinations can be plugged in
 /// later without touching this widget.
@@ -298,8 +300,8 @@ class _TopBarIconButton extends StatelessWidget {
   }
 }
 
-/// Gear + chevron. Holds the Personalize Dashboard action and the
-/// light/dark theme switch.
+/// Gear + chevron. Holds the Personalize Dashboard action, the light/dark
+/// theme switch and the colour theme (palette) choice.
 class _SettingsMenu extends ConsumerWidget {
   const _SettingsMenu({this.onPersonalizeDashboard});
 
@@ -307,7 +309,10 @@ class _SettingsMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = ref.watch(appSettingsProvider).themeMode == ThemeMode.dark;
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.watch(appSettingsProvider);
+    final isDark = settings.themeMode == ThemeMode.dark;
+    final currentPalette = settings.palette;
     final personalize = onPersonalizeDashboard;
 
     return PopupMenuButton<String>(
@@ -317,6 +322,12 @@ class _SettingsMenu extends ConsumerWidget {
       onSelected: (value) {
         if (value == 'personalize') {
           personalize?.call();
+          return;
+        }
+        if (value.startsWith(_palettePrefix)) {
+          ref.read(appSettingsProvider.notifier).setPalette(
+                AppThemePalette.parse(value.substring(_palettePrefix.length)),
+              );
           return;
         }
         if (value != 'theme') return;
@@ -341,6 +352,29 @@ class _SettingsMenu extends ConsumerWidget {
             label: isDark ? 'Switch to light mode' : 'Switch to dark mode',
           ),
         ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          enabled: false,
+          height: 32,
+          child: Text(
+            l10n.colorTheme,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: _TopBarColors.textSecondary(context),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+        for (final palette in AppThemePalette.values)
+          PopupMenuItem<String>(
+            value: '$_palettePrefix${palette.name}',
+            child: _PaletteMenuRow(
+              label: palette.label(l10n),
+              swatch: palette.swatch,
+              selected: palette == currentPalette,
+            ),
+          ),
       ],
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
@@ -360,6 +394,61 @@ class _SettingsMenu extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Menu value prefix for the colour theme entries (`palette:<name>`).
+const _palettePrefix = 'palette:';
+
+/// Swatch + label (+ check when active) row for a colour theme entry.
+class _PaletteMenuRow extends StatelessWidget {
+  const _PaletteMenuRow({
+    required this.label,
+    required this.swatch,
+    required this.selected,
+  });
+
+  final String label;
+  final Color swatch;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 18,
+          height: 18,
+          decoration: BoxDecoration(
+            color: swatch,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: _TopBarColors.textPrimary(context).withValues(alpha: 0.15),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+        if (selected) ...[
+          const SizedBox(width: 10),
+          Icon(
+            Icons.check_rounded,
+            size: 18,
+            color: _TopBarColors.brand(context),
+          ),
+        ],
+      ],
     );
   }
 }

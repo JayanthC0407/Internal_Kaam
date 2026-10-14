@@ -269,6 +269,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get darkTheme => 'داكن';
 
   @override
+  String get colorTheme => 'سمة الألوان';
+
+  @override
+  String get paletteCyan => 'سماوي';
+
+  @override
+  String get paletteOrange => 'برتقالي';
+
+  @override
+  String get paletteIndigo => 'نيلي';
+
+  @override
   String get language => 'اللغة';
 
   @override

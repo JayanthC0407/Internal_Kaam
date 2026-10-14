@@ -3,29 +3,17 @@ import 'app_colors.dart';
 
 /// Brand gradients from the designer's light and dark specifications.
 abstract final class AppGradients {
-  static const lightPrimary = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      AppColors.cyan700,
-      AppColors.cyan600,
-      AppColors.cyan500,
-      AppColors.cyan400,
-    ],
-  );
+  /// Cyan light gradient. Kept for existing references; prefer [primary],
+  /// which follows the active palette.
+  static const lightPrimary = AppColors.cyanLightGradient;
 
-  static const darkPrimary = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      AppColors.cyan950,
-      AppColors.cyan900,
-      AppColors.cyan800,
-      AppColors.cyan700,
-    ],
-  );
+  /// Cyan dark gradient. Kept for existing references; prefer [primary].
+  static const darkPrimary = AppColors.cyanDarkGradient;
 
+  /// Hero gradient for the active palette and brightness.
   static LinearGradient primary(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>();
+    if (colors != null) return colors.brandGradient;
     return Theme.of(context).brightness == Brightness.dark
         ? darkPrimary
         : lightPrimary;

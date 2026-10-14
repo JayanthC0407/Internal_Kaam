@@ -271,6 +271,18 @@ class AppLocalizationsUz extends AppLocalizations {
   String get darkTheme => 'Qorong\'u';
 
   @override
+  String get colorTheme => 'Rang mavzusi';
+
+  @override
+  String get paletteCyan => 'Feruza';
+
+  @override
+  String get paletteOrange => 'To\'q sariq';
+
+  @override
+  String get paletteIndigo => 'Indigo';
+
+  @override
   String get language => 'Til';
 
   @override
