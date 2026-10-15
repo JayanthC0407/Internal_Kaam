@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit_actions.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
@@ -136,12 +137,9 @@ class _FakeRepository implements TermDepositRepository {
   @override
   Future<ResponseHandler<List<AccountTransaction>>> fetchTransactions(
     String id, {
-    TdTransactionPeriod period = TdTransactionPeriod.currentMonth,
-    String transactionType = 'A',
-    DateTime? from,
-    DateTime? to,
+    CasaTransactionQuery query = const CasaTransactionQuery(),
   }) {
-    calls.add('txn:${period.code}:$transactionType');
+    calls.add('txn:${query.searchBy}:${query.transactionType}:${query.fromAmount ?? ''}');
     return _ok(AccountTransaction.listFromPayload({
       'items': [
         {
@@ -698,10 +696,23 @@ void main() {
       ]) {
         expect(find.text(text), findsWidgets, reason: text);
       }
-      await _tapText(tester, 'Last 10');
-      expect(repository.calls, contains('txn:LNT:A'));
-      await _tapText(tester, 'Credits');
-      expect(repository.calls, contains('txn:LNT:C'));
+      // OBDX's Transactions filter: Current Month / All by default, and the
+      // Amount filter is sent as fromAmount = toAmount.
+      expect(repository.calls, contains('txn:CPR:A:'));
+      expect(find.text('Credit'), findsOneWidget);
+      await tester.ensureVisible(find.byTooltip('Filter'));
+      await tester.tap(find.byTooltip('Filter'));
+      await tester.pumpAndSettle();
+      expect(find.text('Account Number'), findsNothing);
+      final amountField = find.descendant(
+        of: find.ancestor(of: find.text('Amount'), matching: find.byType(Column)).first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(amountField.first, '2000');
+      await tester.ensureVisible(find.text('Apply'));
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+      expect(repository.calls, contains('txn:CPR:A:2000'));
       expect(tester.takeException(), isNull);
     });
 

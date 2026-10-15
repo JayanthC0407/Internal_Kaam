@@ -40,24 +40,17 @@ class ObdxTermDepositApi extends ObdxApiBase {
   ) =>
       _get(ApiConst.termDepositPayoutApi(id));
 
-  /// `GET .../deposit/{id}/transactions` — [searchBy] is OBDX's period
-  /// code (`CPR` current month, `PMT` previous month, `PQT` previous
-  /// quarter, `LNT` last [noOfTransactions], `SPD` [fromDate]–[toDate] as
-  /// `yyyy-MM-dd`); [transactionType] `A` all, `C` credits, `D` debits.
+  /// `GET .../deposit/{id}/transactions` with OBDX's Transactions filter
+  /// as [queryParameters]: `searchBy` (`CPR` current month, `PMT`, `PQT`,
+  /// `LNT` + `noOfTransactions`, `SPD` + `fromDate`/`toDate`),
+  /// `transactionType` (`A`/`C`/`D`), `fromAmount`/`toAmount`, `referenceNo`.
   Future<ResponseHandler<Map<String, dynamic>>> fetchTransactions(
     String id, {
-    String searchBy = 'CPR',
-    String transactionType = 'A',
-    String? fromDate,
-    String? toDate,
-    int? noOfTransactions,
+    required Map<String, dynamic> queryParameters,
   }) =>
       _get(ApiConst.termDepositTransactionsApi(id), {
-        'searchBy': searchBy,
-        'transactionType': transactionType,
-        if (fromDate != null) 'fromDate': fromDate,
-        if (toDate != null) 'toDate': toDate,
-        if (noOfTransactions != null) 'noOfTransactions': '$noOfTransactions',
+        for (final MapEntry(:key, :value) in queryParameters.entries)
+          key: '$value',
       });
 
   /// `GET .../termDepositProducts?depositProductType=CON&productModule=TD`.

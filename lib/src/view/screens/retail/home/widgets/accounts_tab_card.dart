@@ -37,7 +37,21 @@ class AccountsTabCard extends ConsumerStatefulWidget {
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
     this.onLoanTap,
+    this.framed = true,
+    this.showTotalCard = false,
+    this.onDeposit,
   });
+
+  /// False on the phone Home, where the card sits in the white top panel
+  /// and draws no frame of its own.
+  final bool framed;
+
+  /// Phone Home (designer mock): the carousel opens on a Total Balance
+  /// card before the account cards.
+  final bool showTotalCard;
+
+  /// "+ Deposit" (opens New Term Deposit) in place of "View all accounts".
+  final VoidCallback? onDeposit;
 
   final List<CasaAccount> accounts;
   final Set<String> revealedAccountIds;
@@ -69,7 +83,10 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
   _HeroTab _tab = _HeroTab.accounts;
   final PageController _pageController = PageController();
   int _page = 0;
-  String _accountTypeFilter = _AccountTypeDropdown.savingAccount;
+  /// Account type shown in the card carousel — every account until the
+  /// customer picks Savings or Current in the dropdown under it.
+  _AccountType _accountType = _AccountType.all;
+  bool _totalRevealed = false;
 
   final PageController _loanPageController = PageController();
   int _loanPage = 0;
@@ -111,7 +128,26 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
   Widget build(BuildContext context) {
     // TODO(l10n): wire through AppLocalizations once translated keys land
     // for the Credit Card / Loans / Insurance tab labels.
-    const tabs = ['CASA', 'Credit Card', 'Loans', 'Insurance'];
+    final tabs = [
+      AppLocalizations.of(context).accounts,
+      'Credit Card',
+      'Loans',
+      'Insurance',
+    ];
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _InnerTabs(
+          tabs: tabs,
+          selectedIndex: _tab.index,
+          onSelected: (i) => setState(() => _tab = _HeroTab.values[i]),
+        ),
+        const SizedBox(height: 18),
+        _buildTabContent(context),
+      ],
+    );
+    if (!widget.framed) return content;
 
     return DashboardCardSurface(
       width: double.infinity,
@@ -129,18 +165,7 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _InnerTabs(
-            tabs: tabs,
-            selectedIndex: _tab.index,
-            onSelected: (i) => setState(() => _tab = _HeroTab.values[i]),
-          ),
-          const SizedBox(height: 18),
-          _buildTabContent(context),
-        ],
-      ),
+      child: content,
     );
   }
 
@@ -165,7 +190,16 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
 
   Widget _buildAccountsTab(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final accounts = widget.accounts;
+    final types = [
+      if (widget.accounts.any((a) => a.isSaving)) _AccountType.savings,
+      if (widget.accounts.any((a) => a.isCurrent)) _AccountType.current,
+    ];
+    final type = types.contains(_accountType) ? _accountType : _AccountType.all;
+    final accounts = switch (type) {
+      _AccountType.all => widget.accounts,
+      _AccountType.savings => widget.accounts.where((a) => a.isSaving).toList(),
+      _AccountType.current => widget.accounts.where((a) => a.isCurrent).toList(),
+    };
 
     if (accounts.isEmpty) {
       return _ComingSoonPlaceholder(
@@ -175,53 +209,97 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
       );
     }
 
+    Widget accountCard(CasaAccount account) => _HeroAccountCard(
+          accountHolderName: widget.displayName,
+          account: account,
+          revealed: widget.revealedAccountIds.contains(_accountKey(account)),
+          onToggleVisibility: () =>
+              widget.onToggleAccountVisibility(_accountKey(account)),
+        );
+    final pages = <Widget>[
+      if (widget.showTotalCard)
+        _TotalBalanceCard(
+          accounts: accounts,
+          revealed: _totalRevealed,
+          onToggleVisibility: () =>
+              setState(() => _totalRevealed = !_totalRevealed),
+          onTap: widget.onViewAllAccountsTap,
+        ),
+      for (final account in accounts) accountCard(account),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
           height: 168,
-          child: accounts.length == 1
-              ? _HeroAccountCard(
-                  accountHolderName: widget.displayName,
-                  account: accounts.first,
-                  revealed: widget.revealedAccountIds
-                      .contains(_accountKey(accounts.first)),
-                  onToggleVisibility: () => widget
-                      .onToggleAccountVisibility(_accountKey(accounts.first)),
-                )
+          child: pages.length == 1
+              ? pages.single
               : PageView.builder(
                   controller: _pageController,
-                  itemCount: accounts.length,
+                  itemCount: pages.length,
                   onPageChanged: (index) => setState(() => _page = index),
+                  // Even gap between pages, cards centred on the row below.
                   itemBuilder: (_, index) => Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: _HeroAccountCard(
-                      accountHolderName: widget.displayName,
-                      account: accounts[index],
-                      revealed: widget.revealedAccountIds
-                          .contains(_accountKey(accounts[index])),
-                      onToggleVisibility: () => widget.onToggleAccountVisibility(
-                          _accountKey(accounts[index])),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: pages[index],
                   ),
                 ),
         ),
-        if (accounts.length > 1) ...[
+        if (pages.length > 1) ...[
           const SizedBox(height: 10),
-          _CarouselDots(count: accounts.length, active: _page),
+          _CarouselDots(count: pages.length, active: _page),
         ],
         const SizedBox(height: 14),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-           
-               _AccountTypeDropdown(
-                value: _accountTypeFilter,
-                onChanged: (value) =>
-                    setState(() => _accountTypeFilter = value),
-              ),
-            
+            // A choice only when both Savings and Current accounts exist.
+            Flexible(
+              child: types.length < 2
+                  ? Text(
+                      _AccountTypeDropdown.label(
+                        l10n,
+                        types.isEmpty ? _AccountType.all : types.single,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: HomeColors.textPrimary(context),
+                      ),
+                    )
+                  : _AccountTypeDropdown(
+                      value: type,
+                      options: [_AccountType.all, ...types],
+                      onChanged: (value) => setState(() {
+                        _accountType = value;
+                        _page = 0;
+                        if (_pageController.hasClients) {
+                          _pageController.jumpToPage(0);
+                        }
+                      }),
+                    ),
+            ),
             const SizedBox(width: 10),
+            if (widget.onDeposit != null)
+              TextButton.icon(
+                onPressed: widget.onDeposit,
+                style: TextButton.styleFrom(
+                  foregroundColor: HomeColors.textPrimary(context),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  visualDensity: VisualDensity.compact,
+                ),
+                icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                label: Text(
+                  l10n.homeDeposit,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            else
             InkWell(
               onTap: widget.onViewAllAccountsTap,
               borderRadius: BorderRadius.circular(8),
@@ -229,9 +307,7 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: Text(
-                  // TODO(l10n): wire through AppLocalizations once a
-                  // translated key is added for all locales.
-                  'View all accounts',
+                  l10n.homeViewAllAccounts,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -573,12 +649,18 @@ class _TabItem extends StatelessWidget {
             ),
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-            color: color,
+        // One line per tab ("Credit Card" used to wrap on phones).
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+              color: color,
+            ),
           ),
         ),
       ),
@@ -586,41 +668,59 @@ class _TabItem extends StatelessWidget {
   }
 }
 
+enum _AccountType { all, savings, current }
+
+/// Savings / Current filter for the card carousel. The text style carries
+/// the app font explicitly — DropdownButton does not inherit it.
 class _AccountTypeDropdown extends StatelessWidget {
-  const _AccountTypeDropdown({required this.value, required this.onChanged});
+  const _AccountTypeDropdown({
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
 
-  static const savingAccount = 'Saving Account';
-  static const regularAccount = 'Regular Account';
-  static const _options = [savingAccount, regularAccount];
+  final _AccountType value;
+  final List<_AccountType> options;
+  final ValueChanged<_AccountType> onChanged;
 
-  final String value;
-  final ValueChanged<String> onChanged;
+  static String label(AppLocalizations l10n, _AccountType type) =>
+      switch (type) {
+        _AccountType.all => l10n.homeAllAccounts,
+        _AccountType.savings => l10n.homeSavingsAccount,
+        _AccountType.current => l10n.homeCurrentAccount,
+      };
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
+      child: DropdownButton<_AccountType>(
         value: value,
         isDense: true,
-        isExpanded: false,
+        isExpanded: true,
         icon: Icon(
           Icons.keyboard_arrow_down_rounded,
           size: 20,
           color: HomeColors.textSecondary(context),
         ),
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: HomeColors.textPrimary(context),
-        ),
+        style: DefaultTextStyle.of(context).style.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: HomeColors.textPrimary(context),
+            ),
         dropdownColor: HomeColors.card(context),
         borderRadius: BorderRadius.circular(12),
-        items: _options
-            .map((option) => DropdownMenuItem<String>(
-                  value: option,
-                  child: Text(option),
-                ))
-            .toList(),
+        items: [
+          for (final option in options)
+            DropdownMenuItem<_AccountType>(
+              value: option,
+              child: Text(
+                label(l10n, option),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+        ],
         onChanged: (selected) {
           if (selected != null) onChanged(selected);
         },
@@ -729,12 +829,11 @@ class _HeroAccountCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (account.isDefault) ...[
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
-                            // TODO(l10n): wire through AppLocalizations once
-                            // a translated key is added for all locales.
-                            'Primary Account',
+                            AppLocalizations.of(context).homePrimaryAccount,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -744,6 +843,7 @@ class _HeroAccountCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        ],
                       ],
                     ),
                   ),
@@ -806,6 +906,144 @@ class _HeroAccountCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// First page of the phone Home carousel (designer mock): the total
+/// available balance of the accounts shown (per the Savings / Current
+/// filter), hidden until the eye is tapped. Accounts in other currencies
+/// are not added in — the card names how many it counts.
+class _TotalBalanceCard extends StatelessWidget {
+  const _TotalBalanceCard({
+    required this.accounts,
+    required this.revealed,
+    required this.onToggleVisibility,
+    this.onTap,
+  });
+
+  final List<CasaAccount> accounts;
+  final bool revealed;
+  final VoidCallback onToggleVisibility;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // The primary account's currency leads; others are left out of the sum.
+    final primary = accounts.firstWhere(
+      (a) => a.isDefault,
+      orElse: () => accounts.first,
+    );
+    final currency =
+        (primary.displayBalance?.currency ?? primary.currencyCode).trim();
+    final counted = [
+      for (final a in accounts)
+        if ((a.displayBalance?.currency ?? a.currencyCode).trim() == currency)
+          a,
+    ];
+    final total = counted.fold<double>(
+      0,
+      (sum, a) => sum + (a.displayBalance?.amount ?? 0),
+    );
+    final amount = revealed
+        ? MoneyFormat.format(total, currencyCode: currency)
+        : '${currency.isEmpty ? '' : '$currency '}\u2022\u2022\u2022\u2022';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          decoration: BoxDecoration(
+            gradient: AppGradients.primary(context),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                right: -46,
+                bottom: -56,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.55,
+                    child: SizedBox(
+                      width: 170,
+                      height: 186,
+                      child: SvgPicture.asset(
+                        'assets/images/figma/brand_logomark.svg',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.homeTotalBalance,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          amount,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: l10n.homeTotalBalance,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: onToggleVisibility,
+                        icon: Icon(
+                          revealed
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.homeAccountsCount(counted.length),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

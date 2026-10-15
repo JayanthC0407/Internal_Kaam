@@ -48,7 +48,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get enterUsername => 'Enter username';
+  String get enterUsername => 'Enter your username';
 
   @override
   String get enterPassword => 'Enter password';
@@ -168,6 +168,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginWithBiometrics => 'Login with biometrics';
+
+  @override
+  String get loginOr => 'or';
+
+  @override
+  String get loginNoAccount => 'Don\'t have an account? ';
+
+  @override
+  String get loginSignup => 'Signup';
+
+  @override
+  String get loginMobileSubtitle =>
+      'Sign in to continue with your banking activities securely.';
 
   @override
   String get featureComingSoon => 'This feature will be available soon.';
@@ -358,7 +371,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get availableCredit => 'AVAILABLE CREDIT';
 
   @override
-  String get quickActions => 'Quick actions';
+  String get quickActions => 'Quick Actions';
 
   @override
   String get myCards => 'My Cards';
@@ -436,7 +449,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topSpendingLower => 'Top spending';
 
   @override
-  String get recentTransactions => 'Recent transactions';
+  String get recentTransactions => 'Recent Transactions';
 
   @override
   String get filter => 'Filter';
@@ -928,10 +941,165 @@ class AppLocalizationsEn extends AppLocalizations {
   String get casaClosingBalance => 'Closing Balance';
 
   @override
-  String get casaRecentTransactions => 'Recent transactions';
+  String get casaTransactionsEmpty =>
+      'No Activity found for the specified period.';
 
   @override
-  String get casaTransactionsEmpty => 'No transactions found.';
+  String get casaSearchForAmount => 'Search for amount';
+
+  @override
+  String get casaRecentTransactions => 'Recent Transactions';
+
+  @override
+  String get casaLoadMore => 'Load More';
+
+  @override
+  String get casaStatusLabel => 'Status';
+
+  @override
+  String get casaSearchAccounts => 'Search accounts';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get homeAllAccounts => 'All Accounts';
+
+  @override
+  String get homeSavingsAccount => 'Savings Account';
+
+  @override
+  String get homeCurrentAccount => 'Current Account';
+
+  @override
+  String get homeViewAllAccounts => 'View all accounts';
+
+  @override
+  String get homeDeposit => 'Deposit';
+
+  @override
+  String get homePrimaryAccount => 'Primary Account';
+
+  @override
+  String get homeTotalBalance => 'Total Balance';
+
+  @override
+  String homeAccountsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Accounts',
+      one: '1 Account',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get qaTitle => 'Quick Actions';
+
+  @override
+  String get qaEdit => 'Edit';
+
+  @override
+  String get qaEditTitle => 'Edit Quick Actions';
+
+  @override
+  String qaEditHint(int count) {
+    return 'Choose up to $count shortcuts for your Home screen. Drag to change the order.';
+  }
+
+  @override
+  String get qaPickOne => 'Choose at least one shortcut.';
+
+  @override
+  String get qaAdd => 'Add';
+
+  @override
+  String get qaRemove => 'Remove';
+
+  @override
+  String get qaReset => 'Reset to default';
+
+  @override
+  String get qaSave => 'Save';
+
+  @override
+  String get qaScanPay => 'Scan & Pay';
+
+  @override
+  String get qaBill => 'Bill';
+
+  @override
+  String get qaSaving => 'Saving';
+
+  @override
+  String get qaMultipleTransfers => 'Multiple Transfers';
+
+  @override
+  String get qaRepeatTransfers => 'Repeat Transfers';
+
+  @override
+  String get qaPayee => 'Payee';
+
+  @override
+  String get qaMoreServices => 'More Services';
+
+  @override
+  String get qaCurrentSavings => 'Current & Savings';
+
+  @override
+  String get qaLoans => 'Loans & Finances';
+
+  @override
+  String get qaTermDeposits => 'Term Deposits';
+
+  @override
+  String get qaGroupPayments => 'Payments';
+
+  @override
+  String get qaGroupAccounts => 'Accounts';
+
+  @override
+  String get qaGroupOther => 'Other Services';
+
+  @override
+  String get homeSecurityNotice => 'Security notice';
+
+  @override
+  String get loanTrackerOutstanding => 'Outstanding';
+
+  @override
+  String get menuTitle => 'Menu';
+
+  @override
+  String get menuWelcome => 'Welcome';
+
+  @override
+  String get menuNetworth => 'Networth';
+
+  @override
+  String get menuLanguages => 'Languages';
+
+  @override
+  String get menuWhatsNew => 'What\'s New';
+
+  @override
+  String get menuExploreProducts => 'Explore Products';
+
+  @override
+  String get menuNotification => 'Notification';
+
+  @override
+  String get menuAppSettings => 'App Settings';
+
+  @override
+  String get menuPersonalizeDashboard => 'Personalize Dashboard';
+
+  @override
+  String get menuProfile => 'Profile';
+
+  @override
+  String get menuNeedHelp => 'Need Help';
 
   @override
   String casaTransactionsPageIndicator(int page, int pageCount, int total) {
@@ -1079,7 +1247,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Mobile quick access is not enabled for your account on the server. Ask your bank to enable the Mobile App touch point for your user.';
 
   @override
-  String get otpTitle => 'OTP code verification';
+  String get otpTitle => 'OTP Code Verification';
 
   @override
   String get otpSubtitle =>
@@ -1113,6 +1281,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otpResend => 'Resend';
+
+  @override
+  String otpResendIn(String time) {
+    return 'Resend code in $time';
+  }
 
   @override
   String otpAttemptsLeft(int count) {
@@ -1660,7 +1833,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please select a different question for each row.';
 
   @override
-  String get lfwEnterAnswer => 'Answer';
+  String get lfwEnterAnswer => 'Enter Answer';
 
   @override
   String get lfwFieldRequired => 'Required';
@@ -1769,7 +1942,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please read and accept the Terms & Conditions to continue.';
 
   @override
-  String get lfwTermsTitle => 'Terms & Conditions';
+  String get lfwTermsTitle => 'Terms and Conditions';
+
+  @override
+  String get lfwTermsReadCarefully =>
+      'Please read the following terms carefully before proceeding.';
+
+  @override
+  String get lfwRemindLater => 'Remind Later';
+
+  @override
+  String get lfwSkip => 'Skip';
+
+  @override
+  String get altLoginEnableTitle => 'Enable Alternate Login';
+
+  @override
+  String get altLoginEnableBody =>
+      'Sign in next time with your fingerprint or face instead of your password.';
+
+  @override
+  String get altLoginEnable => 'Enable';
 
   @override
   String get lfwTitle => 'First-time setup';

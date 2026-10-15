@@ -1,3 +1,4 @@
+import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
@@ -38,6 +39,23 @@ class CasaTransaction {
         s == 'POSTED' ||
         s == 'PROCESSED';
   }
+
+  /// Loan and term-deposit lines (`loan/{id}/transactions`,
+  /// `deposit/{id}/transactions`) in the same shape, so every
+  /// Transactions screen shares one row, list and table.
+  factory CasaTransaction.fromAccountTransaction(AccountTransaction t) =>
+      CasaTransaction(
+        id: t.reference.isNotEmpty
+            ? t.reference
+            : '${t.description}_${t.date?.millisecondsSinceEpoch ?? 0}',
+        title: t.description.isEmpty ? '—' : t.description,
+        amount: t.amount,
+        isCredit: t.isCredit,
+        reference: t.reference.isEmpty ? null : t.reference,
+        dateTime: t.date,
+        transactionDate: t.date,
+        runningBalance: t.runningBalance,
+      );
 
   factory CasaTransaction.fromJson(Map<String, dynamic> json) {
     final currency = (json['currencyCode'] ??

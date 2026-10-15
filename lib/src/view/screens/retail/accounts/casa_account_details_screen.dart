@@ -19,7 +19,7 @@ import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_tile.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transactions_table.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
@@ -282,23 +282,29 @@ class _CasaAccountDetailsScreenState
                       // bluish shadow) as the dashboard's cards, so the
                       // account detail + recent transactions read as one
                       // elevated card instead of loose items on the page.
+                      // Phones follow the mock: no outer card.
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: HomeColors.card(context),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: HomeColors.divider(context)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: HomeColors.brandLight(context)
-                                  .withValues(alpha: 0.30),
-                              blurRadius: 15,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        ),
+                        padding:
+                            wide ? const EdgeInsets.all(20) : EdgeInsets.zero,
+                        decoration: !wide
+                            ? null
+                            : BoxDecoration(
+                                color: HomeColors.card(context),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: HomeColors.divider(context),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: HomeColors.brandLight(context)
+                                        .withValues(alpha: 0.30),
+                                    blurRadius: 15,
+                                    spreadRadius: 0,
+                                    offset: const Offset(0, 0),
+                                  ),
+                                ],
+                              ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -326,8 +332,6 @@ class _CasaAccountDetailsScreenState
                         revealed: _revealed,
                         onToggleReveal: () =>
                             setState(() => _revealed = !_revealed),
-                        downloadingStatement: _downloadingStatement,
-                        onDownloadStatement: _downloadStatement,
                         wide: wide,
                       ),
                       const SizedBox(height: 20),
@@ -475,8 +479,6 @@ class _AccountHeaderCard extends StatelessWidget {
     required this.fallbackId,
     required this.revealed,
     required this.onToggleReveal,
-    required this.onDownloadStatement,
-    required this.downloadingStatement,
     required this.wide,
   });
 
@@ -485,8 +487,6 @@ class _AccountHeaderCard extends StatelessWidget {
   final String fallbackId;
   final bool revealed;
   final VoidCallback onToggleReveal;
-  final VoidCallback onDownloadStatement;
-  final bool downloadingStatement;
   final bool wide;
 
   @override
@@ -514,11 +514,11 @@ class _AccountHeaderCard extends StatelessWidget {
             hidden: !revealed,
           );
 
-    final numberText = revealed
-        ? (detail?.displayNumber ??
-            account?.displayNumber ??
-            fallbackId)
-        : (account?.maskedNumber ?? _mask(fallbackId));
+    final numberText = groupAccountNumber(
+      revealed
+          ? (detail?.displayNumber ?? account?.displayNumber ?? fallbackId)
+          : (account?.maskedNumber ?? _mask(fallbackId)),
+    );
 
     final holder = detail?.primaryAccountHolder?.trim();
 
@@ -530,9 +530,9 @@ class _AccountHeaderCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(wide ? 18 : 14),
+      padding: EdgeInsets.all(wide ? 18 : 16),
       decoration: BoxDecoration(
-        color: colors.inputBackground,
+        color: colors.cardBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: const Color(0xFF9DD8E5),
@@ -647,7 +647,7 @@ class _AccountHeaderCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: wide ? 24 : 21,
+                        fontSize: wide ? 26 : 26,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -655,19 +655,8 @@ class _AccountHeaderCard extends StatelessWidget {
                 ),
               ),
 
-              if (wide)
-                _downloadButton(context),
             ],
           ),
-
-          if (!wide) ...[
-            const SizedBox(height: 10),
-
-            Align(
-              alignment: Alignment.centerRight,
-              child: _downloadButton(context),
-            ),
-          ],
 
           const SizedBox(height: 14),
 
@@ -702,18 +691,17 @@ class _AccountHeaderCard extends StatelessWidget {
                         value: holder != null && holder.isNotEmpty
                             ? holder
                             : '—',
+                        valueColor: HomeColors.brand(context),
                       ),
                     ),
 
                     _verticalDivider(colors),
 
                     Expanded(
-                      child: _AccountMeta(
-                        label: l10n.tableStatus,
-                        value: statusLabel,
-                        valueColor: isDormant
-                            ? AppColors.warningColor
-                            : AppColors.successColor,
+                      child: _StatusMeta(
+                        label: l10n.casaStatusLabel,
+                        status: statusLabel,
+                        warning: isDormant,
                       ),
                     ),
                   ],
@@ -729,55 +717,27 @@ class _AccountHeaderCard extends StatelessWidget {
                           fallbackId,
                     ),
 
-                    const SizedBox(height: 12),
+                    // Mock: one field per row, divided.
+                    Divider(height: 24, color: colors.divider),
 
                     _AccountMeta(
                       label: l10n.casaPrimaryAccountHolder,
                       value: holder != null && holder.isNotEmpty
                           ? holder
                           : '—',
+                      valueColor: HomeColors.brand(context),
                     ),
 
-                    const SizedBox(height: 12),
+                    Divider(height: 24, color: colors.divider),
 
-                    _AccountMeta(
-                      label: l10n.tableStatus,
-                      value: statusLabel,
-                      valueColor: isDormant
-                          ? AppColors.warningColor
-                          : AppColors.successColor,
+                    _StatusMeta(
+                      label: l10n.casaStatusLabel,
+                      status: statusLabel,
+                      warning: isDormant,
                     ),
                   ],
                 ),
         ],
-      ),
-    );
-  }
-
-  Widget _downloadButton(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return OutlinedButton.icon(
-      onPressed:
-          downloadingStatement ? null : onDownloadStatement,
-      icon: const Icon(
-        Icons.download_rounded,
-        size: 16,
-      ),
-      label: Text(l10n.casaDownloadStatement),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF007F9B),
-        side: const BorderSide(
-          color: Color(0xFF007F9B),
-        ),
-        visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(9),
-        ),
       ),
     );
   }
@@ -798,6 +758,37 @@ class _AccountHeaderCard extends StatelessWidget {
 
     return '${'*' * (digits.length - 4)}'
         '${digits.substring(digits.length - 4)}';
+  }
+}
+
+/// "Status" label over a green / amber chip (mock).
+class _StatusMeta extends StatelessWidget {
+  const _StatusMeta({
+    required this.label,
+    required this.status,
+    required this.warning,
+  });
+
+  final String label;
+  final String status;
+  final bool warning;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppColors.of(context).textSecondary,
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: 6),
+        CasaStatusChip(label: status, warning: warning),
+      ],
+    );
   }
 }
 
@@ -824,9 +815,9 @@ class _AccountMeta extends StatelessWidget {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Copied to clipboard'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).copiedToClipboard),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -859,8 +850,10 @@ class _AccountMeta extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: valueColor ?? colors.textPrimary,
-                  fontSize: 13,
+                  fontSize: copyValue != null ? 14 : 13,
                   fontWeight: FontWeight.w700,
+                  // The grouped account number reads like the mock.
+                  letterSpacing: copyValue != null ? 1.2 : 0,
                 ),
               ),
             ),
@@ -996,24 +989,8 @@ class _TransactionsCard extends StatelessWidget {
       return CasaTransactionsTable(transactions: transactions);
     }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-      decoration: BoxDecoration(
-        color: colors.inputBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.divider),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < transactions.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: colors.divider),
-            CasaTransactionTile(transaction: transactions[i]),
-          ],
-        ],
-      ),
-    );
+    // Phone: same month-grouped rows as the Transactions screen.
+    return CasaTransactionGroupList(transactions: transactions);
   }
 }
 

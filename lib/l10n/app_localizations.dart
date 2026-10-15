@@ -181,7 +181,7 @@ abstract class AppLocalizations {
   /// No description provided for @enterUsername.
   ///
   /// In en, this message translates to:
-  /// **'Enter username'**
+  /// **'Enter your username'**
   String get enterUsername;
 
   /// No description provided for @enterPassword.
@@ -399,6 +399,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login with biometrics'**
   String get loginWithBiometrics;
+
+  /// No description provided for @loginOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get loginOr;
+
+  /// No description provided for @loginNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? '**
+  String get loginNoAccount;
+
+  /// No description provided for @loginSignup.
+  ///
+  /// In en, this message translates to:
+  /// **'Signup'**
+  String get loginSignup;
+
+  /// No description provided for @loginMobileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue with your banking activities securely.'**
+  String get loginMobileSubtitle;
 
   /// No description provided for @featureComingSoon.
   ///
@@ -763,7 +787,7 @@ abstract class AppLocalizations {
   /// No description provided for @quickActions.
   ///
   /// In en, this message translates to:
-  /// **'Quick actions'**
+  /// **'Quick Actions'**
   String get quickActions;
 
   /// No description provided for @myCards.
@@ -919,7 +943,7 @@ abstract class AppLocalizations {
   /// No description provided for @recentTransactions.
   ///
   /// In en, this message translates to:
-  /// **'Recent transactions'**
+  /// **'Recent Transactions'**
   String get recentTransactions;
 
   /// No description provided for @filter.
@@ -1834,17 +1858,305 @@ abstract class AppLocalizations {
   /// **'Closing Balance'**
   String get casaClosingBalance;
 
-  /// No description provided for @casaRecentTransactions.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent transactions'**
-  String get casaRecentTransactions;
-
   /// No description provided for @casaTransactionsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No transactions found.'**
+  /// **'No Activity found for the specified period.'**
   String get casaTransactionsEmpty;
+
+  /// No description provided for @casaSearchForAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for amount'**
+  String get casaSearchForAmount;
+
+  /// No description provided for @casaRecentTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Transactions'**
+  String get casaRecentTransactions;
+
+  /// No description provided for @casaLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load More'**
+  String get casaLoadMore;
+
+  /// No description provided for @casaStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get casaStatusLabel;
+
+  /// No description provided for @casaSearchAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Search accounts'**
+  String get casaSearchAccounts;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @homeAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get homeAllAccounts;
+
+  /// No description provided for @homeSavingsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings Account'**
+  String get homeSavingsAccount;
+
+  /// No description provided for @homeCurrentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Account'**
+  String get homeCurrentAccount;
+
+  /// No description provided for @homeViewAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'View all accounts'**
+  String get homeViewAllAccounts;
+
+  /// No description provided for @homeDeposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit'**
+  String get homeDeposit;
+
+  /// No description provided for @homePrimaryAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary Account'**
+  String get homePrimaryAccount;
+
+  /// No description provided for @homeTotalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Balance'**
+  String get homeTotalBalance;
+
+  /// No description provided for @homeAccountsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 Account} other{{count} Accounts}}'**
+  String homeAccountsCount(int count);
+
+  /// No description provided for @qaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get qaTitle;
+
+  /// No description provided for @qaEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get qaEdit;
+
+  /// No description provided for @qaEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Quick Actions'**
+  String get qaEditTitle;
+
+  /// No description provided for @qaEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose up to {count} shortcuts for your Home screen. Drag to change the order.'**
+  String qaEditHint(int count);
+
+  /// No description provided for @qaPickOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one shortcut.'**
+  String get qaPickOne;
+
+  /// No description provided for @qaAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get qaAdd;
+
+  /// No description provided for @qaRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get qaRemove;
+
+  /// No description provided for @qaReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get qaReset;
+
+  /// No description provided for @qaSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get qaSave;
+
+  /// No description provided for @qaScanPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan & Pay'**
+  String get qaScanPay;
+
+  /// No description provided for @qaBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill'**
+  String get qaBill;
+
+  /// No description provided for @qaSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving'**
+  String get qaSaving;
+
+  /// No description provided for @qaMultipleTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Transfers'**
+  String get qaMultipleTransfers;
+
+  /// No description provided for @qaRepeatTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat Transfers'**
+  String get qaRepeatTransfers;
+
+  /// No description provided for @qaPayee.
+  ///
+  /// In en, this message translates to:
+  /// **'Payee'**
+  String get qaPayee;
+
+  /// No description provided for @qaMoreServices.
+  ///
+  /// In en, this message translates to:
+  /// **'More Services'**
+  String get qaMoreServices;
+
+  /// No description provided for @qaCurrentSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Current & Savings'**
+  String get qaCurrentSavings;
+
+  /// No description provided for @qaLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans & Finances'**
+  String get qaLoans;
+
+  /// No description provided for @qaTermDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposits'**
+  String get qaTermDeposits;
+
+  /// No description provided for @qaGroupPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get qaGroupPayments;
+
+  /// No description provided for @qaGroupAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get qaGroupAccounts;
+
+  /// No description provided for @qaGroupOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Services'**
+  String get qaGroupOther;
+
+  /// No description provided for @homeSecurityNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Security notice'**
+  String get homeSecurityNotice;
+
+  /// No description provided for @loanTrackerOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get loanTrackerOutstanding;
+
+  /// No description provided for @menuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get menuTitle;
+
+  /// No description provided for @menuWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get menuWelcome;
+
+  /// No description provided for @menuNetworth.
+  ///
+  /// In en, this message translates to:
+  /// **'Networth'**
+  String get menuNetworth;
+
+  /// No description provided for @menuLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get menuLanguages;
+
+  /// No description provided for @menuWhatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get menuWhatsNew;
+
+  /// No description provided for @menuExploreProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Products'**
+  String get menuExploreProducts;
+
+  /// No description provided for @menuNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get menuNotification;
+
+  /// No description provided for @menuAppSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App Settings'**
+  String get menuAppSettings;
+
+  /// No description provided for @menuPersonalizeDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalize Dashboard'**
+  String get menuPersonalizeDashboard;
+
+  /// No description provided for @menuProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get menuProfile;
+
+  /// No description provided for @menuNeedHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Need Help'**
+  String get menuNeedHelp;
 
   /// No description provided for @casaTransactionsPageIndicator.
   ///
@@ -2119,7 +2431,7 @@ abstract class AppLocalizations {
   /// No description provided for @otpTitle.
   ///
   /// In en, this message translates to:
-  /// **'OTP code verification'**
+  /// **'OTP Code Verification'**
   String get otpTitle;
 
   /// No description provided for @otpSubtitle.
@@ -2181,6 +2493,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resend'**
   String get otpResend;
+
+  /// No description provided for @otpResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in {time}'**
+  String otpResendIn(String time);
 
   /// No description provided for @otpAttemptsLeft.
   ///
@@ -3163,7 +3481,7 @@ abstract class AppLocalizations {
   /// No description provided for @lfwEnterAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Answer'**
+  /// **'Enter Answer'**
   String get lfwEnterAnswer;
 
   /// No description provided for @lfwFieldRequired.
@@ -3355,8 +3673,44 @@ abstract class AppLocalizations {
   /// No description provided for @lfwTermsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Terms & Conditions'**
+  /// **'Terms and Conditions'**
   String get lfwTermsTitle;
+
+  /// No description provided for @lfwTermsReadCarefully.
+  ///
+  /// In en, this message translates to:
+  /// **'Please read the following terms carefully before proceeding.'**
+  String get lfwTermsReadCarefully;
+
+  /// No description provided for @lfwRemindLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind Later'**
+  String get lfwRemindLater;
+
+  /// No description provided for @lfwSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get lfwSkip;
+
+  /// No description provided for @altLoginEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Alternate Login'**
+  String get altLoginEnableTitle;
+
+  /// No description provided for @altLoginEnableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in next time with your fingerprint or face instead of your password.'**
+  String get altLoginEnableBody;
+
+  /// No description provided for @altLoginEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get altLoginEnable;
 
   /// No description provided for @lfwTitle.
   ///

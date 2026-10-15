@@ -14,7 +14,11 @@ class OtpPinInput extends StatefulWidget {
     this.onCompleted,
     this.enabled = true,
     this.obscuringCharacter = '•',
+    this.underline = false,
   });
+
+  /// Login mock: underlined slots with a faint "0" placeholder.
+  final bool underline;
 
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -61,7 +65,7 @@ class _OtpPinInputState extends State<OtpPinInput> {
         final available = constraints.maxWidth.isFinite && constraints.maxWidth > 0
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width - 32;
-        final gaps = 7.5 * (widget.length - 1);
+        final gaps = (widget.underline ? 14.0 : 7.5) * (widget.length - 1);
         final boxSize = math.min(48.0, (available - gaps) / widget.length)
             .clamp(36.0, 48.0);
 
@@ -100,24 +104,46 @@ class _OtpPinInputState extends State<OtpPinInput> {
                               index == widget.length - 1));
 
                   return Padding(
-                    padding: EdgeInsets.only(left: index == 0 ? 0 : 7.5),
+                    padding: EdgeInsets.only(
+                      left: index == 0 ? 0 : (widget.underline ? 14 : 7.5),
+                    ),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       width: boxSize,
                       height: boxSize,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AuthColors.inputBackground(context),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isActive
-                              ? AuthColors.brand(context)
-                              : AuthColors.inputBorder(context),
-                          width: isActive ? 1.5 : 1,
-                        ),
-                      ),
+                      decoration: widget.underline
+                          ? BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: isActive
+                                      ? AuthColors.brand(context)
+                                      : AuthColors.inputBorder(context),
+                                  width: isActive ? 2 : 1.2,
+                                ),
+                              ),
+                            )
+                          : BoxDecoration(
+                              color: AuthColors.inputBackground(context),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isActive
+                                    ? AuthColors.brand(context)
+                                    : AuthColors.inputBorder(context),
+                                width: isActive ? 1.5 : 1,
+                              ),
+                            ),
                       child: char.isEmpty
-                          ? null
+                          ? (widget.underline
+                              ? Text(
+                                  '0',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AuthColors.textSecondary(context)
+                                        .withValues(alpha: 0.45),
+                                  ),
+                                )
+                              : null)
                           : Text(
                               widget.obscuringCharacter,
                               style: TextStyle(

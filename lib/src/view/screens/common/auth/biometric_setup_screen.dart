@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
@@ -9,10 +8,10 @@ import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 // Passcode / pattern temporarily hidden from quick-access setup.
 // import 'package:ubci_bank/src/view/screens/common/auth/passcode_setup_screen.dart';
 // import 'package:ubci_bank/src/view/screens/common/auth/pattern_setup_screen.dart';
-import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_quick_access_option.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_secondary_button.dart';
+import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_ui_copy.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
 
@@ -42,80 +41,15 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
     setState(() => _presentation = presentation);
   }
 
+  /// Same steps as the "Enable Alternate Login" sheet — see
+  /// [BiometricEnrollmentPrompt.enableNow].
   Future<void> _enableBiometric() async {
     if (_loading) return;
-
-    final l10n = AppLocalizations.of(context);
-    final biometrics = ref.read(biometricServiceProvider);
-    final availability = await biometrics.checkAvailability();
-    if (!mounted) return;
-
-    if (availability == BiometricAvailability.notSupported) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.biometricNotAvailable)),
-      );
-      return;
-    }
-
-    if (availability == BiometricAvailability.notEnrolled) {
-      await _promptEnrollInSettings();
-      return;
-    }
-
     setState(() => _loading = true);
-
-    final method = await biometrics.preferredLoginMethod();
-    final outcome = await ref
-        .read(biometricEnrollmentProvider)
-        .enableBiometric(l10n, method: method);
-
+    final enrolled = await BiometricEnrollmentPrompt.enableNow(context, ref);
     if (!mounted) return;
     setState(() => _loading = false);
-
-    if (outcome.localResult == BiometricAuthResult.success &&
-        outcome.serverEnrolled) {
-      if (outcome.serverError != null && outcome.serverError!.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(outcome.serverError!)),
-        );
-      }
-      Navigator.of(context).pop(true);
-      return;
-    }
-
-    if (outcome.serverError != null && outcome.serverError!.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(outcome.serverError!)),
-      );
-      return;
-    }
-
-    if (outcome.localResult != BiometricAuthResult.cancelled) {
-      final message = biometricResultMessage(l10n, outcome.localResult);
-      final detail = biometrics.lastErrorDetail;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            kDebugMode && detail != null && detail.isNotEmpty
-                ? '$message ($detail)'
-                : message,
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> _promptEnrollInSettings() async {
-    final l10n = AppLocalizations.of(context);
-    final open = await AppBottomSheet.confirm(
-      context,
-      title: l10n.biometricNotEnrolledTitle,
-      message: l10n.biometricNotEnrolled,
-      confirmLabel: l10n.biometricOpenSettings,
-      cancelLabel: l10n.cancel,
-    );
-    if (!open) return;
-    await ref.read(biometricServiceProvider).openBiometricSettings();
+    if (enrolled) Navigator.of(context).pop(true);
   }
 
   // Future<void> _enablePasscode() async {

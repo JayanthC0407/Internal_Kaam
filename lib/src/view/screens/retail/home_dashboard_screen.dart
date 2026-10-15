@@ -4,8 +4,8 @@ import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
+import 'package:ubci_bank/src/infra/security/device_security_models.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
@@ -39,7 +39,8 @@ import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigatio
 import 'home/widgets/home_content.dart';
 import 'home/widgets/bottom_nav.dart';
 import 'home/widgets/dashboard_header_bar.dart';
-import 'home/widgets/top_hero_section.dart';
+import 'home/widgets/accounts_tab_card.dart';
+import 'home/widgets/quick_actions_strip.dart';
 import 'home/widgets/retail_nav.dart';
 // Payments, payees and transfers are shared with Corporate, so they live
 // under `screens/common/` rather than in the Retail tree.
@@ -84,7 +85,6 @@ class HomeDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
-  final PageController _heroActionPager = PageController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// The web desktop content area's navigator — see
@@ -92,7 +92,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   final GlobalKey<NavigatorState> _contentNavigatorKey =
       GlobalKey<NavigatorState>();
 
-  int _heroSlideIndex = 0;
   int _selectedTopTabIndex = 0;
   late int _selectedBottomNavIndex;
 
@@ -263,7 +262,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// The personalized widgets, or the state standing in for them — the
   /// same decision the Corporate dashboard makes, see
   /// [PersonalizationState.bodyStatus].
-  Widget _buildPersonalizedArea(PersonalizationState state) {
+  Widget _buildPersonalizedArea(
+    PersonalizationState state, {
+    bool includeAccounts = true,
+  }) {
     switch (state.bodyStatus) {
       case PersonalizedBodyStatus.loading:
         return const SizedBox(
@@ -276,6 +278,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case PersonalizedBodyStatus.loadFailed:
         return _withStaticWidgets(
           state,
+          includeAccounts: includeAccounts,
           status: _buildBodyMessage(
             icon: Icons.cloud_off_rounded,
             title: "Couldn't load your dashboard",
@@ -287,6 +290,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case PersonalizedBodyStatus.authorizationFailed:
         return _withStaticWidgets(
           state,
+          includeAccounts: includeAccounts,
           status: _buildBodyMessage(
             icon: Icons.lock_outline_rounded,
             title: "Couldn't load your widgets",
@@ -296,7 +300,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           ),
         );
       case PersonalizedBodyStatus.empty:
-        return _withStaticWidgets(state, status: _buildNoWidgetsSelected());
+        return _withStaticWidgets(
+          state,
+          includeAccounts: includeAccounts,
+          status: _buildNoWidgetsSelected(),
+        );
       case PersonalizedBodyStatus.ready:
         break;
     }
@@ -319,9 +327,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
     // Everything renderable may have been a static widget.
     return tiles.isEmpty
-        ? _withStaticWidgets(state, status: _buildNoWidgetsSelected())
+        ? _withStaticWidgets(
+            state,
+            includeAccounts: includeAccounts,
+            status: _buildNoWidgetsSelected(),
+          )
         : _withStaticWidgets(
             state,
+            includeAccounts: includeAccounts,
             tiles: tiles,
             onMove: DashboardArrange.isAvailable(ref)
                 ? (dragged, target) => DashboardArrange.move(
@@ -348,6 +361,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     List<DashboardTile> tiles = const [],
     Widget? status,
     void Function(String dragged, String target)? onMove,
+    bool includeAccounts = true,
   }) {
     // Draws its own card, like on the fixed home.
     const accounts = DashboardTile(
@@ -370,7 +384,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       tileDecoration: RetailWidgetRegistry.tileDecoration,
       onMove: onMove,
       tiles: [
-        accounts,
+        if (includeAccounts) accounts,
         spendings,
         if (status != null)
           DashboardTile(span: 12, child: Center(child: status)),
@@ -453,8 +467,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   /// The dashboard as it was before personalization — the original
   /// [HomeContent] layout, with its own column arrangement and sizing.
-  Widget _buildOriginalLayout(CasaAccountsState accountsState, bool isWide) {
+  Widget _buildOriginalLayout(
+    CasaAccountsState accountsState,
+    bool isWide, {
+    bool showAccountCard = true,
+  }) {
     return HomeContent(
+      showAccountCard: showAccountCard,
+      onSpendingsTap: () => setState(() => _selectedBottomNavIndex = 1),
       selectedTopTabIndex: _selectedTopTabIndex,
       onTopTabSelected: (index) => setState(() => _selectedTopTabIndex = index),
       revealedAccountIds: _revealedAccountIds,
@@ -509,7 +529,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   @override
   void dispose() {
-    _heroActionPager.dispose();
     super.dispose();
   }
 
@@ -526,6 +545,16 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     final responsive = Responsive.of(context);
     final bg = HomeColors.bg(context);
     final accountsState = ref.watch(casaAccountsProvider);
+
+    // Keep Home's data alive while the dashboard is open, on every tab.
+    // Both providers are autoDispose: on phones nothing else watches them
+    // once another tab is showing, so leaving Home threw away the loaded
+    // dashboard layout and recent transactions, and coming back fetched
+    // them all again. Watching one small field each keeps them alive
+    // without rebuilding the dashboard on every change; they are still
+    // dropped when the dashboard closes (logout).
+    ref.watch(personalizationProvider.select((s) => s.isUnavailable));
+    ref.watch(recentTransactionsWidgetProvider.select((s) => s.category));
 
     // Read and personalize the layout for this screen size, as Corporate
     // does. Without this Retail always used `large`, so a phone showed —
@@ -897,7 +926,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 3:
         return const RewardsTabScreen();
       case 4:
-        return const MoreTabScreen();
+        return MoreTabScreen(
+          displayName: _displayNameFromTrace(),
+          // Only when the customer has a personalisable OBDX dashboard.
+          onPersonalize: ref.watch(personalizationProvider).isUnavailable
+              ? null
+              : _openPersonalize,
+          onRewardsTap: () => setState(() => _selectedBottomNavIndex = 3),
+        );
       case 5:
         return PayeesScreen(
           embedded: true,
@@ -1110,37 +1146,196 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     _addPayeeOpenedFromManage = false;
   }
 
+  /// Phone Home (designer mock, Demobank variant): a white top panel with
+  /// the header and the account card, then on a light page either the
+  /// customer's OBDX personalised widgets (with Customize, as before) or
+  /// the fixed set: Quick Actions, Loan Tracker, My Spendings, Recent
+  /// Transactions, Info Corner.
   Widget _buildHomeBody(CasaAccountsState accountsState) {
-    final displayName = _displayNameFromTrace();
-    final summary = accountsState.summary;
-    final balanceText = _heroBalanceText(summary);
-    final balanceSubtitle = _heroBalanceSubtitle(context, summary);
+    // Light page (designer mock): a soft brand tint over the normal
+    // background, white cards on it.
+    final page = Color.alphaBlend(
+      HomeColors.brandLight(context).withValues(alpha: 0.10),
+      HomeColors.bg(context),
+    );
+    return ColoredBox(
+      color: page,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(child: _buildMobileTopPanel(accountsState)),
+          SliverToBoxAdapter(child: _buildPhoneWidgets(accountsState)),
+        ],
+      ),
+    );
+  }
 
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(
-          child: TopHeroSection(
-            displayName: displayName,
-            hideBalance: _hideTotalBalance,
-            currentActionSlide: _heroSlideIndex,
-            actionPageController: _heroActionPager,
-            onToggleBalance: () =>
-                setState(() => _hideTotalBalance = !_hideTotalBalance),
-            onActionSlideChanged: (index) =>
-                setState(() => _heroSlideIndex = index),
-            onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
-            onProfileTap: () => setState(() => _selectedBottomNavIndex = 4),
-            onMenuTap: _openMenu,
-            balanceText: balanceText,
-            balanceSubtitle: balanceSubtitle,
-            isBalanceLoading: accountsState.isLoading,
+  /// Below the top panel. Security notices always come first.
+  Widget _buildPhoneWidgets(CasaAccountsState accountsState) {
+    final state = ref.watch(personalizationProvider);
+    final notice = _buildSecurityNotice();
+    if (state.bodyStatus == PersonalizedBodyStatus.unavailable) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+            child: notice,
+          ),
+          _buildOriginalLayout(accountsState, false, showAccountCard: false),
+        ],
+      );
+    }
+    // Personalised dashboard: Quick Actions, then the customer's widgets
+    // (the account card is in the top panel already).
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          notice,
+          QuickActionsStrip(
+            onTransfer: () => setState(() => _selectedBottomNavIndex = 2),
+          ),
+          const SizedBox(height: 20),
+          // Customisation lives in the Menu (profile icon, top right).
+          _buildPersonalizedArea(state, includeAccounts: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileTopPanel(CasaAccountsState accountsState) {
+    final l10n = AppLocalizations.of(context);
+    final accounts = accountsState.summary?.accounts ?? const <CasaAccount>[];
+    final Widget card;
+    if (accountsState.isLoading && accounts.isEmpty) {
+      card = const SizedBox(
+        height: 220,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    } else if (accountsState.errorMessage != null && accounts.isEmpty) {
+      card = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          children: [
+            Text(
+              accountsState.errorMessage!,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: HomeColors.textSecondary(context)),
+            ),
+            TextButton(
+              onPressed: () =>
+                  ref.read(casaAccountsProvider.notifier).refresh(),
+              child: Text(l10n.accountsRetry),
+            ),
+          ],
+        ),
+      );
+    } else {
+      card = AccountsTabCard(
+        framed: false,
+        accounts: accounts,
+        revealedAccountIds: _revealedAccountIds,
+        onToggleAccountVisibility: _toggleAccountVisibility,
+        displayName: _displayNameFromTrace(),
+        onViewAllAccountsTap: () =>
+            _openAccountsDestination(WebAccountsDestination.casa),
+        onViewAllLoans: () =>
+            _openAccountsDestination(WebAccountsDestination.loans),
+        onLoanTap: _openLoanAccountDetails,
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: HomeColors.card(context),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DemobankHomeHeader(
+                onMenuTap: _openMenu,
+                displayName: _displayNameFromTrace(),
+                // Profile → Menu (profile card, Personalize Dashboard,
+                // settings, help).
+                onProfileTap: () => setState(() => _selectedBottomNavIndex = 4),
+              ),
+              const SizedBox(height: 12),
+              card,
+            ],
           ),
         ),
-        SliverToBoxAdapter(
-          child: _buildWidgetArea(accountsState, isWide: false),
+      ),
+    );
+  }
+
+  /// Device-security warning (rooted / modified device, emulator), shown
+  /// for the whole session — it cannot be dismissed or customised away.
+  Widget _buildSecurityNotice() {
+    final threat = ref.watch(deviceSecurityNoticeProvider);
+    if (threat == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final message = threat == DeviceThreatType.emulator
+        ? l10n.deviceSecurityWarnEmulator
+        : l10n.deviceSecurityWarnCompromised;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Semantics(
+        liveRegion: true,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: HomeColors.card(context),
+            borderRadius: BorderRadius.circular(14),
+            border: Border(
+              left: BorderSide(color: HomeColors.warning(context), width: 4),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.gpp_maybe_rounded, color: HomeColors.warning(context)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.homeSecurityNotice,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: HomeColors.textPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: HomeColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 
@@ -1459,14 +1654,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           child: _buildCurrentBody(accountsState),
         );
     }
-  }
-
-  String? _heroBalanceText(CasaAccountsSummary? summary) {
-    if (summary == null) return null;
-    final currency = summary.primaryCurrency;
-    final total = summary.primaryTotal;
-    if (currency == null || total == null) return null;
-    return MoneyFormat.format(total, currencyCode: currency);
   }
 
   String? _heroBalanceSubtitle(

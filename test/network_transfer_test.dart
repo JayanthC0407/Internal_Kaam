@@ -713,7 +713,26 @@ void main() {
       );
       await _tap(tester, 'Continue');
       expect(find.text('Enter the account number.'), findsOneWidget);
-      expect(find.text("Enter the payee's name."), findsOneWidget);
+      expect(find.text('Enter the account name.'), findsOneWidget);
+      expect(find.text("Enter the payee's email address."), findsOneWidget);
+    });
+
+    testWidgets('adhoc: account numbers must match, the email must be valid', (tester) async {
+      await _pump(
+        tester,
+        const NetworkTransferScreen(mode: NetworkTransferMode.adhocPayee),
+        repository: _FakeRepository(),
+        height: 1800,
+      );
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '0102003456'); // Account Number
+      await tester.enterText(fields.at(1), '0102003457'); // Confirm Account Number
+      await tester.enterText(fields.at(2), 'Sam Lee'); // Account Name
+      await tester.enterText(fields.at(3), 'not-an-email'); // Payee Email Id
+      await _tap(tester, 'Continue');
+      expect(find.text('Account numbers do not match.'), findsOneWidget);
+      expect(find.text('Enter a valid email address.'), findsOneWidget);
+      expect(find.text('Enter the account name.'), findsNothing);
     });
 
     testWidgets('an adhoc international payee asks for SWIFT and country',
@@ -726,9 +745,9 @@ void main() {
         height: 2200,
       );
       await _tap(tester, 'International');
-      expect(find.text('SWIFT / BIC code'), findsOneWidget);
-      expect(find.text('Country'), findsOneWidget);
-      expect(find.text('Charges'), findsOneWidget);
+      expect(find.text('SWIFT / BIC Code'), findsOneWidget);
+      expect(find.text('Country *'), findsOneWidget);
+      expect(find.text('Correspondence Charges *'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -741,11 +760,13 @@ void main() {
       );
       await _tap(tester, 'Choose a payee');
       await _tap(tester, 'John');
-      expect(find.text('How often'), findsWidgets);
-      expect(find.text('First transfer'), findsOneWidget);
+      // OBDX's names, under the designer's "Repeat Transfer" section.
+      expect(find.text('Repeat Transfer *'), findsOneWidget);
+      expect(find.text('Frequency *'), findsOneWidget);
+      expect(find.text('Start Date *'), findsOneWidget);
       await _tap(tester, 'Continue');
-      expect(find.text('Choose how often.'), findsOneWidget);
-      expect(find.text('Choose the first transfer date.'), findsOneWidget);
+      expect(find.text('Choose the frequency.'), findsOneWidget);
+      expect(find.text('Choose the start date.'), findsOneWidget);
     });
 
     testWidgets('Low Value Payment: international payees and GPI currencies',
@@ -903,18 +924,44 @@ void main() {
       expect(find.text('Choose an account'), findsOneWidget);
     });
 
-    testWidgets('saved and new payees are one switch apart', (tester) async {
+    testWidgets("the designer's sections: adhoc and existing payee", (tester) async {
+      await _pump(
+        tester,
+        const NetworkTransferScreen(mode: NetworkTransferMode.adhocPayee),
+        repository: _FakeRepository(),
+        height: 1800,
+      );
+      for (final label in [
+        'Payment Type *',
+        'Payee Details *',
+        'Account Number *',
+        'Confirm Account Number *',
+        'Account Name *',
+        'Payee Email Id *',
+        'Transfer Details *',
+        'Credit Account Currency *',
+        'Schedule Transfer *',
+      ]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      for (final chip in ['Internal', 'Domestic', 'International']) {
+        expect(find.text(chip), findsOneWidget);
+      }
+      await _tap(tester, 'Domestic');
+      expect(find.text('BIC Code *'), findsOneWidget);
+
+      // A saved payee: chosen from the list — no payment type, no account
+      // fields, no credit currency.
+      await tester.pumpWidget(const SizedBox());
       await _pump(
         tester,
         const NetworkTransferScreen(mode: NetworkTransferMode.existingPayee),
         repository: _FakeRepository(),
       );
       expect(find.text('Choose a payee'), findsOneWidget);
-      await _tap(tester, 'Adhoc Payee');
-      expect(find.text('Account number'), findsWidgets);
-      expect(find.text("Payee's name"), findsOneWidget);
-      await _tap(tester, 'Existing Payee');
-      expect(find.text('Choose a payee'), findsOneWidget);
+      expect(find.text('Payment Type *'), findsNothing);
+      expect(find.text('Account Number *'), findsNothing);
+      expect(find.text('Credit Account Currency *'), findsNothing);
     });
 
     testWidgets('on a phone the button stays at the bottom', (tester) async {

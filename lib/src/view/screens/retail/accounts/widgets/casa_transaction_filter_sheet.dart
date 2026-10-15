@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
@@ -58,9 +59,7 @@ String casaFilterSummary(AppLocalizations l10n, CasaTransactionQuery query) {
     casaPeriodLabel(l10n, query.period),
     if (query.creditDebit != CasaCreditDebitFilter.all)
       casaCreditDebitLabel(l10n, query.creditDebit),
-    if ((query.fromAmount ?? '').trim().isNotEmpty ||
-        (query.toAmount ?? '').trim().isNotEmpty)
-      '${query.fromAmount?.trim() ?? ''}–${query.toAmount?.trim() ?? ''}',
+    if ((query.fromAmount ?? '').trim().isNotEmpty) query.fromAmount!.trim(),
     if ((query.referenceNumber ?? '').trim().isNotEmpty)
       query.referenceNumber!.trim(),
   ];
@@ -106,8 +105,7 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   DateTime? _specificDate;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
-  late final TextEditingController _fromAmountController;
-  late final TextEditingController _toAmountController;
+  late final TextEditingController _amountController;
   late final TextEditingController _referenceController;
 
   @override
@@ -119,24 +117,27 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
     _specificDate = widget.query.specificDate;
     _rangeStart = widget.query.rangeStart;
     _rangeEnd = widget.query.rangeEnd;
-    _fromAmountController =
+    // OBDX's filter has one Amount: it is sent as fromAmount = toAmount.
+    _amountController =
         TextEditingController(text: widget.query.fromAmount ?? '');
-    _toAmountController =
-        TextEditingController(text: widget.query.toAmount ?? '');
     _referenceController =
         TextEditingController(text: widget.query.referenceNumber ?? '');
   }
 
   @override
   void dispose() {
-    _fromAmountController.dispose();
-    _toAmountController.dispose();
+    _amountController.dispose();
     _referenceController.dispose();
     super.dispose();
   }
 
   bool get _needsSpecificDate => _period == CasaTransactionPeriod.specificDay;
   bool get _needsDateRange => _period == CasaTransactionPeriod.dateRange;
+
+  String? get _amount {
+    final text = _amountController.text.trim();
+    return text.isEmpty ? null : text;
+  }
 
   CasaTransactionQuery _buildQuery() {
     return CasaTransactionQuery(
@@ -145,12 +146,8 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
       specificDate: _needsSpecificDate ? _specificDate : null,
       rangeStart: _needsDateRange ? _rangeStart : null,
       rangeEnd: _needsDateRange ? _rangeEnd : null,
-      fromAmount: _fromAmountController.text.trim().isEmpty
-          ? null
-          : _fromAmountController.text.trim(),
-      toAmount: _toAmountController.text.trim().isEmpty
-          ? null
-          : _toAmountController.text.trim(),
+      fromAmount: _amount,
+      toAmount: _amount,
       referenceNumber: _referenceController.text.trim().isEmpty
           ? null
           : _referenceController.text.trim(),
@@ -252,19 +249,23 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
                 ),
               ],
             ),
-            _FieldLabel(label: l10n.casaAccountNumberLabel),
-            const SizedBox(height: 8),
-            CasaAccountDropdown(
-              accounts: widget.accounts,
-              selectedId: _accountId,
-              onChanged: (id) {
-                if (id == null || id.isEmpty) return;
-                setState(() => _accountId = id);
-              },
-              enabledWhenSingle: true,
-              showSubtitle: true,
-            ),
-            const SizedBox(height: 16),
+            // Loans / term deposits pick the account outside the sheet and
+            // pass no accounts, so the dropdown is left out for them.
+            if (widget.accounts.isNotEmpty) ...[
+              _FieldLabel(label: l10n.casaAccountNumberLabel),
+              const SizedBox(height: 8),
+              CasaAccountDropdown(
+                accounts: widget.accounts,
+                selectedId: _accountId,
+                onChanged: (id) {
+                  if (id == null || id.isEmpty) return;
+                  setState(() => _accountId = id);
+                },
+                enabledWhenSingle: true,
+                showSubtitle: true,
+              ),
+              const SizedBox(height: 16),
+            ],
             _FieldLabel(label: l10n.casaFilterViewOptions),
             const SizedBox(height: 8),
             _EnumDropdown<CasaTransactionPeriod>(
@@ -327,45 +328,18 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
               },
             ),
             const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _FieldLabel(label: l10n.casaFilterFromAmount),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _fromAmountController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        textInputAction: TextInputAction.next,
-                        decoration: AuthFormStyles.inputDecoration(colors: colors),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _FieldLabel(label: l10n.casaFilterToAmount),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _toAmountController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        textInputAction: TextInputAction.next,
-                        decoration: AuthFormStyles.inputDecoration(colors: colors),
-                      ),
-                    ],
-                  ),
-                ),
+            _FieldLabel(label: l10n.casaFilterAmount),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
               ],
+              textInputAction: TextInputAction.next,
+              decoration: AuthFormStyles.inputDecoration(colors: colors),
             ),
             const SizedBox(height: 16),
             _FieldLabel(label: l10n.casaFilterReferenceNumber),

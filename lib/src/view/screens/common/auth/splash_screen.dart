@@ -70,6 +70,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (security.shouldWarn) {
         ref.read(pendingDeviceSecurityWarningProvider.notifier).state =
             security.threatType;
+        ref.read(deviceSecurityNoticeProvider.notifier).state =
+            security.threatType;
       }
 
       final session = ref.read(sessionManagerProvider);

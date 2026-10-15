@@ -15,6 +15,7 @@ import 'package:ubci_bank/src/view/screens/common/auth/biometric_unlock_screen.d
 import 'package:ubci_bank/src/view/screens/common/auth/forgot_credentials_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/otp_login_screen.dart';
+import 'package:ubci_bank/src/view/widgets/auth/auth_mobile_frame.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
 import 'package:ubci_bank/src/view/widgets/login_help_dialog.dart';
 import 'package:ubci_bank/src/view/widgets/simple_option_picker_sheet.dart';
@@ -336,7 +337,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               decoration: BoxDecoration(
                 gradient: AppGradients.primary(context),
               ),
-              child: SafeArea(
+              // Same leaf pattern as the phone sign-in screens.
+              child: CustomPaint(
+                painter: const AuthLeafPatternPainter(cell: 80),
+                child: SafeArea(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(
                     responsive.isCompactHeight ? 28 : 52,
@@ -415,6 +419,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
+              ),
             ),
           ),
         Expanded(
@@ -454,162 +459,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     AppColors colors,
     Responsive responsive,
   ) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: AppGradients.primary(context),
+    // Designer mock: gradient header, white logo, "?" help, wave card.
+    return AuthMobileFrame(
+      title: l10n.welcomeBack,
+      subtitle: l10n.loginMobileSubtitle,
+      trailing: AuthHeaderIconButton(
+        icon: Icons.help_outline_rounded,
+        tooltip: l10n.help,
+        onPressed: _handleHelpTap,
       ),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            // Optional background pattern
-            Positioned(
-              right: -70,
-              top: 40,
-              child: Opacity(
-                opacity: 0.08,
-                child: Icon(
-                  Icons.circle,
-                  size: 260,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Column(
-                      children: [
-                        //----------------------------------------
-                        // HEADER
-                        //----------------------------------------
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            18,
-                            14,
-                            18,
-                            0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  _buildLogo(Colors.white),
-                                  const Spacer(),
-                                  _buildHelpBadge(),
-                                ],
-                              ),
-                              const SizedBox(height: 58),
-                              Text(
-                                l10n.welcomeBack,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -.4,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              const SizedBox(
-                                width: 280,
-                                child: Text(
-                                  "Sign in to continue with your corporate banking activity securely.",
-                                  style: TextStyle(
-                                    color: Color(0xE6FFFFFF),
-                                    fontSize: 15,
-                                    height: 1.45,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 130),
-                            ],
-                          ),
-                        ),
-
-                        //----------------------------------------
-                        // LOGIN CARD
-                        //----------------------------------------
-                        Transform.translate(
-                          offset: const Offset(0, -42),
-                          child: Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            padding: const EdgeInsets.fromLTRB(
-                              24,
-                              36,
-                              24,
-                              28,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.cardBg,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(28),
-                                topRight: Radius.circular(28),
-                                bottomLeft: Radius.circular(16),
-                                bottomRight: Radius.circular(16),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(.15),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: _buildLoginForm(
-                              l10n: l10n,
-                              isLoading: isLoading,
-                              errorMessage: errorMessage,
-                              colors: colors,
-                              desktopMode: false,
-                              compact: false,
-                              showTopLogo: false,
-                              showHeader: false,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
-      ),
-      // ),
-    );
-  }
-
-  Widget _buildHelpBadge() {
-    return InkWell(
-      onTap: _handleHelpTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 32,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0x26FFFFFF),
-        ),
-        child: const Text(
-          '?',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+      child: _buildLoginForm(
+        l10n: l10n,
+        isLoading: isLoading,
+        errorMessage: errorMessage,
+        colors: colors,
+        desktopMode: false,
+        compact: false,
+        showTopLogo: false,
+        showHeader: false,
       ),
     );
   }
@@ -757,36 +624,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
         ),
-        const SizedBox(height: 8),
+        // OBDX alternate login (mock: "or" + fingerprint under Login) —
+        // only on a device enrolled for biometric login.
+        if (_canBiometricLogin) ...[
+          const SizedBox(height: 10),
+          Center(
+            child: Text(
+              l10n.loginOr,
+              style: TextStyle(fontSize: 13, color: textSecondary),
+            ),
+          ),
+          Center(
+            child: IconButton(
+              tooltip: l10n.loginWithBiometrics,
+              iconSize: 46,
+              onPressed: isLoading ? null : _loginWithBiometrics,
+              icon: Icon(Icons.fingerprint_rounded, color: textPrimary),
+            ),
+          ),
+        ] else
+          const SizedBox(height: 8),
         Center(
           child: desktopMode
               ? _buildDesktopForgotLinks(l10n, colors)
               : _buildMobileForgotLink(l10n, colors),
         ),
-        if (_canBiometricLogin) ...[
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: isLoading ? null : _loginWithBiometrics,
-            icon: Icon(Icons.fingerprint, color: brand),
-            label: Text(
-              l10n.loginWithBiometrics,
-              style: TextStyle(color: brand, fontWeight: FontWeight.w600),
-            ),
-            style: OutlinedButton.styleFrom(
-              minimumSize: Size.fromHeight(desktopMode ? 50 : 48),
-              side: BorderSide(color: brand),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(desktopMode ? 12 : 8),
-              ),
-            ),
-          ),
-        ],
         const SizedBox(height: 18),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // Wraps on narrow phones / large text instead of overflowing.
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              "Don't have an account? ",
+              l10n.loginNoAccount,
               style: TextStyle(
                 fontSize: 13,
                 color: textPrimary,
@@ -795,7 +665,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             GestureDetector(
               onTap: _openRegistration,
               child: Text(
-                "Signup",
+                l10n.loginSignup,
                 style: TextStyle(
                   color: brand,
                   fontSize: 13,
@@ -926,24 +796,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildDesktopBrand() {
-    final l10n = AppLocalizations.of(context);
-    return Align(
+    // White logo on the brand gradient, as on phones.
+    return const Align(
       alignment: Alignment.centerLeft,
-      child: Image.asset(
-        _logoAsset,
-        height: 46,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Text(
-          l10n.brandName,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
+      child: AuthWhiteLogo(height: 46),
     );
   }
+
 
   Widget _buildErrorCard(String message) {
     return Card(

@@ -3,6 +3,7 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_form_styles.dart';
+import 'package:ubci_bank/src/view/widgets/auth/auth_mobile_frame.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_screen_header.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
 /// Flat auth page layout matching login (no card, no step chrome).
@@ -26,8 +27,6 @@ class AuthFormShell extends StatelessWidget {
   final String? subtitle;
   final double? maxWidth;
   final double bottomInset;
-  static const _logoAsset = 'assets/images/demobank_logo.png';
-
   @override
 Widget build(BuildContext context) {
   final colors = AppColors.of(context);
@@ -102,168 +101,19 @@ Widget build(BuildContext context) {
     );
   }
 
-  const logoAsset = _logoAsset;
-
-  return Container(
-    width: double.infinity,
-    height: double.infinity,
-    decoration: BoxDecoration(
-      gradient: AppGradients.primary(context),
-    ),
-    child: SafeArea(
-      child: Stack(
-        children: [
-          Positioned(
-            right: -70,
-            top: 40,
-            child: Opacity(
-              opacity: .08,
-              child: Icon(
-                Icons.circle,
-                size: 260,
-                color: Colors.white,
-              ),
-            ),
+  // Phones: the designer's frame — gradient, white logo, big title and
+  // the wave-topped white card.
+  return AuthMobileFrame(
+    title: title,
+    subtitle: subtitle,
+    trailing: onBack == null
+        ? null
+        : AuthHeaderIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: onBack!,
           ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          18,
-                          14,
-                          18,
-                          0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Image.asset(
-                                  logoAsset,
-                                  height: 32,
-                                  fit: BoxFit.contain,
-                                ),
-                                const Spacer(),
-                                if (onBack != null)
-                                  InkWell(
-                                    onTap: onBack,
-                                    borderRadius:
-                                        BorderRadius.circular(
-                                      20,
-                                    ),
-                                    child: Container(
-                                      width: 32,
-                                      height: 32,
-                                      alignment:
-                                          Alignment.center,
-                                      decoration:
-                                          const BoxDecoration(
-                                        shape:
-                                            BoxShape.circle,
-                                        color: Color(
-                                          0x26FFFFFF,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons
-                                            .arrow_back_ios_new,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 58),
-                            if (title != null)
-                              Text(
-                                title!,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 38,
-                                  fontWeight:
-                                      FontWeight.w700,
-                                  letterSpacing: -.4,
-                                ),
-                              ),
-                            if (subtitle != null) ...[
-                              const SizedBox(height: 10),
-                              SizedBox(
-                                width: 280,
-                                child: Text(
-                                  subtitle!,
-                                  style: const TextStyle(
-                                    color:
-                                        Color(0xE6FFFFFF),
-                                    fontSize: 15,
-                                    height: 1.45,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 120),
-                          ],
-                        ),
-                      ),
-                      Transform.translate(
-                        offset: const Offset(0, -42),
-                        child: Container(
-                          width: double.infinity,
-                          margin:
-                              const EdgeInsets.symmetric(
-                            horizontal: 8,
-                          ),
-                          padding:
-                              const EdgeInsets.fromLTRB(
-                            24,
-                            36,
-                            24,
-                            28,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.cardBg,
-                            borderRadius:
-                                const BorderRadius.only(
-                              topLeft:
-                                  Radius.circular(28),
-                              topRight:
-                                  Radius.circular(28),
-                              bottomLeft:
-                                  Radius.circular(16),
-                              bottomRight:
-                                  Radius.circular(16),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black
-                                    .withOpacity(.15),
-                                blurRadius: 24,
-                                offset:
-                                    const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: child,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    ),
+    child: child,
   );
 }
 }
@@ -300,18 +150,18 @@ class AuthSplitLayout extends StatelessWidget {
 class AuthBrandSidePanel extends StatelessWidget {
   const AuthBrandSidePanel({super.key});
 
-  //static const _logoAsset = 'assets/images/demobank_logo.png';
-  static const _logoAsset = 'assets/images/demobank_logo.png';
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final compact = Responsive.of(context).isCompactHeight;
-  const logoAsset = _logoAsset;
     return Container(
       decoration: BoxDecoration(
         gradient: AppGradients.primary(context),
       ),
-      child: SafeArea(
+      // Same leaf pattern as the phone sign-in screens.
+      child: CustomPaint(
+        painter: const AuthLeafPatternPainter(cell: 80),
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             compact ? 28 : 52,
@@ -322,21 +172,9 @@ class AuthBrandSidePanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
+              const Align(
                 alignment: Alignment.centerLeft,
-                child: Image.asset(
-                  logoAsset,
-                  height: 46,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Text(
-                    l10n.brandName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
+                child: AuthWhiteLogo(height: 46),
               ),
               SizedBox(height: compact ? 28 : 70),
               Text(
@@ -363,6 +201,7 @@ class AuthBrandSidePanel extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
