@@ -778,7 +778,9 @@ class _Dots extends StatelessWidget {
           width: isActive ? 18 : 7,
           height: 7,
           decoration: BoxDecoration(
-            color: isActive ? HomeColors.brand(context) : AppColors.teal100,
+            color: isActive
+                ? HomeColors.brand(context)
+                : AppColors.of(context).brandSubtle,
             borderRadius: BorderRadius.circular(99),
           ),
         );
@@ -1014,7 +1016,7 @@ class _SpendingChartCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: i == 4
                               ? HomeColors.brand(context)
-                              : AppColors.cyan300,
+                              : AppColors.of(context).brandMuted,
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
@@ -1092,7 +1094,7 @@ class _TopSpendingsCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.cyan50,
+                        color: AppColors.of(context).brandTint,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

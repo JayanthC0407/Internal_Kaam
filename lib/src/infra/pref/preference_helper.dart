@@ -235,6 +235,16 @@ class PreferenceHelper {
     await _legacyPrefs.setString(PrefConst.themeMode, mode);
   }
 
+  Future<String> getThemePalette() async {
+    await ensureInitialized();
+    return _legacyPrefs.getString(PrefConst.themePalette);
+  }
+
+  Future<void> setThemePalette(String palette) async {
+    await ensureInitialized();
+    await _legacyPrefs.setString(PrefConst.themePalette, palette);
+  }
+
   Future<String> getAppLocale() async {
     await ensureInitialized();
     return _legacyPrefs.getString(PrefConst.appLocale);

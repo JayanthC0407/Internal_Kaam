@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/config/locale_config.dart';
+import 'package:ubci_bank/src/core/theme/app_palette.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
@@ -120,6 +121,21 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
     );
     if (selected == null || !mounted) return;
     await ref.read(appSettingsProvider.notifier).setThemeMode(selected);
+  }
+
+  Future<void> _pickPalette(AppThemePalette current) async {
+    final l10n = AppLocalizations.of(context);
+    final selected = await AppBottomSheet.pick<AppThemePalette>(
+      context: context,
+      title: l10n.colorTheme,
+      selected: current,
+      options: [
+        for (final palette in AppThemePalette.values)
+          (value: palette, label: palette.label(l10n)),
+      ],
+    );
+    if (selected == null || !mounted) return;
+    await ref.read(appSettingsProvider.notifier).setPalette(selected);
   }
 
   Future<void> _pickLanguage(Locale current) async {
@@ -281,6 +297,7 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
     final l10n = AppLocalizations.of(context);
     final settings = ref.watch(appSettingsProvider);
     final currentThemeMode = settings.themeMode;
+    final currentPalette = settings.palette;
     final currentLocale = settings.locale;
     final session = ref.read(sessionManagerProvider);
     final themeLabel =
@@ -338,6 +355,13 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
                   title: l10n.theme,
                   value: themeLabel,
                   onTap: () => _pickTheme(currentThemeMode),
+                ),
+                _SettingsNavTile(
+                  icon: Icons.color_lens_outlined,
+                  title: l10n.colorTheme,
+                  value: currentPalette.label(l10n),
+                  valueSwatch: currentPalette.swatch,
+                  onTap: () => _pickPalette(currentPalette),
                 ),
                 _SettingsNavTile(
                   icon: Icons.language_rounded,
@@ -467,6 +491,7 @@ class _SettingsNavTile extends StatelessWidget {
     required this.value,
     required this.onTap,
     this.showDivider = true,
+    this.valueSwatch,
   });
 
   final IconData icon;
@@ -474,6 +499,9 @@ class _SettingsNavTile extends StatelessWidget {
   final String value;
   final VoidCallback onTap;
   final bool showDivider;
+
+  /// Small colour dot shown before [value] (used by the colour theme row).
+  final Color? valueSwatch;
 
   @override
   Widget build(BuildContext context) {
@@ -499,6 +527,17 @@ class _SettingsNavTile extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (valueSwatch != null) ...[
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: valueSwatch,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
               Text(
                 value,
                 style: TextStyle(

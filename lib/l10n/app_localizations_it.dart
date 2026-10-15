@@ -283,6 +283,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get darkTheme => 'Scuro';
 
   @override
+  String get colorTheme => 'Tema colore';
+
+  @override
+  String get paletteCyan => 'Ciano';
+
+  @override
+  String get paletteOrange => 'Arancione';
+
+  @override
+  String get paletteIndigo => 'Indaco';
+
+  @override
   String get language => 'Lingua';
 
   @override

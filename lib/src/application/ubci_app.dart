@@ -49,8 +49,8 @@ class UbciApp extends ConsumerWidget {
           ),
         );
       },
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.light(settings.palette),
+      darkTheme: AppTheme.dark(settings.palette),
       themeMode: settings.themeMode,
       scaffoldMessengerKey: mainScaffoldMessengerKey,
       navigatorKey: NavigationService.globalAppNav,
