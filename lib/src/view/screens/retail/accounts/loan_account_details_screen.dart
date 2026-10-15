@@ -227,27 +227,41 @@ class _LoanAccountDetailsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Phone: one field per row, divided (designer mock).
               _InfoGrid(
                 wide: wide,
-                columns: wide ? 5 : 2,
+                columns: wide ? 5 : 1,
                 fields: [
                   CasaDetailField(
-                    label: 'Account Number',
-                    value: details.displayNumber.isEmpty
-                        ? widget.args.loan.displayNumber
-                        : details.displayNumber,
+                    label: l10n.casaAccountNumberLabel,
+                    value: '',
+                    valueWidget: _AccountNumberValue(
+                      number: details.displayNumber.isEmpty
+                          ? widget.args.loan.displayNumber
+                          : details.displayNumber,
+                    ),
                   ),
                   CasaDetailField(
                     label: 'Loan Holder',
                     value: details.holderName?.trim().isNotEmpty == true
                         ? details.holderName!
                         : '—',
+                    valueColor: HomeColors.brand(context),
                   ),
                   CasaDetailField(
-                    label: 'Status',
-                    value: (details.status?.trim().isNotEmpty ?? false)
-                        ? details.status!
-                        : 'Active',
+                    label: l10n.casaStatusLabel,
+                    value: '—',
+                    // Only what the bank sends — no "Active" default.
+                    valueWidget: (details.status?.trim().isNotEmpty ?? false)
+                        ? Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: CasaStatusChip(
+                              label: _titleCase(details.status!),
+                              warning:
+                                  details.status!.trim().toUpperCase() != 'ACTIVE',
+                            ),
+                          )
+                        : null,
                   ),
                   CasaDetailField(
                     label: l10n.loanOpeningDate,
@@ -368,6 +382,8 @@ class _OuterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Phones follow the mock: the inner cards sit straight on the page.
+    if (!Responsive.of(context).useWideLayout) return child;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -547,6 +563,57 @@ class _RepayButton extends StatelessWidget {
 }
 
 /// Responsive N-per-row label/value grid used for the loan info sections.
+/// Grouped loan number ("•••• •••• •••• 0139") with a copy button.
+class _AccountNumberValue extends StatelessWidget {
+  const _AccountNumberValue({required this.number});
+
+  final String number;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            groupAccountNumber(number),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+              color: HomeColors.textPrimary(context),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        InkWell(
+          borderRadius: BorderRadius.circular(4),
+          onTap: () async {
+            await Clipboard.setData(ClipboardData(text: number));
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context).copiedToClipboard),
+              ),
+            );
+          },
+          child: Icon(
+            Icons.copy_rounded,
+            size: 14,
+            color: HomeColors.brand(context),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String _titleCase(String value) {
+  final v = value.trim().toLowerCase();
+  return v.isEmpty ? v : '${v[0].toUpperCase()}${v.substring(1)}';
+}
+
 class _InfoGrid extends StatelessWidget {
   const _InfoGrid({required this.wide, required this.columns, required this.fields});
 
@@ -558,6 +625,10 @@ class _InfoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = <Widget>[];
     for (var i = 0; i < fields.length; i += columns) {
+      if (columns == 1 && i > 0) {
+        rows.add(Divider(height: 12, color: HomeColors.divider(context)));
+        rows.add(const SizedBox(height: 8));
+      }
       final rowFields = fields.skip(i).take(columns).toList();
       final cells = <Widget>[];
       for (var c = 0; c < columns; c++) {

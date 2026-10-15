@@ -4,38 +4,22 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account_detail.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/statement_format.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/utils/common/money_format.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/accounts_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
 import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_tile.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transactions_table.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/statement_download.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/transactions_phone_header.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
 
 /// How many transactions the "View All" screen shows per page.
 const int _pageSize = 10;
-
-/// Statements are always offered in this order/set when the host's
-/// `dda/v1/enumerations/mediatype` call is unavailable — mirrors the
-/// confirmed capture (csv, pdf, qif, ofx) so the picker still works if
-/// that lookup ever fails.
-const List<StatementFormat> _fallbackStatementFormats = [
-  StatementFormat(code: 'csv', mimeType: 'text/csv', ordinal: 1),
-  StatementFormat(code: 'pdf', mimeType: 'application/pdf', ordinal: 2),
-  StatementFormat(code: 'qif', mimeType: 'application/qif', ordinal: 3),
-  StatementFormat(code: 'ofx', mimeType: 'application/x-ofx', ordinal: 4),
-];
 
 class CasaTransactionsArgs {
   const CasaTransactionsArgs({required this.accountId});
@@ -61,20 +45,35 @@ class _CasaTransactionsScreenState
   final _pager = ListPager<CasaTransaction>(pageSize: _pageSize);
   String? _pagedForAccountId;
 
+  /// Phone "Search for amount" box = OBDX's Amount filter.
+  final _amountController = TextEditingController();
+
+  /// Phone list grows 10 rows at a time as you scroll, like OBDX's
+  /// `loadMoreOnScroll` (fetchSize 10).
+  int _visibleCount = _pageSize;
+
   @override
   void initState() {
     super.initState();
     _selectedAccountId = widget.accountId.trim();
+    _amountController.text = _query.fromAmount ?? '';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(casaAccountsProvider.notifier).ensureLoaded();
       _loadSelected();
     });
   }
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
   void _loadSelected() {
     final id = _selectedAccountId.trim();
     if (id.isEmpty) return;
     _pager.reset();
+    _visibleCount = _pageSize;
     ref.read(casaAccountDetailProvider(id).notifier).load();
     ref.read(casaTransactionsProvider(id).notifier).load(query: _query);
   }
@@ -94,6 +93,7 @@ class _CasaTransactionsScreenState
     setState(() {
       _selectedAccountId = result.accountId;
       _query = result.query;
+      _amountController.text = _query.fromAmount ?? '';
     });
     if (accountChanged) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,88 +105,38 @@ class _CasaTransactionsScreenState
     _loadSelected();
   }
 
+  /// OBDX sends its single Amount filter as `fromAmount = toAmount`; an
+  /// empty box clears it. Reloads from the server like Apply does.
+  void _applyAmount(String raw) {
+    final amount = raw.trim();
+    final next = amount.isEmpty
+        ? _query.copyWith(clearFromAmount: true, clearToAmount: true)
+        : _query.copyWith(fromAmount: amount, toAmount: amount);
+    if (next == _query) return;
+    setState(() => _query = next);
+    _loadSelected();
+  }
+
+  Future<void> _refresh() async {
+    await Future.wait([
+      ref
+          .read(casaTransactionsProvider(_selectedAccountId).notifier)
+          .load(query: _query),
+      ref.read(casaAccountDetailProvider(_selectedAccountId).notifier).load(),
+    ]);
+  }
+
   Future<void> _downloadStatement() async {
     if (_downloadingStatement) return;
-    final l10n = AppLocalizations.of(context);
-
-    // Ask the host which formats it actually supports before offering a
-    // choice; fall back to the confirmed capture if that lookup fails
-    // rather than blocking the whole flow.
-    final formatsResult =
-        await ref.read(accountsRepositoryProvider).fetchStatementFormats();
-    if (!mounted) return;
-    final formats =
-        (formatsResult is Success<List<StatementFormat>> &&
-                (formatsResult.data?.isNotEmpty ?? false))
-            ? formatsResult.data!
-            : _fallbackStatementFormats;
-
-    final chosenFormat = await AppBottomSheet.pick<StatementFormat>(
+    await downloadTransactionStatement(
       context: context,
-      title: l10n.casaStatementFormatTitle,
-      options: [
-        for (final format in formats)
-          (value: format, label: format.label),
-      ],
-      selected: formats.first,
+      ref: ref,
+      accountId: _selectedAccountId,
+      query: _query,
+      onBusy: (busy) {
+        if (mounted) setState(() => _downloadingStatement = busy);
+      },
     );
-    if (chosenFormat == null || !mounted) return;
-
-    final proceed = await AppBottomSheet.confirm(
-      context,
-      title: l10n.casaStatementPasswordTitle,
-      message: [
-        l10n.casaStatementPasswordBody,
-        l10n.casaStatementPasswordExample1,
-        l10n.casaStatementPasswordExample2,
-      ].join('\n\n'),
-      confirmLabel: l10n.casaStatementPasswordContinue,
-    );
-    if (!proceed || !mounted) return;
-
-    setState(() => _downloadingStatement = true);
-
-    final result = await ref.read(accountsRepositoryProvider).downloadStatement(
-          _selectedAccountId,
-          format: chosenFormat,
-          query: _query,
-        );
-
-    if (!mounted) return;
-
-    if (result is Success<StatementFile> && result.data != null) {
-      try {
-        final box = context.findRenderObject() as RenderBox?;
-        final origin = box != null && box.hasSize
-            ? box.localToGlobal(Offset.zero) & box.size
-            : null;
-        await StatementFileSaver.saveStatement(
-          bytes: result.data!.bytes,
-          fileName: result.data!.fileName,
-          mimeType: result.data!.mimeType,
-          sharePositionOrigin: origin,
-        );
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.casaStatementDownloadSuccess)),
-        );
-      } catch (_) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.casaStatementDownloadFailed)),
-        );
-      }
-    } else if (!SessionExpiryCoordinator.instance.isHandling) {
-      final message = result.resolveUserMessage(
-        l10n: l10n,
-        fallback: l10n.casaStatementDownloadFailed,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    }
-
-    if (mounted) setState(() => _downloadingStatement = false);
   }
 
   @override
@@ -229,6 +179,19 @@ class _CasaTransactionsScreenState
     final closing = result?.closingBalance ??
         detail?.availableBalance ??
         detail?.currentBalance;
+
+    if (!wide) {
+      return SecureScreen(
+        child: _buildPhone(
+          l10n: l10n,
+          txState: txState,
+          account: selectedAccount,
+          detail: detail,
+          opening: _money(opening, currency),
+          closing: _money(closing, currency),
+        ),
+      );
+    }
 
     return SecureScreen(
       child: Scaffold(
@@ -275,22 +238,7 @@ class _CasaTransactionsScreenState
               ),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () async {
-                    await Future.wait([
-                      ref
-                          .read(
-                            casaTransactionsProvider(_selectedAccountId)
-                                .notifier,
-                          )
-                          .load(query: _query),
-                      ref
-                          .read(
-                            casaAccountDetailProvider(_selectedAccountId)
-                                .notifier,
-                          )
-                          .load(),
-                    ]);
-                  },
+                  onRefresh: _refresh,
                   child: ListView(
                     padding: EdgeInsets.fromLTRB(
                       wide ? 28 : 16,
@@ -363,6 +311,97 @@ class _CasaTransactionsScreenState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Phone layout from the designer mock: brand header (back, title,
+  /// download, filter, balances, "Search for amount") over a white
+  /// "Recent Transactions" card grouped by month.
+  Widget _buildPhone({
+    required AppLocalizations l10n,
+    required CasaTransactionsState txState,
+    required CasaAccount? account,
+    required CasaAccountDetail? detail,
+    required String opening,
+    required String closing,
+  }) {
+    final result = txState.result;
+    final transactions = result?.transactions ?? const <CasaTransaction>[];
+    final hasMore = transactions.length > _visibleCount;
+
+    final Widget content;
+    if (txState.isLoading && result == null) {
+      content = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 48),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    } else if (txState.errorMessage != null && result == null) {
+      content = _ErrorCard(
+        message: txState.errorMessage!,
+        onRetry: _loadSelected,
+      );
+    } else {
+      content = _PhoneTransactionsCard(
+        transactions: transactions.take(_visibleCount).toList(),
+        hasMore: hasMore,
+        onLoadMore: () => setState(() => _visibleCount += _pageSize),
+      );
+    }
+
+    final number = account?.displayNumber ?? detail?.account.displayNumber ?? '';
+    final masked = number.length > 4
+        ? '•••• ${number.substring(number.length - 4)}'
+        : number;
+    final currencyCode = (detail?.currencyCode ?? account?.currencyCode ?? '')
+        .trim()
+        .toUpperCase();
+
+    return Scaffold(
+      backgroundColor: HomeColors.bg(context),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TransactionsPhoneHeader(
+            title: l10n.casaTransactionsTitle,
+            accountLine: [
+              if (masked.isNotEmpty) masked,
+              if (currencyCode.isNotEmpty) currencyCode,
+            ].join('  |  '),
+            filterSummary: casaFilterSummary(l10n, _query),
+            filtered: !_query.isDefault,
+            opening: opening,
+            closing: closing,
+            amountController: _amountController,
+            onAmountSubmitted: _applyAmount,
+            onFilter: _openFilter,
+            onDownload: _downloadStatement,
+            downloading: _downloadingStatement,
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (hasMore && notification.metrics.extentAfter < 200) {
+                    setState(() => _visibleCount += _pageSize);
+                  }
+                  return false;
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    24 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  children: [content],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -575,7 +614,7 @@ class _TransactionsCard extends StatelessWidget {
           else
             for (var i = 0; i < transactions.length; i++) ...[
               if (i > 0) Divider(height: 1, color: colors.divider),
-              CasaTransactionTile(transaction: transactions[i]),
+              CasaTransactionRow(transaction: transactions[i]),
             ],
         ],
       ),
@@ -613,6 +652,61 @@ class _ErrorCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextButton(onPressed: onRetry, child: Text(l10n.accountsRetry)),
+        ],
+      ),
+    );
+  }
+}
+
+class _PhoneTransactionsCard extends StatelessWidget {
+  const _PhoneTransactionsCard({
+    required this.transactions,
+    required this.hasMore,
+    required this.onLoadMore,
+  });
+
+  final List<CasaTransaction> transactions;
+  final bool hasMore;
+  final VoidCallback onLoadMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = AppColors.of(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      decoration: BoxDecoration(
+        color: colors.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.casaRecentTransactions,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
+          ),
+          if (transactions.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Text(
+                l10n.casaTransactionsEmpty,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: colors.textSecondary),
+              ),
+            )
+          else
+            CasaTransactionGroupList(transactions: transactions),
+          if (hasMore)
+            TextButton(
+              onPressed: onLoadMore,
+              child: Text(l10n.casaLoadMore),
+            ),
         ],
       ),
     );

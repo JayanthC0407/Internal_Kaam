@@ -9,3 +9,8 @@ final deviceSecurityServiceProvider = Provider(
 /// Set on splash when device security is in warn mode; consumed on login.
 final pendingDeviceSecurityWarningProvider =
     StateProvider<DeviceThreatType?>((ref) => null);
+
+/// Same warning, kept for the whole app session — the phone Home shows it
+/// as a security notice that cannot be hidden or customised away.
+final deviceSecurityNoticeProvider =
+    StateProvider<DeviceThreatType?>((ref) => null);

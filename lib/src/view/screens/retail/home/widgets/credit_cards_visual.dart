@@ -265,17 +265,10 @@ class CreditCardsVisual extends StatelessWidget {
 
         // Narrow/mobile: stack full-width cards one below the other
         // instead of squeezing two side by side.
+        // Narrow/mobile: a swipeable carousel with dots — the same as the
+        // Accounts and Loans tabs.
         if (available < _stackBreakpoint) {
-          final cardWidth =
-              available <= 0 ? _maxCardWidth : available.clamp(0.0, double.infinity);
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(width: cardWidth, child: blackCard),
-              const SizedBox(height: _gap),
-              SizedBox(width: cardWidth, child: blueCard),
-            ],
-          );
+          return _CreditCardsCarousel(cards: [blackCard, blueCard]);
         }
 
         // Wide/web: both cards at their natural width, side by side with
@@ -295,6 +288,69 @@ class CreditCardsVisual extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Phone carousel of the cards: one card per page, dots below.
+class _CreditCardsCarousel extends StatefulWidget {
+  const _CreditCardsCarousel({required this.cards});
+
+  final List<Widget> cards;
+
+  @override
+  State<_CreditCardsCarousel> createState() => _CreditCardsCarouselState();
+}
+
+class _CreditCardsCarouselState extends State<_CreditCardsCarousel> {
+  final _controller = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = Theme.of(context).colorScheme.primary;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Taller than the account cards: these carry more rows.
+        SizedBox(
+          height: 210,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: widget.cards.length,
+            onPageChanged: (i) => setState(() => _page = i),
+            itemBuilder: (_, i) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: widget.cards[i],
+            ),
+          ),
+        ),
+        if (widget.cards.length > 1) ...[
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < widget.cards.length; i++)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: i == _page ? 20 : 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: i == _page ? brand : brand.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit_actions.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
@@ -169,29 +170,24 @@ final termDepositDetailProvider = StateNotifierProvider.autoDispose
   (ref, id) => TdDetailNotifier(ref, id),
 );
 
-/// A transactions search.
+/// A deposit's transactions with OBDX's Transactions filter.
 class TdTransactionsQuery {
   const TdTransactionsQuery({
     required this.depositId,
-    this.period = TdTransactionPeriod.currentMonth,
-    this.type = 'A',
+    this.query = const CasaTransactionQuery(),
   });
 
   final String depositId;
-  final TdTransactionPeriod period;
-
-  /// `A` all, `C` credits, `D` debits.
-  final String type;
+  final CasaTransactionQuery query;
 
   @override
   bool operator ==(Object other) =>
       other is TdTransactionsQuery &&
       other.depositId == depositId &&
-      other.period == period &&
-      other.type == type;
+      other.query == query;
 
   @override
-  int get hashCode => Object.hash(depositId, period, type);
+  int get hashCode => Object.hash(depositId, query);
 }
 
 final termDepositTransactionsProvider = FutureProvider.autoDispose
@@ -199,8 +195,7 @@ final termDepositTransactionsProvider = FutureProvider.autoDispose
   final l10n = await AppLocalizationsHelper.current();
   final result = await ref
       .read(termDepositRepositoryProvider)
-      .fetchTransactions(q.depositId,
-          period: q.period, transactionType: q.type);
+      .fetchTransactions(q.depositId, query: q.query);
   if (result is Success<List<AccountTransaction>>) {
     return result.data ?? const [];
   }

@@ -51,7 +51,11 @@ class AuthLabeledField extends StatelessWidget {
     this.onFieldSubmitted,
     this.onChanged,
     this.autocorrect = true,
+    this.underline = false,
   });
+
+  /// Underlined, unfilled field (sign-in mock) instead of the boxed one.
+  final bool underline;
 
   final String label;
   final TextEditingController controller;
@@ -99,11 +103,18 @@ class AuthLabeledField extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w400,
           ),
-          decoration: AuthFormStyles.inputDecoration(
-            colors: colors,
-            hintText: hint,
-            suffixIcon: suffixIcon,
-          ).copyWith(
+          decoration: (underline
+                  ? AuthFormStyles.underlineDecoration(
+                      colors: colors,
+                      hintText: hint,
+                      suffixIcon: suffixIcon,
+                    )
+                  : AuthFormStyles.inputDecoration(
+                      colors: colors,
+                      hintText: hint,
+                      suffixIcon: suffixIcon,
+                    ))
+              .copyWith(
             helperText: helperText,
             helperStyle: TextStyle(
               fontSize: 11,
@@ -130,7 +141,11 @@ class AuthLabeledDropdown<T> extends StatelessWidget {
     this.enabled = true,
     this.validator,
     this.hint,
+    this.underline = false,
   });
+
+  /// Underlined, unfilled field (sign-in mock) instead of the boxed one.
+  final bool underline;
 
   final String label;
   final T? value;
@@ -159,16 +174,23 @@ class AuthLabeledDropdown<T> extends StatelessWidget {
             Icons.keyboard_arrow_down_rounded,
             color: colors.textSecondary,
           ),
+          // DropdownButton does not inherit the app font — set it here.
           style: TextStyle(
+            fontFamily: 'Rubik',
             color: colors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w400,
           ),
           dropdownColor: colors.cardBg,
-          decoration: AuthFormStyles.inputDecoration(
-            colors: colors,
-            hintText: hint,
-          ),
+          decoration: underline
+              ? AuthFormStyles.underlineDecoration(
+                  colors: colors,
+                  hintText: hint,
+                )
+              : AuthFormStyles.inputDecoration(
+                  colors: colors,
+                  hintText: hint,
+                ),
         ),
       ],
     );

@@ -8,13 +8,13 @@ import 'package:ubci_bank/src/core/models/common/lfw_party_profile.dart';
 import 'package:ubci_bank/src/core/models/common/lfw_progress.dart';
 import 'package:ubci_bank/src/core/models/common/security_question.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/infra/service/navigation_service.dart';
 import 'package:ubci_bank/src/view/providers/global_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
 import 'package:ubci_bank/src/view/widgets/auth/auth_labeled_field.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_secondary_button.dart';
 import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
 import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
 
@@ -42,6 +42,28 @@ class LoginWizardScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
+  /// Optional steps the user put off with "Remind Later" / "Skip" — for
+  /// this sign-in only (no server call), so OBDX asks again next time.
+  final Set<String> _remindLater = {};
+
+  LfwStepProgress? _current(LfwProgress? progress) {
+    if (progress == null) return null;
+    for (final step in progress.pendingSteps) {
+      if (!_remindLater.contains(step.wizardStepId)) return step;
+    }
+    return null;
+  }
+
+  /// Offered only for steps OBDX marks optional.
+  VoidCallback? _remindLaterFor(LfwStepProgress step) {
+    if (step.mandatory) return null;
+    return () {
+      setState(() => _remindLater.add(step.wizardStepId));
+      ref.read(loginWizardErrorProvider.notifier).state = null;
+      if (_current(ref.read(loginWizardProgressProvider)) == null) _goHome();
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +74,7 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
     final initial = widget.args.initialProgress;
     if (initial != null && initial.steps.isNotEmpty) {
       ref.read(loginWizardProgressProvider.notifier).state = initial;
-      if (initial.pendingSteps.isEmpty) {
+      if (_current(initial) == null) {
         _goHome();
       }
       return;
@@ -60,7 +82,7 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
     final l10n = AppLocalizations.of(context);
     final progress = await ref.read(loginWizardVmProvider).loadProgress(l10n: l10n);
     if (!mounted) return;
-    if (progress != null && progress.pendingSteps.isEmpty) {
+    if (progress != null && _current(progress) == null) {
       _goHome();
     }
   }
@@ -75,7 +97,7 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
   Future<void> _onStepCompleted() async {
     final progress = ref.read(loginWizardProgressProvider);
     if (progress == null) return;
-    if (progress.pendingSteps.isEmpty) {
+    if (_current(progress) == null) {
       _goHome();
     } else {
       setState(() {});
@@ -88,7 +110,7 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
     final loading = ref.watch(loginWizardIsLoadingProvider);
     final error = ref.watch(loginWizardErrorProvider);
     final progress = ref.watch(loginWizardProgressProvider);
-    final current = progress?.currentStep;
+    final current = _current(progress);
     final totalEnabled = progress?.steps.where((s) => s.enabled).length ?? 0;
     final completedCount =
         progress?.steps.where((s) => s.enabled && s.completed).length ?? 0;
@@ -107,7 +129,11 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (progress != null && progress.enabledSteps.isNotEmpty) ...[
+            // Step chips on wide screens; phones follow the mock (title
+            // and "Step n of N" in the header only).
+            if (progress != null &&
+                progress.enabledSteps.isNotEmpty &&
+                Responsive.of(context).useWideLayout) ...[
               _LfwStepStrip(
                 steps: progress.enabledSteps,
                 currentWizardStepId: current?.wizardStepId,
@@ -143,7 +169,7 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
                           .read(loginWizardVmProvider)
                           .loadProgress(l10n: l10n);
                       if (!mounted) return;
-                      if (p != null && p.pendingSteps.isEmpty) {
+                      if (p != null && _current(p) == null) {
                         _goHome();
                       }
                     },
@@ -154,6 +180,7 @@ class _LoginWizardScreenState extends ConsumerState<LoginWizardScreen> {
               _StepBody(
                 step: current,
                 onCompleted: _onStepCompleted,
+                onRemindLater: _remindLaterFor(current),
               ),
           ],
         ),
@@ -290,18 +317,30 @@ class _StepBody extends ConsumerWidget {
   const _StepBody({
     required this.step,
     required this.onCompleted,
+    this.onRemindLater,
   });
 
   final LfwStepProgress step;
   final Future<void> Function() onCompleted;
 
+  /// Null for mandatory steps.
+  final VoidCallback? onRemindLater;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     switch (step.kind) {
       case LfwStepKind.termsAndConditions:
-        return _TermsStep(step: step, onCompleted: onCompleted);
+        return _TermsStep(
+          step: step,
+          onCompleted: onCompleted,
+          onSkip: onRemindLater,
+        );
       case LfwStepKind.securityQuestions:
-        return _SecurityQuestionsStep(step: step, onCompleted: onCompleted);
+        return _SecurityQuestionsStep(
+          step: step,
+          onCompleted: onCompleted,
+          onRemindLater: onRemindLater,
+        );
       case LfwStepKind.userProfile:
         return _ProfileStep(step: step, onCompleted: onCompleted);
       case LfwStepKind.transactionLimits:
@@ -312,42 +351,60 @@ class _StepBody extends ConsumerWidget {
   }
 }
 
+/// OBDX login-flow Terms and Conditions: read, then Accept — OBDX has no
+/// separate tick box — and Skip only when OBDX marks the step optional.
 class _TermsStep extends ConsumerStatefulWidget {
-  const _TermsStep({required this.step, required this.onCompleted});
+  const _TermsStep({
+    required this.step,
+    required this.onCompleted,
+    this.onSkip,
+  });
 
   final LfwStepProgress step;
   final Future<void> Function() onCompleted;
+  final VoidCallback? onSkip;
 
   @override
   ConsumerState<_TermsStep> createState() => _TermsStepState();
 }
 
 class _TermsStepState extends ConsumerState<_TermsStep> {
-  bool _accepted = false;
+  /// The always-visible scrollbar needs its own controller.
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final step = widget.step;
+    final onCompleted = widget.onCompleted;
+    final onSkip = widget.onSkip;
     final l10n = AppLocalizations.of(context);
     final loading = ref.watch(loginWizardIsLoadingProvider);
     final brand = AuthColors.brand(context);
     final textPrimary = AuthColors.textPrimary(context);
     final textSecondary = AuthColors.textSecondary(context);
+    final height = MediaQuery.sizeOf(context).height;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.lfwTermsSubtitle,
-          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 280,
-          decoration: BoxDecoration(
-            border: Border.all(color: AuthColors.inputBorder(context)),
-            borderRadius: BorderRadius.circular(12),
-            color: AuthColors.inputBackground(context),
+          l10n.lfwTermsReadCarefully,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: brand,
+            height: 1.35,
           ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: (height * 0.45).clamp(260.0, 460.0),
           child: FutureBuilder<String>(
             future: LegalContent.loadTermsAndConditions(),
             builder: (context, snapshot) {
@@ -357,59 +414,49 @@ class _TermsStepState extends ConsumerState<_TermsStep> {
               final text = snapshot.data?.trim() ?? '';
               if (text.isEmpty) {
                 return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      l10n.registrationTermsAndConditions,
-                      style: TextStyle(color: textSecondary),
-                    ),
+                  child: Text(
+                    l10n.registrationTermsAndConditions,
+                    style: TextStyle(color: textSecondary),
                   ),
                 );
               }
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: SelectableText(
-                  text,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.5,
-                    color: textPrimary,
+              return Scrollbar(
+                controller: _scroll,
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  controller: _scroll,
+                  padding: const EdgeInsets.only(right: 10),
+                  child: SelectableText(
+                    text,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      height: 1.5,
+                      color: textPrimary,
+                    ),
                   ),
                 ),
               );
             },
           ),
         ),
-        const SizedBox(height: 12),
-        CheckboxListTile(
-          value: _accepted,
-          onChanged: loading
-              ? null
-              : (v) => setState(() => _accepted = v ?? false),
-          controlAffinity: ListTileControlAffinity.leading,
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            l10n.lfwAcceptTerms,
-            style: TextStyle(fontSize: 14, color: textPrimary),
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         AuthFormPrimaryButton(
           label: l10n.lfwAccept,
           isLoading: loading,
-          enabled: _accepted,
           onPressed: () async {
-            if (!_accepted) {
-              ref.read(loginWizardErrorProvider.notifier).state =
-                  l10n.lfwMustAcceptTerms;
-              return;
-            }
             final ok = await ref
                 .read(loginWizardVmProvider)
-                .acceptTerms(widget.step, l10n: l10n);
-            if (ok) await widget.onCompleted();
+                .acceptTerms(step, l10n: l10n);
+            if (ok) await onCompleted();
           },
         ),
+        if (onSkip != null)
+          Center(
+            child: TextButton(
+              onPressed: loading ? null : onSkip,
+              child: Text(l10n.lfwSkip),
+            ),
+          ),
       ],
     );
   }
@@ -419,10 +466,14 @@ class _SecurityQuestionsStep extends ConsumerStatefulWidget {
   const _SecurityQuestionsStep({
     required this.step,
     required this.onCompleted,
+    this.onRemindLater,
   });
 
   final LfwStepProgress step;
   final Future<void> Function() onCompleted;
+
+  /// "Remind Later" — only when OBDX marks the step optional.
+  final VoidCallback? onRemindLater;
 
   @override
   ConsumerState<_SecurityQuestionsStep> createState() =>
@@ -593,6 +644,7 @@ class _SecurityQuestionsStepState
     final colors = AppColors.of(context);
     final textPrimary = AuthColors.textPrimary(context);
     final textSecondary = AuthColors.textSecondary(context);
+    final wide = Responsive.of(context).useWideLayout;
 
     if (_loadingOptions) {
       return const Padding(
@@ -601,22 +653,22 @@ class _SecurityQuestionsStepState
       );
     }
 
-    // digx-ui: landing state before the question form.
+    // OBDX view-user-security-question landing (mock: "Set Security
+    // Question" — not set up yet, Set up now, Remind Later).
     if (!_editing) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             l10n.lfwSecurityQuestionsNotSetup,
-            style: TextStyle(fontSize: 14, color: textPrimary, height: 1.4),
+            style: TextStyle(fontSize: 15, color: textPrimary, height: 1.4),
           ),
-          const SizedBox(height: 16),
-          _noteCard(l10n, textPrimary, textSecondary),
-          const SizedBox(height: 20),
+          const SizedBox(height: 28),
           AuthFormPrimaryButton(
             label: l10n.lfwSecurityQuestionsSetupNow,
             onPressed: () => setState(() => _editing = true),
           ),
+          if (widget.onRemindLater != null) _remindLaterLink(l10n),
         ],
       );
     }
@@ -637,8 +689,11 @@ class _SecurityQuestionsStepState
           l10n.lfwSecurityQuestionsSubtitle,
           style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
         ),
-        const SizedBox(height: 12),
-        _noteCard(l10n, textPrimary, textSecondary),
+        // OBDX's guidance note on wide screens; phones follow the mock.
+        if (wide) ...[
+          const SizedBox(height: 12),
+          _noteCard(l10n, textPrimary, textSecondary),
+        ],
         if (_options.isEmpty) ...[
           const SizedBox(height: 16),
           Text(
@@ -665,6 +720,7 @@ class _SecurityQuestionsStepState
             label: l10n.lfwSecurityQuestionLabel,
             hint: l10n.lfwSelectQuestion,
             required: true,
+            underline: !wide,
             value: _selectedIds[i],
             enabled: !loading && _options.isNotEmpty,
             validator: (_) {
@@ -696,6 +752,7 @@ class _SecurityQuestionsStepState
             label: l10n.lfwAnswerLabel,
             hint: l10n.lfwEnterAnswer,
             required: true,
+            underline: !wide,
             controller: _answerControllers[i],
             enabled: !loading,
             textInputAction: TextInputAction.next,
@@ -713,23 +770,47 @@ class _SecurityQuestionsStepState
           const SizedBox(height: 16),
         ],
         AuthFormPrimaryButton(
-          label: l10n.lfwSaveAndContinue,
+          label: l10n.lfwSecurityQuestionsSetupNow,
           isLoading: loading,
           enabled: _options.isNotEmpty,
           onPressed: _submit,
         ),
-        const SizedBox(height: 12),
-        AuthSecondaryButton(
-          label: l10n.cancel,
-          onPressed: loading
-              ? null
-              : () => setState(() {
-                    _editing = false;
-                    _showValidation = false;
-                    ref.read(loginWizardErrorProvider.notifier).state = null;
-                  }),
-        ),
+        if (widget.onRemindLater != null)
+          _remindLaterLink(l10n)
+        else
+          Center(
+            child: TextButton(
+              onPressed: loading
+                  ? null
+                  : () => setState(() {
+                        _editing = false;
+                        _showValidation = false;
+                        ref.read(loginWizardErrorProvider.notifier).state =
+                            null;
+                      }),
+              child: Text(l10n.cancel),
+            ),
+          ),
       ],
+    );
+  }
+
+  Widget _remindLaterLink(AppLocalizations l10n) {
+    final loading = ref.watch(loginWizardIsLoadingProvider);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Center(
+        child: TextButton(
+          onPressed: loading ? null : widget.onRemindLater,
+          child: Text(
+            l10n.lfwRemindLater,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

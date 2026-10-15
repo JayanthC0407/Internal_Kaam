@@ -141,17 +141,24 @@ class ObdxLoanApi extends ObdxApiBase {
   /// `GET /digx-common/loan/v1/loan/{id}/transactions?searchBy=LNT` —
   /// last [noOfTransactions] transactions for a loan, same convention as
   /// the CASA "recent transactions" endpoint.
+  ///
+  /// [queryParameters] replaces that default with OBDX's Transactions
+  /// filter (`searchBy`, `fromDate`/`toDate`, `transactionType`,
+  /// `fromAmount`/`toAmount`, `referenceNo`) — the Loan Transactions
+  /// screen sends what its filter holds, as OBDX does.
   Future<ResponseHandler<Map<String, dynamic>>> fetchLoanTransactions(
     String loanId, {
     int noOfTransactions = 5,
+    Map<String, dynamic>? queryParameters,
   }) async {
     try {
       final response = await dio.get(
         ObdxApiUtils.appendLocaleQuery(ApiConst.loanTransactionsApi(loanId)),
-        queryParameters: {
-          'searchBy': 'LNT',
-          'noOfTransactions': noOfTransactions.toString(),
-        },
+        queryParameters: queryParameters ??
+            {
+              'searchBy': 'LNT',
+              'noOfTransactions': noOfTransactions.toString(),
+            },
         options: Options(
           headers: {ApiConst.contentTypeKey: 'application/json'},
         ),

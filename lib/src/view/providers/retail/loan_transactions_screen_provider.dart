@@ -1,15 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations_helper.dart';
 import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
 import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
-
-/// Loan transactions endpoint has no true "all" mode (just
-/// `noOfTransactions`) — this is the largest page the "View All" screen
-/// asks for, standing in for "everything the host will return".
-const int _loanViewAllCount = 100;
 
 class LoanTransactionsScreenState {
   const LoanTransactionsScreenState({
@@ -17,6 +13,7 @@ class LoanTransactionsScreenState {
     this.isLoading = false,
     this.transactions = const [],
     this.errorMessage,
+    this.query = const CasaTransactionQuery(),
   });
 
   final String? selectedAccountId;
@@ -24,18 +21,24 @@ class LoanTransactionsScreenState {
   final List<AccountTransaction> transactions;
   final String? errorMessage;
 
+  /// OBDX's Transactions filter (View Options, Transactions, Amount,
+  /// Reference Number) — Current Month by default, as in OBDX.
+  final CasaTransactionQuery query;
+
   LoanTransactionsScreenState copyWith({
     String? selectedAccountId,
     bool? isLoading,
     List<AccountTransaction>? transactions,
     String? errorMessage,
     bool clearError = false,
+    CasaTransactionQuery? query,
   }) {
     return LoanTransactionsScreenState(
       selectedAccountId: selectedAccountId ?? this.selectedAccountId,
       isLoading: isLoading ?? this.isLoading,
       transactions: transactions ?? this.transactions,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      query: query ?? this.query,
     );
   }
 }
@@ -59,6 +62,20 @@ class LoanTransactionsScreenNotifier
     state = LoanTransactionsScreenState(
       selectedAccountId: accountId,
       isLoading: true,
+      query: state.query,
+    );
+    await _load(accountId);
+  }
+
+  /// Apply / Reset in the filter, or the "Search for amount" box.
+  Future<void> applyQuery(CasaTransactionQuery query) async {
+    final accountId = state.selectedAccountId;
+    if (accountId == null || query == state.query) return;
+    state = state.copyWith(
+      query: query,
+      isLoading: true,
+      transactions: const [],
+      clearError: true,
     );
     await _load(accountId);
   }
@@ -73,10 +90,7 @@ class LoanTransactionsScreenNotifier
   Future<void> _load(String accountId) async {
     final result = await _ref
         .read(loanRepositoryProvider)
-        .fetchRecentLoanTransactions(
-          accountId,
-          noOfTransactions: _loanViewAllCount,
-        );
+        .fetchLoanTransactions(accountId, query: state.query);
     final l10n = await AppLocalizationsHelper.current();
 
     if (state.selectedAccountId != accountId) return;
@@ -87,12 +101,14 @@ class LoanTransactionsScreenNotifier
         state = LoanTransactionsScreenState(
           selectedAccountId: accountId,
           errorMessage: l10n.errorTransactionsLoadFailed,
+          query: state.query,
         );
         return;
       }
       state = LoanTransactionsScreenState(
         selectedAccountId: accountId,
         transactions: all,
+        query: state.query,
       );
       return;
     }

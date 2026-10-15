@@ -8,8 +8,8 @@ import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_p
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/casa_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_tile.dart';
-import 'package:ubci_bank/src/view/screens/retail/transactions/widgets/transaction_tile.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
 import '../home_colors.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
@@ -132,17 +132,14 @@ class _RecentTransactionsCardState
                   ),
                 ),
               ),
-              TextButton(
+              // Design: a chevron opens the full Transactions screen.
+              IconButton(
+                tooltip: l10n.viewAll,
                 onPressed: canViewAll ? () => _openViewAll(context, state) : null,
-                style: TextButton.styleFrom(
-                  foregroundColor: HomeColors.brand(context),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  l10n.viewAll,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                icon: Icon(
+                  Icons.chevron_right_rounded,
+                  size: 28,
+                  color: HomeColors.textPrimary(context),
                 ),
               ),
             ],
@@ -233,26 +230,17 @@ class _RecentTransactionsCardState
       return _EmptyState(message: l10n.casaTransactionsEmpty);
     }
 
-    if (state.category == AccountCategory.currentAndSavings) {
-      final transactions = state.casaTransactions;
-      return Column(
-        children: [
-          for (var i = 0; i < transactions.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: HomeColors.divider(context)),
-            CasaTransactionTile(transaction: transactions[i], compact: true),
-          ],
-        ],
-      );
-    }
-
-    final transactions = state.loanTransactions;
-    return Column(
-      children: [
-        for (var i = 0; i < transactions.length; i++) ...[
-          if (i > 0) Divider(height: 1, color: HomeColors.divider(context)),
-          TransactionTile(transaction: transactions[i]),
-        ],
-      ],
+    // Home design: compact rows (signed amount in green / red), no month
+    // headings; loan lines use the shared transaction shape.
+    return CasaTransactionGroupList(
+      showHeadings: false,
+      compact: true,
+      transactions: state.category == AccountCategory.currentAndSavings
+          ? state.casaTransactions
+          : [
+              for (final t in state.loanTransactions)
+                CasaTransaction.fromAccountTransaction(t),
+            ],
     );
   }
 }

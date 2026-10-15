@@ -182,22 +182,26 @@ class _CasaAccountsListScreenState
         // as the dashboard's cards (e.g. AccountsTabCard), so the whole
         // "Accounts" section reads as one elevated card rather than loose
         // items sitting directly on the page background.
+        // Phones follow the mock: sections sit straight on the page.
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: HomeColors.card(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: HomeColors.divider(context)),
-            boxShadow: [
-              BoxShadow(
-                color: HomeColors.brandLight(context).withValues(alpha: 0.30),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
+          padding: wide ? const EdgeInsets.all(20) : EdgeInsets.zero,
+          decoration: !wide
+              ? null
+              : BoxDecoration(
+                  color: HomeColors.card(context),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: HomeColors.divider(context)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: HomeColors.brandLight(context)
+                          .withValues(alpha: 0.30),
+                      blurRadius: 15,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -258,7 +262,7 @@ class _CasaAccountsListScreenState
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: l10n.searchPlaceholder,
+                    hintText: l10n.casaSearchAccounts,
                     hintStyle: const TextStyle(fontSize: 12),
                     prefixIcon: const Icon(Icons.search_rounded, size: 18),
                     filled: true,
@@ -311,7 +315,7 @@ class _CasaAccountsListScreenState
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: l10n.searchPlaceholder,
+                    hintText: l10n.casaSearchAccounts,
                     hintStyle: const TextStyle(fontSize: 12),
                     prefixIcon: const Icon(Icons.search_rounded, size: 18),
                     filled: true,
@@ -874,12 +878,13 @@ class _AccountListTile extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                numberText,
+                groupAccountNumber(numberText),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
                   color: HomeColors.textPrimary(context),
                 ),
               ),
@@ -912,9 +917,9 @@ class _AccountListTile extends StatelessWidget {
                 if (!context.mounted) return;
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Copied to clipboard'),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text(l10n.copiedToClipboard),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },
@@ -948,7 +953,7 @@ class _AccountListTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: FontWeight.w800,
             color: HomeColors.textPrimary(context),
           ),
@@ -962,66 +967,52 @@ class _AccountListTile extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.casaPrimaryAccountHolder,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: HomeColors.textSecondary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '—',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: HomeColors.textPrimary(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 24),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.tableStatus,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: HomeColors.textSecondary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: account.isDormant
-                          ? AppColors.warningColor.withValues(alpha: 0.12)
-                          : AppColors.successColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      statusLabel,
+            // Holder only when the list call sends `partyName`.
+            if (account.holderName != null) ...[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.casaPrimaryAccountHolder,
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: account.isDormant
-                            ? AppColors.warningColor
-                            : AppColors.successColor,
+                        fontSize: 10,
+                        color: HomeColors.textSecondary(context),
                       ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      account.holderName!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: HomeColors.brand(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 24),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.casaStatusLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: HomeColors.textSecondary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: CasaStatusChip(
+                      label: statusLabel,
+                      warning: account.isDormant,
                     ),
                   ),
                 ],
