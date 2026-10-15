@@ -53,7 +53,7 @@ class RecentTransactionsWidgetState {
 
   /// Populated when [category] is `currentAndSavings` — kept as
   /// [CasaTransaction] (rather than converted) so the widget can reuse
-  /// [CasaTransactionTile], matching the look of the full CASA statement
+  /// [CasaTransactionRow], matching the look of the full CASA statement
   /// screen.
   final List<CasaTransaction> casaTransactions;
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
@@ -10,7 +12,7 @@ import 'package:ubci_bank/src/view/widgets/auth/otp_pin_input.dart';
   /// [attemptsLeft] / [resendsLeft] come from OBDX `X-Challenge` (or registration
   /// payload). When [attemptsLeft] is `<= 0`, pin and submit are disabled.
   /// When [resendsLeft] is `<= 0`, Resend is disabled.
-class OtpChallengeBody extends StatelessWidget {
+class OtpChallengeBody extends StatefulWidget {
   const OtpChallengeBody({
     super.key,
     required this.title,
@@ -36,6 +38,9 @@ class OtpChallengeBody extends StatelessWidget {
     this.resendLabel,
     this.compact = false,
     this.showSubmitButton = true,
+    this.showTitle = true,
+    this.underlineBoxes = false,
+    this.resendCooldownSeconds = 0,
   });
 
   final String title;
@@ -67,81 +72,119 @@ class OtpChallengeBody extends StatelessWidget {
   /// When false, the parent supplies Confirm / Cancel / Back.
   final bool showSubmitButton;
 
+  /// False when the screen header already shows the title (login mock).
+  final bool showTitle;
+
+  /// Underlined digit slots (login mock) instead of boxes.
+  final bool underlineBoxes;
+
+  /// When > 0, Resend waits this long after the screen opens and after
+  /// each resend ("Resend code in 00:30"). OBDX's resend limit
+  /// ([resendsLeft]) still applies.
+  final int resendCooldownSeconds;
+
+  @override
+  State<OtpChallengeBody> createState() => _OtpChallengeBodyState();
+}
+
+class _OtpChallengeBodyState extends State<OtpChallengeBody> {
+  Timer? _timer;
+  int _secondsLeft = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCooldown();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startCooldown() {
+    if (widget.resendCooldownSeconds <= 0) return;
+    _timer?.cancel();
+    setState(() => _secondsLeft = widget.resendCooldownSeconds);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      setState(() => _secondsLeft--);
+      if (_secondsLeft <= 0) timer.cancel();
+    });
+  }
+
+  void _resend() {
+    widget.onResend();
+    _startCooldown();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final compactHeight = Responsive.of(context).isCompactHeight;
-    final submitDisabled =
-        isLoading || (attemptsLeft != null && attemptsLeft! <= 0);
-    final resendDisabled =
-        isLoading || (resendsLeft != null && resendsLeft! <= 0);
-    final titleSize = compact
+    final submitDisabled = widget.isLoading ||
+        (widget.attemptsLeft != null && widget.attemptsLeft! <= 0);
+    final resendDisabled = widget.isLoading ||
+        (widget.resendsLeft != null && widget.resendsLeft! <= 0);
+    final titleSize = widget.compact
         ? 18.0
-        : (expandToFill ? (compactHeight ? 28.0 : 36.0) : 28.0);
+        : (widget.expandToFill ? (compactHeight ? 28.0 : 36.0) : 28.0);
+    final secondary = AuthColors.textSecondary(context);
+
+    final details = [
+      if (widget.attemptsLeft != null) l10n.otpAttemptsLeft(widget.attemptsLeft!),
+      if (widget.resendsLeft != null) l10n.otpResendsLeft(widget.resendsLeft!),
+      if (widget.referenceNumber != null && widget.referenceNumber!.isNotEmpty)
+        l10n.otpReferenceNumber(widget.referenceNumber!),
+    ];
 
     final content = <Widget>[
-      Text(
-        title,
-        style: TextStyle(
-          fontSize: titleSize,
-          fontWeight: FontWeight.w600,
-          color: AuthColors.textPrimary(context),
-          height: 1.2,
-          letterSpacing: compact ? -0.2 : 0,
+      if (widget.showTitle) ...[
+        Text(
+          widget.title,
+          style: TextStyle(
+            fontSize: titleSize,
+            fontWeight: FontWeight.w600,
+            color: AuthColors.textPrimary(context),
+            height: 1.2,
+            letterSpacing: widget.compact ? -0.2 : 0,
+          ),
         ),
-      ),
-      SizedBox(height: compact ? 6 : 8),
+        SizedBox(height: widget.compact ? 6 : 8),
+      ],
       Text(
-        subtitle,
+        widget.subtitle,
         style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          color: AuthColors.textSecondary(context),
+          fontSize: widget.showTitle ? 14 : 15,
+          fontWeight: widget.showTitle ? FontWeight.w400 : FontWeight.w500,
+          color: widget.showTitle
+              ? secondary
+              : AuthColors.textPrimary(context),
           height: 1.45,
         ),
       ),
-      if (attemptsLeft != null) ...[
+      if (details.isNotEmpty) ...[
         const SizedBox(height: 8),
-        Text(
-          l10n.otpAttemptsLeft(attemptsLeft!),
-          style: TextStyle(
-            fontSize: 13,
-            color: AuthColors.textSecondary(context),
+        for (final line in details)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(line, style: TextStyle(fontSize: 13, color: secondary)),
           ),
-        ),
-      ],
-      if (resendsLeft != null) ...[
-        const SizedBox(height: 4),
-        Text(
-          l10n.otpResendsLeft(resendsLeft!),
-          style: TextStyle(
-            fontSize: 13,
-            color: AuthColors.textSecondary(context),
-          ),
-        ),
-      ],
-      if (referenceNumber != null && referenceNumber!.isNotEmpty) ...[
-        const SizedBox(height: 4),
-        Text(
-          l10n.otpReferenceNumber(referenceNumber!),
-          style: TextStyle(
-            fontSize: 13,
-            color: AuthColors.textSecondary(context),
-          ),
-        ),
       ],
       const SizedBox(height: 24),
       OtpPinInput(
-        controller: controller,
-        focusNode: focusNode,
-        length: otpLength,
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        length: widget.otpLength,
         enabled: !submitDisabled,
-        onCompleted: (_) => onSubmit(),
+        underline: widget.underlineBoxes,
+        onCompleted: (_) => widget.onSubmit(),
       ),
-      if (errorMessage != null && errorMessage!.isNotEmpty) ...[
+      if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty) ...[
         const SizedBox(height: 14),
         Text(
-          errorMessage!,
+          widget.errorMessage!,
           style: TextStyle(
             color: AuthColors.error(context),
             fontSize: 13,
@@ -149,50 +192,70 @@ class OtpChallengeBody extends StatelessWidget {
           ),
         ),
       ],
-      if (expandToFill)
-        const Spacer()
-      else
-        SizedBox(height: compact ? 16 : 24),
-      Row(
-        mainAxisAlignment:
-            compact ? MainAxisAlignment.start : MainAxisAlignment.center,
-        children: [
-          Text(
-            didntReceiveLabel ?? l10n.otpDidntReceive,
+      if (widget.underlineBoxes) const SizedBox(height: 20),
+      if (_secondsLeft > 0)
+        Align(
+          alignment: widget.underlineBoxes
+              ? AlignmentDirectional.centerStart
+              : Alignment.center,
+          child: Text(
+            l10n.otpResendIn(
+              '00:${_secondsLeft.toString().padLeft(2, '0')}',
+            ),
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AuthColors.textSecondary(context),
+              color: AuthColors.brand(context),
             ),
           ),
-          TextButton(
-            onPressed: resendDisabled ? null : onResend,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              resendLabel ?? l10n.otpResend,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: resendDisabled
-                    ? AuthColors.textSecondary(context)
-                    : AuthColors.brand(context),
+        ),
+      if (widget.expandToFill)
+        const Spacer()
+      else
+        SizedBox(height: widget.compact ? 16 : 24),
+      if (_secondsLeft <= 0)
+        Row(
+          mainAxisAlignment: widget.compact
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                widget.didntReceiveLabel ?? l10n.otpDidntReceive,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: secondary,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      if (showSubmitButton) ...[
+            TextButton(
+              onPressed: resendDisabled ? null : _resend,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                widget.resendLabel ?? l10n.otpResend,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: resendDisabled
+                      ? secondary
+                      : AuthColors.brand(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      if (widget.showSubmitButton) ...[
         const SizedBox(height: 12),
         AuthPrimaryButton(
-          label: isLoading
-              ? (verifyingLabel ?? l10n.otpVerifying)
-              : (submitLabel ?? l10n.otpContinue),
-          isLoading: isLoading,
-          onPressed: submitDisabled ? null : onSubmit,
+          label: widget.isLoading
+              ? (widget.verifyingLabel ?? l10n.otpVerifying)
+              : (widget.submitLabel ?? l10n.otpContinue),
+          isLoading: widget.isLoading,
+          onPressed: submitDisabled ? null : widget.onSubmit,
         ),
       ],
     ];

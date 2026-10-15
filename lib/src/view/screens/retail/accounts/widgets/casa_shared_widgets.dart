@@ -93,10 +93,16 @@ class CasaDetailField extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
+    this.valueColor,
+    this.valueWidget,
   });
 
   final String label;
   final String value;
+  final Color? valueColor;
+
+  /// Replaces the value text (e.g. a status chip or number + copy).
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -116,15 +122,16 @@ class CasaDetailField extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-              height: 1.35,
-            ),
-          ),
+          valueWidget ??
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? colors.textPrimary,
+                  height: 1.35,
+                ),
+              ),
         ],
       ),
     );
@@ -416,6 +423,47 @@ class _AccountItem extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// "xxxxxxxxxxxx1022" → "•••• •••• •••• 1022" — the designer's grouped
+/// account number. Unmasked digits are grouped the same way.
+String groupAccountNumber(String number) {
+  final raw = number.replaceAll(' ', '').replaceAll(RegExp('[xX*•]'), '•');
+  if (raw.length < 8) return raw;
+  final groups = <String>[];
+  for (var i = 0; i < raw.length; i += 4) {
+    groups.add(raw.substring(i, i + 4 > raw.length ? raw.length : i + 4));
+  }
+  return groups.join(' ');
+}
+
+/// Green (or amber, for dormant / inactive) status pill from the mocks.
+class CasaStatusChip extends StatelessWidget {
+  const CasaStatusChip({super.key, required this.label, this.warning = false});
+
+  final String label;
+  final bool warning;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final tone = warning ? colors.warning : colors.success;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: tone,
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
+import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
@@ -87,8 +88,10 @@ class RetailRecentTransactionsWidget extends StatelessWidget {
 class RetailSpendSummaryWidget extends StatelessWidget {
   const RetailSpendSummaryWidget({super.key});
 
+  /// Phones get the designer's stacked chart, the same as the fixed Home.
   @override
-  Widget build(BuildContext context) => const SpendingsDonutCard();
+  Widget build(BuildContext context) =>
+      SpendingsDonutCard(stacked: !Responsive.of(context).useWideLayout);
 }
 
 /// OBDX `loan-summary` (module `loans`, segment `common`).
@@ -99,6 +102,8 @@ class RetailLoanSummaryWidget extends StatelessWidget {
   Widget build(BuildContext context) => LoanTrackerCard(
         onViewAll: () =>
             Navigator.of(context).pushNamed(RoutesConst.loanAccountsListScreen),
+        // Phones: flat outstanding gauge with the amount (designer mock).
+        phoneStyle: !Responsive.of(context).useWideLayout,
       );
 }
 

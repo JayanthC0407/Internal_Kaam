@@ -16,10 +16,17 @@ class LoanTrackerCard extends ConsumerWidget {
     super.key,
     this.hideBalance = false,
     this.onViewAll,
+    this.phoneStyle = false,
   });
 
   final bool hideBalance;
   final VoidCallback? onViewAll;
+
+  /// Phone Home design: "Loan Tracker" with the outstanding amount under
+  /// it and a flat gradient gauge of the outstanding share ("68 %
+  /// Outstanding"); no "View all" row — the whole card opens the loans
+  /// list.
+  final bool phoneStyle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +42,7 @@ final isDark = Theme.of(context).brightness == Brightness.dark;
     final currency = (rawSelection != null && currencies.contains(rawSelection))
         ? rawSelection
         : (currencies.isNotEmpty ? currencies.first : summary?.primaryCurrency);
-    return DashboardCardSurface(
+    final card = DashboardCardSurface(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
 decoration: BoxDecoration(
@@ -60,6 +67,7 @@ decoration: BoxDecoration(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+if (!phoneStyle || (summary?.isMultiCurrency ?? false))
 Row(
   children: [
     if (summary != null && summary.isMultiCurrency)
@@ -74,6 +82,7 @@ Row(
       )
     else
       const Spacer(),
+    if (!phoneStyle)
     InkWell(
       onTap: onViewAll,
       borderRadius: BorderRadius.circular(8),
@@ -104,7 +113,7 @@ Row(
     ),
   ],
 ),
-          const SizedBox(height: 16),
+          if (!phoneStyle) const SizedBox(height: 16),
           if (state.isLoading && summary == null)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 28),
@@ -124,8 +133,18 @@ Row(
               summary: summary,
               hideBalance: hideBalance,
               currency: currency,
+              phoneStyle: phoneStyle,
             ),
         ],
+      ),
+    );
+    if (!phoneStyle || onViewAll == null) return card;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onViewAll,
+        child: card,
       ),
     );
   }
@@ -136,7 +155,10 @@ class _LoanTrackerBody extends StatelessWidget {
     required this.summary,
     required this.hideBalance,
     required this.currency,
+    this.phoneStyle = false,
   });
+
+  final bool phoneStyle;
 
   final LoanAccountsSummary summary;
   final bool hideBalance;
@@ -163,19 +185,54 @@ Widget build(BuildContext context) {
 Expanded(
   flex: 3,
   child: Padding(
-    padding: const EdgeInsets.only(left: 32, bottom: 16),
+    padding: const EdgeInsets.only(left: 8, bottom: 16),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.loanTrackerTitle,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: HomeColors.textPrimary(context),
+        // One line, as in the mock — shrinks rather than wrapping.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            l10n.loanTrackerTitle,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: HomeColors.textPrimary(context),
+            ),
           ),
         ),
+        if (phoneStyle) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.loanOutstandingAmountLabel,
+            style: TextStyle(
+              fontSize: 12,
+              color: HomeColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              MoneyFormat.format(
+                outstandingAmount,
+                currencyCode: currency ?? '',
+                hidden: hideBalance,
+              ),
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: HomeColors.textPrimary(context),
+              ),
+            ),
+          ),
+        ],
+        if (!phoneStyle) ...[
         const SizedBox(height: 6),
         Text(
           '${MoneyFormat.format(
@@ -191,6 +248,7 @@ Expanded(
             color: HomeColors.textSecondary(context),
           ),
         ),
+        ],
       ],
     ),
   ),
@@ -198,10 +256,18 @@ Expanded(
 
         Expanded(
           flex: 4,
-          child: _AnimatedLoanGauge(
-            percent: outstandingPercent,
-            progress: outstandingRatio,
-          ),
+          // Outstanding share on both; phones use the flat gradient look.
+          child: phoneStyle
+              ? _AnimatedLoanGauge(
+                  percent: outstandingPercent,
+                  progress: outstandingRatio,
+                  label: l10n.loanTrackerOutstanding,
+                  brandColor: true,
+                )
+              : _AnimatedLoanGauge(
+                  percent: outstandingPercent,
+                  progress: outstandingRatio,
+                ),
         ),
       ],
     ),
@@ -309,11 +375,19 @@ class _LoanGaugePainter extends CustomPainter {
     required this.progress,
     required this.color,
     required this.trackColor,
+    this.glow = true,
+    this.gradient,
   });
 
   final double progress;
   final Color color;
   final Color trackColor;
+
+  /// Left-to-right arc gradient (phone design); [color] when null.
+  final List<Color>? gradient;
+
+  /// Blurred halo under the arc; off on the phone Home (flat design).
+  final bool glow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -338,14 +412,17 @@ class _LoanGaugePainter extends CustomPainter {
       ..maskFilter =
           const MaskFilter.blur(BlurStyle.normal, 8);
 
+    final rect =
+        Rect.fromCircle(center: center, radius: radius);
+
     final progressPaint = Paint()
       ..color = color
       ..strokeWidth = stroke
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-
-    final rect =
-        Rect.fromCircle(center: center, radius: radius);
+    if (gradient != null) {
+      progressPaint.shader = LinearGradient(colors: gradient!).createShader(rect);
+    }
 
     canvas.drawArc(
       rect,
@@ -357,13 +434,15 @@ class _LoanGaugePainter extends CustomPainter {
 
     final sweep = math.pi * progress;
 
-    canvas.drawArc(
-      rect,
-      math.pi,
-      sweep,
-      false,
-      glowPaint,
-    );
+    if (glow) {
+      canvas.drawArc(
+        rect,
+        math.pi,
+        sweep,
+        false,
+        glowPaint,
+      );
+    }
 
     canvas.drawArc(
       rect,
@@ -377,6 +456,7 @@ class _LoanGaugePainter extends CustomPainter {
   @override
   bool shouldRepaint(_LoanGaugePainter oldDelegate) {
     return progress != oldDelegate.progress ||
+        glow != oldDelegate.glow ||
         color != oldDelegate.color ||
         trackColor != oldDelegate.trackColor;
   }
@@ -386,10 +466,18 @@ class _AnimatedLoanGauge extends StatefulWidget {
   const _AnimatedLoanGauge({
     required this.percent,
     required this.progress,
+    this.label,
+    this.brandColor = false,
   });
 
   final int percent;
   final double progress;
+
+  /// Under the percentage; "Outstanding" when null.
+  final String? label;
+
+  /// Brand teal instead of the red-amber-green health colour.
+  final bool brandColor;
 
   @override
   State<_AnimatedLoanGauge> createState() =>
@@ -402,6 +490,11 @@ class _AnimatedLoanGaugeState
 
   late final AnimationController _controller;
 
+  /// The draw-in animation plays once per app run. Home is rebuilt every
+  /// time the user comes back to it, and replaying 1.8 s of animation
+  /// each time made the cards look like they were still loading.
+  static bool _playedOnce = false;
+
   @override
   void initState() {
     super.initState();
@@ -409,7 +502,13 @@ class _AnimatedLoanGaugeState
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..forward();
+    );
+    if (_playedOnce) {
+      _controller.value = 1;
+    } else {
+      _playedOnce = true;
+      _controller.forward();
+    }
   }
 
   @override
@@ -419,15 +518,19 @@ class _AnimatedLoanGaugeState
     // but the risk color should track health — i.e. how much has been
     // repaid — so it's inverted here rather than changing what the color
     // helper itself means.
-    final color = _loanRiskColor(context, 1 - widget.progress);
+    final color = widget.brandColor
+        ? HomeColors.brand(context)
+        : _loanRiskColor(context, 1 - widget.progress);
     return AnimatedBuilder(
       animation: _controller,
       builder: (_, __) {
         return Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.002)
-            ..rotateX(-0.25),
+          transform: widget.brandColor
+              ? Matrix4.identity()
+              : (Matrix4.identity()
+                ..setEntry(3, 2, 0.002)
+                ..rotateX(-0.25)),
           child: SizedBox(
             width: 180,
             height: 90,
@@ -436,7 +539,17 @@ class _AnimatedLoanGaugeState
                 progress:
                     widget.progress * _controller.value,
                     color: color,
-                    trackColor: HomeColors.divider(context),
+                    // Design: pale cyan track behind the brand arc.
+                    trackColor: widget.brandColor
+                        ? HomeColors.brandLight(context).withValues(alpha: 0.25)
+                        : HomeColors.divider(context),
+                    glow: !widget.brandColor,
+                    gradient: widget.brandColor
+                        ? [
+                            HomeColors.brand(context),
+                            HomeColors.brandLight(context),
+                          ]
+                        : null,
               ),
               child: Center(
                 child: Padding(
@@ -445,19 +558,29 @@ class _AnimatedLoanGaugeState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${widget.percent}%',
-                        style:  TextStyle(
+                        widget.brandColor
+                            ? '${widget.percent} %'
+                            : '${widget.percent}%',
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: color,
+                          color: widget.brandColor
+                              ? HomeColors.textPrimary(context)
+                              : color,
                         ),
                       ),
                        Text(
-                        'Outstanding',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
+                        widget.label ?? 'Outstanding',
+                        style: widget.brandColor
+                            ? TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: HomeColors.textPrimary(context),
+                              )
+                            : TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.white70 : Colors.black54,
+                              ),
                       ),
                     ],
                   ),

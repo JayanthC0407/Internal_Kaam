@@ -16,6 +16,7 @@ class QuickActionsGrid extends StatelessWidget {
     this.onPassbook,
     this.onNewDebitCard,
     this.onCalculator,
+    this.onTransfer,
     this.title = 'Activity Centre',
     this.crossAxisCount = 3,
   });
@@ -27,6 +28,10 @@ class QuickActionsGrid extends StatelessWidget {
   final VoidCallback? onNewDebitCard;
   final VoidCallback? onCalculator;
 
+  /// Phone Home design: Transfer takes the second tile (in place of New
+  /// Debit card). Web leaves it null and keeps the original six.
+  final VoidCallback? onTransfer;
+
   // TODO(l10n): move these labels into AppLocalizations once translated
   // strings are available for every supported locale.
   final String title;
@@ -37,14 +42,23 @@ class QuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = <_QuickAction>[
-      _QuickAction(Icons.add_circle_outline_rounded, 'Term Deposit', onTermDeposit),
-      _QuickAction(Icons.description_outlined, 'View Statement', onViewStatement),
-      _QuickAction(Icons.edit_note_rounded, 'Cheque Book', onChequeBook),
-      _QuickAction(Icons.menu_book_outlined, 'Passbook', onPassbook),
-      _QuickAction(Icons.credit_card_outlined, 'New Debit card', onNewDebitCard),
-      _QuickAction(Icons.calculate_outlined, 'Calculator', onCalculator),
-    ];
+    final items = onTransfer != null
+        ? <_QuickAction>[
+            _QuickAction(Icons.add_circle_outline_rounded, 'Term Deposit', onTermDeposit),
+            _QuickAction(Icons.swap_horiz_rounded, 'Transfer', onTransfer),
+            _QuickAction(Icons.description_outlined, 'View Statement', onViewStatement),
+            _QuickAction(Icons.edit_note_rounded, 'Cheque Book', onChequeBook),
+            _QuickAction(Icons.menu_book_outlined, 'Passbook', onPassbook),
+            _QuickAction(Icons.calculate_outlined, 'Calculator', onCalculator),
+          ]
+        : <_QuickAction>[
+            _QuickAction(Icons.add_circle_outline_rounded, 'Term Deposit', onTermDeposit),
+            _QuickAction(Icons.description_outlined, 'View Statement', onViewStatement),
+            _QuickAction(Icons.edit_note_rounded, 'Cheque Book', onChequeBook),
+            _QuickAction(Icons.menu_book_outlined, 'Passbook', onPassbook),
+            _QuickAction(Icons.credit_card_outlined, 'New Debit card', onNewDebitCard),
+            _QuickAction(Icons.calculate_outlined, 'Calculator', onCalculator),
+          ];
 
     return DashboardCardSurface(
       width: double.infinity,

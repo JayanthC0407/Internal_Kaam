@@ -3,13 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/term_deposit_repository.dart';
+import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/statement_download.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
 import 'package:ubci_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
@@ -546,6 +550,10 @@ class _DetailsPanels extends ConsumerWidget {
 
 // ── Transactions ─────────────────────────────────────────────────────────
 
+/// OBDX Term Deposits "Transactions" (type TRD): the shared Transactions
+/// filter (View Options, Transactions, Amount, Reference Number) and
+/// Download, with the same rows as the other Transactions screens. No
+/// Opening / Closing Balance — OBDX shows those for CASA only.
 class _TransactionsPanel extends ConsumerStatefulWidget {
   const _TransactionsPanel({required this.deposit});
 
@@ -556,63 +564,77 @@ class _TransactionsPanel extends ConsumerStatefulWidget {
 }
 
 class _TransactionsPanelState extends ConsumerState<_TransactionsPanel> {
-  TdTransactionPeriod _period = TdTransactionPeriod.currentMonth;
-  String _type = 'A';
+  CasaTransactionQuery _query = const CasaTransactionQuery();
+  bool _downloading = false;
+
+  Future<void> _openFilter() async {
+    final result = await showCasaTransactionFilter(
+      context: context,
+      accounts: const <CasaAccount>[],
+      selectedAccountId: widget.deposit.id,
+      query: _query,
+    );
+    if (!mounted || result == null) return;
+    setState(() => _query = result.query);
+  }
+
+  Future<void> _download() async {
+    if (_downloading) return;
+    await downloadTransactionStatement(
+      context: context,
+      ref: ref,
+      accountId: widget.deposit.id,
+      query: _query,
+      transactionsPath: ApiConst.termDepositTransactionsApi(widget.deposit.id),
+      onBusy: (busy) {
+        if (mounted) setState(() => _downloading = busy);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final query = TdTransactionsQuery(
       depositId: widget.deposit.id,
-      period: _period,
-      type: _type,
+      query: _query,
     );
     final value = ref.watch(termDepositTransactionsProvider(query));
-    final periods = {
-      TdTransactionPeriod.currentMonth: l10n.tdPeriodCurrentMonth,
-      TdTransactionPeriod.previousMonth: l10n.tdPeriodPreviousMonth,
-      TdTransactionPeriod.previousQuarter: l10n.tdPeriodPreviousQuarter,
-      TdTransactionPeriod.lastTen: l10n.tdPeriodLastTen,
-    };
 
     return TdPanel(
       title: l10n.tdTransactions,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CasaIconButton(
+            tooltip: l10n.filter,
+            onPressed: _openFilter,
+            icon: Icons.filter_alt_outlined,
+          ),
+          const SizedBox(width: 8),
+          _downloading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : CasaIconButton(
+                  tooltip: l10n.casaDownloadStatement,
+                  onPressed: _download,
+                  icon: Icons.download_rounded,
+                ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (final MapEntry(key: p, value: label) in periods.entries)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(label),
-                      selected: p == _period,
-                      onSelected: (_) => setState(() => _period = p),
-                    ),
-                  ),
-              ],
+          Text(
+            casaFilterSummary(l10n, _query),
+            style: TextStyle(
+              fontSize: 12,
+              color: HomeColors.textSecondary(context),
             ),
           ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: TdSegmented<String>(
-                options: [
-                  ('A', l10n.tdTxnAll),
-                  ('C', l10n.tdTxnCredits),
-                  ('D', l10n.tdTxnDebits),
-                ],
-                selected: _type,
-                onChanged: (t) => setState(() => _type = t),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
           value.when(
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 28),
@@ -625,87 +647,14 @@ class _TransactionsPanelState extends ConsumerState<_TransactionsPanel> {
             ),
             data: (items) => items.isEmpty
                 ? TdMuted(l10n.tdNoTransactions)
-                : Column(
-                    children: [
-                      for (final t in items) _TransactionRow(transaction: t),
+                : CasaTransactionGroupList(
+                    transactions: [
+                      for (final t in items)
+                        CasaTransaction.fromAccountTransaction(t),
                     ],
                   ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({required this.transaction});
-
-  final AccountTransaction transaction;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = transaction;
-    final credit = t.direction == TransactionDirection.credit;
-    final tone =
-        credit ? HomeColors.success(context) : HomeColors.textPrimary(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: HomeColors.divider(context))),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: tone.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              credit ? Icons.south_west_rounded : Icons.north_east_rounded,
-              size: 16,
-              color: tone,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  t.description.isEmpty ? '—' : t.description,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: HomeColors.textPrimary(context),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  [tdDate(t.date), if (t.reference.isNotEmpty) t.reference]
-                      .join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: HomeColors.textSecondary(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '${credit ? '+' : '−'}${tdMoney(t.amount)}',
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: tone,
-            ),
-          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

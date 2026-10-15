@@ -24,7 +24,12 @@ class CasaAccount {
     this.isDefault = false,
     this.openingDate,
     this.holdingPattern,
+    this.holderName,
   });
+
+  /// Account holder (`partyName`) when the list call sends it — the
+  /// Accounts list shows it, and leaves it out when it is missing.
+  final String? holderName;
 
   /// Complex OBDX account id (`id.value`), used for subsequent detail/statement calls.
   final String id;
@@ -78,6 +83,15 @@ class CasaAccount {
 
   @override
   int get hashCode => id.hashCode;
+
+  static String? _holderName(Map<String, dynamic> json) {
+    final name = (json['partyName'] ??
+            json['primaryAccountHolder'] ??
+            ObdxApiUtils.asMap(json['party'])['partyName'])
+        ?.toString()
+        .trim();
+    return name == null || name.isEmpty ? null : name;
+  }
 
   factory CasaAccount.fromJson(Map<String, dynamic> json) {
     final idMap = ObdxApiUtils.asMap(json['id']);
@@ -139,6 +153,7 @@ class CasaAccount {
           ?.toString()
           .trim(),
       holdingPattern: holdingPattern?.isEmpty == true ? null : holdingPattern,
+      holderName: _holderName(json),
       availableBalance: readBalance(
         json,
         const [

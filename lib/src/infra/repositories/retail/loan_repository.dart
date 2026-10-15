@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
 import 'package:ubci_bank/src/core/models/retail/loan_repayment.dart';
@@ -59,10 +60,39 @@ class LoanRepository {
     int noOfTransactions = 5,
   }) async {
     try {
-      final result = await _loanApi.fetchLoanTransactions(
-        loanId,
-        noOfTransactions: noOfTransactions,
+      return _parseTransactions(
+        await _loanApi.fetchLoanTransactions(
+          loanId,
+          noOfTransactions: noOfTransactions,
+        ),
       );
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  /// Loan Transactions screen: OBDX's filter ([query]) sent as-is —
+  /// `GET loan/{id}/transactions?searchBy=…&transactionType=…`.
+  Future<ResponseHandler<List<AccountTransaction>>> fetchLoanTransactions(
+    String loanId, {
+    CasaTransactionQuery query = const CasaTransactionQuery(),
+  }) async {
+    try {
+      return _parseTransactions(
+        await _loanApi.fetchLoanTransactions(
+          loanId,
+          queryParameters: query.toQueryParameters(),
+        ),
+      );
+    } catch (_) {
+      return ResponseHandler.exceptionError();
+    }
+  }
+
+  Future<ResponseHandler<List<AccountTransaction>>> _parseTransactions(
+    ResponseHandler<Map<String, dynamic>> result,
+  ) async {
+    try {
       if (result is! Success<Map<String, dynamic>> || result.data == null) {
         return _mapFailure(result);
       }

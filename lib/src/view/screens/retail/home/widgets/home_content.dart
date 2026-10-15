@@ -15,6 +15,7 @@ import 'package:ubci_bank/src/view/screens/retail/home/widgets/recent_transactio
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_accounts_inline_panel.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_tracker_card.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
+import 'package:ubci_bank/src/view/screens/retail/home/widgets/quick_actions_strip.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/spendings_donut_card.dart';
 import '../home_colors.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
@@ -41,7 +42,17 @@ class HomeContent extends StatelessWidget {
     this.onDepositTap,
     this.onViewAllDeposits,
     this.onOpenDeposit,
+    this.showAccountCard = true,
+    this.onSpendingsTap,
   });
+
+  /// My Spendings' chevron (phone design) — opens Insights.
+  final VoidCallback? onSpendingsTap;
+
+  /// False on the phone Home, whose white top panel already shows the
+  /// account card: this content then sits on the page as plain cards
+  /// (no rounded sheet of its own).
+  final bool showAccountCard;
 
   /// A term deposit tapped in the Accounts tab's "Term Deposits"
   /// category; "View all" there; and the "Term Deposit" quick action,
@@ -87,6 +98,12 @@ class HomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    if (!showAccountCard) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+        child: _buildSelectedContent(context, l10n),
+      );
+    }
     final content = Container(
      // clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -164,6 +181,8 @@ class HomeContent extends StatelessWidget {
           onViewAllLoans: onViewAllLoans,
           onLoanAccountTap: onLoanAccountTap,
           onOpenDeposit: onOpenDeposit,
+          showAccountCard: showAccountCard,
+          onSpendingsTap: onSpendingsTap,
         );
     }
   }
@@ -366,8 +385,12 @@ class _OverviewContent extends StatelessWidget {
     this.onViewAllLoans,
     this.onLoanAccountTap,
     this.onOpenDeposit,
+    this.showAccountCard = true,
+    this.onSpendingsTap,
   });
 
+  final bool showAccountCard;
+  final VoidCallback? onSpendingsTap;
   final bool isWide;
   final String displayName;
   final List<CasaAccount> accounts;
@@ -399,7 +422,10 @@ class _OverviewContent extends StatelessWidget {
       onViewAllLoans: onViewAllLoans,
       onLoanTap: onLoanAccountTap,
     );
-    final quickActions = QuickActionsGrid(
+    // Phone Home (teal band): the fixed four white tiles; elsewhere the grid.
+    final Widget quickActions = !isWide && !showAccountCard
+        ? QuickActionsStrip(onTransfer: onTransferTap)
+        : QuickActionsGrid(
       title: isWide ? 'Activity Centre' : l10n.quickActions,
       onTermDeposit:
           onOpenDeposit ?? () => _comingSoon(context, 'Term Deposit'),
@@ -408,9 +434,17 @@ class _OverviewContent extends StatelessWidget {
       onPassbook: () => _comingSoon(context, 'Passbook'),
       onNewDebitCard: () => _comingSoon(context, 'New Debit card'),
       onCalculator: () => _comingSoon(context, 'Calculator'),
+      // Phone Home design: Transfer is the second tile.
+      onTransfer: isWide ? null : onTransferTap,
+          );
+    // Phone design: flat "Outstanding" tracker with the amount, and the
+    // stacked spendings card.
+    final loanTracker =
+        LoanTrackerCard(onViewAll: onViewAllLoans, phoneStyle: !isWide);
+    final spending = SpendingsDonutCard(
+      stacked: !isWide,
+      onOpen: isWide ? null : onSpendingsTap,
     );
-    final loanTracker = LoanTrackerCard(onViewAll: onViewAllLoans);
-    const spending = SpendingsDonutCard();
     // Show live amounts (independent of total-balance / account eye toggles).
     // Kept as our own multi-category RecentTransactionsCard (supports
     // switching between CASA / Loans / etc.) rather than the simpler,
@@ -423,8 +457,10 @@ class _OverviewContent extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          accountCard,
-          const SizedBox(height: 20),
+          if (showAccountCard) ...[
+            accountCard,
+            const SizedBox(height: 20),
+          ],
           quickActions,
           const SizedBox(height: 16),
           loanTracker,

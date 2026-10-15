@@ -741,6 +741,138 @@ class PaySummaryCard extends StatelessWidget {
   }
 }
 
+/// A form section header in the designer's style: icon, bold title and a
+/// red asterisk when required — "Payment Type *", "Payee Details *".
+class PayFormHeader extends StatelessWidget {
+  const PayFormHeader({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.required = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final bool required;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: HomeColors.brand(context)),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text.rich(
+                TextSpan(
+                  text: title,
+                  children: [
+                    if (required)
+                      TextSpan(text: ' *', style: TextStyle(color: HomeColors.error(context))),
+                  ],
+                ),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: HomeColors.textPrimary(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+/// The designer's transfer form: one card holding its sections.
+class PayFormCard extends StatelessWidget {
+  const PayFormCard({super.key, required this.sections});
+
+  final List<Widget> sections;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
+        decoration: BoxDecoration(
+          color: HomeColors.card(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: HomeColors.brand(context).withValues(alpha: 0.28)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (i, section) in sections.indexed) ...[
+              if (i > 0) const SizedBox(height: 24),
+              section,
+            ],
+          ],
+        ),
+      );
+}
+
+/// Payment Type in the designer's style: outlined buttons in a row, the
+/// chosen one filled.
+class PayChoiceChips<T> extends StatelessWidget {
+  const PayChoiceChips({
+    super.key,
+    required this.options,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final List<(T, String)> options;
+  final T selected;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    return Row(
+      children: [
+        for (final (i, (value, label)) in options.indexed) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(
+            child: Semantics(
+              button: true,
+              selected: value == selected,
+              child: Material(
+                color: value == selected ? brand : HomeColors.card(context),
+                borderRadius: BorderRadius.circular(8),
+                child: InkWell(
+                  onTap: () => onChanged(value),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    height: 40,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: value == selected ? brand : HomeColors.textSecondary(context).withValues(alpha: 0.45),
+                      ),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: value == selected ? FontWeight.w600 : FontWeight.w500,
+                          color: value == selected ? Colors.white : HomeColors.textPrimary(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class PaySectionLabel extends StatelessWidget {
   const PaySectionLabel(this.text, {super.key});
 
@@ -758,19 +890,28 @@ class PaySectionLabel extends StatelessWidget {
 }
 
 class PayFieldLabel extends StatelessWidget {
-  const PayFieldLabel(this.text, {super.key});
+  const PayFieldLabel(this.text, {super.key, this.required = false});
 
   final String text;
+
+  /// Adds the designer's red asterisk.
+  final bool required;
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
+        child: Text.rich(
+          TextSpan(
+            text: text,
+            children: [
+              if (required)
+                TextSpan(text: ' *', style: TextStyle(color: HomeColors.error(context))),
+            ],
+          ),
           style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: HomeColors.textSecondary(context),
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: HomeColors.textPrimary(context),
           ),
         ),
       );
@@ -1011,12 +1152,16 @@ class PayTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.suffix,
     this.maxLines = 1,
+    this.required = false,
   });
 
   final String label;
   final TextEditingController controller;
   final String? hint;
   final String? error;
+
+  /// Shows the red asterisk on the label.
+  final bool required;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
@@ -1028,7 +1173,7 @@ class PayTextField extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PayFieldLabel(label),
+          PayFieldLabel(label, required: required),
           TextField(
             controller: controller,
             keyboardType: keyboardType,
@@ -1141,12 +1286,16 @@ class PayPickerField extends StatelessWidget {
     this.trailingText,
     this.error,
     this.loading = false,
+    this.dense = false,
   });
 
   final String placeholder;
   final String? title;
   final String? subtitle;
   final IconData icon;
+
+  /// The designer's plain dropdown: no icon circle, a shorter field.
+  final bool dense;
 
   /// Shown instead of [icon] once chosen, e.g. a [PayAvatar].
   final Widget? leading;
@@ -1171,8 +1320,8 @@ class PayPickerField extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              constraints: const BoxConstraints(minHeight: 60),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              constraints: BoxConstraints(minHeight: dense ? 50 : 60),
+              padding: EdgeInsets.symmetric(horizontal: dense ? 14 : 12, vertical: 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -1181,7 +1330,9 @@ class PayPickerField extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  if (chosen && leading != null)
+                  if (dense && !(chosen && leading != null))
+                    const SizedBox.shrink()
+                  else if (chosen && leading != null)
                     leading!
                   else
                     Container(
@@ -1198,7 +1349,7 @@ class PayPickerField extends StatelessWidget {
                             )
                           : Icon(icon, size: 19, color: brand),
                     ),
-                  const SizedBox(width: 12),
+                  if (!dense || (chosen && leading != null)) const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
