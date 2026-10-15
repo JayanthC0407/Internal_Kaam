@@ -10,17 +10,40 @@ import 'package:ubci_bank/src/infra/security/biometric_service.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_ui_copy.dart';
+import 'package:ubci_bank/src/view/widgets/login_help_dialog.dart';
+import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
+import 'package:ubci_bank/src/core/theme/app_gradients.dart';
+import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 
 import '../home_colors.dart';
 
+/// "Menu" (designer mock): profile card, Networth / Rewards / Languages
+/// tiles and the menu list. App Settings opens in place and holds Theme,
+/// Language, biometric login and Forget device.
 class MoreTabScreen extends ConsumerStatefulWidget {
-  const MoreTabScreen({super.key});
+  const MoreTabScreen({
+    super.key,
+    this.displayName = '',
+    this.onRewardsTap,
+    this.onPersonalize,
+  });
+
+  /// Opens Personalize Dashboard; null hides the row (no personalisable
+  /// OBDX dashboard for this customer).
+  final VoidCallback? onPersonalize;
+
+  /// Signed-in customer's name for the profile card.
+  final String displayName;
+
+  /// Opens the Rewards tab.
+  final VoidCallback? onRewardsTap;
 
   @override
   ConsumerState<MoreTabScreen> createState() => _MoreTabScreenState();
 }
 
 class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
+  bool _settingsOpen = false;
   bool? _biometricEnabled;
   bool? _biometricAvailable;
   BiometricPresentation _biometricPresentation = BiometricPresentation.android;
@@ -29,6 +52,11 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
   void initState() {
     super.initState();
     _loadBiometricState();
+    // The profile card shows the primary account — load the list if the
+    // Menu is opened before Home has.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(casaAccountsProvider.notifier).ensureLoaded();
+    });
   }
 
   Future<void> _loadBiometricState() async {
@@ -113,8 +141,143 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
     await ref.read(appSettingsProvider.notifier).setLocale(Locale(selected));
   }
 
+  void _comingSoon(String label) {
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$label · ${l10n.featureComingSoon}')),
+    );
+  }
+
+  Widget _menuPage(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final responsive = Responsive.of(context);
+    final textPrimary = HomeColors.textPrimary(context);
+    final session = ref.read(sessionManagerProvider);
+    final accounts =
+        ref.watch(casaAccountsProvider).summary?.accounts ?? const [];
+    final primary = accounts.isEmpty
+        ? null
+        : accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
+
+    return SafeArea(
+      child: ResponsiveBody(
+        maxWidth: responsive.formMaxWidth + 80,
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(
+            responsive.isPhone ? 16 : 24,
+            responsive.isPhone ? 16 : 28,
+            responsive.isPhone ? 16 : 24,
+            24,
+          ),
+          children: [
+            Text(
+              l10n.menuTitle,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _ProfileCard(
+              name: widget.displayName.trim().isEmpty
+                  ? l10n.menuWelcome
+                  : widget.displayName.trim(),
+              accountNumber: primary == null
+                  ? null
+                  : groupAccountNumber(primary.displayNumber),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _MenuTile(
+                    icon: Icons.pie_chart_outline_rounded,
+                    label: l10n.menuNetworth,
+                    onTap: () => _comingSoon(l10n.menuNetworth),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MenuTile(
+                    icon: Icons.card_giftcard_rounded,
+                    label: l10n.rewards,
+                    onTap: widget.onRewardsTap ??
+                        () => _comingSoon(l10n.rewards),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MenuTile(
+                    icon: Icons.language_rounded,
+                    label: l10n.menuLanguages,
+                    onTap: () =>
+                        _pickLanguage(ref.read(appSettingsProvider).locale),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _SettingsCard(
+              children: [
+                _MenuRow(
+                  title: l10n.menuWhatsNew,
+                  onTap: () => _comingSoon(l10n.menuWhatsNew),
+                ),
+                _MenuRow(
+                  title: l10n.menuExploreProducts,
+                  onTap: () => _comingSoon(l10n.menuExploreProducts),
+                ),
+                _MenuRow(
+                  title: l10n.menuNotification,
+                  onTap: () => _comingSoon(l10n.menuNotification),
+                ),
+                if (widget.onPersonalize != null)
+                  _MenuRow(
+                    title: l10n.menuPersonalizeDashboard,
+                    onTap: widget.onPersonalize!,
+                  ),
+                _MenuRow(
+                  title: l10n.menuAppSettings,
+                  onTap: () => setState(() => _settingsOpen = true),
+                ),
+                _MenuRow(
+                  title: l10n.menuNeedHelp,
+                  onTap: () => LoginHelpDialog.show(context),
+                ),
+                _MenuRow(
+                  title: l10n.logOut,
+                  showChevron: false,
+                  showDivider: false,
+                  onTap: () => _confirmAndRun(
+                    context,
+                    title: l10n.logOut,
+                    message: l10n.logOutConfirm,
+                    action: session.logout,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_settingsOpen) return _menuPage(context);
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _settingsOpen = false);
+      },
+      child: _settingsPage(context),
+    );
+  }
+
+  /// App Settings: Theme, Language, biometric login, Forget device.
+  Widget _settingsPage(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settings = ref.watch(appSettingsProvider);
     final currentThemeMode = settings.themeMode;
@@ -149,16 +312,25 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
             24,
           ),
           children: [
-            Text(
-              l10n.moreTitle,
-              style: TextStyle(
-                fontSize: responsive.fontScale(phone: 28, tablet: 32),
-                fontWeight: FontWeight.w700,
-                color: textPrimary,
-                height: 1.2,
-              ),
+            Row(
+              children: [
+                IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  onPressed: () => setState(() => _settingsOpen = false),
+                  icon: Icon(Icons.arrow_back_ios_new_rounded,
+                      size: 18, color: brand),
+                ),
+                Text(
+                  l10n.menuAppSettings,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _SettingsCard(
               children: [
                 _SettingsNavTile(
@@ -224,24 +396,6 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
                   Divider(height: 1, indent: 56, color: divider),
                 ],
                 ListTile(
-                  leading: Icon(Icons.logout, color: brand),
-                  title: Text(
-                    l10n.logOut,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: textPrimary,
-                    ),
-                  ),
-                  onTap: () => _confirmAndRun(
-                    context,
-                    title: l10n.logOut,
-                    message: l10n.logOutConfirm,
-                    action: session.logout,
-                  ),
-                ),
-                Divider(height: 1, indent: 56, color: divider),
-                ListTile(
                   leading: Icon(
                     Icons.phonelink_erase,
                     color: brand,
@@ -295,7 +449,12 @@ class _SettingsCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Material(
         type: MaterialType.transparency,
-        child: Column(children: children),
+        // Stretch so section headings (e.g. "Security") sit left like
+        // the rows below them.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
       ),
     );
   }
@@ -356,6 +515,159 @@ class _SettingsNavTile extends StatelessWidget {
           ),
         ),
         if (showDivider) Divider(height: 1, indent: 56, color: divider),
+      ],
+    );
+  }
+}
+
+/// Profile card at the top of the Menu (designer mock).
+class _ProfileCard extends StatelessWidget {
+  const _ProfileCard({required this.name, this.accountNumber});
+
+  final String name;
+  final String? accountNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: AppGradients.primary(context),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          // Initials (or photo) — the app's standard profile avatar.
+          ProfileAvatar(name: name, radius: 32, onDarkBackground: true),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (accountNumber != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    accountNumber!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 14,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Square shortcut under the profile card (Networth / Rewards / Languages).
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    return Material(
+      color: HomeColors.card(context),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          height: 76,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: brand.withValues(alpha: 0.8)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: brand, size: 26),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: HomeColors.textPrimary(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One line of the Menu list.
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.title,
+    required this.onTap,
+    this.showChevron = true,
+    this.showDivider = true,
+  });
+
+  final String title;
+  final VoidCallback onTap;
+  final bool showChevron;
+  final bool showDivider;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 17,
+              color: HomeColors.textPrimary(context),
+            ),
+          ),
+          trailing: showChevron
+              ? Icon(
+                  Icons.chevron_right_rounded,
+                  color: HomeColors.brand(context),
+                )
+              : null,
+        ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            indent: 18,
+            endIndent: 18,
+            color: HomeColors.divider(context),
+          ),
       ],
     );
   }

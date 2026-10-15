@@ -6,6 +6,7 @@ import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
 import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
+import 'package:ubci_bank/src/core/utils/common/email_validator.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/view/providers/common/network_transfer_providers.dart';
@@ -101,7 +102,9 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
   late TransferKind _adhocKind =
       mode.isLowValue ? TransferKind.international : TransferKind.internal;
   final _account = TextEditingController();
+  final _confirmAccount = TextEditingController();
   final _name = TextEditingController();
+  final _email = TextEditingController();
   final _bankCode = TextEditingController();
   final _bankName = TextEditingController();
   final _address = TextEditingController();
@@ -114,6 +117,10 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
   TransferNetwork? _network;
   CasaAccount? _debit;
   String? _currency;
+
+  /// Credit Account Currency (adhoc payees) — the transfer currency when
+  /// not chosen.
+  String? _creditCurrency;
   final _amount = TextEditingController();
   TransferPurpose? _purpose;
   ChargeBearer _charges = ChargeBearer.me;
@@ -143,8 +150,8 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
   @override
   void dispose() {
     for (final c in [
-      _account, _name, _bankCode, _bankName, _address, _city, _country,
-      _amount, _remarks, _count,
+      _account, _confirmAccount, _name, _email, _bankCode, _bankName,
+      _address, _city, _country, _amount, _remarks, _count,
     ]) {
       c.dispose();
     }
@@ -187,7 +194,16 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
     _network = null;
     _purpose = null;
     _debit = null;
+    _currency = null;
+    _creditCurrency = null;
   }
+
+  /// Currencies the transfer can be in: the debit account's and those the
+  /// network has limits for.
+  List<String> get _currencyOptions => {
+        if (_debit != null) _debit!.currencyCode,
+        for (final l in _network?.limits ?? const <NetworkCurrencyLimit>[]) l.currency,
+      }.where((c) => c.isNotEmpty).toList();
 
   // ── Bank lookup ─────────────────────────────────────────────────────────
 
@@ -222,7 +238,15 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
     final e = <String, String>{};
     if (_adhoc) {
       if (_account.text.trim().length < 4) e['account'] = 'Enter the account number.';
-      if (_name.text.trim().isEmpty) e['name'] = "Enter the payee's name.";
+      if (_confirmAccount.text.trim() != _account.text.trim()) {
+        e['confirmAccount'] = 'Account numbers do not match.';
+      }
+      if (_name.text.trim().isEmpty) e['name'] = 'Enter the account name.';
+      if (_email.text.trim().isEmpty) {
+        e['email'] = "Enter the payee's email address.";
+      } else if (!EmailValidator.isValid(_email.text.trim())) {
+        e['email'] = 'Enter a valid email address.';
+      }
       if (_adhocKind == TransferKind.domestic && _bankCode.text.trim().isEmpty) {
         e['bankCode'] = 'Enter the bank code.';
       }
@@ -272,8 +296,8 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
     }
 
     if (mode.isRepeat) {
-      if (_frequency == null) e['frequency'] = 'Choose how often.';
-      if (_start == null) e['start'] = 'Choose the first transfer date.';
+      if (_frequency == null) e['frequency'] = 'Choose the frequency.';
+      if (_start == null) e['start'] = 'Choose the start date.';
       if (_endByCount) {
         final n = int.tryParse(_count.text.trim());
         if (n == null || n < 2) e['end'] = 'Enter at least 2 transfers.';
@@ -310,6 +334,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
               kind: kind,
               accountNumber: _account.text.trim(),
               name: _name.text.trim(),
+              email: _email.text.trim(),
               bankCode: _bankCode.text.trim().isEmpty
                   ? null
                   : _bankCode.text.trim().toUpperCase(),
@@ -323,6 +348,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
       remarks: _remarks.text,
       purpose: _purpose,
       charges: kind == TransferKind.international ? _charges : ChargeBearer.me,
+      creditCurrency: _adhoc ? _creditCurrency : null,
       schedule: !mode.isRepeat
           ? null
           : RepeatSchedule(
@@ -556,6 +582,10 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
     );
   }
 
+  /// The form in the designer's layout (mobile retail designs): one card,
+  /// sections with icon headers — Payment Type, Network Type, Payee
+  /// Details, Transfer Details, Schedule / Repeat Transfer — and labels
+  /// above their fields. Names follow OBDX.
   Widget _form(
     BuildContext context,
     AsyncValue<List<TransferNetwork>> networks,
@@ -566,191 +596,249 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
     final purposes = _network == null
         ? const AsyncValue<List<TransferPurpose>>.data([])
         : ref.watch(transferPurposesProvider(_network!.code));
+    final showNetwork = kind != null && !mode.isLowValue && options.length > 1;
+
     final sections = <Widget>[
-      PaySection(
-        title: 'To',
-        icon: Icons.person_outline_rounded,
-        child: Column(
+      // International Low Value Payment pays a saved or a new payee.
+      if (mode.isLowValue)
+        Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PaySegmented<bool>(
+            const PayFormHeader(icon: Icons.person_outline_rounded, title: 'Payee', required: true),
+            PayChoiceChips<bool>(
               options: const [(false, 'Existing Payee'), (true, 'Adhoc Payee')],
               selected: _adhoc,
               onChanged: _switchPayeeMode,
             ),
-            const SizedBox(height: 14),
-            if (_adhoc) _adhocFields(context) else _payeePicker(context),
-            if (kind != null) ...[
-              if (!mode.isLowValue && options.length > 1) ...[
-                const SizedBox(height: 14),
-                const PayFieldLabel('Send by'),
-                PayPickerField(
-                  placeholder: 'Choose how to send it',
-                  title: _network?.label,
-                  icon: Icons.hub_outlined,
-                  error: _errors['network'],
-                  onTap: () async {
-                    final picked = await showPayPicker<TransferNetwork>(
-                      context,
-                      title: 'Send by',
-                      selected: _network,
-                      options: [
-                        for (final n in options)
-                          PayOption(value: n, title: n.label, subtitle: n.code, icon: Icons.hub_outlined),
-                      ],
-                    );
-                    if (picked != null) {
-                      setState(() {
-                        _network = picked;
-                        _purpose = null;
-                        _debit = null;
-                        _errors.remove('network');
-                      });
-                    }
-                  },
-                ),
-              ] else if (networks.hasError) ...[
-                const SizedBox(height: 14),
-                PayErrorRetry(
-                  message: "We couldn't load the ways to send money.",
-                  onRetry: () => ref.invalidate(transferNetworksProvider),
-                ),
-              ] else if (options.isEmpty && !networks.isLoading) ...[
-                const SizedBox(height: 14),
-                PayNote('This bank has no network for ${kind.label.toLowerCase()} transfers.'),
-              ],
+          ],
+        ),
+      if (_adhoc && !mode.isLowValue)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PayFormHeader(icon: Icons.payments_outlined, title: 'Payment Type', required: true),
+            PayChoiceChips<TransferKind>(
+              options: [for (final k in TransferKind.values) (k, k.shortLabel)],
+              selected: _adhocKind,
+              onChanged: (k) => setState(() {
+                _adhocKind = k;
+                _bank = null;
+                _errors.clear();
+                _resetNetwork();
+              }),
+            ),
+          ],
+        ),
+      if (showNetwork || (kind != null && networks.hasError) || (kind != null && options.isEmpty && !networks.isLoading))
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PayFormHeader(icon: Icons.settings_input_antenna_rounded, title: 'Network Type', required: true),
+            if (networks.hasError)
+              PayErrorRetry(
+                message: "We couldn't load the network types.",
+                onRetry: () => ref.invalidate(transferNetworksProvider),
+              )
+            else if (options.isEmpty)
+              PayNote('This bank has no network for ${kind.label.toLowerCase()} transfers.')
+            else ...[
+              const PayFieldLabel('Network Type', required: true),
+              PayPickerField(
+                dense: true,
+                placeholder: 'Select Network',
+                title: _network?.label,
+                error: _errors['network'],
+                onTap: () async {
+                  final picked = await showPayPicker<TransferNetwork>(
+                    context,
+                    title: 'Network Type',
+                    selected: _network,
+                    options: [
+                      for (final n in options)
+                        PayOption(value: n, title: n.label, subtitle: n.code, icon: Icons.hub_outlined),
+                    ],
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _network = picked;
+                      _purpose = null;
+                      _debit = null;
+                      _errors.remove('network');
+                    });
+                  }
+                },
+              ),
             ],
           ],
         ),
-      ),
-      if (kind != null) ...[
-        PaySection(
-          title: 'From',
-          icon: Icons.account_balance_wallet_outlined,
-          child: _debitField(context),
-        ),
-        PaySection(
-          title: 'Amount',
-          icon: Icons.payments_outlined,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (mode.isLowValue) ...[
-                const PayFieldLabel('Currency'),
-                PayPickerField(
-                  placeholder: 'Choose a currency',
-                  title: _currency,
-                  icon: Icons.currency_exchange_rounded,
-                  error: _errors['currency'],
-                  loading: ref.watch(gpiCurrenciesProvider).isLoading,
-                  onTap: () async {
-                    final picked = await showPayPicker<String>(
-                      context,
-                      title: 'Currency',
-                      selected: _currency,
-                      options: [
-                        for (final c in gpi)
-                          PayOption(
-                            value: c.code,
-                            title: c.code,
-                            icon: Icons.currency_exchange_rounded,
-                            subtitle: [
-                              if (c.description != null) c.description!,
-                              if (c.min != null || c.max != null)
-                                '${payAmount(c.min, c.code)} – ${payAmount(c.max, c.code)}',
-                            ].join(' · '),
-                          ),
-                      ],
-                    );
-                    if (picked != null) {
-                      setState(() {
-                        _currency = picked;
-                        _errors.remove('currency');
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 14),
-              ],
-              PayAmountField(
-                controller: _amount,
-                currency: _currencyCode,
-                error: _errors['amount'],
-                helper: _amountHelper(gpi),
-                onChanged: (_) => setState(() => _errors.remove('amount')),
-              ),
-              ...purposes.maybeWhen(
-                data: (list) => list.isEmpty
-                    ? const <Widget>[]
-                    : [
-                        const SizedBox(height: 14),
-                        const PayFieldLabel('Purpose'),
-                        PayPickerField(
-                          placeholder: 'Choose the purpose',
-                          title: _purpose?.description,
-                          icon: Icons.label_outline_rounded,
-                          error: _errors['purpose'],
-                          onTap: () async {
-                            final picked = await showPayPicker<TransferPurpose>(
-                              context,
-                              title: 'Purpose',
-                              selected: _purpose,
-                              options: [
-                                for (final p in list)
-                                  PayOption(value: p, title: p.description, subtitle: p.code),
-                              ],
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _purpose = picked;
-                                _errors.remove('purpose');
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                orElse: () => const <Widget>[],
-              ),
-              if (kind == TransferKind.international) ...[
-                const SizedBox(height: 14),
-                const PayFieldLabel('Charges'),
-                PaySegmented<ChargeBearer>(
-                  options: [for (final c in ChargeBearer.values) (c, c.label)],
-                  selected: _charges,
-                  onChanged: (c) => setState(() => _charges = c),
-                ),
-              ],
-            ],
-          ),
-        ),
-        PaySection(
-          title: mode.isRepeat ? 'Schedule' : 'When',
-          icon: mode.isRepeat ? Icons.event_repeat_rounded : Icons.event_outlined,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (mode.isRepeat) _scheduleFields(context) else _whenFields(context),
-              const SizedBox(height: 14),
-              PayTextField(
-                label: 'Note (optional)',
-                controller: _remarks,
-                hint: 'A note for this transfer',
-              ),
-            ],
-          ),
-        ),
-      ],
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final (i, section) in sections.indexed) ...[
-          if (i > 0) const SizedBox(height: 16),
-          section,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const PayFormHeader(icon: Icons.badge_outlined, title: 'Payee Details', required: true),
+          if (_adhoc) _adhocFields(context) else _payeePicker(context),
         ],
-      ],
-    );
+      ),
+      if (kind != null)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PayFormHeader(icon: Icons.swap_horiz_rounded, title: 'Transfer Details', required: true),
+            const PayFieldLabel('Transfer From', required: true),
+            _debitField(context),
+            const SizedBox(height: 16),
+            if (mode.isLowValue) ...[
+              const PayFieldLabel('Currency', required: true),
+              PayPickerField(
+                dense: true,
+                placeholder: 'Choose a currency',
+                title: _currency,
+                error: _errors['currency'],
+                loading: ref.watch(gpiCurrenciesProvider).isLoading,
+                onTap: () async {
+                  final picked = await showPayPicker<String>(
+                    context,
+                    title: 'Currency',
+                    selected: _currency,
+                    options: [
+                      for (final c in gpi)
+                        PayOption(
+                          value: c.code,
+                          title: c.code,
+                          icon: Icons.currency_exchange_rounded,
+                          subtitle: [
+                            if (c.description != null) c.description!,
+                            if (c.min != null || c.max != null)
+                              '${payAmount(c.min, c.code)} – ${payAmount(c.max, c.code)}',
+                          ].join(' · '),
+                        ),
+                    ],
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _currency = picked;
+                      _errors.remove('currency');
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+            ] else ...[
+              const PayFieldLabel('Currency', required: true),
+              _currencyField(
+                value: _currencyCode.isEmpty ? null : _currencyCode,
+                title: 'Currency',
+                onPicked: (c) => setState(() => _currency = c),
+              ),
+              const SizedBox(height: 16),
+              if (_adhoc) ...[
+                const PayFieldLabel('Credit Account Currency', required: true),
+                _currencyField(
+                  value: _creditCurrency ?? (_currencyCode.isEmpty ? null : _currencyCode),
+                  title: 'Credit Account Currency',
+                  onPicked: (c) => setState(() => _creditCurrency = c),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ],
+            const PayFieldLabel('Transfer Amount', required: true),
+            PayAmountField(
+              controller: _amount,
+              currency: _currencyCode,
+              error: _errors['amount'],
+              helper: _amountHelper(gpi),
+              onChanged: (_) => setState(() => _errors.remove('amount')),
+            ),
+            ...purposes.maybeWhen(
+              data: (list) => list.isEmpty
+                  ? const <Widget>[]
+                  : [
+                      const SizedBox(height: 16),
+                      const PayFieldLabel('Purpose', required: true),
+                      PayPickerField(
+                        dense: true,
+                        placeholder: 'Select Purpose',
+                        title: _purpose?.description,
+                        error: _errors['purpose'],
+                        onTap: () async {
+                          final picked = await showPayPicker<TransferPurpose>(
+                            context,
+                            title: 'Purpose',
+                            selected: _purpose,
+                            options: [
+                              for (final p in list)
+                                PayOption(value: p, title: p.description, subtitle: p.code),
+                            ],
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _purpose = picked;
+                              _errors.remove('purpose');
+                            });
+                          }
+                        },
+                      ),
+                    ],
+              orElse: () => const <Widget>[],
+            ),
+            if (kind == TransferKind.international) ...[
+              const SizedBox(height: 16),
+              const PayFieldLabel('Correspondence Charges', required: true),
+              PayChoiceChips<ChargeBearer>(
+                options: [for (final c in ChargeBearer.values) (c, c.label)],
+                selected: _charges,
+                onChanged: (c) => setState(() => _charges = c),
+              ),
+            ],
+          ],
+        ),
+      if (kind != null)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PayFormHeader(
+              icon: mode.isRepeat ? Icons.event_repeat_rounded : Icons.schedule_rounded,
+              title: mode.isRepeat ? 'Repeat Transfer' : 'Schedule Transfer',
+              required: true,
+            ),
+            if (mode.isRepeat) _scheduleFields(context) else _whenFields(context),
+            const SizedBox(height: 16),
+            PayTextField(
+              label: 'Note',
+              controller: _remarks,
+              hint: 'Enter note',
+              maxLines: 3,
+            ),
+          ],
+        ),
+    ];
+    return PayFormCard(sections: sections);
   }
+
+  /// A currency dropdown over [_currencyOptions].
+  Widget _currencyField({
+    required String? value,
+    required String title,
+    required ValueChanged<String> onPicked,
+  }) =>
+      PayPickerField(
+        dense: true,
+        placeholder: 'Select Currency',
+        title: value,
+        onTap: _currencyOptions.isEmpty
+            ? null
+            : () async {
+                final picked = await showPayPicker<String>(
+                  context,
+                  title: title,
+                  selected: value,
+                  options: [
+                    for (final c in _currencyOptions)
+                      PayOption(value: c, title: c, icon: Icons.currency_exchange_rounded),
+                  ],
+                );
+                if (picked != null) onPicked(picked);
+              },
+      );
 
   Widget _payeePicker(BuildContext context) {
     final payees = ref.watch(transferPayeesProvider);
@@ -782,8 +870,8 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
                 title: 'Choose a payee',
                 selected: _payee,
                 empty: mode.isLowValue
-                    ? 'No international payees yet. Add one under Payees.'
-                    : 'No payees yet. Add one under Payees.',
+                    ? 'No international payees yet. Add one under Payee.'
+                    : 'No payees yet. Add one under Payee.',
                 options: [
                   for (final p in list)
                     PayOption(
@@ -806,46 +894,56 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
   }
 
   Widget _adhocFields(BuildContext context) {
-    final kinds = mode.isLowValue ? [TransferKind.international] : TransferKind.values;
+    const gap = SizedBox(height: 16);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (kinds.length > 1) ...[
-          const PayFieldLabel('Their bank is'),
-          PaySegmented<TransferKind>(
-            options: [for (final k in kinds) (k, k.label)],
-            selected: _adhocKind,
-            onChanged: (k) => setState(() {
-              _adhocKind = k;
-              _bank = null;
-              _errors.clear();
-              _resetNetwork();
-            }),
-          ),
-          const SizedBox(height: 14),
-        ],
         PayTextField(
-          label: 'Account number',
+          label: _adhocKind == TransferKind.international ? 'Account Number / IBAN' : 'Account Number',
+          required: true,
           controller: _account,
-          hint: _adhocKind == TransferKind.international ? 'Account number or IBAN' : 'Account number',
+          hint: 'Enter Account Number',
           error: _errors['account'],
           textCapitalization: TextCapitalization.characters,
+          onChanged: (_) => _errors.remove('account'),
         ),
-        const SizedBox(height: 14),
+        gap,
         PayTextField(
-          label: "Payee's name",
+          label: 'Confirm Account Number',
+          required: true,
+          controller: _confirmAccount,
+          hint: 'Re-enter Account Number',
+          error: _errors['confirmAccount'],
+          textCapitalization: TextCapitalization.characters,
+          onChanged: (_) => setState(() => _errors.remove('confirmAccount')),
+        ),
+        gap,
+        PayTextField(
+          label: 'Account Name',
+          required: true,
           controller: _name,
-          hint: 'As on their account',
+          hint: 'Enter Account Name',
           error: _errors['name'],
           textCapitalization: TextCapitalization.words,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(() => _errors.remove('name')),
+        ),
+        gap,
+        PayTextField(
+          label: 'Payee Email Id',
+          required: true,
+          controller: _email,
+          hint: 'Enter Email Address',
+          error: _errors['email'],
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (_) => setState(() => _errors.remove('email')),
         ),
         if (_adhocKind != TransferKind.internal) ...[
-          const SizedBox(height: 14),
+          gap,
           PayTextField(
-            label: _adhocKind == TransferKind.international ? 'SWIFT / BIC code' : 'Bank code',
+            label: _adhocKind == TransferKind.international ? 'SWIFT / BIC Code' : 'BIC Code',
+            required: _adhocKind == TransferKind.domestic,
             controller: _bankCode,
-            hint: _adhocKind == TransferKind.international ? 'e.g. CITIGB2L' : 'Clearing code of the bank',
+            hint: _adhocKind == TransferKind.international ? 'e.g. CITIGB2L' : 'Enter BIC Code',
             error: _errors['bankCode'],
             textCapitalization: TextCapitalization.characters,
             suffix: _lookingUp
@@ -853,11 +951,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
                     padding: EdgeInsets.all(12),
                     child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                   )
-                : IconButton(
-                    tooltip: 'Find the bank',
-                    icon: const Icon(Icons.search_rounded),
-                    onPressed: _lookupBank,
-                  ),
+                : TextButton(onPressed: _lookupBank, child: const Text('Verify')),
           ),
           if (_bank != null)
             Padding(
@@ -876,20 +970,21 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
               ),
             ),
           if (_adhocKind == TransferKind.international) ...[
-            const SizedBox(height: 14),
-            PayTextField(label: 'Bank name', controller: _bankName, hint: 'If there is no SWIFT code'),
-            const SizedBox(height: 14),
-            PayTextField(label: "Payee's address", controller: _address),
-            const SizedBox(height: 14),
+            gap,
+            PayTextField(label: 'Bank Name', controller: _bankName, hint: 'If there is no SWIFT code'),
+            gap,
+            PayTextField(label: 'Payee Address', controller: _address, hint: 'Enter Address'),
+            gap,
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 3, child: PayTextField(label: 'City', controller: _city)),
+                Expanded(flex: 3, child: PayTextField(label: 'City', controller: _city, hint: 'Enter City')),
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 2,
                   child: PayTextField(
                     label: 'Country',
+                    required: true,
                     controller: _country,
                     hint: 'e.g. GB',
                     error: _errors['country'],
@@ -926,7 +1021,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
           : () async {
               final picked = await showPayPicker<CasaAccount>(
                 context,
-                title: 'Pay from',
+                title: 'Transfer From',
                 selected: _debit,
                 options: [
                   for (final a in accounts.value!)
@@ -954,17 +1049,18 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
   Widget _whenFields(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PaySegmented<bool>(
+          PayChoiceChips<bool>(
             options: const [(false, 'Now'), (true, 'Later')],
             selected: _later,
             onChanged: (v) => setState(() => _later = v),
           ),
           if (_later) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            const PayFieldLabel('Transfer Date', required: true),
             PayDateField(
               value: _laterDate,
               first: _today.add(const Duration(days: 1)),
-              placeholder: 'Choose the transfer date',
+              placeholder: 'Select Date',
               error: _errors['later'],
               onChanged: (d) => setState(() {
                 _laterDate = d;
@@ -975,22 +1071,24 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
         ],
       );
 
+  /// Repeat Transfer: OBDX's Frequency, Start Date and End Date / No. of
+  /// Payments.
   Widget _scheduleFields(BuildContext context) {
     final frequencies = ref.watch(transferFrequenciesProvider).valueOrNull ??
         TransferFrequency.all;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const PayFieldLabel('How often'),
+        const PayFieldLabel('Frequency', required: true),
         PayPickerField(
-          placeholder: 'Choose a frequency',
+          dense: true,
+          placeholder: 'Select Frequency',
           title: _frequency?.label,
-          icon: Icons.event_repeat_rounded,
           error: _errors['frequency'],
           onTap: () async {
             final picked = await showPayPicker<TransferFrequency>(
               context,
-              title: 'How often',
+              title: 'Frequency',
               selected: _frequency,
               options: [
                 for (final f in frequencies)
@@ -1005,31 +1103,33 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
             }
           },
         ),
-        const SizedBox(height: 14),
-        const PayFieldLabel('First transfer'),
+        const SizedBox(height: 16),
+        const PayFieldLabel('Start Date', required: true),
         PayDateField(
           value: _start,
           first: _today,
+          placeholder: 'Select Date',
           error: _errors['start'],
           onChanged: (d) => setState(() {
             _start = d;
             _errors.remove('start');
           }),
         ),
-        const SizedBox(height: 14),
-        const PayFieldLabel('Ends'),
-        PaySegmented<bool>(
-          options: const [(false, 'On a date'), (true, 'After a number of transfers')],
+        const SizedBox(height: 16),
+        const PayFieldLabel('Ends', required: true),
+        PayChoiceChips<bool>(
+          options: const [(false, 'End Date'), (true, 'No. of Payments')],
           selected: _endByCount,
           onChanged: (v) => setState(() {
             _endByCount = v;
             _errors.remove('end');
           }),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         if (_endByCount)
           PayTextField(
-            label: 'Number of transfers',
+            label: 'No. of Payments',
+            required: true,
             controller: _count,
             hint: 'e.g. 12',
             keyboardType: TextInputType.number,
@@ -1041,7 +1141,7 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
           PayDateField(
             value: _end,
             first: (_start ?? _today).add(const Duration(days: 1)),
-            placeholder: 'Choose the last transfer date',
+            placeholder: 'Select End Date',
             error: _errors['end'],
             onChanged: (d) => setState(() {
               _end = d;
@@ -1059,11 +1159,14 @@ class _NetworkTransferScreenState extends ConsumerState<NetworkTransferScreen> {
 
   /// Everything about the transfer but the money — for review and done.
   List<(String, String)> _detailRows(NetworkTransferRequest r) => [
-        ('From', _accountLine(r.debitAccount)),
+        ('Transfer From', _accountLine(r.debitAccount)),
         if (r.kind == TransferKind.internal)
-          ('Type', r.kind.label)
+          ('Payment Type', r.kind.shortLabel)
         else
-          ('Send by', _network?.label ?? r.network),
+          ('Network Type', _network?.label ?? r.network),
+        if (r.adhoc?.email?.trim().isNotEmpty ?? false) ('Payee Email Id', r.adhoc!.email!.trim()),
+        if (r.creditCurrency != null && r.creditCurrency != r.currency)
+          ('Credit Account Currency', r.creditCurrency!),
         if (r.purpose != null) ('Purpose', r.purpose!.description),
         if (r.kind == TransferKind.international) ('Charges paid by', r.charges.label),
         if (r.schedule != null) ...[

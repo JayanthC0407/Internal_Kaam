@@ -1,24 +1,13 @@
 import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
+import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
 import 'package:ubci_bank/src/core/models/retail/term_deposit_actions.dart';
 import 'package:ubci_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
-
-/// A transactions search period — OBDX's `searchBy` codes.
-enum TdTransactionPeriod {
-  currentMonth('CPR'),
-  previousMonth('PMT'),
-  previousQuarter('PQT'),
-  lastTen('LNT');
-
-  const TdTransactionPeriod(this.code);
-
-  final String code;
-}
 
 /// Retail term deposits: reads and the four actions.
 class TermDepositRepository extends ObdxRepositoryBase {
@@ -62,28 +51,19 @@ class TermDepositRepository extends ObdxRepositoryBase {
         TdPayoutInstruction.listFromPayload,
       );
 
-  /// [from]–[to] searches a date range (`SPD`); otherwise [period].
+  /// OBDX's Transactions filter ([query]: View Options, Transactions,
+  /// Amount, Reference Number) — the same parameters as CASA and loans.
   Future<ResponseHandler<List<AccountTransaction>>> fetchTransactions(
     String id, {
-    TdTransactionPeriod period = TdTransactionPeriod.currentMonth,
-    String transactionType = 'A',
-    DateTime? from,
-    DateTime? to,
-  }) async {
-    final range = from != null && to != null;
-    return parseBody(
-      await _api.fetchTransactions(
-        id,
-        searchBy: range ? 'SPD' : period.code,
-        transactionType: transactionType,
-        fromDate: range ? _ymd(from) : null,
-        toDate: range ? _ymd(to) : null,
-        noOfTransactions:
-            !range && period == TdTransactionPeriod.lastTen ? 10 : null,
-      ),
-      AccountTransaction.listFromPayload,
-    );
-  }
+    CasaTransactionQuery query = const CasaTransactionQuery(),
+  }) async =>
+      parseBody(
+        await _api.fetchTransactions(
+          id,
+          queryParameters: query.toQueryParameters(),
+        ),
+        AccountTransaction.listFromPayload,
+      );
 
   Future<ResponseHandler<List<TdEnumOption>>> fetchEnumeration(
     String name,
@@ -235,8 +215,4 @@ class TermDepositRepository extends ObdxRepositoryBase {
       successCodes: _created,
     );
   }
-
-  static String _ymd(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
-      '${d.month.toString().padLeft(2, '0')}-'
-      '${d.day.toString().padLeft(2, '0')}';
 }

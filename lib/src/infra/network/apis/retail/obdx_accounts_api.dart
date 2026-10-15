@@ -116,16 +116,21 @@ class ObdxAccountsApi extends ObdxApiBase {
   /// [fetchMediaTypes] (Postman Statement Download; confirmed formats:
   /// csv/text/csv, pdf/application/pdf, qif/application/qif,
   /// ofx/application/x-ofx).
+  ///
+  /// [transactionsPath] swaps the CASA URL for another account type's
+  /// transactions URL (loan / deposit) — OBDX downloads all three the
+  /// same way.
   Future<ResponseHandler<List<int>>> downloadStatement(
     String accountId, {
     required String media,
     required String mediaFormat,
     Map<String, dynamic>? queryParameters,
+    String? transactionsPath,
   }) async {
     try {
       final response = await dio.get<List<int>>(
         ObdxApiUtils.appendLocaleQuery(
-          ApiConst.demandDepositTransactionsApi(accountId),
+          transactionsPath ?? ApiConst.demandDepositTransactionsApi(accountId),
         ),
         queryParameters: {
           // Pass unencoded; Dio encodes once → application%2Fpdf (Postman shape).

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
@@ -168,6 +169,72 @@ class MobileDashboardHeaderRow extends StatelessWidget {
             radius: 18,
             backgroundColor: AppColors.neutral100,
             child: Icon(Icons.person, size: 20, color: AppColors.neutral600),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Phone Home header: menu on the left, the Demobank logo in the middle,
+/// the customer's profile avatar on the right (opens the Menu, where
+/// Personalize Dashboard, settings and help live).
+class DemobankHomeHeader extends StatelessWidget {
+  const DemobankHomeHeader({
+    super.key,
+    this.onMenuTap,
+    this.onProfileTap,
+    this.displayName = '',
+  });
+
+  final VoidCallback? onMenuTap;
+  final VoidCallback? onProfileTap;
+
+  /// For the avatar's initials.
+  final String displayName;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final iconColor = HomeColors.textPrimary(context);
+    return Row(
+      children: [
+        SizedBox(
+          width: 48,
+          child: onMenuTap == null
+              ? null
+              : IconButton(
+                  tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+                  onPressed: onMenuTap,
+                  icon: Icon(Icons.sort_rounded, color: iconColor, size: 26),
+                ),
+        ),
+        Expanded(
+          child: Center(
+            child: Image.asset(
+              'assets/images/demobank_logo.png',
+              height: 36,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Text(
+                l10n.brandName,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: iconColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 48,
+          child: Tooltip(
+            message: l10n.menuProfile,
+            child: ProfileAvatar(
+              name: displayName.trim().isEmpty ? '?' : displayName,
+              radius: 18,
+              onTap: onProfileTap,
+            ),
           ),
         ),
       ],

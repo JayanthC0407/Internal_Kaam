@@ -86,6 +86,37 @@ hintStyle: TextStyle(
     );
   }
 
+  /// Underlined field with no fill — the sign-in screens' mock style.
+  static InputDecoration underlineDecoration({
+    required AppColors colors,
+    String? hintText,
+    Widget? suffixIcon,
+  }) {
+    UnderlineInputBorder line(Color color, [double width = 1]) =>
+        UnderlineInputBorder(borderSide: BorderSide(color: color, width: width));
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: TextStyle(
+        fontFamily: 'Rubik',
+        color: colors.inputHint,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
+      // The app theme fills fields by default — the mock has no fill.
+      filled: false,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      suffixIcon: suffixIcon,
+      errorMaxLines: 2,
+      border: line(colors.inputBorder),
+      enabledBorder: line(colors.brand.withValues(alpha: 0.55)),
+      focusedBorder: line(colors.brand, 1.6),
+      errorBorder: line(colors.error),
+      focusedErrorBorder: line(colors.error, 1.6),
+      disabledBorder: line(colors.inputBorder.withValues(alpha: 0.6)),
+    );
+  }
+
   static ButtonStyle primaryButton(AppColors colors) {
     return ElevatedButton.styleFrom(
       backgroundColor: colors.brand,

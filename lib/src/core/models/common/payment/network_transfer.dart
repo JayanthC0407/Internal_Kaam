@@ -68,6 +68,13 @@ enum TransferKind {
         TransferKind.international => 'International',
       };
 
+  /// The Payment Type choices on the adhoc form (OBDX / the designs).
+  String get shortLabel => switch (this) {
+        TransferKind.internal => 'Internal',
+        TransferKind.domestic => 'Domestic',
+        TransferKind.international => 'International',
+      };
+
   static TransferKind? forPayeeType(String? type) {
     final t = type?.toUpperCase();
     for (final kind in values) {
@@ -256,11 +263,16 @@ class AdhocBeneficiary {
     this.addressLine2,
     this.city,
     this.country,
+    this.email,
   });
 
   final TransferKind kind;
   final String accountNumber;
   final String name;
+
+  /// Payee Email Id — the bank emails them the advice (OBDX sends it as
+  /// `beneficiary[0].payeeEmail`).
+  final String? email;
 
   /// SWIFT (international) or clearing code (domestic); none internally.
   final String? bankCode;
@@ -305,6 +317,7 @@ class AdhocBeneficiary {
     return {
       'creditAccountId': accountNumber,
       'beneficiaryName': name,
+      if (email != null && email!.trim().isNotEmpty) 'payeeEmail': email!.trim(),
       if (kind != TransferKind.internal) 'beneficiaryBankDetails': [bank],
       if (kind == TransferKind.international) 'addressDTO': [address],
     };
@@ -500,6 +513,7 @@ class NetworkTransferRequest {
     this.charges = ChargeBearer.me,
     this.schedule,
     this.systemReferenceId,
+    this.creditCurrency,
   }) : assert(payee != null || adhoc != null);
 
   final TransferKind kind;
@@ -519,6 +533,10 @@ class NetworkTransferRequest {
   /// Set for a repeat transfer.
   final RepeatSchedule? schedule;
   final String? systemReferenceId;
+
+  /// Credit Account Currency — the currency the payee's account is credited
+  /// in (OBDX `currencyOfTransfer`); [currency] when not chosen.
+  final String? creditCurrency;
 
   bool get isRepeat => schedule != null;
   bool get isAdhoc => adhoc != null;
@@ -549,6 +567,7 @@ class NetworkTransferRequest {
         charges: charges,
         schedule: schedule,
         systemReferenceId: reference,
+        creditCurrency: creditCurrency,
       );
 
   Map<String, dynamic> toJson() {
@@ -585,7 +604,7 @@ class NetworkTransferRequest {
       } else
         'beneficiary': [adhoc!.toJson(network: network)],
       'verificationPayeeReport': {},
-      'currencyOfTransfer': currency,
+      'currencyOfTransfer': creditCurrency ?? currency,
       'remittance': {'remittanceInformationStructured': []},
       'otherDetails': {
         'line1': null,

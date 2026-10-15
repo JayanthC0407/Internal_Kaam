@@ -35,11 +35,21 @@ class BiometricUnlockPolicy {
     return false;
   }
 
-  /// Login-screen quick login — same as cold start: password first after logout.
+  /// Login-screen fingerprint (OBDX alternate login, designer mock: "or" +
+  /// fingerprint under Login). Offered only on a phone that finished
+  /// biometric enrollment with OBDX — biometrics on, the server setup token
+  /// stored, and a fingerprint/face the device can still verify. The token
+  /// login falls back to password if OBDX rejects the token.
   static Future<bool> canOfferQuickLogin({
     required PreferenceHelper preferences,
     required BiometricService biometrics,
   }) async {
-    return false;
+    if (kIsWeb) return false;
+    if (!await preferences.isBiometricEnabled()) return false;
+    if (!await preferences.isBiometricServerEnrolled()) return false;
+    if (!await preferences.hasBiometricSetupToken()) return false;
+    final method = await preferences.getAlternateLoginMethod();
+    if (method != null && !method.isBiometric) return false;
+    return biometrics.canAuthenticate();
   }
 }

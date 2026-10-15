@@ -155,6 +155,7 @@ class AccountsRepository {
     String accountId, {
     required StatementFormat format,
     CasaTransactionQuery query = const CasaTransactionQuery(),
+    String? transactionsPath,
   }) async {
     try {
       final result = await _accountsApi.downloadStatement(
@@ -162,6 +163,7 @@ class AccountsRepository {
         media: format.mimeType,
         mediaFormat: format.code,
         queryParameters: query.toQueryParameters(),
+        transactionsPath: transactionsPath,
       );
       if (result is! Success<List<int>> || result.data == null) {
         return _mapFailure(result);

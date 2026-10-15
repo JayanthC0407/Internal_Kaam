@@ -34,12 +34,14 @@ class CasaTransactionsTable extends StatelessWidget {
         border: Border.all(color: colors.divider),
       ),
       clipBehavior: Clip.antiAlias,
-      child: SingleChildScrollView(
+      // Fills the card it sits in (not the whole screen, which cut off the
+      // Balance column beside the sidebar / inside cards); scrolls
+      // sideways only when the columns really need more room.
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.sizeOf(context).width - 56,
-          ),
+          constraints: BoxConstraints(minWidth: constraints.maxWidth),
           child: DataTable(
             headingRowHeight: 44,
             dataRowMinHeight: 48,
@@ -102,6 +104,7 @@ class CasaTransactionsTable extends StatelessWidget {
                 ),
             ],
           ),
+        ),
         ),
       ),
     );
