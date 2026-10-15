@@ -151,7 +151,7 @@ class _LoanTile extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.teal50,
+                  color: AppColors.of(context).brandTint,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

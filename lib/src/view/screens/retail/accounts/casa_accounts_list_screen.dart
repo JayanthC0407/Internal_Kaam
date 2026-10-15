@@ -708,7 +708,7 @@ class _AccountSummaryTile extends StatelessWidget {
             width: 30,
             height: 30,
             decoration: BoxDecoration(
-              color: AppColors.teal50,
+              color: AppColors.of(context).brandTint,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, size: 16, color: HomeColors.brand(context)),
@@ -1174,7 +1174,7 @@ class _PrimaryBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.teal50,
+        color: AppColors.of(context).brandTint,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

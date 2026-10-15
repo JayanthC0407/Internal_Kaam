@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 ///
 /// The raw palette is kept here so widgets do not need to know individual
 /// hex values. Prefer semantic fields (brand, success, surface, etc.) in UI.
+///
+/// There is one [AppColors] per brand palette and brightness — cyan
+/// ([light] / [dark]), orange ([lightOrange] / [darkOrange]) and indigo
+/// ([lightIndigo] / [darkIndigo]). Use `AppThemePalette.colors` to pick one.
 @immutable
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
@@ -30,6 +34,10 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.otpBoxFilled,
     required this.accentCyan,
     required this.accentCyanSoft,
+    required this.brandTint,
+    required this.brandSubtle,
+    required this.brandMuted,
+    required this.brandGradient,
   });
 
   // Existing semantic fields retained for compatibility.
@@ -56,8 +64,32 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color success;
   final Color warning;
   final Color info;
+
+  /// Bright accent of the active palette. Named after the original cyan
+  /// theme; on the orange/indigo palettes it holds their 400 shade.
   final Color accentCyan;
+
+  /// Soft accent of the active palette (see [accentCyan]).
   final Color accentCyanSoft;
+
+  /// Palette-aware alias of [accentCyan].
+  Color get accent => accentCyan;
+
+  /// Palette-aware alias of [accentCyanSoft].
+  Color get accentSoft => accentCyanSoft;
+
+  /// Palest brand tint (the 50 shade) — fill behind brand-coloured icons
+  /// and badges.
+  final Color brandTint;
+
+  /// Light brand tint (the 100 shade) — inactive carousel dots and similar.
+  final Color brandSubtle;
+
+  /// Mid brand tint (the 300 shade) — non-highlighted chart bars.
+  final Color brandMuted;
+
+  /// Hero gradient for balance cards, login header and similar surfaces.
+  final LinearGradient brandGradient;
 
   // Cyan palette.
   static const cyan50 = Color(0xFFECFEFF);
@@ -85,6 +117,36 @@ class AppColors extends ThemeExtension<AppColors> {
   static const teal900 = Color(0xFF134E4A);
   static const teal950 = Color(0xFF042F2E);
 
+  // Orange palette (design system "Dark-1").
+  static const orange50 = Color(0xFFFFF7ED);
+  static const orange100 = Color(0xFFFFEDD5);
+  static const orange200 = Color(0xFFFED7AA);
+  static const orange300 = Color(0xFFFDBA74);
+  static const orange400 = Color(0xFFFB923C);
+  static const orange500 = Color(0xFFF97316);
+  static const orange600 = Color(0xFFEA580C);
+  static const orange700 = Color(0xFFC2410C);
+  static const orange800 = Color(0xFF9A3412);
+  static const orange900 = Color(0xFF7C2D12);
+  static const orange950 = Color(0xFF431407);
+
+  // Indigo palette (design system "Dark-2").
+  static const indigo50 = Color(0xFFEEF2FF);
+  static const indigo100 = Color(0xFFE0E7FF);
+  static const indigo200 = Color(0xFFC7D2FE);
+  static const indigo300 = Color(0xFFA5B4FC);
+  static const indigo400 = Color(0xFF818CF8);
+  static const indigo500 = Color(0xFF6366F1);
+  static const indigo600 = Color(0xFF4F46E5);
+  static const indigo700 = Color(0xFF4338CA);
+  static const indigo800 = Color(0xFF3730A3);
+  static const indigo900 = Color(0xFF312E81);
+  static const indigo950 = Color(0xFF1E1B4B);
+
+  /// indigo500 nudged darker so white button labels reach 4.5:1 while the
+  /// colour still reads at 3:1 on the dark indigo cards.
+  static const indigoOnDark = Color(0xFF5B5BEA);
+
   // Neutral palette.
   static const neutral50 = Color(0xFFFAFAFA);
   static const neutral100 = Color(0xFFF5F5F5);
@@ -98,6 +160,33 @@ class AppColors extends ThemeExtension<AppColors> {
   static const neutral900 = Color(0xFF171717);
   static const neutral950 = Color(0xFF0A0A0A);
 
+  // Slate palette — the neutrals of the orange theme.
+  static const slate50 = Color(0xFFF8FAFC);
+  static const slate100 = Color(0xFFF1F5F9);
+  static const slate200 = Color(0xFFE2E8F0);
+  static const slate300 = Color(0xFFCBD5E1);
+  static const slate400 = Color(0xFF94A3B8);
+  static const slate500 = Color(0xFF64748B);
+  static const slate600 = Color(0xFF475569);
+  static const slate700 = Color(0xFF334155);
+  static const slate800 = Color(0xFF1E293B);
+  static const slate900 = Color(0xFF0F172A);
+  static const slate950 = Color(0xFF020617);
+
+  // Indigo-tinted neutrals — the neutrals of the indigo theme, sampled
+  // from the design file and filled in between.
+  static const ink50 = Color(0xFFF8F8FC);
+  static const ink100 = Color(0xFFF4F4FA);
+  static const ink200 = Color(0xFFE4E4EF);
+  static const ink300 = Color(0xFFC7C8E3);
+  static const ink400 = Color(0xFF9A9BC4);
+  static const ink500 = Color(0xFF6E7092);
+  static const ink600 = Color(0xFF4B4C6E);
+  static const ink700 = Color(0xFF3E3C66);
+  static const ink800 = Color(0xFF2E2C4B);
+  static const ink900 = Color(0xFF17162E);
+  static const ink950 = Color(0xFF131329);
+
   // Semantic colors from the designer specification.
   static const primary = cyan700;
   static const successColor = Color(0xFF16A34A);
@@ -107,6 +196,48 @@ class AppColors extends ThemeExtension<AppColors> {
 
   /// Kept as an alias so existing code can migrate safely.
   static const brandSeed = primary;
+
+  // Hero gradients. Cyan keeps its original stops; orange and indigo follow
+  // their design files (bright top-left fading to the 950 shade).
+  static const cyanLightGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [cyan700, cyan600, cyan500, cyan400],
+  );
+
+  static const cyanDarkGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [cyan950, cyan900, cyan800, cyan700],
+  );
+
+  static const orangeLightGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [orange700, orange600, orange500, orange400],
+  );
+
+  static const orangeDarkGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [orange700, orange800, orange900, orange950],
+  );
+
+  static const indigoLightGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [indigo700, indigo600, indigo500, indigo400],
+  );
+
+  static const indigoDarkGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [indigo700, indigo800, indigo900, indigo950],
+  );
+
+  // ---------------------------------------------------------------------
+  // Cyan (original theme — values unchanged).
+  // ---------------------------------------------------------------------
 
   static const light = AppColors(
     scaffoldBg: Color(0xFFFFFFFF),
@@ -132,6 +263,10 @@ class AppColors extends ThemeExtension<AppColors> {
     otpBoxFilled: cyan50,
     accentCyan: cyan400,
     accentCyanSoft: cyan100,
+    brandTint: teal50,
+    brandSubtle: teal100,
+    brandMuted: cyan300,
+    brandGradient: cyanLightGradient,
   );
 
   static const dark = AppColors(
@@ -158,6 +293,144 @@ class AppColors extends ThemeExtension<AppColors> {
     otpBoxFilled: cyan950,
     accentCyan: cyan400,
     accentCyanSoft: cyan900,
+    brandTint: teal50,
+    brandSubtle: teal100,
+    brandMuted: cyan300,
+    brandGradient: cyanDarkGradient,
+  );
+
+  // ---------------------------------------------------------------------
+  // Orange on slate.
+  // Dark: slate-900 chrome/cards as in the design file, orange-700 brand
+  // (5.2:1 under white labels, 3.4:1 on the cards).
+  // Light: same orange-700 brand on white with slate neutrals.
+  // ---------------------------------------------------------------------
+
+  static const lightOrange = AppColors(
+    scaffoldBg: Color(0xFFFFFFFF),
+    cardBg: Color(0xFFFFFFFF),
+    surface: Color(0xFFFFFFFF),
+    surfaceSecondary: slate100,
+    backgroundSecondary: slate50,
+    textPrimary: slate900,
+    textSecondary: slate600,
+    brand: orange700,
+    brandDark: orange800,
+    brandLight: orange500,
+    inputBorder: slate200,
+    inputBackground: slate100,
+    inputHint: slate500,
+    secondaryButtonBg: slate100,
+    divider: slate200,
+    navInactive: slate500,
+    success: successColor,
+    warning: warningColor,
+    error: errorColor,
+    info: infoColor,
+    otpBoxFilled: orange50,
+    accentCyan: orange400,
+    accentCyanSoft: orange100,
+    brandTint: orange50,
+    brandSubtle: orange100,
+    brandMuted: orange300,
+    brandGradient: orangeLightGradient,
+  );
+
+  static const darkOrange = AppColors(
+    scaffoldBg: slate950,
+    cardBg: slate900,
+    surface: slate900,
+    surfaceSecondary: slate800,
+    backgroundSecondary: slate900,
+    textPrimary: Color(0xFFFFFFFF),
+    textSecondary: slate300,
+    brand: orange700,
+    brandDark: orange950,
+    brandLight: orange600,
+    inputBorder: slate700,
+    inputBackground: slate800,
+    inputHint: slate400,
+    secondaryButtonBg: slate800,
+    divider: slate700,
+    navInactive: slate400,
+    success: successColor,
+    warning: warningColor,
+    error: errorColor,
+    info: infoColor,
+    otpBoxFilled: orange950,
+    accentCyan: orange400,
+    accentCyanSoft: orange900,
+    brandTint: orange50,
+    brandSubtle: orange100,
+    brandMuted: orange300,
+    brandGradient: orangeDarkGradient,
+  );
+
+  // ---------------------------------------------------------------------
+  // Indigo on deep indigo.
+  // Dark: indigo-950 chrome/cards as in the design file. indigo-700 is
+  // too dark to read there (2.0:1), so the dark brand is [indigoOnDark].
+  // Light: indigo-700 brand on white with indigo-tinted neutrals.
+  // ---------------------------------------------------------------------
+
+  static const lightIndigo = AppColors(
+    scaffoldBg: Color(0xFFFFFFFF),
+    cardBg: Color(0xFFFFFFFF),
+    surface: Color(0xFFFFFFFF),
+    surfaceSecondary: ink100,
+    backgroundSecondary: ink50,
+    textPrimary: ink900,
+    textSecondary: ink600,
+    brand: indigo700,
+    brandDark: indigo800,
+    brandLight: indigo500,
+    inputBorder: ink200,
+    inputBackground: ink100,
+    inputHint: ink500,
+    secondaryButtonBg: ink100,
+    divider: ink200,
+    navInactive: ink500,
+    success: successColor,
+    warning: warningColor,
+    error: errorColor,
+    info: infoColor,
+    otpBoxFilled: indigo50,
+    accentCyan: indigo400,
+    accentCyanSoft: indigo100,
+    brandTint: indigo50,
+    brandSubtle: indigo100,
+    brandMuted: indigo300,
+    brandGradient: indigoLightGradient,
+  );
+
+  static const darkIndigo = AppColors(
+    scaffoldBg: ink950,
+    cardBg: indigo950,
+    surface: indigo950,
+    surfaceSecondary: ink800,
+    backgroundSecondary: indigo950,
+    textPrimary: Color(0xFFFFFFFF),
+    textSecondary: ink300,
+    brand: indigoOnDark,
+    brandDark: indigo950,
+    brandLight: indigo500,
+    inputBorder: ink700,
+    inputBackground: ink800,
+    inputHint: ink400,
+    secondaryButtonBg: ink800,
+    divider: ink700,
+    navInactive: ink400,
+    success: successColor,
+    warning: warningColor,
+    error: errorColor,
+    info: infoColor,
+    otpBoxFilled: indigo950,
+    accentCyan: indigo400,
+    accentCyanSoft: indigo900,
+    brandTint: indigo50,
+    brandSubtle: indigo100,
+    brandMuted: indigo300,
+    brandGradient: indigoDarkGradient,
   );
 
   static AppColors of(BuildContext context) {
@@ -189,6 +462,10 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? otpBoxFilled,
     Color? accentCyan,
     Color? accentCyanSoft,
+    Color? brandTint,
+    Color? brandSubtle,
+    Color? brandMuted,
+    LinearGradient? brandGradient,
   }) {
     return AppColors(
       scaffoldBg: scaffoldBg ?? this.scaffoldBg,
@@ -214,6 +491,10 @@ class AppColors extends ThemeExtension<AppColors> {
       otpBoxFilled: otpBoxFilled ?? this.otpBoxFilled,
       accentCyan: accentCyan ?? this.accentCyan,
       accentCyanSoft: accentCyanSoft ?? this.accentCyanSoft,
+      brandTint: brandTint ?? this.brandTint,
+      brandSubtle: brandSubtle ?? this.brandSubtle,
+      brandMuted: brandMuted ?? this.brandMuted,
+      brandGradient: brandGradient ?? this.brandGradient,
     );
   }
 
@@ -246,6 +527,11 @@ class AppColors extends ThemeExtension<AppColors> {
       otpBoxFilled: Color.lerp(otpBoxFilled, other.otpBoxFilled, t)!,
       accentCyan: Color.lerp(accentCyan, other.accentCyan, t)!,
       accentCyanSoft: Color.lerp(accentCyanSoft, other.accentCyanSoft, t)!,
+      brandTint: Color.lerp(brandTint, other.brandTint, t)!,
+      brandSubtle: Color.lerp(brandSubtle, other.brandSubtle, t)!,
+      brandMuted: Color.lerp(brandMuted, other.brandMuted, t)!,
+      brandGradient:
+          LinearGradient.lerp(brandGradient, other.brandGradient, t)!,
     );
   }
 }
