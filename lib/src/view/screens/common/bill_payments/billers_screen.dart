@@ -11,6 +11,7 @@ import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/edit_biller_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
@@ -19,8 +20,8 @@ import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 /// The user's registered billers in OBDX's three groups, searchable by
 /// nickname and category, each opening Biller Details. Delete follows
 /// OBDX's rules (blocked while auto pay / a scheduled payment is active)
-/// and asks for an OTP when the bank wants one. Add Billers opens
-/// [AddBillerScreen] in place; Pay and Edit Biller are not built yet.
+/// and asks for an OTP when the bank wants one. Add Billers and Edit
+/// Biller (Manual billers) open in place; Pay is not built yet.
 /// Evidence: docs/obdx/features/bill-payments.md §3-4.
 class BillersScreen extends ConsumerStatefulWidget {
   const BillersScreen({super.key, this.embedded = false, this.onBack});
@@ -44,6 +45,9 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
   /// Bill Payment History shown in place of the list (OBDX's page action).
   bool _history = false;
 
+  /// Edit Biller shown in place of the list or details.
+  RegisteredBiller? _editing;
+
   /// Registration ids being deleted.
   final _deleting = <String>{};
 
@@ -64,7 +68,10 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
     final l10n = AppLocalizations.of(context);
     // OBDX refuses edits while a change awaits approval (hooks.js:476-479).
     if (!biller.canEdit) return _snack(l10n.billerEditPending);
-    _comingSoon(l10n.billerEdit);
+    // Only Manual billers so far: their existing Auto Pay / Scheduled Pay
+    // instruction would go back in the PUT (bill-payments.md §6.4).
+    if (biller.hasPaymentInstruction) return _snack(l10n.editBillerPaymentInstructionSoon);
+    setState(() => _editing = biller);
   }
 
   Future<void> _delete(RegisteredBiller biller) async {
@@ -136,6 +143,22 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final editing = _editing;
+    if (editing != null) {
+      return EditBillerScreen(
+        biller: editing,
+        // Cancel: back to where Edit was opened (list or details).
+        onExit: () => setState(() => _editing = null),
+        onUpdated: (_) {
+          setState(() {
+            _editing = null;
+            _open = null;
+          });
+          ref.invalidate(registeredBillersProvider);
+          ref.invalidate(billerDetailsProvider(editing.id));
+        },
+      );
+    }
     if (_history) {
       return BillPaymentHistoryScreen(embedded: true, onBack: () => setState(() => _history = false));
     }
