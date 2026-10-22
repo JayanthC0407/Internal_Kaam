@@ -25,6 +25,7 @@ import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
@@ -497,6 +498,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       isWide: isWide,
       displayName: _displayNameFromTrace(),
       onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
+      onBillsTap: _openBillers,
     );
   }
 
@@ -843,6 +845,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         break;
     }
     final index = _selectedBottomNavIndex;
+    if (index == _billersIndex) return RetailNav.billPaymentsBillers;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -867,6 +870,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return;
       case RetailNav.accountsTermDeposits:
         _openAccountsDestination(WebAccountsDestination.termDeposits);
+        return;
+      case RetailNav.billPaymentsBillers:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openBillers();
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -899,8 +906,27 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     );
   }
 
+  /// Bill Payments → Billers (OBDX `manage-bill-payments`), reached from
+  /// the side menu and the Home "Bill" quick action.
+  static const _billersIndex = 23;
+
+  void _openBillers() => setState(() {
+        _transferPayee = null;
+        _selectedPayeeDestination = null;
+        _selectedAccountsDestination = null;
+        _selectedCasaAccountId = null;
+        _selectedLoanAccount = null;
+        _selectedTermDeposit = null;
+        _selectedBottomNavIndex = _billersIndex;
+      });
+
   Widget _buildCurrentBody(CasaAccountsState accountsState) {
     switch (_selectedBottomNavIndex) {
+      case _billersIndex:
+        return BillersScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 0),
+        );
       case 1:
         return const InsightsTabScreen();
       case 2:
@@ -1196,6 +1222,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           notice,
           QuickActionsStrip(
             onTransfer: () => setState(() => _selectedBottomNavIndex = 2),
+            onBill: _openBillers,
           ),
           const SizedBox(height: 20),
           // Customisation lives in the Menu (profile icon, top right).

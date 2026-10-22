@@ -37,6 +37,7 @@ class HomeContent extends StatelessWidget {
     this.isWide = false,
     this.displayName = '',
     this.onTransferTap,
+    this.onBillsTap,
     this.onCasaAccountTap,
     this.onLoanAccountTap,
     this.onDepositTap,
@@ -82,6 +83,9 @@ class HomeContent extends StatelessWidget {
   /// hero card.
   final String displayName;
   final VoidCallback? onTransferTap;
+
+  /// Home "Bill" quick action → Billers.
+  final VoidCallback? onBillsTap;
 
   /// Invoked when a CASA account is tapped, on either the Overview tab's
   /// account preview or the Accounts tab's Current & Savings list. Falls
@@ -177,6 +181,7 @@ class HomeContent extends StatelessWidget {
           revealedAccountIds: revealedAccountIds,
           onToggleAccountVisibility: onToggleAccountVisibility,
           onTransferTap: onTransferTap,
+          onBillsTap: onBillsTap,
           onViewAllAccountsTap: onViewAllAccountsTap ?? () => onTopTabSelected(1),
           onViewAllLoans: onViewAllLoans,
           onLoanAccountTap: onLoanAccountTap,
@@ -381,6 +386,7 @@ class _OverviewContent extends StatelessWidget {
     required this.revealedAccountIds,
     required this.onToggleAccountVisibility,
     this.onTransferTap,
+    this.onBillsTap,
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
     this.onLoanAccountTap,
@@ -397,6 +403,9 @@ class _OverviewContent extends StatelessWidget {
   final Set<String> revealedAccountIds;
   final ValueChanged<String> onToggleAccountVisibility;
   final VoidCallback? onTransferTap;
+
+  /// Home "Bill" quick action → Billers.
+  final VoidCallback? onBillsTap;
   final VoidCallback? onViewAllAccountsTap;
   final VoidCallback? onViewAllLoans;
   final ValueChanged<LoanAccount>? onLoanAccountTap;
@@ -424,7 +433,7 @@ class _OverviewContent extends StatelessWidget {
     );
     // Phone Home (teal band): the fixed four white tiles; elsewhere the grid.
     final Widget quickActions = !isWide && !showAccountCard
-        ? QuickActionsStrip(onTransfer: onTransferTap)
+        ? QuickActionsStrip(onTransfer: onTransferTap, onBill: onBillsTap)
         : QuickActionsGrid(
       title: isWide ? 'Activity Centre' : l10n.quickActions,
       onTermDeposit:
