@@ -49,8 +49,12 @@ app.*.map.json
 !.env.example
 dart_defines.json
 
-# Local project documentation (kept on machine; not published to remote)
+# Local project documentation (kept on machine; not published to remote),
+# except the shared OBDX source/feature docs and the architecture overview.
+# `/docs/*` (not `/docs/`) so the `!` lines below can re-include files.
 /docs/
+CLAUDE.md
+/tracking/
 
 # Node (web CORS proxy) — keep package.json, package-lock.json, and proxy.js in git
 # so other developers can: npm install && node proxy.js

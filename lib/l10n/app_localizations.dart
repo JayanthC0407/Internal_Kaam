@@ -4839,6 +4839,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verify'**
   String get tdOtpVerify;
+
+  /// No description provided for @billPaymentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Payments'**
+  String get billPaymentsTitle;
+
+  /// No description provided for @billersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Billers'**
+  String get billersTitle;
+
+  /// No description provided for @billersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Billers you have added for paying bills'**
+  String get billersSubtitle;
+
+  /// No description provided for @billersSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by Biller Nickname, Category'**
+  String get billersSearchHint;
+
+  /// No description provided for @billersAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Billers'**
+  String get billersAdd;
+
+  /// No description provided for @billerGroupPresentment.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills Presented'**
+  String get billerGroupPresentment;
+
+  /// No description provided for @billerGroupRecharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Recharge Bill Payment'**
+  String get billerGroupRecharge;
+
+  /// No description provided for @billerGroupPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Bill Payment'**
+  String get billerGroupPayment;
+
+  /// No description provided for @billerEmptyPresentment.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not yet added any billers who present bills. To get started click on Add Biller.'**
+  String get billerEmptyPresentment;
+
+  /// No description provided for @billerEmptyRecharge.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not yet added any billers for recharge. To get started click on Add Biller.'**
+  String get billerEmptyRecharge;
+
+  /// No description provided for @billerEmptyPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not yet added any billers for making bill payments. To get started click on Add Biller.'**
+  String get billerEmptyPayment;
+
+  /// No description provided for @billerTypeEbill.
+  ///
+  /// In en, this message translates to:
+  /// **'eBill'**
+  String get billerTypeEbill;
+
+  /// No description provided for @billerTypeEbillManual.
+  ///
+  /// In en, this message translates to:
+  /// **'eBill + Manual'**
+  String get billerTypeEbillManual;
+
+  /// No description provided for @billerTypeRecharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Recharge'**
+  String get billerTypeRecharge;
+
+  /// No description provided for @billerTypeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get billerTypeManual;
+
+  /// No description provided for @billerStatusPastDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Past Due'**
+  String get billerStatusPastDue;
+
+  /// No description provided for @billerStatusAutoPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Pay'**
+  String get billerStatusAutoPay;
+
+  /// No description provided for @billerStatusScheduledPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled Pay'**
+  String get billerStatusScheduledPay;
+
+  /// No description provided for @billerBillsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills Due'**
+  String get billerBillsDue;
+
+  /// No description provided for @billerNoBillsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'No Bills Due'**
+  String get billerNoBillsDue;
+
+  /// No description provided for @billerDueBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Due by {date}'**
+  String billerDueBy(String date);
+
+  /// No description provided for @billerApprovalPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval Pending'**
+  String get billerApprovalPending;
+
+  /// No description provided for @billerRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected by bank'**
+  String get billerRejected;
+
+  /// No description provided for @billerDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller Details'**
+  String get billerDetailsTitle;
+
+  /// No description provided for @billerEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Biller'**
+  String get billerEdit;
+
+  /// No description provided for @billerDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Biller'**
+  String get billerDelete;
+
+  /// No description provided for @billerPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get billerPay;
+
+  /// No description provided for @billerYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get billerYes;
+
+  /// No description provided for @billerNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get billerNo;
+
+  /// No description provided for @billerDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this biller?'**
+  String get billerDeleteConfirm;
+
+  /// No description provided for @billerDeleteBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Please close the auto pay/scheduled pay currently set up for this biller before deleting.'**
+  String get billerDeleteBlocked;
+
+  /// No description provided for @billerEditPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your previous details are yet to be approved by bank. Please contact your bank for further details.'**
+  String get billerEditPending;
+
+  /// No description provided for @billerDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deleted.'**
+  String billerDeleted(String name);
+
+  /// No description provided for @billerDeletePendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting {name} is waiting for approval.'**
+  String billerDeletePendingApproval(String name);
+
+  /// No description provided for @billerDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t delete {name}. Please try again.'**
+  String billerDeleteFailed(String name);
+
+  /// No description provided for @billerDeleteOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to delete {name}'**
+  String billerDeleteOtpTitle(String name);
+
+  /// No description provided for @billerOtpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That code is not right. Please try again.'**
+  String get billerOtpInvalid;
+
+  /// No description provided for @billersLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your billers.'**
+  String get billersLoadFailed;
+
+  /// No description provided for @billerDetailsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load this biller.'**
+  String get billerDetailsLoadFailed;
+
+  /// No description provided for @billersNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches \"{query}\".'**
+  String billersNoMatch(String query);
+
+  /// No description provided for @billerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller Name'**
+  String get billerName;
+
+  /// No description provided for @billerCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category and Sub Category'**
+  String get billerCategory;
+
+  /// No description provided for @billerLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get billerLocation;
+
+  /// No description provided for @billerType.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller Type'**
+  String get billerType;
+
+  /// No description provided for @billerNickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller Nickname'**
+  String get billerNickname;
+
+  /// No description provided for @billerCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Name'**
+  String get billerCustomerName;
+
+  /// No description provided for @billerPaymentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Type'**
+  String get billerPaymentType;
+
+  /// No description provided for @billerPayFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay From'**
+  String get billerPayFrom;
+
+  /// No description provided for @billerFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get billerFrequency;
+
+  /// No description provided for @billerStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get billerStartDate;
+
+  /// No description provided for @billerEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get billerEndDate;
+
+  /// No description provided for @billerBillAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Amount'**
+  String get billerBillAmount;
+
+  /// No description provided for @billerBillDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Due Date'**
+  String get billerBillDueDate;
+
+  /// No description provided for @addBillerReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get addBillerReview;
+
+  /// No description provided for @addBillerReviewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for add biller. Please review details before you confirm!'**
+  String get addBillerReviewMessage;
+
+  /// No description provided for @addBillerSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller added successfully.'**
+  String get addBillerSuccess;
+
+  /// No description provided for @addBillerSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get addBillerSubmit;
+
+  /// No description provided for @addBillerConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get addBillerConfirm;
+
+  /// No description provided for @addBillerSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select'**
+  String get addBillerSelect;
+
+  /// No description provided for @addBillerCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get addBillerCategory;
+
+  /// No description provided for @addBillerPaymentNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Pay and Scheduled Pay will be available soon.'**
+  String get addBillerPaymentNote;
+
+  /// No description provided for @addBillerFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} is required.'**
+  String addBillerFieldRequired(String label);
+
+  /// No description provided for @addBillerFieldTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} can be at most {max} characters.'**
+  String addBillerFieldTooLong(String label, int max);
+
+  /// No description provided for @addBillerFieldAlphanumeric.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the details in the alphanumeric format'**
+  String get addBillerFieldAlphanumeric;
+
+  /// No description provided for @addBillerFieldNumeric.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the details in the numeric format'**
+  String get addBillerFieldNumeric;
+
+  /// No description provided for @addBillerFieldText.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the details in the text format'**
+  String get addBillerFieldText;
+
+  /// No description provided for @addBillerFieldInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid data'**
+  String get addBillerFieldInvalid;
+
+  /// No description provided for @addBillerNicknameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname can comprise alphanumerics (A-Z any case, 0-9)&,/,-\"space'**
+  String get addBillerNicknameError;
+
+  /// No description provided for @addBillerCustomerNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Name can comprise alphanumerics (A-Z any case, 0-9)&,/,-\"space'**
+  String get addBillerCustomerNameError;
+
+  /// No description provided for @addBillerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t add this biller. Please try again.'**
+  String get addBillerFailed;
+
+  /// No description provided for @addBillerLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the billers.'**
+  String get addBillerLoadFailed;
+
+  /// No description provided for @addBillerNoBillers.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently no billers are available.'**
+  String get addBillerNoBillers;
+
+  /// No description provided for @addBillerBackToBillers.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Billers'**
+  String get addBillerBackToBillers;
+
+  /// No description provided for @addBillerPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Approval'**
+  String get addBillerPendingApproval;
+
+  /// No description provided for @addBillerOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to add {name}'**
+  String addBillerOtpTitle(String name);
+
+  /// No description provided for @billerReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number: {reference}'**
+  String billerReferenceNumber(String reference);
 }
 
 class _AppLocalizationsDelegate

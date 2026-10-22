@@ -2581,4 +2581,266 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get tdOtpVerify => 'Verify';
+
+  @override
+  String get billPaymentsTitle => 'Bill Payments';
+
+  @override
+  String get billersTitle => 'Billers';
+
+  @override
+  String get billersSubtitle => 'Billers you have added for paying bills';
+
+  @override
+  String get billersSearchHint => 'Search by Biller Nickname, Category';
+
+  @override
+  String get billersAdd => 'Add Billers';
+
+  @override
+  String get billerGroupPresentment => 'Bills Presented';
+
+  @override
+  String get billerGroupRecharge => 'Recharge Bill Payment';
+
+  @override
+  String get billerGroupPayment => 'Direct Bill Payment';
+
+  @override
+  String get billerEmptyPresentment =>
+      'You have not yet added any billers who present bills. To get started click on Add Biller.';
+
+  @override
+  String get billerEmptyRecharge =>
+      'You have not yet added any billers for recharge. To get started click on Add Biller.';
+
+  @override
+  String get billerEmptyPayment =>
+      'You have not yet added any billers for making bill payments. To get started click on Add Biller.';
+
+  @override
+  String get billerTypeEbill => 'eBill';
+
+  @override
+  String get billerTypeEbillManual => 'eBill + Manual';
+
+  @override
+  String get billerTypeRecharge => 'Recharge';
+
+  @override
+  String get billerTypeManual => 'Manual';
+
+  @override
+  String get billerStatusPastDue => 'Past Due';
+
+  @override
+  String get billerStatusAutoPay => 'Auto Pay';
+
+  @override
+  String get billerStatusScheduledPay => 'Scheduled Pay';
+
+  @override
+  String get billerBillsDue => 'Bills Due';
+
+  @override
+  String get billerNoBillsDue => 'No Bills Due';
+
+  @override
+  String billerDueBy(String date) {
+    return 'Due by $date';
+  }
+
+  @override
+  String get billerApprovalPending => 'Approval Pending';
+
+  @override
+  String get billerRejected => 'Rejected by bank';
+
+  @override
+  String get billerDetailsTitle => 'Biller Details';
+
+  @override
+  String get billerEdit => 'Edit Biller';
+
+  @override
+  String get billerDelete => 'Delete Biller';
+
+  @override
+  String get billerPay => 'Pay';
+
+  @override
+  String get billerYes => 'Yes';
+
+  @override
+  String get billerNo => 'No';
+
+  @override
+  String get billerDeleteConfirm =>
+      'Are you sure you want to delete this biller?';
+
+  @override
+  String get billerDeleteBlocked =>
+      'Please close the auto pay/scheduled pay currently set up for this biller before deleting.';
+
+  @override
+  String get billerEditPending =>
+      'Your previous details are yet to be approved by bank. Please contact your bank for further details.';
+
+  @override
+  String billerDeleted(String name) {
+    return '$name deleted.';
+  }
+
+  @override
+  String billerDeletePendingApproval(String name) {
+    return 'Deleting $name is waiting for approval.';
+  }
+
+  @override
+  String billerDeleteFailed(String name) {
+    return 'We couldn\'t delete $name. Please try again.';
+  }
+
+  @override
+  String billerDeleteOtpTitle(String name) {
+    return 'Verify to delete $name';
+  }
+
+  @override
+  String get billerOtpInvalid => 'That code is not right. Please try again.';
+
+  @override
+  String get billersLoadFailed => 'We couldn\'t load your billers.';
+
+  @override
+  String get billerDetailsLoadFailed => 'We couldn\'t load this biller.';
+
+  @override
+  String billersNoMatch(String query) {
+    return 'Nothing matches \"$query\".';
+  }
+
+  @override
+  String get billerName => 'Biller Name';
+
+  @override
+  String get billerCategory => 'Category and Sub Category';
+
+  @override
+  String get billerLocation => 'Location';
+
+  @override
+  String get billerType => 'Biller Type';
+
+  @override
+  String get billerNickname => 'Biller Nickname';
+
+  @override
+  String get billerCustomerName => 'Customer Name';
+
+  @override
+  String get billerPaymentType => 'Payment Type';
+
+  @override
+  String get billerPayFrom => 'Pay From';
+
+  @override
+  String get billerFrequency => 'Frequency';
+
+  @override
+  String get billerStartDate => 'Start Date';
+
+  @override
+  String get billerEndDate => 'End Date';
+
+  @override
+  String get billerBillAmount => 'Bill Amount';
+
+  @override
+  String get billerBillDueDate => 'Bill Due Date';
+
+  @override
+  String get addBillerReview => 'Review';
+
+  @override
+  String get addBillerReviewMessage =>
+      'You initiated a request for add biller. Please review details before you confirm!';
+
+  @override
+  String get addBillerSuccess => 'Biller added successfully.';
+
+  @override
+  String get addBillerSubmit => 'Submit';
+
+  @override
+  String get addBillerConfirm => 'Confirm';
+
+  @override
+  String get addBillerSelect => 'Please Select';
+
+  @override
+  String get addBillerCategory => 'Category';
+
+  @override
+  String get addBillerPaymentNote =>
+      'Auto Pay and Scheduled Pay will be available soon.';
+
+  @override
+  String addBillerFieldRequired(String label) {
+    return '$label is required.';
+  }
+
+  @override
+  String addBillerFieldTooLong(String label, int max) {
+    return '$label can be at most $max characters.';
+  }
+
+  @override
+  String get addBillerFieldAlphanumeric =>
+      'Please enter the details in the alphanumeric format';
+
+  @override
+  String get addBillerFieldNumeric =>
+      'Please enter the details in the numeric format';
+
+  @override
+  String get addBillerFieldText =>
+      'Please enter the details in the text format';
+
+  @override
+  String get addBillerFieldInvalid => 'Please enter valid data';
+
+  @override
+  String get addBillerNicknameError =>
+      'Nickname can comprise alphanumerics (A-Z any case, 0-9)&,/,-\"space';
+
+  @override
+  String get addBillerCustomerNameError =>
+      'Customer Name can comprise alphanumerics (A-Z any case, 0-9)&,/,-\"space';
+
+  @override
+  String get addBillerFailed =>
+      'We couldn\'t add this biller. Please try again.';
+
+  @override
+  String get addBillerLoadFailed => 'We couldn\'t load the billers.';
+
+  @override
+  String get addBillerNoBillers => 'Currently no billers are available.';
+
+  @override
+  String get addBillerBackToBillers => 'Back to Billers';
+
+  @override
+  String get addBillerPendingApproval => 'Pending Approval';
+
+  @override
+  String addBillerOtpTitle(String name) {
+    return 'Verify to add $name';
+  }
+
+  @override
+  String billerReferenceNumber(String reference) {
+    return 'Reference Number: $reference';
+  }
 }
