@@ -150,8 +150,16 @@ void main() {
         RetailNav.transfer,
         RetailNav.rewards,
         RetailNav.accounts,
+        RetailNav.billPayments,
         RetailNav.more,
       ]);
+    });
+
+    test('Retail — Bill Payments holds Billers (OBDX menu)', () {
+      final bills = RetailNav.items(AppLocalizationsEn())
+          .firstWhere((item) => item.id == RetailNav.billPayments);
+      expect(bills.label, 'Bill Payments');
+      expect([for (final c in bills.children) c.id], [RetailNav.billPaymentsBillers]);
     });
 
     test('Retail — Transfer is one entry: its hub lists the ways to pay', () {

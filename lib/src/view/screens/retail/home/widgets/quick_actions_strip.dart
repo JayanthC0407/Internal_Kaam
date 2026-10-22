@@ -7,13 +7,16 @@ import 'package:ubci_bank/src/core/theme/app_colors.dart';
 ///
 /// A tile only OPENS the start screen of its normal banking flow — it
 /// never carries an amount, a payee or a submit action, so every review,
-/// OTP and approval step still runs. Scan & Pay, Bill and Saving are not
-/// built yet and say "Coming soon".
+/// OTP and approval step still runs. Bill opens Billers when [onBill] is
+/// given; Scan & Pay and Saving are not built yet and say "Coming soon".
 class QuickActionsStrip extends StatelessWidget {
-  const QuickActionsStrip({super.key, this.onTransfer});
+  const QuickActionsStrip({super.key, this.onTransfer, this.onBill});
 
   /// Opens Transfer.
   final VoidCallback? onTransfer;
+
+  /// Opens Bill Payments → Billers; Coming soon when null.
+  final VoidCallback? onBill;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +38,7 @@ class QuickActionsStrip extends StatelessWidget {
         l10n.qaScanPay,
         () => comingSoon(l10n.qaScanPay),
       ),
-      (Icons.receipt_long_rounded, l10n.qaBill, () => comingSoon(l10n.qaBill)),
+      (Icons.receipt_long_rounded, l10n.qaBill, onBill ?? () => comingSoon(l10n.qaBill)),
       (Icons.savings_outlined, l10n.qaSaving, () => comingSoon(l10n.qaSaving)),
     ];
 

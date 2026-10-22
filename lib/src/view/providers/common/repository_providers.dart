@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/infra/repositories/common/auth_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/biometric_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/forgot_credentials_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/login_wizard_repository.dart';
@@ -45,6 +46,12 @@ final biometricRepositoryProvider = Provider(
 final payeeRepositoryProvider = Provider(
   (ref) => PayeeRepository(
     payeeApi: ref.watch(obdxPayeeApiProvider),
+  ),
+);
+
+final billPaymentsRepositoryProvider = Provider(
+  (ref) => BillPaymentsRepository(
+    api: ref.watch(obdxBillPaymentsApiProvider),
   ),
 );
 

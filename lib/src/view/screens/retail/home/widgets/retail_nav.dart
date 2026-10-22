@@ -25,6 +25,8 @@ class RetailNav {
   static const accountsCasa = 'accounts.casa';
   static const accountsLoans = 'accounts.loans';
   static const accountsTermDeposits = 'accounts.termDeposits';
+  static const billPayments = 'billPayments';
+  static const billPaymentsBillers = 'billPayments.billers';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -73,6 +75,19 @@ class RetailNav {
               id: accountsTermDeposits,
               label: l10n.menuTermDeposits,
               icon: Icons.savings_outlined,
+            ),
+          ],
+        ),
+        // OBDX's Bill Payments menu; only Billers is built so far.
+        DashboardNavItem(
+          id: billPayments,
+          label: l10n.billPaymentsTitle,
+          icon: Icons.receipt_long_rounded,
+          children: [
+            DashboardNavItem(
+              id: billPaymentsBillers,
+              label: l10n.billersTitle,
+              icon: Icons.storefront_outlined,
             ),
           ],
         ),
