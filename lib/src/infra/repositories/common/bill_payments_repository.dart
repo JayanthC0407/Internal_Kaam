@@ -73,6 +73,29 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
     );
   }
 
+  /// Edit Biller (Manual). Same outcome handling as add and delete.
+  Future<ResponseHandler<BillerEditOutcome>> updateBiller(
+    EditBillerRequest request, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final otpValue = otp?.trim() ?? '';
+    final otpSubmitted = challenge != null && otpValue.isNotEmpty;
+    final result = await _api.updateRegisteredBiller(
+      request.biller.id,
+      request.toJson(),
+      challengeResponseHeader:
+          otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
+    );
+    return _writeOutcome(
+      result,
+      otpSubmitted: otpSubmitted,
+      onOtp: (next, invalid) => BillerEditOutcome.otpRequired(next, invalidOtp: invalid),
+      onDone: (_, reference, pending) =>
+          BillerEditOutcome.updated(reference: reference, pendingApproval: pending),
+    );
+  }
+
   /// Deletes [billerRegistrationId]. [body] is the raw list item OBDX sends
   /// along (UAT: DELETE with this body answered 200).
   Future<ResponseHandler<BillerDeleteOutcome>> deleteRegisteredBiller(
