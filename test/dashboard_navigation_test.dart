@@ -159,7 +159,7 @@ void main() {
       final bills = RetailNav.items(AppLocalizationsEn())
           .firstWhere((item) => item.id == RetailNav.billPayments);
       expect(bills.label, 'Bill Payments');
-      expect([for (final c in bills.children) c.id], [RetailNav.billPaymentsBillers]);
+      expect([for (final c in bills.children) c.id], [RetailNav.billPaymentsBillers, RetailNav.billPaymentsHistory]);
     });
 
     test('Retail — Transfer is one entry: its hub lists the ways to pay', () {

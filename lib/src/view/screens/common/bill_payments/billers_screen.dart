@@ -10,6 +10,7 @@ import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 
@@ -39,6 +40,9 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
 
   /// Add Billers shown in place of the list.
   bool _adding = false;
+
+  /// Bill Payment History shown in place of the list (OBDX's page action).
+  bool _history = false;
 
   /// Registration ids being deleted.
   final _deleting = <String>{};
@@ -132,6 +136,9 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_history) {
+      return BillPaymentHistoryScreen(embedded: true, onBack: () => setState(() => _history = false));
+    }
     if (_adding) {
       return AddBillerScreen(
         onExit: () => setState(() => _adding = false),
@@ -177,15 +184,40 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
           onPressed: () => setState(() => _adding = true),
         );
 
+        final history = PaySecondaryButton(
+          label: l10n.billHistoryTitle,
+          icon: Icons.history_rounded,
+          onPressed: () => setState(() => _history = true),
+        );
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (wide)
-              Row(children: [Expanded(child: search), const SizedBox(width: 12), add])
+              Row(children: [Expanded(child: search), const SizedBox(width: 12), history, const SizedBox(width: 12), add])
             else ...[
               search,
-              const SizedBox(height: 10),
-              Align(alignment: AlignmentDirectional.centerEnd, child: add),
+              const SizedBox(height: 12),
+              // Phone: the two page actions side by side, equal width.
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionTile(
+                      icon: Icons.history_rounded,
+                      label: l10n.billHistoryTitle,
+                      onTap: () => setState(() => _history = true),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ActionTile(
+                      icon: Icons.add_rounded,
+                      label: l10n.billersAdd,
+                      onTap: () => setState(() => _adding = true),
+                    ),
+                  ),
+                ],
+              ),
             ],
             const SizedBox(height: 16),
             billers.when(
@@ -231,6 +263,7 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
               padding: const EdgeInsets.only(bottom: 14),
               child: PaySection(
                 title: _groupTitle(l10n, entry.key),
+                trailing: entry.value.isEmpty ? null : _CountPill(entry.value.length),
                 child: entry.value.isEmpty
                     ? PayMuted(_groupEmpty(l10n, entry.key))
                     : Column(
@@ -267,7 +300,18 @@ String _groupEmpty(AppLocalizations l10n, BillerType type) => switch (type) {
       _ => l10n.billerEmptyPayment,
     };
 
-/// OBDX's type label (hooks.js:240-266).
+/// Biller Details' own type label — OBDX biller-details/hooks.js:181-188
+/// uses a different set from the Billers list: PRESENTMENT and
+/// PRESENTMENT_PAYMENT → "e-Bills", PAYMENT → "Payment", RECHARGE →
+/// "Recharge"; anything else is left blank.
+String billerDetailsTypeLabel(AppLocalizations l10n, BillerType type) => switch (type) {
+      BillerType.presentment || BillerType.presentmentPayment => l10n.billerDetailsTypeEbills,
+      BillerType.payment => l10n.billerDetailsTypePayment,
+      BillerType.recharge => l10n.billerTypeRecharge,
+      BillerType.unknown => '',
+    };
+
+/// OBDX's type label on the Billers list (manage-bill-payments/hooks.js:240-266).
 String billerTypeLabel(AppLocalizations l10n, BillerType type) => switch (type) {
       BillerType.presentment => l10n.billerTypeEbill,
       BillerType.presentmentPayment => l10n.billerTypeEbillManual,
@@ -294,6 +338,99 @@ String? _registrationLabel(AppLocalizations l10n, RegisteredBiller biller) {
 
 enum _Action { details, pay, edit, delete }
 
+/// Phone actions under the search: two equal tiles in one row.
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({required this.icon, required this.label, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    return Material(
+      color: HomeColors.card(context),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: brand.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: brand.withValues(alpha: 0.10), shape: BoxShape.circle),
+                child: Icon(icon, size: 20, color: brand),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "· 3" after a group title.
+class _CountPill extends StatelessWidget {
+  const _CountPill(this.count);
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+      decoration: BoxDecoration(color: brand.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(20)),
+      child: Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: brand)),
+    );
+  }
+}
+
+/// The type / registration / payment-status chips OBDX shows for a biller.
+List<Widget> _billerChips(
+  AppLocalizations l10n,
+  RegisteredBiller biller,
+  DateTime today, {
+  bool detailsLabels = false,
+}) {
+  final status = biller.paymentStatus(today);
+  final statusText = _statusLabel(l10n, status);
+  final registration = _registrationLabel(l10n, biller);
+  final presented = biller.type == BillerType.presentment ||
+      (biller.type == BillerType.presentmentPayment && biller.ebill != null);
+  final typeText =
+      detailsLabels ? billerDetailsTypeLabel(l10n, biller.type) : billerTypeLabel(l10n, biller.type);
+  return [
+    if (typeText.isNotEmpty) _Chip(typeText),
+    if (registration != null) _Chip(registration, warning: true),
+    if (statusText != null) _Chip(statusText, warning: status == BillerPaymentStatus.overdue),
+    if (presented) _Chip(biller.hasBillDue ? l10n.billerBillsDue : l10n.billerNoBillsDue),
+  ];
+}
+
+String _ebillAmount(RegisteredBiller biller) {
+  final total = biller.ebill?.totalAmount;
+  if (total == null) return '';
+  return MoneyFormat.format(total.amount, currencyCode: total.currency ?? biller.biller?.currency ?? '');
+}
+
 class _BillerTile extends StatelessWidget {
   const _BillerTile({
     required this.biller,
@@ -319,17 +456,16 @@ class _BillerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final secondary = HomeColors.textSecondary(context);
-    final status = _statusLabel(l10n, biller.paymentStatus(today));
-    final registration = _registrationLabel(l10n, biller);
     final subtitle = [biller.displayBillerName, biller.category?.name ?? '']
         .where((v) => v.isNotEmpty)
         .join(' · ');
-    final ebill = biller.ebill;
-    final presented = biller.type == BillerType.presentment ||
-        (biller.type == BillerType.presentmentPayment && ebill != null);
+    final amount = _ebillAmount(biller);
+    final due = biller.ebill?.dueDate;
+    final overdue = biller.paymentStatus(today) == BillerPaymentStatus.overdue;
 
     return InkWell(
       onTap: deleting ? null : onOpen,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
@@ -338,51 +474,54 @@ class _BillerTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PayAvatar(name: biller.nickname),
+            PayAvatar(name: biller.nickname, size: 44),
             const SizedBox(width: 12),
+            // Nickname | amount, then biller · category | due date, then
+            // the chips across the full width.
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    biller.nickname,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: HomeColors.textPrimary(context),
-                    ),
-                  ),
-                  if (subtitle.isNotEmpty)
-                    Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: secondary)),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Chip(billerTypeLabel(l10n, biller.type)),
-                      if (registration != null) _Chip(registration, warning: true),
-                      if (status != null)
-                        _Chip(status, warning: biller.paymentStatus(today) == BillerPaymentStatus.overdue),
-                      if (presented) _Chip(biller.hasBillDue ? l10n.billerBillsDue : l10n.billerNoBillsDue),
+                      Expanded(
+                        child: Text(
+                          biller.nickname,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5, color: HomeColors.textPrimary(context)),
+                        ),
+                      ),
+                      if (amount.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Text(amount, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: HomeColors.textPrimary(context))),
+                      ],
                     ],
                   ),
-                  if (ebill != null && (ebill.totalAmount != null || ebill.dueDate != null)) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      [
-                        if (ebill.totalAmount != null)
-                          MoneyFormat.format(
-                            ebill.totalAmount!.amount,
-                            currencyCode: ebill.totalAmount!.currency ?? biller.biller?.currency ?? '',
+                  if (subtitle.isNotEmpty || due != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: secondary)),
+                        ),
+                        if (due != null) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.billerDueBy(MaterialLocalizations.of(context).formatShortMonthDay(due)),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: overdue ? FontWeight.w600 : FontWeight.w400,
+                              color: overdue ? HomeColors.error(context) : secondary,
+                            ),
                           ),
-                        if (ebill.dueDate != null)
-                          l10n.billerDueBy(MaterialLocalizations.of(context).formatMediumDate(ebill.dueDate!)),
-                      ].join(' · '),
-                      style: TextStyle(fontSize: 13, color: HomeColors.textPrimary(context)),
+                        ],
+                      ],
                     ),
                   ],
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 6, runSpacing: 6, children: _billerChips(l10n, biller, today)),
                 ],
               ),
             ),
@@ -394,6 +533,7 @@ class _BillerTile extends StatelessWidget {
             else
               PopupMenuButton<_Action>(
                 tooltip: l10n.billerDetailsTitle,
+                padding: EdgeInsets.zero,
                 icon: Icon(Icons.more_vert_rounded, color: secondary),
                 onSelected: (action) => switch (action) {
                   _Action.details => onOpen(),
@@ -436,6 +576,11 @@ class _Chip extends StatelessWidget {
 }
 
 /// Biller Details — OBDX `biller-details` (labels: nls/biller-details.js).
+///
+/// A summary card first (shown at once from the list item while the
+/// details load): who, the chips, the bill amount and due date, and the
+/// actions — then the label/value "Details", and "Payment Type" only when
+/// auto pay or a schedule is set.
 class _BillerDetailsView extends ConsumerWidget {
   const _BillerDetailsView({
     required this.biller,
@@ -458,130 +603,273 @@ class _BillerDetailsView extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final details = ref.watch(billerDetailsProvider(biller.id));
     String date(DateTime? d) => d == null ? '' : MaterialLocalizations.of(context).formatMediumDate(d);
+    final today = DateTime.now();
 
     return PayMenuPage(
       title: l10n.billerDetailsTitle,
       subtitle: biller.nickname,
       onBack: onBack,
-      builder: (context, wide) => details.when(
-        loading: () => const PayCard(
-          child: Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-        ),
-        error: (error, _) => PayErrorRetry(
-          message: error is BillPaymentsLoadError && error.message != null
-              ? error.message!
-              : l10n.billerDetailsLoadFailed,
-          onRetry: () => ref.invalidate(billerDetailsProvider(biller.id)),
-        ),
-        data: (data) {
-          final reg = data.registration;
-          final master = data.biller ?? biller.biller;
-          final location = reg.location;
-          final schedule = reg.autopayInstructions;
-          final rows = <(String, String)>[
-            (l10n.billerName, master?.name ?? reg.displayBillerName),
-            (l10n.billerCategory, reg.category?.name ?? master?.categoryName ?? ''),
-            (
-              l10n.billerLocation,
-              [location?.areaName, location?.city].whereType<String>().join(', '),
-            ),
-            (l10n.billerType, billerTypeLabel(l10n, reg.type)),
-            (l10n.billerNickname, reg.nickname),
-            (l10n.billerCustomerName, reg.customerName ?? ''),
-            // Relationship fields, named by the biller's specifications
-            // (biller-details/hooks.js:198-206).
-            for (final rel in reg.relationships)
-              (master?.specLabels[rel.labelId] ?? rel.labelId ?? '', rel.value ?? ''),
-            if (reg.ebill?.totalAmount != null)
-              (
-                l10n.billerBillAmount,
-                MoneyFormat.format(
-                  reg.ebill!.totalAmount!.amount,
-                  currencyCode: reg.ebill!.totalAmount!.currency ?? master?.currency ?? '',
+      builder: (context, wide) {
+        // The registration from the details call once loaded, else the list item.
+        final reg = details.valueOrNull?.registration ?? biller;
+        final master = details.valueOrNull?.biller ?? biller.biller;
+
+        final summary = _SummaryCard(
+          biller: reg,
+          billerName: master?.name ?? reg.displayBillerName,
+          today: today,
+          deleting: deleting,
+          onPay: onPay,
+          onEdit: onEdit,
+          onDelete: onDelete,
+        );
+
+        final Widget body = details.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, _) => PayErrorRetry(
+            message: error is BillPaymentsLoadError && error.message != null
+                ? error.message!
+                : l10n.billerDetailsLoadFailed,
+            onRetry: () => ref.invalidate(billerDetailsProvider(biller.id)),
+          ),
+          data: (data) {
+            final reg = data.registration;
+            final location = reg.location;
+            final schedule = reg.autopayInstructions;
+            final rows = _nonEmpty([
+              (l10n.billerName, master?.name ?? reg.displayBillerName),
+              (l10n.billerCategory, reg.category?.name ?? master?.categoryName ?? ''),
+              (l10n.billerLocation, [location?.areaName, location?.city].whereType<String>().join(', ')),
+              (l10n.billerType, billerDetailsTypeLabel(l10n, reg.type)),
+              (l10n.billerNickname, reg.nickname),
+              (l10n.billerCustomerName, reg.customerName ?? ''),
+              // Relationship fields, named by the biller's specifications
+              // (biller-details/hooks.js:198-206).
+              for (final rel in reg.relationships)
+                (master?.specLabels[rel.labelId] ?? rel.labelId ?? '', rel.value ?? ''),
+            ]);
+            final payment = !(reg.autopay || reg.schedulePayment)
+                ? const <(String, String)>[]
+                : _nonEmpty([
+                    (l10n.billerPaymentType, reg.autopay ? l10n.billerStatusAutoPay : l10n.billerStatusScheduledPay),
+                    (l10n.billerPayFrom, schedule?.debitAccountDisplay ?? ''),
+                    (l10n.billerFrequency, schedule?.frequency ?? ''),
+                    (l10n.billerStartDate, date(schedule?.startDate)),
+                    (l10n.billerEndDate, date(schedule?.endDate)),
+                  ]);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PaySection(
+                  title: l10n.billerDetailsSection,
+                  icon: Icons.info_outline_rounded,
+                  child: _Rows(rows),
                 ),
-              ),
-            if (reg.ebill?.dueDate != null) (l10n.billerBillDueDate, date(reg.ebill!.dueDate)),
-            if (reg.autopay || reg.schedulePayment) ...[
-              (
-                l10n.billerPaymentType,
-                reg.autopay ? l10n.billerStatusAutoPay : l10n.billerStatusScheduledPay,
-              ),
-              (l10n.billerPayFrom, schedule?.debitAccountDisplay ?? ''),
-              (l10n.billerFrequency, schedule?.frequency ?? ''),
-              (l10n.billerStartDate, date(schedule?.startDate)),
-              (l10n.billerEndDate, date(schedule?.endDate)),
-            ],
-          ].where((r) => r.$1.isNotEmpty && r.$2.isNotEmpty).toList();
+                if (payment.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  PaySection(
+                    title: l10n.billerPaymentType,
+                    icon: Icons.event_repeat_rounded,
+                    child: _Rows(payment),
+                  ),
+                ],
+              ],
+            );
+          },
+        );
 
-          final actions = [
-            PayPrimaryButton(label: l10n.billerPay, onPressed: deleting ? null : onPay),
-            PaySecondaryButton(label: l10n.billerEdit, icon: Icons.edit_outlined, onPressed: deleting ? null : onEdit),
-            PaySecondaryButton(
-              label: l10n.billerDelete,
-              icon: Icons.delete_outline_rounded,
-              onPressed: deleting ? null : onDelete,
-            ),
-          ];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [summary, const SizedBox(height: 14), body],
+        );
+      },
+    );
+  }
+}
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+List<(String, String)> _nonEmpty(List<(String, String)> rows) =>
+    rows.where((r) => r.$1.isNotEmpty && r.$2.isNotEmpty).toList();
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.biller,
+    required this.billerName,
+    required this.today,
+    required this.deleting,
+    required this.onPay,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final RegisteredBiller biller;
+  final String billerName;
+  final DateTime today;
+  final bool deleting;
+  final VoidCallback onPay;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final secondary = HomeColors.textSecondary(context);
+    final primary = HomeColors.textPrimary(context);
+    final amount = _ebillAmount(biller);
+    final due = biller.ebill?.dueDate;
+    final overdue = biller.paymentStatus(today) == BillerPaymentStatus.overdue;
+
+    Widget figure(String label, String value, {Color? color}) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 12, color: secondary)),
+            const SizedBox(height: 4),
+            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color ?? primary)),
+          ],
+        );
+
+    return PayCard(
+      padding: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              PaySection(
+              PayAvatar(name: biller.nickname, size: 52),
+              const SizedBox(width: 14),
+              Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final (label, value) in rows)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: wide
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(width: 220, child: _Label(label)),
-                                  Expanded(child: _Value(value)),
-                                ],
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [_Label(label), const SizedBox(height: 2), _Value(value)],
-                              ),
-                      ),
+                    Text(biller.nickname, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: primary)),
+                    if (billerName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(billerName, style: TextStyle(fontSize: 13.5, color: secondary)),
+                    ],
+                    const SizedBox(height: 10),
+                    Wrap(spacing: 6, runSpacing: 6, children: _billerChips(l10n, biller, today, detailsLabels: true)),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              if (deleting)
-                const Center(child: CircularProgressIndicator())
-              else if (wide)
-                Wrap(spacing: 12, runSpacing: 12, children: actions)
-              else
-                for (final action in actions)
-                  Padding(padding: const EdgeInsets.only(bottom: 10), child: action),
             ],
-          );
-        },
+          ),
+          if (amount.isNotEmpty || due != null) ...[
+            const SizedBox(height: 16),
+            Divider(height: 1, color: HomeColors.divider(context)),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                if (amount.isNotEmpty) Expanded(child: figure(l10n.billerBillAmount, amount)),
+                if (due != null)
+                  Expanded(
+                    child: figure(
+                      l10n.billerBillDueDate,
+                      MaterialLocalizations.of(context).formatMediumDate(due),
+                      color: overdue ? HomeColors.error(context) : null,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 16),
+          if (deleting)
+            const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+          else
+            Row(
+              children: [
+                Expanded(child: PayPrimaryButton(label: l10n.billerPay, onPressed: onPay)),
+                const SizedBox(width: 10),
+                _IconAction(icon: Icons.edit_outlined, tooltip: l10n.billerEdit, onTap: onEdit),
+                const SizedBox(width: 8),
+                _IconAction(
+                  icon: Icons.delete_outline_rounded,
+                  tooltip: l10n.billerDelete,
+                  onTap: onDelete,
+                  color: HomeColors.error(context),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
 }
 
-class _Label extends StatelessWidget {
-  const _Label(this.text);
+/// Square outlined icon button beside Pay (Edit Biller / Delete Biller).
+class _IconAction extends StatelessWidget {
+  const _IconAction({required this.icon, required this.tooltip, required this.onTap, this.color});
 
-  final String text;
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final Color? color;
 
   @override
-  Widget build(BuildContext context) =>
-      Text(text, style: TextStyle(fontSize: 13, color: HomeColors.textSecondary(context)));
+  Widget build(BuildContext context) {
+    final c = color ?? HomeColors.brand(context);
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.withValues(alpha: 0.35)),
+            ),
+            child: Icon(icon, color: c),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _Value extends StatelessWidget {
-  const _Value(this.text);
+/// Label on the left, value on the right, a divider between rows.
+class _Rows extends StatelessWidget {
+  const _Rows(this.rows);
 
-  final String text;
+  final List<(String, String)> rows;
 
   @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
-      );
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, (label, value)) in rows.indexed)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            decoration: BoxDecoration(
+              border: i == rows.length - 1 ? null : Border(bottom: BorderSide(color: HomeColors.divider(context))),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: Text(label, style: TextStyle(fontSize: 13, color: HomeColors.textSecondary(context))),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 6,
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 }

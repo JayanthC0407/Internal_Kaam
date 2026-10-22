@@ -1,4 +1,5 @@
 import 'package:http_status_code/http_status_code.dart';
+import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
@@ -36,6 +37,10 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
         if (biller == null) throw StateError('Empty biller');
         return biller;
       });
+
+  /// Bill Payment History for [query], newest first.
+  Future<ResponseHandler<List<BillPayment>>> fetchBillPayments(BillHistoryQuery query) async =>
+      parseBody(await _api.fetchBillPayments(query.toQueryParameters()), BillPayment.listFromPayload);
 
   /// Add Billers' list of billers, sorted by name.
   Future<ResponseHandler<List<BillerInfo>>> fetchBillers() async =>

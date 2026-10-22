@@ -5295,6 +5295,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reference Number: {reference}'**
   String billerReferenceNumber(String reference);
+
+  /// No description provided for @billHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Payment History'**
+  String get billHistoryTitle;
+
+  /// No description provided for @billHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills you have paid'**
+  String get billHistorySubtitle;
+
+  /// No description provided for @billHistoryFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get billHistoryFilter;
+
+  /// No description provided for @billHistorySelectPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Period'**
+  String get billHistorySelectPeriod;
+
+  /// No description provided for @billHistoryCurrentPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Period'**
+  String get billHistoryCurrentPeriod;
+
+  /// No description provided for @billHistoryPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Month'**
+  String get billHistoryPreviousMonth;
+
+  /// No description provided for @billHistoryPreviousQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Quarter'**
+  String get billHistoryPreviousQuarter;
+
+  /// No description provided for @billHistoryDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get billHistoryDateRange;
+
+  /// No description provided for @billHistoryDateFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Date From'**
+  String get billHistoryDateFrom;
+
+  /// No description provided for @billHistoryDateTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Date To'**
+  String get billHistoryDateTo;
+
+  /// No description provided for @billHistoryApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get billHistoryApply;
+
+  /// No description provided for @billHistoryDatesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select both dates.'**
+  String get billHistoryDatesRequired;
+
+  /// No description provided for @billHistoryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get billHistoryDate;
+
+  /// No description provided for @billHistoryBiller.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller'**
+  String get billHistoryBiller;
+
+  /// No description provided for @billHistoryReferenceNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference No'**
+  String get billHistoryReferenceNo;
+
+  /// No description provided for @billHistoryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get billHistoryStatus;
+
+  /// No description provided for @billHistoryStatusSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get billHistoryStatusSent;
+
+  /// No description provided for @billHistoryStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get billHistoryStatusCompleted;
+
+  /// No description provided for @billHistoryStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get billHistoryStatusPending;
+
+  /// No description provided for @billHistoryStatusTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout'**
+  String get billHistoryStatusTimeout;
+
+  /// No description provided for @billHistoryStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get billHistoryStatusError;
+
+  /// No description provided for @billHistoryNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data found matching the search criteria'**
+  String get billHistoryNoData;
+
+  /// No description provided for @billHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your bill payments.'**
+  String get billHistoryLoadFailed;
+
+  /// No description provided for @billerDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get billerDetailsSection;
+
+  /// No description provided for @billerDetailsTypeEbills.
+  ///
+  /// In en, this message translates to:
+  /// **'e-Bills'**
+  String get billerDetailsTypeEbills;
+
+  /// No description provided for @billerDetailsTypePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get billerDetailsTypePayment;
 }
 
 class _AppLocalizationsDelegate

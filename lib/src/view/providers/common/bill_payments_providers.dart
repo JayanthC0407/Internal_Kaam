@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
@@ -45,6 +46,14 @@ final availableBillersProvider =
   final result = await ref.read(billPaymentsRepositoryProvider).fetchBillers();
   if (result is Success<List<BillerInfo>> && result.data != null) return result.data!;
   throw BillPaymentsLoadError(result is Error<List<BillerInfo>> ? result.error : null);
+});
+
+/// Bill Payment History for one search (Select Period / dates).
+final billPaymentHistoryProvider = FutureProvider.autoDispose
+    .family<List<BillPayment>, BillHistoryQuery>((ref, query) async {
+  final result = await ref.read(billPaymentsRepositoryProvider).fetchBillPayments(query);
+  if (result is Success<List<BillPayment>> && result.data != null) return result.data!;
+  throw BillPaymentsLoadError(result is Error<List<BillPayment>> ? result.error : null);
 });
 
 class BillerDetailsData {

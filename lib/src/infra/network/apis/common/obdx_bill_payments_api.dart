@@ -18,6 +18,7 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
   static const _registeredBillers =
       '/digx-payments/ebpp/v1/registeredBillers';
   static const _billers = '/digx-payments/ebpp/v1/billers';
+  static const _ebillPayments = '/digx-payments/ebpp/v1/ebillPayments';
 
   /// `GET …/ebpp/v1/registeredBillers` — the user's billers
   /// (`billerRegistrationDTOs`). OBDX sends no filters here.
@@ -34,6 +35,28 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
   /// `GET …/ebpp/v1/billers/{billerId}` — the biller master (`biller`).
   Future<ResponseHandler<Map<String, dynamic>>> fetchBiller(String billerId) =>
       _get('$_billers/${Uri.encodeComponent(billerId)}');
+
+  /// `GET …/ebpp/v1/ebillPayments` — Bill Payment History
+  /// (`billPaymentDTOs`); [queryParameters] carries `searchBy` and, for a
+  /// date range, `fromDate`/`toDate` (payment-history/model.js:24-43).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchBillPayments(
+    Map<String, dynamic> queryParameters,
+  ) async {
+    try {
+      final response = await dio.get(
+        ObdxApiUtils.appendLocaleQuery(_ebillPayments),
+        queryParameters: queryParameters,
+        options: Options(
+          headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
 
   /// `GET …/ebpp/v1/billers` — every biller the bank offers
   /// (`billerDTOs`); Add Billers' list. OBDX sends no filters.
