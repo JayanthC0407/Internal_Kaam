@@ -423,6 +423,11 @@ class RegisteredBiller {
   /// (hooks.js:476-479).
   bool get canEdit => !isPending;
 
+  /// Has an Auto Pay or Scheduled Pay instruction. OBDX's Edit Biller then
+  /// opens on that Payment Type (modify-biller/hooks.js:715-725); the app
+  /// only edits Manual billers so far (bill-payments.md §6.4).
+  bool get hasPaymentInstruction => autopay || schedulePayment;
+
   /// Delete is refused while auto pay or an active scheduled payment exists
   /// (hooks.js:491-499).
   bool canDelete(DateTime today) =>
@@ -560,6 +565,18 @@ abstract final class BillerFieldRules {
   static BillerFieldError? customerName(String value) =>
       _named(value, customerNameMaxLength);
 
+  /// `ALPHANUMERIC_WITH_SPACE` — Edit Biller's nickname rule, stricter than
+  /// Add Billers' (modify-biller.html; data-types.js:4).
+  static final _withSpace = RegExp(r'^[a-zA-Z0-9 ]*$');
+
+  /// Edit Biller nickname: required, 1-20, letters, digits and spaces.
+  static BillerFieldError? editNickname(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return BillerFieldError.required;
+    if (v.length > nicknameMaxLength) return BillerFieldError.tooLong;
+    return _withSpace.hasMatch(v) ? null : BillerFieldError.invalid;
+  }
+
   static BillerFieldError? _named(String value, int max) {
     final v = value.trim();
     if (v.isEmpty) return BillerFieldError.required;
@@ -608,6 +625,58 @@ class BillerAddOutcome {
   final String? reference;
 
   /// Sent to the bank for approval; not added yet.
+  final bool pendingApproval;
+  final ObdxChallenge? challenge;
+
+  /// The OTP sent with this attempt was not accepted.
+  final bool invalidOtp;
+}
+
+/// Edit Biller — the `PUT registeredBillers/{id}` body for a **Manual**
+/// biller, in the shape OBDX builds (modify-biller-review/model.js:27-50,
+/// hooks.js:18-55). `paymentType` is the registration's, else the biller's
+/// first payment method, as OBDX sets it (modify-biller/hooks.js:991-996).
+class EditBillerRequest {
+  const EditBillerRequest({required this.biller, required this.nickname});
+
+  final RegisteredBiller biller;
+  final String nickname;
+
+  String? get paymentType =>
+      biller.autopayInstructions?.paymentType ??
+      ((biller.biller?.paymentTypes.isNotEmpty ?? false) ? biller.biller!.paymentTypes.first : null);
+
+  Map<String, dynamic> toJson() => {
+        'billerRegistrationId': biller.id,
+        'billerNickName': nickname.trim(),
+        'autopay': false,
+        'schedulePayment': false,
+        'autopayInstructions': {
+          'debitAccount': {'displayValue': null, 'value': null},
+          'limitAmount': {'currency': null, 'amount': null},
+          'startDate': null,
+          'frequency': null,
+          'paymentType': paymentType,
+          'endDate': null,
+        },
+        'cardExpiryDate': null,
+        'paymentEndDate': null,
+      };
+}
+
+/// Result of Edit Biller's PUT — same outcomes as add and delete.
+class BillerEditOutcome {
+  const BillerEditOutcome.updated({this.reference, this.pendingApproval = false})
+      : challenge = null,
+        invalidOtp = false;
+
+  const BillerEditOutcome.otpRequired(ObdxChallenge this.challenge, {this.invalidOtp = false})
+      : reference = null,
+        pendingApproval = false;
+
+  final String? reference;
+
+  /// Sent to the bank for approval; not changed yet.
   final bool pendingApproval;
   final ObdxChallenge? challenge;
 

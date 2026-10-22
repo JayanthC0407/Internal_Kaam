@@ -66,8 +66,7 @@ import 'app_localizations_uz.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -75,8 +74,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -88,8 +86,7 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -5451,10 +5448,57 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment'**
   String get billerDetailsTypePayment;
+
+  /// No description provided for @editBillerNicknameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller Nickname(Nickname should be unique)'**
+  String get editBillerNicknameLabel;
+
+  /// No description provided for @editBillerReviewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for update biller. Please review details before you confirm!'**
+  String get editBillerReviewMessage;
+
+  /// No description provided for @editBillerSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller updated successfully.'**
+  String get editBillerSuccess;
+
+  /// No description provided for @editBillerOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to update {name}'**
+  String editBillerOtpTitle(String name);
+
+  /// No description provided for @editBillerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t update this biller. Please try again.'**
+  String get editBillerFailed;
+
+  /// No description provided for @editBillerPaymentInstructionSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing billers with Auto Pay or Scheduled Pay will be available soon.'**
+  String get editBillerPaymentInstructionSoon;
+
+  /// No description provided for @billerEditTypePresentment.
+  ///
+  /// In en, this message translates to:
+  /// **'Presentment'**
+  String get billerEditTypePresentment;
+
+  /// No description provided for @billerEditTypePresentmentPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Presentment and Payment'**
+  String get billerEditTypePresentmentPayment;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -5463,39 +5507,29 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) => <String>[
-        'ar',
-        'en',
-        'fr',
-        'it',
-        'ru',
-        'uz'
-      ].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'en', 'fr', 'it', 'ru', 'uz'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar':
-      return AppLocalizationsAr();
-    case 'en':
-      return AppLocalizationsEn();
-    case 'fr':
-      return AppLocalizationsFr();
-    case 'it':
-      return AppLocalizationsIt();
-    case 'ru':
-      return AppLocalizationsRu();
-    case 'uz':
-      return AppLocalizationsUz();
+    case 'ar': return AppLocalizationsAr();
+    case 'en': return AppLocalizationsEn();
+    case 'fr': return AppLocalizationsFr();
+    case 'it': return AppLocalizationsIt();
+    case 'ru': return AppLocalizationsRu();
+    case 'uz': return AppLocalizationsUz();
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

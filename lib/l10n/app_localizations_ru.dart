@@ -2920,4 +2920,34 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get billerDetailsTypePayment => 'Payment';
+
+  @override
+  String get editBillerNicknameLabel =>
+      'Biller Nickname(Nickname should be unique)';
+
+  @override
+  String get editBillerReviewMessage =>
+      'You initiated a request for update biller. Please review details before you confirm!';
+
+  @override
+  String get editBillerSuccess => 'Biller updated successfully.';
+
+  @override
+  String editBillerOtpTitle(String name) {
+    return 'Verify to update $name';
+  }
+
+  @override
+  String get editBillerFailed =>
+      'We couldn\'t update this biller. Please try again.';
+
+  @override
+  String get editBillerPaymentInstructionSoon =>
+      'Editing billers with Auto Pay or Scheduled Pay will be available soon.';
+
+  @override
+  String get billerEditTypePresentment => 'Presentment';
+
+  @override
+  String get billerEditTypePresentmentPayment => 'Presentment and Payment';
 }

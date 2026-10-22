@@ -131,6 +131,39 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
     }
   }
 
+  /// `PUT …/ebpp/v1/registeredBillers/{billerRegistrationId}` — Edit Biller
+  /// (modify-biller-review/model.js:11-20). Response not yet seen in UAT;
+  /// 200/201/202/417 come back as results like the other writes.
+  Future<ResponseHandler<Map<String, dynamic>>> updateRegisteredBiller(
+    String billerRegistrationId,
+    Map<String, dynamic> body, {
+    String? challengeResponseHeader,
+  }) async {
+    try {
+      final response = await dio.put(
+        ObdxApiUtils.appendLocaleQuery(
+          '$_registeredBillers/${Uri.encodeComponent(billerRegistrationId)}',
+        ),
+        data: body,
+        options: Options(
+          headers: {
+            ApiConst.contentTypeKey: ApiConst.contentTypeValue,
+            if (challengeResponseHeader != null &&
+                challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          validateStatus: (status) =>
+              status == 200 || status == 201 || status == 202 || status == 417,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
   Future<ResponseHandler<Map<String, dynamic>>> _get(String path) async {
     try {
       final response = await dio.get(
