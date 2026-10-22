@@ -159,6 +159,18 @@ void main() {
     expect(find.text('Consumer Number'), findsOneWidget);
     expect(find.text('998877'), findsOneWidget);
     expect(find.text('Direct Bill Payment'), findsNothing);
+    // OBDX Biller Details labels (biller-details/hooks.js:181-188), not the
+    // list's: PAYMENT → "Payment" in the chip and the Biller Type row.
+    expect(find.text('Payment'), findsNWidgets(2));
+    expect(find.text('Manual'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Biller Details: PRESENTMENT shows OBDX "e-Bills"', (tester) async {
+    await _pump(tester, width: 1280);
+    await tester.tap(find.text('Home power'));
+    await tester.pumpAndSettle();
+    expect(find.text('e-Bills'), findsNWidgets(2));
+    expect(find.text('eBill'), findsNothing);
   });
 }

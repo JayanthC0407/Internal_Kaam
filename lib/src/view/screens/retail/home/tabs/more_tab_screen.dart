@@ -175,105 +175,155 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
         ? null
         : accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
 
+    final wide = responsive.useWideLayout;
+
+    final title = Text(
+      l10n.menuTitle,
+      style: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: textPrimary,
+      ),
+    );
+
+    final profile = _ProfileCard(
+      name: widget.displayName.trim().isEmpty
+          ? l10n.menuWelcome
+          : widget.displayName.trim(),
+      accountNumber:
+          primary == null ? null : groupAccountNumber(primary.displayNumber),
+    );
+
+    final tiles = Row(
+      children: [
+        Expanded(
+          child: _MenuTile(
+            icon: Icons.pie_chart_outline_rounded,
+            label: l10n.menuNetworth,
+            onTap: () => _comingSoon(l10n.menuNetworth),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _MenuTile(
+            icon: Icons.card_giftcard_rounded,
+            label: l10n.rewards,
+            onTap: widget.onRewardsTap ?? () => _comingSoon(l10n.rewards),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _MenuTile(
+            icon: Icons.language_rounded,
+            label: l10n.menuLanguages,
+            onTap: () => _pickLanguage(ref.read(appSettingsProvider).locale),
+          ),
+        ),
+      ],
+    );
+
+    // Wide screens get desktop-sized rows with icons; the phone keeps the
+    // designer's plain list.
+    final menu = _SettingsCard(
+      children: [
+        _MenuRow(
+          title: l10n.menuWhatsNew,
+          icon: wide ? Icons.campaign_outlined : null,
+          compact: wide,
+          onTap: () => _comingSoon(l10n.menuWhatsNew),
+        ),
+        _MenuRow(
+          title: l10n.menuExploreProducts,
+          icon: wide ? Icons.storefront_outlined : null,
+          compact: wide,
+          onTap: () => _comingSoon(l10n.menuExploreProducts),
+        ),
+        _MenuRow(
+          title: l10n.menuNotification,
+          icon: wide ? Icons.notifications_none_rounded : null,
+          compact: wide,
+          onTap: () => _comingSoon(l10n.menuNotification),
+        ),
+        if (widget.onPersonalize != null)
+          _MenuRow(
+            title: l10n.menuPersonalizeDashboard,
+            icon: wide ? Icons.dashboard_customize_outlined : null,
+            compact: wide,
+            onTap: widget.onPersonalize!,
+          ),
+        _MenuRow(
+          title: l10n.menuAppSettings,
+          icon: wide ? Icons.settings_outlined : null,
+          compact: wide,
+          onTap: () => setState(() => _settingsOpen = true),
+        ),
+        _MenuRow(
+          title: l10n.menuNeedHelp,
+          icon: wide ? Icons.help_outline_rounded : null,
+          compact: wide,
+          onTap: () => LoginHelpDialog.show(context),
+        ),
+        _MenuRow(
+          title: l10n.logOut,
+          icon: wide ? Icons.logout_rounded : null,
+          compact: wide,
+          destructive: wide,
+          showChevron: false,
+          showDivider: false,
+          onTap: () => _confirmAndRun(
+            context,
+            title: l10n.logOut,
+            message: l10n.logOutConfirm,
+            action: session.logout,
+          ),
+        ),
+      ],
+    );
+
+    if (wide) {
+      // Desktop / tablet: profile and shortcuts on the left, the menu on
+      // the right, so the whole Menu fits one screen.
+      return SafeArea(
+        child: ResponsiveBody(
+          maxWidth: 1080,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+            children: [
+              title,
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [profile, const SizedBox(height: 14), tiles],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 6, child: menu),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SafeArea(
       child: ResponsiveBody(
         maxWidth: responsive.formMaxWidth + 80,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            responsive.isPhone ? 16 : 24,
-            responsive.isPhone ? 16 : 28,
-            responsive.isPhone ? 16 : 24,
-            24,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
-            Text(
-              l10n.menuTitle,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: textPrimary,
-              ),
-            ),
+            title,
             const SizedBox(height: 16),
-            _ProfileCard(
-              name: widget.displayName.trim().isEmpty
-                  ? l10n.menuWelcome
-                  : widget.displayName.trim(),
-              accountNumber: primary == null
-                  ? null
-                  : groupAccountNumber(primary.displayNumber),
-            ),
+            profile,
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _MenuTile(
-                    icon: Icons.pie_chart_outline_rounded,
-                    label: l10n.menuNetworth,
-                    onTap: () => _comingSoon(l10n.menuNetworth),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _MenuTile(
-                    icon: Icons.card_giftcard_rounded,
-                    label: l10n.rewards,
-                    onTap: widget.onRewardsTap ??
-                        () => _comingSoon(l10n.rewards),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _MenuTile(
-                    icon: Icons.language_rounded,
-                    label: l10n.menuLanguages,
-                    onTap: () =>
-                        _pickLanguage(ref.read(appSettingsProvider).locale),
-                  ),
-                ),
-              ],
-            ),
+            tiles,
             const SizedBox(height: 14),
-            _SettingsCard(
-              children: [
-                _MenuRow(
-                  title: l10n.menuWhatsNew,
-                  onTap: () => _comingSoon(l10n.menuWhatsNew),
-                ),
-                _MenuRow(
-                  title: l10n.menuExploreProducts,
-                  onTap: () => _comingSoon(l10n.menuExploreProducts),
-                ),
-                _MenuRow(
-                  title: l10n.menuNotification,
-                  onTap: () => _comingSoon(l10n.menuNotification),
-                ),
-                if (widget.onPersonalize != null)
-                  _MenuRow(
-                    title: l10n.menuPersonalizeDashboard,
-                    onTap: widget.onPersonalize!,
-                  ),
-                _MenuRow(
-                  title: l10n.menuAppSettings,
-                  onTap: () => setState(() => _settingsOpen = true),
-                ),
-                _MenuRow(
-                  title: l10n.menuNeedHelp,
-                  onTap: () => LoginHelpDialog.show(context),
-                ),
-                _MenuRow(
-                  title: l10n.logOut,
-                  showChevron: false,
-                  showDivider: false,
-                  onTap: () => _confirmAndRun(
-                    context,
-                    title: l10n.logOut,
-                    message: l10n.logOutConfirm,
-                    action: session.logout,
-                  ),
-                ),
-              ],
-            ),
+            menu,
           ],
         ),
       ),
@@ -665,45 +715,57 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-/// One line of the Menu list.
+/// One line of the Menu list. [compact] (wide screens) uses desktop-sized
+/// rows with a leading [icon]; [destructive] colours it as an exit action.
 class _MenuRow extends StatelessWidget {
   const _MenuRow({
     required this.title,
     required this.onTap,
     this.showChevron = true,
     this.showDivider = true,
+    this.icon,
+    this.compact = false,
+    this.destructive = false,
   });
 
   final String title;
   final VoidCallback onTap;
   final bool showChevron;
   final bool showDivider;
+  final IconData? icon;
+  final bool compact;
+  final bool destructive;
 
   @override
   Widget build(BuildContext context) {
+    final accent = destructive ? HomeColors.error(context) : HomeColors.brand(context);
     return Column(
       children: [
         ListTile(
           onTap: onTap,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18),
+          dense: compact,
+          visualDensity: compact ? VisualDensity.compact : null,
+          contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: compact ? 2 : 0),
+          leading: icon == null ? null : Icon(icon, color: accent, size: 22),
           title: Text(
             title,
             style: TextStyle(
-              fontSize: 17,
-              color: HomeColors.textPrimary(context),
+              fontSize: compact ? 15 : 17,
+              fontWeight: compact ? FontWeight.w500 : null,
+              color: destructive ? accent : HomeColors.textPrimary(context),
             ),
           ),
           trailing: showChevron
               ? Icon(
                   Icons.chevron_right_rounded,
-                  color: HomeColors.brand(context),
+                  color: compact ? HomeColors.navInactive(context) : HomeColors.brand(context),
                 )
               : null,
         ),
         if (showDivider)
           Divider(
             height: 1,
-            indent: 18,
+            indent: icon == null ? 18 : 58,
             endIndent: 18,
             color: HomeColors.divider(context),
           ),

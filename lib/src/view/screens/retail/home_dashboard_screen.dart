@@ -25,6 +25,7 @@ import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
@@ -846,6 +847,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     }
     final index = _selectedBottomNavIndex;
     if (index == _billersIndex) return RetailNav.billPaymentsBillers;
+    if (index == _billHistoryIndex) return RetailNav.billPaymentsHistory;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -874,6 +876,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case RetailNav.billPaymentsBillers:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
         _openBillers();
+        return;
+      case RetailNav.billPaymentsHistory:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openBillers(index: _billHistoryIndex);
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -910,20 +916,28 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// the side menu and the Home "Bill" quick action.
   static const _billersIndex = 23;
 
-  void _openBillers() => setState(() {
+  /// Bill Payments → Bill Payment History (OBDX `payment-history`).
+  static const _billHistoryIndex = 24;
+
+  void _openBillers({int index = _billersIndex}) => setState(() {
         _transferPayee = null;
         _selectedPayeeDestination = null;
         _selectedAccountsDestination = null;
         _selectedCasaAccountId = null;
         _selectedLoanAccount = null;
         _selectedTermDeposit = null;
-        _selectedBottomNavIndex = _billersIndex;
+        _selectedBottomNavIndex = index;
       });
 
   Widget _buildCurrentBody(CasaAccountsState accountsState) {
     switch (_selectedBottomNavIndex) {
       case _billersIndex:
         return BillersScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 0),
+        );
+      case _billHistoryIndex:
+        return BillPaymentHistoryScreen(
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 0),
         );

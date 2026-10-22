@@ -2840,4 +2840,82 @@ class AppLocalizationsEn extends AppLocalizations {
   String billerReferenceNumber(String reference) {
     return 'Reference Number: $reference';
   }
+
+  @override
+  String get billHistoryTitle => 'Bill Payment History';
+
+  @override
+  String get billHistorySubtitle => 'Bills you have paid';
+
+  @override
+  String get billHistoryFilter => 'Filter';
+
+  @override
+  String get billHistorySelectPeriod => 'Select Period';
+
+  @override
+  String get billHistoryCurrentPeriod => 'Current Period';
+
+  @override
+  String get billHistoryPreviousMonth => 'Previous Month';
+
+  @override
+  String get billHistoryPreviousQuarter => 'Previous Quarter';
+
+  @override
+  String get billHistoryDateRange => 'Date Range';
+
+  @override
+  String get billHistoryDateFrom => 'Date From';
+
+  @override
+  String get billHistoryDateTo => 'Date To';
+
+  @override
+  String get billHistoryApply => 'Apply';
+
+  @override
+  String get billHistoryDatesRequired => 'Select both dates.';
+
+  @override
+  String get billHistoryDate => 'Date';
+
+  @override
+  String get billHistoryBiller => 'Biller';
+
+  @override
+  String get billHistoryReferenceNo => 'Reference No';
+
+  @override
+  String get billHistoryStatus => 'Status';
+
+  @override
+  String get billHistoryStatusSent => 'Sent';
+
+  @override
+  String get billHistoryStatusCompleted => 'Completed';
+
+  @override
+  String get billHistoryStatusPending => 'Pending';
+
+  @override
+  String get billHistoryStatusTimeout => 'Timeout';
+
+  @override
+  String get billHistoryStatusError => 'Error';
+
+  @override
+  String get billHistoryNoData => 'No data found matching the search criteria';
+
+  @override
+  String get billHistoryLoadFailed => 'We couldn\'t load your bill payments.';
+
+  @override
+  String get billerDetailsSection => 'Details';
+
+  @override
+  String get billerDetailsTypeEbills => 'e-Bills';
+
+  @override
+  String get billerDetailsTypePayment => 'Payment';
 }
