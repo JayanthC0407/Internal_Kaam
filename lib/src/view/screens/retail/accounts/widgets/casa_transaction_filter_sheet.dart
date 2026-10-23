@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
@@ -23,6 +25,10 @@ String casaPeriodLabel(AppLocalizations l10n, CasaTransactionPeriod period) {
   switch (period) {
     case CasaTransactionPeriod.currentMonth:
       return l10n.casaViewCurrentMonth;
+    case CasaTransactionPeriod.currentDay:
+      return l10n.casaViewCurrentDay;
+    case CasaTransactionPeriod.currentAndPreviousMonth:
+      return l10n.casaViewCurrentAndPreviousMonth;
     case CasaTransactionPeriod.specificDay:
       return l10n.casaViewSpecificDay;
     case CasaTransactionPeriod.previousDay:
@@ -82,7 +88,7 @@ Future<CasaTransactionFilterResult?> showCasaTransactionFilter({
   );
 }
 
-class _CasaTransactionFilterForm extends StatefulWidget {
+class _CasaTransactionFilterForm extends ConsumerStatefulWidget {
   const _CasaTransactionFilterForm({
     required this.accounts,
     required this.selectedAccountId,
@@ -94,11 +100,11 @@ class _CasaTransactionFilterForm extends StatefulWidget {
   final CasaTransactionQuery query;
 
   @override
-  State<_CasaTransactionFilterForm> createState() =>
+  ConsumerState<_CasaTransactionFilterForm> createState() =>
       _CasaTransactionFilterFormState();
 }
 
-class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> {
+class _CasaTransactionFilterFormState extends ConsumerState<_CasaTransactionFilterForm> {
   late String _accountId;
   late CasaTransactionPeriod _period;
   late CasaCreditDebitFilter _creditDebit;
@@ -112,7 +118,11 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   void initState() {
     super.initState();
     _accountId = widget.selectedAccountId;
-    _period = widget.query.period;
+    // Only OBDX's View Options are offered; an internal period (Specific
+    // Day) shows as the default.
+    _period = CasaTransactionPeriod.obdxOptions.contains(widget.query.period)
+        ? widget.query.period
+        : CasaTransactionPeriod.currentMonth;
     _creditDebit = widget.query.creditDebit;
     _specificDate = widget.query.specificDate;
     _rangeStart = widget.query.rangeStart;
@@ -134,6 +144,11 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   bool get _needsSpecificDate => _period == CasaTransactionPeriod.specificDay;
   bool get _needsDateRange => _period == CasaTransactionPeriod.dateRange;
 
+  /// The bank's "today" (OBDX uses the server date, not the device's);
+  /// the device's when the host has not answered.
+  DateTime get _today =>
+      ref.read(bankBusinessDateProvider).valueOrNull ?? DateTime.now();
+
   String? get _amount {
     final text = _amountController.text.trim();
     return text.isEmpty ? null : text;
@@ -151,6 +166,7 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
       referenceNumber: _referenceController.text.trim().isEmpty
           ? null
           : _referenceController.text.trim(),
+      businessDate: ref.read(bankBusinessDateProvider).valueOrNull,
     );
   }
 
@@ -173,7 +189,7 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   }
 
   Future<void> _pickSpecificDate() async {
-    final now = DateTime.now();
+    final now = _today;
     final picked = await showDatePicker(
       context: context,
       initialDate: _specificDate ?? now,
@@ -185,7 +201,7 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   }
 
   Future<void> _pickRangeStart() async {
-    final now = DateTime.now();
+    final now = _today;
     final picked = await showDatePicker(
       context: context,
       initialDate: _rangeStart ?? now,
@@ -202,7 +218,7 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   }
 
   Future<void> _pickRangeEnd() async {
-    final now = DateTime.now();
+    final now = _today;
     final picked = await showDatePicker(
       context: context,
       initialDate: _rangeEnd ?? now,
@@ -217,6 +233,8 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
+    // Start loading the bank's date as soon as the sheet opens.
+    ref.watch(bankBusinessDateProvider);
     final maxHeight = MediaQuery.sizeOf(context).height * 0.85;
 
     return ConstrainedBox(
@@ -270,7 +288,7 @@ class _CasaTransactionFilterFormState extends State<_CasaTransactionFilterForm> 
             const SizedBox(height: 8),
             _EnumDropdown<CasaTransactionPeriod>(
               value: _period,
-              items: CasaTransactionPeriod.values,
+              items: CasaTransactionPeriod.obdxOptions,
               labelOf: (value) => casaPeriodLabel(l10n, value),
               onChanged: (value) {
                 if (value == null) return;

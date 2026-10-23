@@ -4,10 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/config/locale_config.dart';
+import 'package:ubci_bank/src/core/models/common/cards/credit_card_models.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:ubci_bank/src/infra/repositories/common/cards_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/retail/accounts_repository.dart';
 import 'package:ubci_bank/src/infra/security/biometric_service.dart';
@@ -74,6 +76,31 @@ class _FakeDashboard implements DashboardRepository {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+/// Two credit cards (`cards/credit` shape, made-up values).
+class _FakeCards implements CardsRepository {
+  @override
+  Future<ResponseHandler<List<CreditCard>>> fetchCreditCards() async => ResponseHandler.success(
+        CreditCard.listFromPayload({
+          'creditcards': [
+            for (final n in ['1111', '2222'])
+              {
+                'creditCard': {'value': 'C$n', 'displayValue': 'xxxx xxxx xxxx $n'},
+                'ownerName': 'Sarah Johnson',
+                'cardStatus': 'ACT',
+                'cardOwnershipType': 'PRIMARY',
+                'validity': {'end': '2028-03-31'},
+                'limits': [
+                  {'type': 'CR', 'available': {'amount': 4200, 'currency': 'GBP'}},
+                ],
+              },
+          ],
+        }),
+        code: 200,
+      );
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
 class _FakeSession implements SessionManager {
   @override
   dynamic noSuchMethod(Invocation i) => throw UnimplementedError('session ${i.memberName}');
@@ -112,6 +139,7 @@ Future<void> _pump(
         biometricEnrollmentProvider.overrideWithValue(_FakeEnrollment()),
         biometricServiceProvider.overrideWithValue(_FakeBiometrics()),
         dashboardRepositoryProvider.overrideWithValue(_FakeDashboard(allowed)),
+        cardsRepositoryProvider.overrideWithValue(_FakeCards()),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
@@ -170,12 +198,14 @@ void main() {
         ),
       );
       await tester.tap(find.text('Credit Card'));
-      await tester.pumpAndSettle();
-      expect(find.text('DEBIT'), findsOneWidget);
-      expect(find.text('CREDIT'), findsNothing);
+      await _settle(tester);
+      // Real cards from cards/credit, one per page.
+      expect(find.text('xxxx xxxx xxxx 1111'), findsOneWidget);
+      expect(find.text('xxxx xxxx xxxx 2222'), findsNothing);
       await tester.drag(find.byType(PageView), const Offset(-400, 0));
       await tester.pumpAndSettle();
-      expect(find.text('CREDIT'), findsOneWidget);
+      expect(find.text('xxxx xxxx xxxx 2222'), findsOneWidget);
+      expect(find.text('03/28'), findsOneWidget, reason: 'expiry as MM/YY');
     });
   });
 

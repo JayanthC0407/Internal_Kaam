@@ -2951,4 +2951,85 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get billerEditTypePresentmentPayment => 'Presentment and Payment';
+
+  @override
+  String get ccTitle => 'Credit Cards';
+
+  @override
+  String get ccSubtitle => 'Your credit cards and their dues';
+
+  @override
+  String get ccCardNumber => 'Card Number';
+
+  @override
+  String get ccOwnerName => 'Owner Name';
+
+  @override
+  String get ccExpiryDate => 'Expiry Date';
+
+  @override
+  String get ccAvailableCreditLimit => 'Available Credit Limit';
+
+  @override
+  String get ccCurrentOutstanding => 'Current Outstanding';
+
+  @override
+  String get ccTotalDue => 'Total Due';
+
+  @override
+  String get ccMinimumDue => 'Minimum Due';
+
+  @override
+  String get ccDueOn => 'Due On';
+
+  @override
+  String get ccPay => 'Pay';
+
+  @override
+  String get ccNoDues => 'No Dues';
+
+  @override
+  String get ccEmpty => 'You do not have any credit cards at present.';
+
+  @override
+  String get ccStatusActive => 'ACTIVE';
+
+  @override
+  String get ccStatusInactive => 'INACTIVE';
+
+  @override
+  String get ccStatusHotlisted => 'HOTLISTED';
+
+  @override
+  String get ccStatusCancelled => 'CANCELLED';
+
+  @override
+  String get ccStatusBlocked => 'BLOCKED';
+
+  @override
+  String get ccPrimary => 'Primary';
+
+  @override
+  String get ccAddOn => 'Add-On Card';
+
+  @override
+  String get ccTransactions => 'Transactions';
+
+  @override
+  String get ccCardPayment => 'Card Payment';
+
+  @override
+  String get ccLoadFailed => 'We couldn\'t load your credit cards.';
+
+  @override
+  String get ccUnbilled => 'Unbilled Transactions';
+
+  @override
+  String get ccBilled => 'Billed Transactions';
+
+  @override
+  String get ccMonth => 'Month';
+
+  @override
+  String get ccTxLoadFailed => 'We couldn\'t load the card transactions.';
 }

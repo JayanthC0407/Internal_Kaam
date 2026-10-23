@@ -25,6 +25,9 @@ class RetailNav {
   static const accountsCasa = 'accounts.casa';
   static const accountsLoans = 'accounts.loans';
   static const accountsTermDeposits = 'accounts.termDeposits';
+  static const creditCards = 'creditCards';
+  static const creditCardsList = 'creditCards.list';
+  static const creditCardsTransactions = 'creditCards.transactions';
   static const billPayments = 'billPayments';
   static const billPaymentsBillers = 'billPayments.billers';
   static const billPaymentsHistory = 'billPayments.history';
@@ -76,6 +79,25 @@ class RetailNav {
               id: accountsTermDeposits,
               label: l10n.menuTermDeposits,
               icon: Icons.savings_outlined,
+            ),
+          ],
+        ),
+        // OBDX's Credit Cards menu (before Bill Payments, as in OBDX); the
+        // list and Transactions — the card actions are Access Denied in UAT.
+        DashboardNavItem(
+          id: creditCards,
+          label: l10n.ccTitle,
+          icon: Icons.credit_card_rounded,
+          children: [
+            DashboardNavItem(
+              id: creditCardsList,
+              label: l10n.ccTitle,
+              icon: Icons.credit_card_outlined,
+            ),
+            DashboardNavItem(
+              id: creditCardsTransactions,
+              label: l10n.ccTransactions,
+              icon: Icons.receipt_long_rounded,
             ),
           ],
         ),
