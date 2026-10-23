@@ -66,7 +66,8 @@ import 'app_localizations_uz.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -74,7 +75,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -86,7 +88,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -5496,9 +5499,172 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Presentment and Payment'**
   String get billerEditTypePresentmentPayment;
+
+  /// No description provided for @ccTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Cards'**
+  String get ccTitle;
+
+  /// No description provided for @ccSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your credit cards and their dues'**
+  String get ccSubtitle;
+
+  /// No description provided for @ccCardNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Number'**
+  String get ccCardNumber;
+
+  /// No description provided for @ccOwnerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner Name'**
+  String get ccOwnerName;
+
+  /// No description provided for @ccExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Date'**
+  String get ccExpiryDate;
+
+  /// No description provided for @ccAvailableCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Credit Limit'**
+  String get ccAvailableCreditLimit;
+
+  /// No description provided for @ccCurrentOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Outstanding'**
+  String get ccCurrentOutstanding;
+
+  /// No description provided for @ccTotalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Due'**
+  String get ccTotalDue;
+
+  /// No description provided for @ccMinimumDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Due'**
+  String get ccMinimumDue;
+
+  /// No description provided for @ccDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due On'**
+  String get ccDueOn;
+
+  /// No description provided for @ccPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get ccPay;
+
+  /// No description provided for @ccNoDues.
+  ///
+  /// In en, this message translates to:
+  /// **'No Dues'**
+  String get ccNoDues;
+
+  /// No description provided for @ccEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have any credit cards at present.'**
+  String get ccEmpty;
+
+  /// No description provided for @ccStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get ccStatusActive;
+
+  /// No description provided for @ccStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'INACTIVE'**
+  String get ccStatusInactive;
+
+  /// No description provided for @ccStatusHotlisted.
+  ///
+  /// In en, this message translates to:
+  /// **'HOTLISTED'**
+  String get ccStatusHotlisted;
+
+  /// No description provided for @ccStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCELLED'**
+  String get ccStatusCancelled;
+
+  /// No description provided for @ccStatusBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'BLOCKED'**
+  String get ccStatusBlocked;
+
+  /// No description provided for @ccPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get ccPrimary;
+
+  /// No description provided for @ccAddOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add-On Card'**
+  String get ccAddOn;
+
+  /// No description provided for @ccTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get ccTransactions;
+
+  /// No description provided for @ccCardPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Payment'**
+  String get ccCardPayment;
+
+  /// No description provided for @ccLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your credit cards.'**
+  String get ccLoadFailed;
+
+  /// No description provided for @ccUnbilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbilled Transactions'**
+  String get ccUnbilled;
+
+  /// No description provided for @ccBilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed Transactions'**
+  String get ccBilled;
+
+  /// No description provided for @ccMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get ccMonth;
+
+  /// No description provided for @ccTxLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the card transactions.'**
+  String get ccTxLoadFailed;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -5507,29 +5673,39 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['ar', 'en', 'fr', 'it', 'ru', 'uz'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+        'ar',
+        'en',
+        'fr',
+        'it',
+        'ru',
+        'uz'
+      ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar': return AppLocalizationsAr();
-    case 'en': return AppLocalizationsEn();
-    case 'fr': return AppLocalizationsFr();
-    case 'it': return AppLocalizationsIt();
-    case 'ru': return AppLocalizationsRu();
-    case 'uz': return AppLocalizationsUz();
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'ru':
+      return AppLocalizationsRu();
+    case 'uz':
+      return AppLocalizationsUz();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

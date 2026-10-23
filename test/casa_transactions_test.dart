@@ -179,6 +179,18 @@ void main() {
       expect(repository.queries.last.toAmount, isNull);
     });
 
+    testWidgets('Opening / Closing Balance hide once filtered by amount (OBDX hooks.js:890-892)', (tester) async {
+      await _pump(tester, transactions: _october);
+      expect(find.text('Opening Balance'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, '150.25');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Opening Balance'), findsNothing);
+      expect(find.text('Closing Balance'), findsNothing);
+    });
+
     testWidgets('filter sheet has OBDX\'s single Amount field', (tester) async {
       final repository = await _pump(tester, transactions: _october);
 

@@ -27,6 +27,8 @@ import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
@@ -499,7 +501,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       isWide: isWide,
       displayName: _displayNameFromTrace(),
       onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
-      onBillsTap: _openBillers,
+      onBillsTap: _openSection,
     );
   }
 
@@ -848,6 +850,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     final index = _selectedBottomNavIndex;
     if (index == _billersIndex) return RetailNav.billPaymentsBillers;
     if (index == _billHistoryIndex) return RetailNav.billPaymentsHistory;
+    if (index == _creditCardsIndex) return RetailNav.creditCardsList;
+    if (index == _cardTransactionsIndex) return RetailNav.creditCardsTransactions;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -875,11 +879,19 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return;
       case RetailNav.billPaymentsBillers:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openBillers();
+        _openSection();
         return;
       case RetailNav.billPaymentsHistory:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openBillers(index: _billHistoryIndex);
+        _openSection(index: _billHistoryIndex);
+        return;
+      case RetailNav.creditCardsList:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _creditCardsIndex);
+        return;
+      case RetailNav.creditCardsTransactions:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _cardTransactionsIndex);
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -919,7 +931,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// Bill Payments → Bill Payment History (OBDX `payment-history`).
   static const _billHistoryIndex = 24;
 
-  void _openBillers({int index = _billersIndex}) => setState(() {
+  /// Credit Cards (OBDX `credit-card-listing`) and their Transactions.
+  static const _creditCardsIndex = 25;
+  static const _cardTransactionsIndex = 26;
+
+  void _openSection({int index = _billersIndex}) => setState(() {
         _transferPayee = null;
         _selectedPayeeDestination = null;
         _selectedAccountsDestination = null;
@@ -938,6 +954,16 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         );
       case _billHistoryIndex:
         return BillPaymentHistoryScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 0),
+        );
+      case _creditCardsIndex:
+        return CreditCardsScreen(
+          embedded: true,
+          onBack: () => setState(() => _selectedBottomNavIndex = 0),
+        );
+      case _cardTransactionsIndex:
+        return CreditCardTransactionsScreen(
           embedded: true,
           onBack: () => setState(() => _selectedBottomNavIndex = 0),
         );
@@ -1236,7 +1262,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           notice,
           QuickActionsStrip(
             onTransfer: () => setState(() => _selectedBottomNavIndex = 2),
-            onBill: _openBillers,
+            onBill: _openSection,
           ),
           const SizedBox(height: 20),
           // Customisation lives in the Menu (profile icon, top right).
@@ -1285,6 +1311,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         onViewAllLoans: () =>
             _openAccountsDestination(WebAccountsDestination.loans),
         onLoanTap: _openLoanAccountDetails,
+        onCreditCardsTap: () => _openSection(index: _creditCardsIndex),
       );
     }
 

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/infra/repositories/common/auth_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/cards_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/biometric_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/forgot_credentials_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/login_wizard_repository.dart';
@@ -53,6 +54,10 @@ final billPaymentsRepositoryProvider = Provider(
   (ref) => BillPaymentsRepository(
     api: ref.watch(obdxBillPaymentsApiProvider),
   ),
+);
+
+final cardsRepositoryProvider = Provider(
+  (ref) => CardsRepository(api: ref.watch(obdxCardsApiProvider)),
 );
 
 /// See [PaymentRepository] — currently a local mock; no `ObdxPaymentApi`

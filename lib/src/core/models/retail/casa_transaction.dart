@@ -310,16 +310,35 @@ class CasaTransactionsResult {
 /// unfiltered loads stay unchanged.
 enum CasaTransactionPeriod {
   currentMonth('CPR'),
-  specificDay('SPD'),
+  currentDay('SPD'),
   previousDay('SPD'),
-  dateRange('SPD'),
   previousMonth('PMT'),
+  currentAndPreviousMonth('SPD'),
   previousQuarter('PQT'),
-  last10('LNT');
+  dateRange('SPD'),
+  last10('LNT'),
+
+  /// Not an OBDX option: one chosen day. Kept for internal queries (the
+  /// corporate dashboard asks for "today"); never offered in the filter.
+  specificDay('SPD');
 
   const CasaTransactionPeriod(this.searchBy);
 
   final String searchBy;
+
+  /// OBDX's View Options, in OBDX's order (account-transactions/hooks.js:
+  /// 627-660): Current Month, Current Day, Previous Day, Previous Month,
+  /// Current & Previous Month, Previous Quarter, Date Range, Last 10.
+  static const obdxOptions = [
+    currentMonth,
+    currentDay,
+    previousDay,
+    previousMonth,
+    currentAndPreviousMonth,
+    previousQuarter,
+    dateRange,
+    last10,
+  ];
 }
 
 /// OBDX `transactionType`: A = all, C = credits, D = debits.
@@ -357,6 +376,7 @@ class CasaTransactionQuery {
     this.fromAmount,
     this.toAmount,
     this.referenceNumber,
+    this.businessDate,
   });
 
   final CasaTransactionPeriod period;
@@ -368,7 +388,22 @@ class CasaTransactionQuery {
   final String? toAmount;
   final String? referenceNumber;
 
+  /// The bank's "today" (`common/v1/currentDate`), which OBDX uses for
+  /// Current Day / Previous Day / Current & Previous Month
+  /// (account-transactions/hooks.js:856-875, 1514-1517). Null → device date.
+  final DateTime? businessDate;
+
   String get searchBy => period.searchBy;
+
+  /// OBDX shows Opening / Closing Balance only for an unfiltered period:
+  /// hidden when Transactions is not All, an amount or reference is set,
+  /// or the period is Last 10 (account-transactions/hooks.js:890-892).
+  bool get showsBalances =>
+      creditDebit == CasaCreditDebitFilter.all &&
+      !_hasText(fromAmount) &&
+      !_hasText(toAmount) &&
+      !_hasText(referenceNumber) &&
+      period != CasaTransactionPeriod.last10;
   String get transactionType => creditDebit.code;
 
   bool get isDefault =>
@@ -387,6 +422,7 @@ class CasaTransactionQuery {
     String? fromAmount,
     String? toAmount,
     String? referenceNumber,
+    DateTime? businessDate,
     bool clearSpecificDate = false,
     bool clearRangeStart = false,
     bool clearRangeEnd = false,
@@ -406,20 +442,29 @@ class CasaTransactionQuery {
       toAmount: clearToAmount ? null : (toAmount ?? this.toAmount),
       referenceNumber:
           clearReference ? null : (referenceNumber ?? this.referenceNumber),
+      businessDate: businessDate ?? this.businessDate,
     );
   }
 
   /// Resolves the `fromDate`/`toDate` pair to send for `SPD`-family
   /// periods. Returns null for periods that don't send dates at all.
+  ///
+  /// Like OBDX, Current Day, Previous Day and Current & Previous Month go out
+  /// as `SPD` with dates counted from the bank's [businessDate].
   (DateTime, DateTime)? _resolveDateRange() {
+    final today = businessDate ?? DateTime.now();
     switch (period) {
       case CasaTransactionPeriod.specificDay:
-        final day = specificDate ?? DateTime.now();
+        final day = specificDate ?? today;
         return (day, day);
+      case CasaTransactionPeriod.currentDay:
+        return (today, today);
       case CasaTransactionPeriod.previousDay:
-        final yesterday =
-            DateTime.now().subtract(const Duration(days: 1));
+        final yesterday = DateTime(today.year, today.month, today.day - 1);
         return (yesterday, yesterday);
+      case CasaTransactionPeriod.currentAndPreviousMonth:
+        // First day of the previous month → today (hooks.js:865-871).
+        return (DateTime(today.year, today.month - 1, 1), today);
       case CasaTransactionPeriod.dateRange:
         if (rangeStart == null || rangeEnd == null) return null;
         return (rangeStart!, rangeEnd!);
@@ -479,7 +524,8 @@ class CasaTransactionQuery {
           rangeEnd == other.rangeEnd &&
           fromAmount == other.fromAmount &&
           toAmount == other.toAmount &&
-          referenceNumber == other.referenceNumber;
+          referenceNumber == other.referenceNumber &&
+          businessDate == other.businessDate;
 
   @override
   int get hashCode => Object.hash(
@@ -491,5 +537,6 @@ class CasaTransactionQuery {
         fromAmount,
         toAmount,
         referenceNumber,
+        businessDate,
       );
 }
