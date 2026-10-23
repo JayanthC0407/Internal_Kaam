@@ -40,6 +40,7 @@ class AccountsTabCard extends ConsumerStatefulWidget {
     this.framed = true,
     this.showTotalCard = false,
     this.onDeposit,
+    this.onCreditCardsTap,
   });
 
   /// False on the phone Home, where the card sits in the white top panel
@@ -52,6 +53,9 @@ class AccountsTabCard extends ConsumerStatefulWidget {
 
   /// "+ Deposit" (opens New Term Deposit) in place of "View all accounts".
   final VoidCallback? onDeposit;
+
+  /// Credit Card tab: tapping a card opens Credit Cards.
+  final VoidCallback? onCreditCardsTap;
 
   final List<CasaAccount> accounts;
   final Set<String> revealedAccountIds;
@@ -174,9 +178,9 @@ class _AccountsTabCardState extends ConsumerState<AccountsTabCard> {
       case _HeroTab.accounts:
         return _buildAccountsTab(context);
       case _HeroTab.creditCard:
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 4),
-          child: CreditCardsVisual(),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: CreditCardsVisual(onOpen: widget.onCreditCardsTap),
         );
       case _HeroTab.loans:
         return _buildLoansTab(context);

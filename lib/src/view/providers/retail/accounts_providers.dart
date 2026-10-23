@@ -125,6 +125,15 @@ class CasaAccountsNotifier extends StateNotifier<CasaAccountsState> {
   }
 }
 
+/// The bank's business date (`GET common/v1/currentDate`) for the
+/// transaction filters' "today" (OBDX account-transactions/hooks.js:1514).
+/// Null when the host does not answer — callers fall back to the device.
+final bankBusinessDateProvider = FutureProvider.autoDispose<DateTime?>((ref) async {
+  final result = await ref.read(accountsRepositoryProvider).fetchCurrentBankingDate();
+  final date = result is Success<BankingDate> ? result.data?.currentDate : null;
+  return date == null ? null : DateTime(date.year, date.month, date.day);
+});
+
 final casaAccountsProvider =
     StateNotifierProvider<CasaAccountsNotifier, CasaAccountsState>(
   (ref) => CasaAccountsNotifier(ref),

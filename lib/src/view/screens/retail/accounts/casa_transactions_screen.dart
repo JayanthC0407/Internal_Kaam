@@ -173,12 +173,15 @@ class _CasaTransactionsScreenState
         selectedAccount?.currencyCode ??
         '';
 
-    final opening = result?.openingBalance ??
-        detail?.todaysOpeningBalance ??
-        detail?.currentBalance;
-    final closing = result?.closingBalance ??
-        detail?.availableBalance ??
-        detail?.currentBalance;
+    // OBDX: Opening / Closing Balance come only from the transactions
+    // response's summary, and are hidden for filtered views or Last 10
+    // (account-transactions/hooks.js:798-803, 890-892). No fallback to the
+    // account's balances — those are not the period's opening/closing.
+    final showBalances = _query.showsBalances &&
+        result?.openingBalance != null &&
+        result?.closingBalance != null;
+    final opening = showBalances ? result!.openingBalance : null;
+    final closing = showBalances ? result!.closingBalance : null;
 
     if (!wide) {
       return SecureScreen(
@@ -187,8 +190,8 @@ class _CasaTransactionsScreenState
           txState: txState,
           account: selectedAccount,
           detail: detail,
-          opening: _money(opening, currency),
-          closing: _money(closing, currency),
+          opening: opening == null ? null : _money(opening, currency),
+          closing: closing == null ? null : _money(closing, currency),
         ),
       );
     }
@@ -254,6 +257,7 @@ class _CasaTransactionsScreenState
                         fallbackId: _selectedAccountId,
                       ),
                       const SizedBox(height: 16),
+                      if (showBalances) ...[
                       CasaBrandBanner(
                         padding: EdgeInsets.fromLTRB(
                           wide ? 24 : 16,
@@ -283,6 +287,7 @@ class _CasaTransactionsScreenState
                         ],
                       ),
                       const SizedBox(height: 16),
+                      ],
                       if (txState.isLoading && result == null)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 48),
@@ -323,8 +328,8 @@ class _CasaTransactionsScreenState
     required CasaTransactionsState txState,
     required CasaAccount? account,
     required CasaAccountDetail? detail,
-    required String opening,
-    required String closing,
+    String? opening,
+    String? closing,
   }) {
     final result = txState.result;
     final transactions = result?.transactions ?? const <CasaTransaction>[];
