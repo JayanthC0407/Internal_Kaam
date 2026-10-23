@@ -150,6 +150,7 @@ void main() {
         RetailNav.transfer,
         RetailNav.rewards,
         RetailNav.accounts,
+        RetailNav.creditCards,
         RetailNav.billPayments,
         RetailNav.more,
       ]);
