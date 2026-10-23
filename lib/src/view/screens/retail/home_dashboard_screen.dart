@@ -25,9 +25,14 @@ import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
@@ -848,10 +853,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         break;
     }
     final index = _selectedBottomNavIndex;
-    if (index == _billersIndex) return RetailNav.billPaymentsBillers;
-    if (index == _billHistoryIndex) return RetailNav.billPaymentsHistory;
-    if (index == _creditCardsIndex) return RetailNav.creditCardsList;
-    if (index == _cardTransactionsIndex) return RetailNav.creditCardsTransactions;
+    // A module page and everything opened from it keep its entry lit.
+    if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
+    if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
+    if (index == _myLimitsIndex) return RetailNav.more;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -877,21 +882,13 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case RetailNav.accountsTermDeposits:
         _openAccountsDestination(WebAccountsDestination.termDeposits);
         return;
-      case RetailNav.billPaymentsBillers:
+      case RetailNav.billPayments:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection();
+        _openSection(index: _billPaymentsHubIndex);
         return;
-      case RetailNav.billPaymentsHistory:
+      case RetailNav.creditCards:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _billHistoryIndex);
-        return;
-      case RetailNav.creditCardsList:
-        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _creditCardsIndex);
-        return;
-      case RetailNav.creditCardsTransactions:
-        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _cardTransactionsIndex);
+        _openSection(index: _creditCardsHubIndex);
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -935,7 +932,26 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   static const _creditCardsIndex = 25;
   static const _cardTransactionsIndex = 26;
 
-  void _openSection({int index = _billersIndex}) => setState(() {
+  /// Account Settings → My Limits (OBDX `my-limit`), opened from the Menu tab.
+  static const _myLimitsIndex = 27;
+
+  /// The module pages the side menu opens (like the Payments hub), and Add
+  /// Billers started from the Bill Payments page.
+  static const _creditCardsHubIndex = 28;
+  static const _billPaymentsHubIndex = 29;
+  static const _addBillerIndex = 30;
+
+  static const _creditCardsScreens = {_creditCardsHubIndex, _creditCardsIndex, _cardTransactionsIndex};
+  static const _billPaymentsScreens = {_billPaymentsHubIndex, _billersIndex, _billHistoryIndex, _addBillerIndex};
+
+  /// Where Back on an opened section goes: the module page it came from,
+  /// the Menu tab for My Limits, else Home.
+  int _sectionBackIndex = 0;
+
+  void _closeSection() => setState(() => _selectedBottomNavIndex = _sectionBackIndex);
+
+  void _openSection({int index = _billersIndex, int back = 0}) => setState(() {
+        _sectionBackIndex = back;
         _transferPayee = null;
         _selectedPayeeDestination = null;
         _selectedAccountsDestination = null;
@@ -947,26 +963,36 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   Widget _buildCurrentBody(CasaAccountsState accountsState) {
     switch (_selectedBottomNavIndex) {
+      case _creditCardsHubIndex:
+        return CreditCardsHubScreen(
+          onCreditCardsTap: () => _openSection(index: _creditCardsIndex, back: _creditCardsHubIndex),
+          onTransactionsTap: () => _openSection(index: _cardTransactionsIndex, back: _creditCardsHubIndex),
+        );
+      case _billPaymentsHubIndex:
+        return BillPaymentsHubScreen(
+          onBillersTap: () => _openSection(index: _billersIndex, back: _billPaymentsHubIndex),
+          onAddBillerTap: () => _openSection(index: _addBillerIndex, back: _billPaymentsHubIndex),
+          onHistoryTap: () => _openSection(index: _billHistoryIndex, back: _billPaymentsHubIndex),
+        );
+      case _addBillerIndex:
+        return AddBillerScreen(
+          onExit: _closeSection,
+          // "Back to Billers" on the Done step: the list, with the new one.
+          onAdded: (_) {
+            ref.invalidate(registeredBillersProvider);
+            _openSection(index: _billersIndex, back: _billPaymentsHubIndex);
+          },
+        );
       case _billersIndex:
-        return BillersScreen(
-          embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 0),
-        );
+        return BillersScreen(embedded: true, onBack: _closeSection);
       case _billHistoryIndex:
-        return BillPaymentHistoryScreen(
-          embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 0),
-        );
+        return BillPaymentHistoryScreen(embedded: true, onBack: _closeSection);
       case _creditCardsIndex:
-        return CreditCardsScreen(
-          embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 0),
-        );
+        return CreditCardsScreen(embedded: true, onBack: _closeSection);
       case _cardTransactionsIndex:
-        return CreditCardTransactionsScreen(
-          embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 0),
-        );
+        return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
+      case _myLimitsIndex:
+        return MyLimitsScreen(embedded: true, onBack: _closeSection);
       case 1:
         return const InsightsTabScreen();
       case 2:
@@ -999,6 +1025,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               ? null
               : _openPersonalize,
           onRewardsTap: () => setState(() => _selectedBottomNavIndex = 3),
+          onMyLimitsTap: () => _openSection(index: _myLimitsIndex, back: 4),
         );
       case 5:
         return PayeesScreen(

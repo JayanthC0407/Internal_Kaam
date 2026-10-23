@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:ubci_bank/src/core/config/app_locale_holder.dart';
 import 'package:ubci_bank/src/core/config/locale_config.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
+import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
 import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/widgets/dashboard_header_bar.dart';
@@ -94,6 +97,26 @@ void main() {
       await tester.tap(find.text('Personalize Dashboard'));
       await tester.pumpAndSettle();
       expect(opened, isTrue);
+    });
+
+    testWidgets('Language opens the shared picker and changes the app locale',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(() => AppLocaleHolder.instance.update(const Locale('en')));
+      await _pump(
+        tester,
+        WebDashboardHeaderBar(displayName: 'Pooja Jha', onLogout: () {}),
+      );
+
+      await tester.tap(find.byTooltip('Language'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('French'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DashboardTopBar)),
+      );
+      expect(container.read(appSettingsProvider).locale.languageCode, 'fr');
     });
   });
 

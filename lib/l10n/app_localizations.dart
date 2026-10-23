@@ -5685,6 +5685,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For example, if the user name is Roopa Lal and the date of birth is 23-12-1976, then your password will be ROOP2312.'**
   String get billHistoryPasswordExample;
+
+  /// No description provided for @menuAccountSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Settings'**
+  String get menuAccountSettings;
+
+  /// No description provided for @myLimitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Limits'**
+  String get myLimitsTitle;
+
+  /// No description provided for @limitsChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get limitsChannel;
+
+  /// No description provided for @limitsTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get limitsTransactions;
+
+  /// No description provided for @limitsTabTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'{taskName} Limits'**
+  String limitsTabTransaction(String taskName);
+
+  /// No description provided for @limitsTabTransactionGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Group Limits'**
+  String get limitsTabTransactionGroup;
+
+  /// No description provided for @limitsTabChannelGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Group Limits'**
+  String get limitsTabChannelGroup;
+
+  /// No description provided for @limitsTabChannelTransactionGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel & Transaction Group Limits'**
+  String get limitsTabChannelTransactionGroup;
+
+  /// No description provided for @limitsTabConsolidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated Limits'**
+  String get limitsTabConsolidated;
+
+  /// No description provided for @limitsTabConsolidatedTransactionGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated & Transaction Group Limits'**
+  String get limitsTabConsolidatedTransactionGroup;
+
+  /// No description provided for @limitsMinimumAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Amount'**
+  String get limitsMinimumAmount;
+
+  /// No description provided for @limitsMaximumAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Amount'**
+  String get limitsMaximumAmount;
+
+  /// No description provided for @limitsDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Limits'**
+  String get limitsDaily;
+
+  /// No description provided for @limitsMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Limits'**
+  String get limitsMonthly;
+
+  /// No description provided for @limitsDailyNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit package is not assigned for the selected transaction for {accessPoint} Touch Point'**
+  String limitsDailyNotAssigned(String accessPoint);
+
+  /// No description provided for @limitsMonthlyNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly limit package is not assigned for the selected transaction for {accessPoint} Touch Point'**
+  String limitsMonthlyNotAssigned(String accessPoint);
+
+  /// No description provided for @limitsAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get limitsAmount;
+
+  /// No description provided for @limitsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get limitsCount;
+
+  /// No description provided for @limitsUtilized.
+  ///
+  /// In en, this message translates to:
+  /// **'Utilized'**
+  String get limitsUtilized;
+
+  /// No description provided for @limitsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get limitsAvailable;
+
+  /// No description provided for @limitsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get limitsTotal;
+
+  /// No description provided for @limitsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits could not be loaded.'**
+  String get limitsLoadFailed;
+
+  /// No description provided for @limitsNoTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions have limits for this channel.'**
+  String get limitsNoTransactions;
+
+  /// No description provided for @ccModuleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cards and what you can do with them'**
+  String get ccModuleSubtitle;
+
+  /// No description provided for @ccListDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'See your cards, limits and dues'**
+  String get ccListDesc;
+
+  /// No description provided for @ccCardDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Card Details'**
+  String get ccCardDetails;
+
+  /// No description provided for @ccTransactionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbilled and billed transactions'**
+  String get ccTransactionsDesc;
+
+  /// No description provided for @ccRequestPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Request PIN'**
+  String get ccRequestPin;
+
+  /// No description provided for @ccBlockUnblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block/Unblock Card'**
+  String get ccBlockUnblock;
+
+  /// No description provided for @ccCancelCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Card'**
+  String get ccCancelCard;
+
+  /// No description provided for @ccAutoPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Pay'**
+  String get ccAutoPay;
+
+  /// No description provided for @ccResetPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset PIN'**
+  String get ccResetPin;
+
+  /// No description provided for @billsModuleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your billers and bill payments'**
+  String get billsModuleSubtitle;
+
+  /// No description provided for @billFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get billFavorites;
+
+  /// No description provided for @billersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your registered billers'**
+  String get billersDesc;
+
+  /// No description provided for @billersAddDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Register a new biller'**
+  String get billersAddDesc;
+
+  /// No description provided for @billQuickBillPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Bill Pay'**
+  String get billQuickBillPay;
+
+  /// No description provided for @billQuickRecharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Recharge'**
+  String get billQuickRecharge;
+
+  /// No description provided for @billHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill payments you have made'**
+  String get billHistoryDesc;
+
+  /// No description provided for @moduleComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get moduleComingSoon;
 }
 
 class _AppLocalizationsDelegate

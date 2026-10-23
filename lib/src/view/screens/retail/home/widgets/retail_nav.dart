@@ -26,11 +26,7 @@ class RetailNav {
   static const accountsLoans = 'accounts.loans';
   static const accountsTermDeposits = 'accounts.termDeposits';
   static const creditCards = 'creditCards';
-  static const creditCardsList = 'creditCards.list';
-  static const creditCardsTransactions = 'creditCards.transactions';
   static const billPayments = 'billPayments';
-  static const billPaymentsBillers = 'billPayments.billers';
-  static const billPaymentsHistory = 'billPayments.history';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -82,42 +78,19 @@ class RetailNav {
             ),
           ],
         ),
-        // OBDX's Credit Cards menu (before Bill Payments, as in OBDX); the
-        // list and Transactions — the card actions are Access Denied in UAT.
+        // OBDX's Credit Cards menu (before Bill Payments, as in OBDX). One
+        // entry, no submenu, like Payments: it opens a page with the whole
+        // module.
         DashboardNavItem(
           id: creditCards,
           label: l10n.ccTitle,
           icon: Icons.credit_card_rounded,
-          children: [
-            DashboardNavItem(
-              id: creditCardsList,
-              label: l10n.ccTitle,
-              icon: Icons.credit_card_outlined,
-            ),
-            DashboardNavItem(
-              id: creditCardsTransactions,
-              label: l10n.ccTransactions,
-              icon: Icons.receipt_long_rounded,
-            ),
-          ],
         ),
-        // OBDX's Bill Payments menu; Billers and Bill Payment History so far.
+        // OBDX's Bill Payments menu; one entry opening its module page.
         DashboardNavItem(
           id: billPayments,
           label: l10n.billPaymentsTitle,
           icon: Icons.receipt_long_rounded,
-          children: [
-            DashboardNavItem(
-              id: billPaymentsBillers,
-              label: l10n.billersTitle,
-              icon: Icons.storefront_outlined,
-            ),
-            DashboardNavItem(
-              id: billPaymentsHistory,
-              label: l10n.billHistoryTitle,
-              icon: Icons.history_rounded,
-            ),
-          ],
         ),
         // Last, after Accounts: a catch-all reads best at the end.
         DashboardNavItem(
