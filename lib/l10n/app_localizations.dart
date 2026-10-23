@@ -5661,6 +5661,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn\'t load the card transactions.'**
   String get ccTxLoadFailed;
+
+  /// No description provided for @billHistoryDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get billHistoryDownload;
+
+  /// No description provided for @billHistoryPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Combination'**
+  String get billHistoryPasswordTitle;
+
+  /// No description provided for @billHistoryPasswordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On opening the PDF, you will be asked to enter a password. Your password consists of the first 4 letters of your user name in capital case, followed by the date and month of your birth (in DDMM format)'**
+  String get billHistoryPasswordBody;
+
+  /// No description provided for @billHistoryPasswordExample.
+  ///
+  /// In en, this message translates to:
+  /// **'For example, if the user name is Roopa Lal and the date of birth is 23-12-1976, then your password will be ROOP2312.'**
+  String get billHistoryPasswordExample;
 }
 
 class _AppLocalizationsDelegate

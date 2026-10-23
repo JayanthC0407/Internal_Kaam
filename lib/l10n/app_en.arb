@@ -1043,5 +1043,9 @@
   "ccUnbilled": "Unbilled Transactions",
   "ccBilled": "Billed Transactions",
   "ccMonth": "Month",
-  "ccTxLoadFailed": "We couldn't load the card transactions."
+  "ccTxLoadFailed": "We couldn't load the card transactions.",
+  "billHistoryDownload": "Download",
+  "billHistoryPasswordTitle": "Password Combination",
+  "billHistoryPasswordBody": "On opening the PDF, you will be asked to enter a password. Your password consists of the first 4 letters of your user name in capital case, followed by the date and month of your birth (in DDMM format)",
+  "billHistoryPasswordExample": "For example, if the user name is Roopa Lal and the date of birth is 23-12-1976, then your password will be ROOP2312."
 }

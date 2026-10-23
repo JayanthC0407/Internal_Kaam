@@ -2,10 +2,12 @@ import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:ubci_bank/src/core/models/common/statement_format.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:ubci_bank/src/infra/network/statement_download.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Bill Payments (EBPP) — Billers and Add Billers. Parses
@@ -41,6 +43,31 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
   /// Bill Payment History for [query], newest first.
   Future<ResponseHandler<List<BillPayment>>> fetchBillPayments(BillHistoryQuery query) async =>
       parseBody(await _api.fetchBillPayments(query.toQueryParameters()), BillPayment.listFromPayload);
+
+  /// Bill Payment History's download formats: only **CSV and PDF**, as OBDX
+  /// offers (payment-history/hooks.js:409-416).
+  Future<ResponseHandler<List<StatementFormat>>> fetchHistoryFormats() async => parseBody(
+        await _api.fetchHistoryMediaTypes(),
+        (body) => StatementFormat.listFromPayload(body)
+            .where((f) => f.code.toLowerCase() == 'csv' || f.code.toLowerCase() == 'pdf')
+            .toList(),
+      );
+
+  /// Downloads the history for [query] in [format] — decoded by the same
+  /// shared code as account statements (statement_download.dart).
+  Future<ResponseHandler<StatementFile>> downloadHistory(
+    BillHistoryQuery query,
+    StatementFormat format,
+  ) async =>
+      decodeStatementDownload(
+        await _api.downloadBillPayments(
+          query.toQueryParameters(),
+          media: format.mimeType,
+          mediaFormat: format.code.toLowerCase(),
+        ),
+        format: format,
+        fileName: statementFileName(query.period.searchBy, format.fileExtension, prefix: 'bill_payments'),
+      );
 
   /// Add Billers' list of billers, sorted by name.
   Future<ResponseHandler<List<BillerInfo>>> fetchBillers() async =>
