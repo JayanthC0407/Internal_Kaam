@@ -3,15 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
+import 'package:ubci_bank/src/core/models/common/statement_format.dart';
 import 'package:ubci_bank/src/core/utils/common/money_format.dart';
+import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:ubci_bank/src/infra/network/statement_download.dart';
+import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
 import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 
 /// Bill Payment History — OBDX `payment-history`: the user's bill payments
 /// for a period (Current Period by default), newest first, with OBDX's
-/// Filter (Select Period / Date From / Date To). Download and attachments
-/// are not built yet. Evidence: docs/obdx/features/bill-payments.md §5.
+/// Filter (Select Period / Date From / Date To) and Download (CSV / PDF,
+/// PDF with OBDX's password note). Attachments are not built yet.
+/// Evidence: docs/obdx/features/bill-payments.md §5.
 class BillPaymentHistoryScreen extends ConsumerStatefulWidget {
   const BillPaymentHistoryScreen({super.key, this.embedded = false, this.onBack});
 
@@ -22,8 +31,76 @@ class BillPaymentHistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<BillPaymentHistoryScreen> createState() => _BillPaymentHistoryScreenState();
 }
 
+/// Used when the mediatype lookup fails, so Download still works: OBDX
+/// offers only these two for bill payments (hooks.js:409-416).
+const _fallbackHistoryFormats = [
+  StatementFormat(code: 'csv', mimeType: 'text/csv', ordinal: 1),
+  StatementFormat(code: 'pdf', mimeType: 'application/pdf', ordinal: 2),
+];
+
 class _BillPaymentHistoryScreenState extends ConsumerState<BillPaymentHistoryScreen> {
   BillHistoryQuery _query = const BillHistoryQuery();
+  bool _downloading = false;
+
+  /// OBDX's Download (payment-history/hooks.js:422-454): pick CSV or PDF,
+  /// see the password note for a PDF, then fetch the current filter as a
+  /// file and save it (shared decoder: statement_download.dart).
+  Future<void> _download() async {
+    if (_downloading) return;
+    final l10n = AppLocalizations.of(context);
+    final repository = ref.read(billPaymentsRepositoryProvider);
+
+    final formatsResult = await repository.fetchHistoryFormats();
+    if (!mounted) return;
+    final formats = formatsResult is Success<List<StatementFormat>> && (formatsResult.data?.isNotEmpty ?? false)
+        ? formatsResult.data!
+        : _fallbackHistoryFormats;
+
+    final format = await AppBottomSheet.pick<StatementFormat>(
+      context: context,
+      title: l10n.casaStatementFormatTitle,
+      options: [for (final f in formats) (value: f, label: f.label)],
+      selected: formats.first,
+    );
+    if (format == null || !mounted) return;
+
+    if (format.fileExtension == 'pdf') {
+      final proceed = await AppBottomSheet.confirm(
+        context,
+        title: l10n.billHistoryPasswordTitle,
+        message: '${l10n.billHistoryPasswordBody}\n\n${l10n.billHistoryPasswordExample}',
+        confirmLabel: l10n.billHistoryDownload,
+      );
+      if (!proceed || !mounted) return;
+    }
+
+    setState(() => _downloading = true);
+    final result = await repository.downloadHistory(_query, format);
+    if (!mounted) return;
+    setState(() => _downloading = false);
+
+    if (result is Success<StatementFile> && result.data != null) {
+      try {
+        await StatementFileSaver.saveStatement(
+          bytes: result.data!.bytes,
+          fileName: result.data!.fileName,
+          mimeType: result.data!.mimeType,
+        );
+        _snack(l10n.casaStatementDownloadSuccess);
+      } catch (_) {
+        _snack(l10n.casaStatementDownloadFailed);
+      }
+    } else if (!SessionExpiryCoordinator.instance.isHandling) {
+      _snack(result.resolveUserMessage(l10n: l10n, fallback: l10n.casaStatementDownloadFailed));
+    }
+  }
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 
   Future<void> _openFilter(bool wide) async {
     final panel = _FilterPanel(initial: _query);
@@ -69,6 +146,20 @@ class _BillPaymentHistoryScreenState extends ConsumerState<BillPaymentHistoryScr
                   style: TextStyle(fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
                 ),
               ),
+              // OBDX shows Download only when there are payments.
+              if ((payments.valueOrNull ?? const []).isNotEmpty) ...[
+                _downloading
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14),
+                        child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+                      )
+                    : IconButton(
+                        tooltip: l10n.billHistoryDownload,
+                        onPressed: _download,
+                        icon: Icon(Icons.download_rounded, color: HomeColors.brand(context)),
+                      ),
+                const SizedBox(width: 4),
+              ],
               PaySecondaryButton(
                 label: l10n.billHistoryFilter,
                 icon: Icons.tune_rounded,

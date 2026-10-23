@@ -3021,4 +3021,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ccTxLoadFailed => 'We couldn\'t load the card transactions.';
+
+  @override
+  String get billHistoryDownload => 'Download';
+
+  @override
+  String get billHistoryPasswordTitle => 'Password Combination';
+
+  @override
+  String get billHistoryPasswordBody =>
+      'On opening the PDF, you will be asked to enter a password. Your password consists of the first 4 letters of your user name in capital case, followed by the date and month of your birth (in DDMM format)';
+
+  @override
+  String get billHistoryPasswordExample =>
+      'For example, if the user name is Roopa Lal and the date of birth is 23-12-1976, then your password will be ROOP2312.';
 }

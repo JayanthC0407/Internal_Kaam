@@ -4,7 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/config/locale_config.dart';
+import 'dart:convert';
+
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
+import 'package:ubci_bank/src/core/models/common/statement_format.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:ubci_bank/src/infra/network/statement_download.dart';
 import 'package:ubci_bank/src/core/theme/app_theme.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
@@ -135,6 +140,86 @@ void main() {
     expect(find.text('REF2'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Download shows only with rows; PDF shows OBDX password note', (tester) async {
+    final repo = await pump(tester);
+    await tester.tap(find.byTooltip('Download'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('PDF'));
+    await tester.pumpAndSettle();
+    expect(find.text('Password Combination'), findsOneWidget);
+    expect(find.textContaining('ROOP2312'), findsOneWidget);
+    await tester.tap(find.text('Download').last);
+    await tester.pumpAndSettle();
+    expect(repo.downloads.single.$2.code, 'pdf');
+    expect(repo.downloads.single.$1.period, BillHistoryPeriod.currentPeriod);
+  });
+
+  testWidgets('no Download when there are no payments', (tester) async {
+    await pump(tester, rows: const []);
+    expect(find.byTooltip('Download'), findsNothing);
+  });
+
+  group('repository download (OBDX hooks.js:406-454)', () {
+    test('formats: only CSV and PDF from the ebpp mediatype list', () async {
+      final api = _FakeApi();
+      final result = await BillPaymentsRepository(api: api).fetchHistoryFormats();
+      expect((result as Success<List<StatementFormat>>).data!.map((f) => f.code), ['csv', 'pdf']);
+    });
+
+    test('download: current filter + media (MIME) + mediaFormat', () async {
+      final api = _FakeApi();
+      final query = BillHistoryQuery(
+        period: BillHistoryPeriod.dateRange,
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+      );
+      final result = await BillPaymentsRepository(api: api)
+          .downloadHistory(query, const StatementFormat(code: 'CSV', mimeType: 'text/csv'));
+      expect(result, isA<Success<StatementFile>>());
+      expect(api.downloadQuery, {'searchBy': 'SPD', 'fromDate': '2026-09-01', 'toDate': '2026-09-30'});
+      expect(api.media, 'text/csv');
+      expect(api.mediaFormat, 'csv');
+    });
+  });
+
+}
+
+class _FakeApi implements ObdxBillPaymentsApi {
+  Map<String, dynamic>? downloadQuery;
+  String? media;
+  String? mediaFormat;
+
+  @override
+  Future<ResponseHandler<Map<String, dynamic>>> fetchHistoryMediaTypes() async {
+    final body = {
+      'enumRepresentations': [
+        {
+          'data': [
+            {'code': 'csv', 'value': 'csv', 'description': 'text/csv', 'ordinal': 1},
+            {'code': 'pdf', 'value': 'pdf', 'description': 'application/pdf', 'ordinal': 2},
+            {'code': 'qif', 'value': 'qif', 'description': 'application/qif', 'ordinal': 3},
+          ],
+        },
+      ],
+    };
+    return ResponseHandler.success({'statusCode': 200, 'headers': const {}, 'rawBody': jsonEncode(body), 'body': body});
+  }
+
+  @override
+  Future<ResponseHandler<List<int>>> downloadBillPayments(
+    Map<String, dynamic> queryParameters, {
+    required String media,
+    required String mediaFormat,
+  }) async {
+    downloadQuery = queryParameters;
+    this.media = media;
+    this.mediaFormat = mediaFormat;
+    return ResponseHandler.success(utf8.encode('Date,Biller\n'), code: 200);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeRepo implements BillPaymentsRepository {
@@ -142,6 +227,22 @@ class _FakeRepo implements BillPaymentsRepository {
 
   final List<BillPayment> rows;
   final queries = <BillHistoryQuery>[];
+  final downloads = <(BillHistoryQuery, StatementFormat)>[];
+
+  @override
+  Future<ResponseHandler<List<StatementFormat>>> fetchHistoryFormats() async => ResponseHandler.success(
+        const [
+          StatementFormat(code: 'csv', mimeType: 'text/csv'),
+          StatementFormat(code: 'pdf', mimeType: 'application/pdf'),
+        ],
+        code: 200,
+      );
+
+  @override
+  Future<ResponseHandler<StatementFile>> downloadHistory(BillHistoryQuery query, StatementFormat format) async {
+    downloads.add((query, format));
+    return ResponseHandler.error(500, 'not saved in tests');
+  }
 
   @override
   Future<ResponseHandler<List<BillPayment>>> fetchBillPayments(BillHistoryQuery query) async {
