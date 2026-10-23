@@ -3046,4 +3046,133 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get billHistoryPasswordExample =>
       'For example, if the user name is Roopa Lal and the date of birth is 23-12-1976, then your password will be ROOP2312.';
+
+  @override
+  String get menuAccountSettings => 'Account Settings';
+
+  @override
+  String get myLimitsTitle => 'My Limits';
+
+  @override
+  String get limitsChannel => 'Channel';
+
+  @override
+  String get limitsTransactions => 'Transactions';
+
+  @override
+  String limitsTabTransaction(String taskName) {
+    return '$taskName Limits';
+  }
+
+  @override
+  String get limitsTabTransactionGroup => 'Transaction Group Limits';
+
+  @override
+  String get limitsTabChannelGroup => 'Channel Group Limits';
+
+  @override
+  String get limitsTabChannelTransactionGroup =>
+      'Channel & Transaction Group Limits';
+
+  @override
+  String get limitsTabConsolidated => 'Consolidated Limits';
+
+  @override
+  String get limitsTabConsolidatedTransactionGroup =>
+      'Consolidated & Transaction Group Limits';
+
+  @override
+  String get limitsMinimumAmount => 'Minimum Amount';
+
+  @override
+  String get limitsMaximumAmount => 'Maximum Amount';
+
+  @override
+  String get limitsDaily => 'Daily Limits';
+
+  @override
+  String get limitsMonthly => 'Monthly Limits';
+
+  @override
+  String limitsDailyNotAssigned(String accessPoint) {
+    return 'Daily limit package is not assigned for the selected transaction for $accessPoint Touch Point';
+  }
+
+  @override
+  String limitsMonthlyNotAssigned(String accessPoint) {
+    return 'Monthly limit package is not assigned for the selected transaction for $accessPoint Touch Point';
+  }
+
+  @override
+  String get limitsAmount => 'Amount';
+
+  @override
+  String get limitsCount => 'Count';
+
+  @override
+  String get limitsUtilized => 'Utilized';
+
+  @override
+  String get limitsAvailable => 'Available';
+
+  @override
+  String get limitsTotal => 'Total';
+
+  @override
+  String get limitsLoadFailed => 'Limits could not be loaded.';
+
+  @override
+  String get limitsNoTransactions =>
+      'No transactions have limits for this channel.';
+
+  @override
+  String get ccModuleSubtitle => 'Your cards and what you can do with them';
+
+  @override
+  String get ccListDesc => 'See your cards, limits and dues';
+
+  @override
+  String get ccCardDetails => 'Credit Card Details';
+
+  @override
+  String get ccTransactionsDesc => 'Unbilled and billed transactions';
+
+  @override
+  String get ccRequestPin => 'Request PIN';
+
+  @override
+  String get ccBlockUnblock => 'Block/Unblock Card';
+
+  @override
+  String get ccCancelCard => 'Cancel Card';
+
+  @override
+  String get ccAutoPay => 'Auto Pay';
+
+  @override
+  String get ccResetPin => 'Reset PIN';
+
+  @override
+  String get billsModuleSubtitle => 'Your billers and bill payments';
+
+  @override
+  String get billFavorites => 'Favorites';
+
+  @override
+  String get billersDesc => 'Your registered billers';
+
+  @override
+  String get billersAddDesc => 'Register a new biller';
+
+  @override
+  String get billQuickBillPay => 'Quick Bill Pay';
+
+  @override
+  String get billQuickRecharge => 'Quick Recharge';
+
+  @override
+  String get billHistoryDesc => 'Bill payments you have made';
+
+  @override
+  String get moduleComingSoon => 'Coming soon';
 }

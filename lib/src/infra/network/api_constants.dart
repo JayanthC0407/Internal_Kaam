@@ -236,6 +236,9 @@ class ApiConst {
   static const String myCustomLimitsApi =
       '/digx-admin/finlimit/v1/myCustomLimits';
 
+  static const String myAssignedLimitsApi =
+      '/digx-admin/finlimit/v1/myAssignedLimits';
+
   static const String limitTaskGroupsApi =
       '/digx-admin/security/v1/taskGroups';
 

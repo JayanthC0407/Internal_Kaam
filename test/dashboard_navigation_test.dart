@@ -156,11 +156,14 @@ void main() {
       ]);
     });
 
-    test('Retail — Bill Payments holds Billers (OBDX menu)', () {
-      final bills = RetailNav.items(AppLocalizationsEn())
-          .firstWhere((item) => item.id == RetailNav.billPayments);
+    test('Retail — Credit Cards and Bill Payments are one entry each, like Payments', () {
+      final items = RetailNav.items(AppLocalizationsEn());
+      final cards = items.firstWhere((item) => item.id == RetailNav.creditCards);
+      final bills = items.firstWhere((item) => item.id == RetailNav.billPayments);
+      expect(cards.label, 'Credit Cards');
       expect(bills.label, 'Bill Payments');
-      expect([for (final c in bills.children) c.id], [RetailNav.billPaymentsBillers, RetailNav.billPaymentsHistory]);
+      expect(cards.children, isEmpty);
+      expect(bills.children, isEmpty);
     });
 
     test('Retail — Transfer is one entry: its hub lists the ways to pay', () {

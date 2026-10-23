@@ -11,6 +11,7 @@ import 'package:ubci_bank/src/infra/security/biometric_service.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
 import 'package:ubci_bank/src/view/widgets/biometric_ui_copy.dart';
+import 'package:ubci_bank/src/view/widgets/language_picker.dart';
 import 'package:ubci_bank/src/view/widgets/login_help_dialog.dart';
 import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:ubci_bank/src/core/theme/app_gradients.dart';
@@ -27,11 +28,15 @@ class MoreTabScreen extends ConsumerStatefulWidget {
     this.displayName = '',
     this.onRewardsTap,
     this.onPersonalize,
+    this.onMyLimitsTap,
   });
 
   /// Opens Personalize Dashboard; null hides the row (no personalisable
   /// OBDX dashboard for this customer).
   final VoidCallback? onPersonalize;
+
+  /// Opens Account Settings → My Limits; null hides the row.
+  final VoidCallback? onMyLimitsTap;
 
   /// Signed-in customer's name for the profile card.
   final String displayName;
@@ -138,24 +143,7 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
     await ref.read(appSettingsProvider.notifier).setPalette(selected);
   }
 
-  Future<void> _pickLanguage(Locale current) async {
-    final l10n = AppLocalizations.of(context);
-    final selected = await AppBottomSheet.pick<String>(
-      context: context,
-      title: l10n.language,
-      selected: current.languageCode,
-      options: LocaleConfig.supportedLanguageCodes
-          .map(
-            (code) => (
-              value: code,
-              label: LocaleConfig.displayName(l10n, code),
-            ),
-          )
-          .toList(),
-    );
-    if (selected == null || !mounted) return;
-    await ref.read(appSettingsProvider.notifier).setLocale(Locale(selected));
-  }
+  Future<void> _pickLanguage() => showLanguagePicker(context, ref);
 
   void _comingSoon(String label) {
     final l10n = AppLocalizations.of(context);
@@ -216,7 +204,7 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
           child: _MenuTile(
             icon: Icons.language_rounded,
             label: l10n.menuLanguages,
-            onTap: () => _pickLanguage(ref.read(appSettingsProvider).locale),
+            onTap: _pickLanguage,
           ),
         ),
       ],
@@ -250,6 +238,13 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
             icon: wide ? Icons.dashboard_customize_outlined : null,
             compact: wide,
             onTap: widget.onPersonalize!,
+          ),
+        if (widget.onMyLimitsTap != null)
+          _MenuRow(
+            title: l10n.myLimitsTitle,
+            icon: wide ? Icons.speed_rounded : null,
+            compact: wide,
+            onTap: widget.onMyLimitsTap!,
           ),
         _MenuRow(
           title: l10n.menuAppSettings,
@@ -417,7 +412,7 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
                   icon: Icons.language_rounded,
                   title: l10n.language,
                   value: languageLabel,
-                  onTap: () => _pickLanguage(currentLocale),
+                  onTap: _pickLanguage,
                   showDivider: false,
                 ),
               ],
