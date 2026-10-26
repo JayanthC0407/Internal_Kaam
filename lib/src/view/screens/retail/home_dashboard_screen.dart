@@ -33,6 +33,8 @@ import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.d
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
+import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
@@ -857,6 +859,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
     if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
     if (index == _myLimitsIndex) return RetailNav.more;
+    if (index == _mailboxIndex) return RetailNav.mailbox;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -890,6 +893,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
         _openSection(index: _creditCardsHubIndex);
         return;
+      case RetailNav.mailbox:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _mailboxIndex);
+        return;
     }
     final index = RetailNav.tabIds.indexOf(id);
     if (index < 0) return;
@@ -913,6 +920,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       userId: _signedInUserName(),
       onLogout: _logout,
       onMenuTap: Responsive.of(context).isDesktop ? null : _openMenu,
+      onNotificationsTap: _openMailbox,
+      unreadNotificationCount: ref.watch(mailboxCountsProvider).valueOrNull?.total ?? 0,
       // Personalize applies to Home, so it is offered only there.
       onPersonalizeDashboard: _selectedBottomNavIndex != 0 ||
               ref.watch(personalizationProvider).isUnavailable
@@ -940,6 +949,17 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   static const _creditCardsHubIndex = 28;
   static const _billPaymentsHubIndex = 29;
   static const _addBillerIndex = 30;
+
+  /// Mailbox (OBDX Mails / Alerts / Notifications): side menu, the bell and
+  /// the Menu tab.
+  static const _mailboxIndex = 31;
+
+  /// The bell: opens Mailbox; Back returns to the screen it was tapped on.
+  void _openMailbox() {
+    if (_selectedBottomNavIndex == _mailboxIndex) return;
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+    _openSection(index: _mailboxIndex, back: _selectedBottomNavIndex);
+  }
 
   static const _creditCardsScreens = {_creditCardsHubIndex, _creditCardsIndex, _cardTransactionsIndex};
   static const _billPaymentsScreens = {_billPaymentsHubIndex, _billersIndex, _billHistoryIndex, _addBillerIndex};
@@ -993,6 +1013,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
       case _myLimitsIndex:
         return MyLimitsScreen(embedded: true, onBack: _closeSection);
+      case _mailboxIndex:
+        return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _closeSection);
       case 1:
         return const InsightsTabScreen();
       case 2:
@@ -1026,6 +1048,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               : _openPersonalize,
           onRewardsTap: () => setState(() => _selectedBottomNavIndex = 3),
           onMyLimitsTap: () => _openSection(index: _myLimitsIndex, back: 4),
+          onMailboxTap: () => _openSection(index: _mailboxIndex, back: 4),
         );
       case 5:
         return PayeesScreen(

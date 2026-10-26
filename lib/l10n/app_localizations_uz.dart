@@ -3175,4 +3175,172 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get moduleComingSoon => 'Coming soon';
+
+  @override
+  String get mailboxTitle => 'Mailbox';
+
+  @override
+  String get mailboxMails => 'Mails';
+
+  @override
+  String get mailboxAlerts => 'Alerts';
+
+  @override
+  String get mailboxNotifications => 'Notifications';
+
+  @override
+  String mailboxMailsCount(int count) {
+    return 'Mails ($count)';
+  }
+
+  @override
+  String mailboxAlertsCount(int count) {
+    return 'Alerts ($count)';
+  }
+
+  @override
+  String mailboxNotificationsCount(int count) {
+    return 'Notifications ($count)';
+  }
+
+  @override
+  String get mailboxInbox => 'Inbox';
+
+  @override
+  String get mailboxSentMails => 'Sent Mails';
+
+  @override
+  String get mailboxDeletedMails => 'Deleted Mails';
+
+  @override
+  String get mailboxSubject => 'Subject';
+
+  @override
+  String get mailboxReferenceNo => 'Reference No';
+
+  @override
+  String get mailboxDate => 'Date';
+
+  @override
+  String get mailboxReceived => 'Received';
+
+  @override
+  String get mailboxFrom => 'From :';
+
+  @override
+  String get mailboxSent => 'Sent :';
+
+  @override
+  String get mailboxAttachments => 'Attachments :';
+
+  @override
+  String get mailboxRefresh => 'Refresh';
+
+  @override
+  String get mailboxDelete => 'Delete';
+
+  @override
+  String get mailboxRestore => 'Restore';
+
+  @override
+  String get mailboxNoInbox => 'No item in Inbox';
+
+  @override
+  String get mailboxNoSent => 'No item in Sent Mail';
+
+  @override
+  String get mailboxNoDeleted => 'No item in Deleted Mail';
+
+  @override
+  String get mailboxNoAlerts => 'No item in alerts';
+
+  @override
+  String get mailboxNoNotifications => 'No item in notifications';
+
+  @override
+  String get mailboxDeleteInboxTitle => 'Delete Inbox Mails';
+
+  @override
+  String get mailboxDeleteSentTitle => 'Delete Sent Mail';
+
+  @override
+  String get mailboxDeleteDeletedTitle => 'Delete Deleted Mail';
+
+  @override
+  String get mailboxConfirmation => 'Confirmation';
+
+  @override
+  String get mailboxDeleteMail => 'Are you sure you want to delete this mail?';
+
+  @override
+  String mailboxDeleteMails(int count) {
+    return 'You have selected $count mails. Are you sure you want to delete them?';
+  }
+
+  @override
+  String get mailboxDeleteMailForever =>
+      'This mail will be permanently deleted. Are you sure you want to continue?';
+
+  @override
+  String mailboxDeleteMailsForever(int count) {
+    return 'You have selected $count mails. All the mails will be permanently deleted. Are you sure you want to continue?';
+  }
+
+  @override
+  String get mailboxDeleteAlert =>
+      'Are you sure you want to delete this Alert?';
+
+  @override
+  String mailboxDeleteAlerts(int count) {
+    return 'You have selected $count alerts. Are you sure you want to delete them?';
+  }
+
+  @override
+  String get mailboxDeleteNotification =>
+      'Are you sure you want to delete this Notification?';
+
+  @override
+  String mailboxDeleteNotifications(int count) {
+    return 'You have selected ($count) notifications. Are you sure you want to delete them?';
+  }
+
+  @override
+  String get mailboxYes => 'Yes';
+
+  @override
+  String get mailboxNo => 'No';
+
+  @override
+  String get mailboxConfirm => 'Confirm';
+
+  @override
+  String get mailboxCancel => 'Cancel';
+
+  @override
+  String get mailboxHighPriority => 'High priority';
+
+  @override
+  String get mailboxLoadFailed => 'Mailbox could not be loaded.';
+
+  @override
+  String get mailboxDone => 'Done.';
+
+  @override
+  String get mailboxPendingApproval => 'Sent for approval.';
+
+  @override
+  String get mailboxActionFailed =>
+      'That could not be completed. Please try again.';
+
+  @override
+  String get mailboxOtpTitle => 'Verify to continue';
+
+  @override
+  String get mailboxOtpInvalid => 'That code is not right. Please try again.';
+
+  @override
+  String get mailboxDownloadFailed => 'The attachment could not be downloaded.';
+
+  @override
+  String get mailboxSelectHint => 'Select an item to read it.';
 }

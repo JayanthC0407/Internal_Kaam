@@ -11,6 +11,7 @@ import 'package:ubci_bank/src/infra/network/apis/common/obdx_mobile_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_cards_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_limits_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_mailbox_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_registration_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
@@ -66,6 +67,10 @@ final obdxCardsApiProvider = Provider(
 
 final obdxLimitsApiProvider = Provider(
   (ref) => ObdxLimitsApi(ref.watch(obdxDioClientProvider)),
+);
+
+final obdxMailboxApiProvider = Provider(
+  (ref) => ObdxMailboxApi(ref.watch(obdxDioClientProvider)),
 );
 
 /// First-time Login Flow Wizard (LFW) — ported from vendor branch.
