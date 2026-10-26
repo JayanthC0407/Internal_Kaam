@@ -6351,6 +6351,942 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The file could not be opened.'**
   String get mailboxPickFailed;
+
+  /// No description provided for @prefTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Preferences'**
+  String get prefTitle;
+
+  /// No description provided for @prefGroupAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get prefGroupAccount;
+
+  /// No description provided for @prefGroupSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security & Privacy'**
+  String get prefGroupSecurity;
+
+  /// No description provided for @prefGroupApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get prefGroupApp;
+
+  /// No description provided for @prefLimitsControls.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits & Controls'**
+  String get prefLimitsControls;
+
+  /// No description provided for @prefPrivacyConsents.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Consents'**
+  String get prefPrivacyConsents;
+
+  /// No description provided for @prefNotificationsAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications & Alerts'**
+  String get prefNotificationsAlerts;
+
+  /// No description provided for @prefAppearanceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance & Language'**
+  String get prefAppearanceLanguage;
+
+  /// No description provided for @prefDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get prefDevices;
+
+  /// No description provided for @prefProfileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal and contact details'**
+  String get prefProfileHint;
+
+  /// No description provided for @prefPrimaryAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The account used by default'**
+  String get prefPrimaryAccountHint;
+
+  /// No description provided for @prefLimitsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily and monthly transaction limits'**
+  String get prefLimitsHint;
+
+  /// No description provided for @prefSecurityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric login, security questions, soft token, devices'**
+  String get prefSecurityHint;
+
+  /// No description provided for @prefPrivacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Third party apps, feedback and Live Help'**
+  String get prefPrivacyHint;
+
+  /// No description provided for @prefNotificationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications and OTP delivery'**
+  String get prefNotificationsHint;
+
+  /// No description provided for @prefAppearanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, colours and language'**
+  String get prefAppearanceHint;
+
+  /// No description provided for @prefPersonalizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose and arrange your dashboard widgets'**
+  String get prefPersonalizeHint;
+
+  /// No description provided for @prefUserId.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID: {id}'**
+  String prefUserId(String id);
+
+  /// No description provided for @prefLastLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Last login {when}'**
+  String prefLastLogin(String when);
+
+  /// No description provided for @moreGroupServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get moreGroupServices;
+
+  /// No description provided for @moreGroupDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get moreGroupDiscover;
+
+  /// No description provided for @moreGroupHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get moreGroupHelp;
+
+  /// No description provided for @prefProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get prefProfile;
+
+  /// No description provided for @prefPrimaryAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary Account Number'**
+  String get prefPrimaryAccount;
+
+  /// No description provided for @prefThirdPartyApps.
+  ///
+  /// In en, this message translates to:
+  /// **'Third Party Applications'**
+  String get prefThirdPartyApps;
+
+  /// No description provided for @prefSecurityLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Security & Login'**
+  String get prefSecurityLogin;
+
+  /// No description provided for @prefLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your preferences could not be loaded.'**
+  String get prefLoadFailed;
+
+  /// No description provided for @prefSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That could not be saved. Please try again.'**
+  String get prefSaveFailed;
+
+  /// No description provided for @prefOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to continue'**
+  String get prefOtpTitle;
+
+  /// No description provided for @prefOtpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That code is not right. Please try again.'**
+  String get prefOtpInvalid;
+
+  /// No description provided for @prefPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent for approval.'**
+  String get prefPendingApproval;
+
+  /// No description provided for @prefReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get prefReview;
+
+  /// No description provided for @prefBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get prefBack;
+
+  /// No description provided for @prefCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get prefCancel;
+
+  /// No description provided for @prefSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get prefSubmit;
+
+  /// No description provided for @prefSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get prefSave;
+
+  /// No description provided for @prefEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get prefEdit;
+
+  /// No description provided for @prefConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get prefConfirm;
+
+  /// No description provided for @prefOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ok'**
+  String get prefOk;
+
+  /// No description provided for @prefApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get prefApply;
+
+  /// No description provided for @prefSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get prefSuccess;
+
+  /// No description provided for @prefStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get prefStatus;
+
+  /// No description provided for @prefStatusSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Successful'**
+  String get prefStatusSuccessful;
+
+  /// No description provided for @prefMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get prefMessage;
+
+  /// No description provided for @prefPersonalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get prefPersonalInfo;
+
+  /// No description provided for @prefContactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get prefContactInfo;
+
+  /// No description provided for @prefDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get prefDateOfBirth;
+
+  /// No description provided for @prefDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get prefDownload;
+
+  /// No description provided for @prefDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be downloaded.'**
+  String get prefDownloadFailed;
+
+  /// No description provided for @prefEditField.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {value}'**
+  String prefEditField(String value);
+
+  /// No description provided for @prefUpdateProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Profile'**
+  String get prefUpdateProfile;
+
+  /// No description provided for @prefProfileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your details have been updated successfully!!'**
+  String get prefProfileUpdated;
+
+  /// No description provided for @prefEmailUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your details have been updated successfully! To ensure that you receive your e-statements on the updated email ID, please unsubscribe and re-subscribe for the required e-statements.'**
+  String get prefEmailUpdated;
+
+  /// No description provided for @prefAreaCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Area Code'**
+  String get prefAreaCode;
+
+  /// No description provided for @prefNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get prefNumber;
+
+  /// No description provided for @prefLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Line 1'**
+  String get prefLine1;
+
+  /// No description provided for @prefLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Line 2'**
+  String get prefLine2;
+
+  /// No description provided for @prefLine3.
+  ///
+  /// In en, this message translates to:
+  /// **'Line 3'**
+  String get prefLine3;
+
+  /// No description provided for @prefCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get prefCity;
+
+  /// No description provided for @prefCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get prefCountry;
+
+  /// No description provided for @prefSelectCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Country'**
+  String get prefSelectCountry;
+
+  /// No description provided for @prefZipCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Zip Code'**
+  String get prefZipCode;
+
+  /// No description provided for @prefContactAttribute.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Attribute'**
+  String get prefContactAttribute;
+
+  /// No description provided for @prefInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid number'**
+  String get prefInvalidNumber;
+
+  /// No description provided for @prefInvalidMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid mobile number'**
+  String get prefInvalidMobile;
+
+  /// No description provided for @prefInvalidFax.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid fax number'**
+  String get prefInvalidFax;
+
+  /// No description provided for @prefInvalidAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid address'**
+  String get prefInvalidAddress;
+
+  /// No description provided for @prefInvalidCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter only alphabets characters'**
+  String get prefInvalidCity;
+
+  /// No description provided for @prefInvalidZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Zip Code'**
+  String get prefInvalidZip;
+
+  /// No description provided for @prefInvalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Email'**
+  String get prefInvalidEmail;
+
+  /// No description provided for @prefInvalidId.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid {id}'**
+  String prefInvalidId(String id);
+
+  /// No description provided for @prefIdTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'{id} must be less than or equal to 20 characters'**
+  String prefIdTooLong(String id);
+
+  /// No description provided for @prefSelectPrimaryAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Primary Account'**
+  String get prefSelectPrimaryAccount;
+
+  /// No description provided for @prefSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get prefSelect;
+
+  /// No description provided for @prefAccountTypeAndNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type And Number'**
+  String get prefAccountTypeAndNumber;
+
+  /// No description provided for @prefPartyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Party Name'**
+  String get prefPartyName;
+
+  /// No description provided for @prefNickName.
+  ///
+  /// In en, this message translates to:
+  /// **'Nick Name'**
+  String get prefNickName;
+
+  /// No description provided for @prefCurrentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Account'**
+  String get prefCurrentAccount;
+
+  /// No description provided for @prefSavingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving Account'**
+  String get prefSavingAccount;
+
+  /// No description provided for @prefWalletAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet Account'**
+  String get prefWalletAccount;
+
+  /// No description provided for @prefNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts available.'**
+  String get prefNoAccounts;
+
+  /// No description provided for @prefNoPrimaryWish.
+  ///
+  /// In en, this message translates to:
+  /// **'If you do not wish to set a primary account'**
+  String get prefNoPrimaryWish;
+
+  /// No description provided for @prefClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Selection'**
+  String get prefClearSelection;
+
+  /// No description provided for @prefPrimarySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary account saved successfully !!'**
+  String get prefPrimarySaved;
+
+  /// No description provided for @prefPrimaryCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary account selection cleared successfully !!'**
+  String get prefPrimaryCleared;
+
+  /// No description provided for @prefNoAccountSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No account selected. Please select an account to be marked as primary.'**
+  String get prefNoAccountSelected;
+
+  /// No description provided for @prefApplicationAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Application Access'**
+  String get prefApplicationAccess;
+
+  /// No description provided for @prefGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Granted'**
+  String get prefGranted;
+
+  /// No description provided for @prefRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked'**
+  String get prefRevoked;
+
+  /// No description provided for @prefCurrentAndSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Current & Savings'**
+  String get prefCurrentAndSavings;
+
+  /// No description provided for @prefTermDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposits'**
+  String get prefTermDeposits;
+
+  /// No description provided for @prefLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get prefLoans;
+
+  /// No description provided for @prefMapAllTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Map All Transactions'**
+  String get prefMapAllTransactions;
+
+  /// No description provided for @prefTaskObInquiries.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Banking Account Inquiries'**
+  String get prefTaskObInquiries;
+
+  /// No description provided for @prefTaskObPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Banking Payments'**
+  String get prefTaskObPayments;
+
+  /// No description provided for @prefNoConsentAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts available.'**
+  String get prefNoConsentAccounts;
+
+  /// No description provided for @prefNoThirdPartyApps.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any active third party applications to manage.'**
+  String get prefNoThirdPartyApps;
+
+  /// No description provided for @prefConsentReview.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for Third Party Consents. Please review details before you confirm!'**
+  String get prefConsentReview;
+
+  /// No description provided for @prefConsentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Third party consents initiated successfully.'**
+  String get prefConsentSuccess;
+
+  /// No description provided for @prefSetSecurityQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Security Question'**
+  String get prefSetSecurityQuestion;
+
+  /// No description provided for @prefSoftToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft Token Authentication'**
+  String get prefSoftToken;
+
+  /// No description provided for @prefSmsMissedCall.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS and Missed Call Banking'**
+  String get prefSmsMissedCall;
+
+  /// No description provided for @prefSmsChatbot.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS and Chatbot Banking'**
+  String get prefSmsChatbot;
+
+  /// No description provided for @prefManageBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Touch ID / Face ID'**
+  String get prefManageBiometric;
+
+  /// No description provided for @prefSecurityQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Question'**
+  String get prefSecurityQuestion;
+
+  /// No description provided for @prefUserSecurityQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'User Security Questions'**
+  String get prefUserSecurityQuestions;
+
+  /// No description provided for @prefQuestionsNotSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'User Security Questions have not been setup yet.'**
+  String get prefQuestionsNotSetUp;
+
+  /// No description provided for @prefSetUpNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up now'**
+  String get prefSetUpNow;
+
+  /// No description provided for @prefSelectQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Question'**
+  String get prefSelectQuestion;
+
+  /// No description provided for @prefAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get prefAnswer;
+
+  /// No description provided for @prefQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get prefQuestion;
+
+  /// No description provided for @prefInvalidAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid answer.'**
+  String get prefInvalidAnswer;
+
+  /// No description provided for @prefDuplicateQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate questions selected. Please select different questions'**
+  String get prefDuplicateQuestions;
+
+  /// No description provided for @prefSecurityQuestionReview.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for User Security Question. Please review details before you confirm!'**
+  String get prefSecurityQuestionReview;
+
+  /// No description provided for @prefRequestInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been initiated successfully.'**
+  String get prefRequestInitiated;
+
+  /// No description provided for @prefRequestInitiatedRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been initiated successfully. Reference Number is {referenceNo}.'**
+  String prefRequestInitiatedRef(String referenceNo);
+
+  /// No description provided for @prefChooseAuthenticator.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Authenticator Type'**
+  String get prefChooseAuthenticator;
+
+  /// No description provided for @prefOracleAuthenticator.
+  ///
+  /// In en, this message translates to:
+  /// **'Oracle Mobile Authenticator'**
+  String get prefOracleAuthenticator;
+
+  /// No description provided for @prefOtherAuthenticator.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Mobile Authenticator'**
+  String get prefOtherAuthenticator;
+
+  /// No description provided for @prefCantScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t scan? Copy the key.'**
+  String get prefCantScan;
+
+  /// No description provided for @prefKeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Key copied'**
+  String get prefKeyCopied;
+
+  /// No description provided for @prefMissedCallBanking.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed Call Banking'**
+  String get prefMissedCallBanking;
+
+  /// No description provided for @prefSmsBanking.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Banking'**
+  String get prefSmsBanking;
+
+  /// No description provided for @prefSetResetPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set/Reset Pin'**
+  String get prefSetResetPin;
+
+  /// No description provided for @prefSetPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Pin'**
+  String get prefSetPin;
+
+  /// No description provided for @prefConfirmPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Pin'**
+  String get prefConfirmPin;
+
+  /// No description provided for @prefPinNumeric.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin can only be numeric.'**
+  String get prefPinNumeric;
+
+  /// No description provided for @prefPinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin did not match.'**
+  String get prefPinMismatch;
+
+  /// No description provided for @prefPinSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin has been successfully setup.'**
+  String get prefPinSetUp;
+
+  /// No description provided for @prefThemesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a theme to change the look of the application'**
+  String get prefThemesIntro;
+
+  /// No description provided for @prefSwitchDefaultTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Default Theme'**
+  String get prefSwitchDefaultTheme;
+
+  /// No description provided for @prefCurrentTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get prefCurrentTheme;
+
+  /// No description provided for @prefThemeApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme applied.'**
+  String get prefThemeApplied;
+
+  /// No description provided for @prefPreviewPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page Title'**
+  String get prefPreviewPageTitle;
+
+  /// No description provided for @prefPreviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body and information text'**
+  String get prefPreviewBody;
+
+  /// No description provided for @prefPreviewPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get prefPreviewPrimary;
+
+  /// No description provided for @prefPreviewSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary'**
+  String get prefPreviewSecondary;
+
+  /// No description provided for @prefRegisteredDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered Phones/Tablets'**
+  String get prefRegisteredDevices;
+
+  /// No description provided for @prefRegisteredDevicesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Unregistering will disable alternate login from all mobile devices.'**
+  String get prefRegisteredDevicesNote;
+
+  /// No description provided for @prefRegisteredWearable.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered Wearable'**
+  String get prefRegisteredWearable;
+
+  /// No description provided for @prefRegisteredWearableNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Unregistering will disable alternate login from all wearable devices.'**
+  String get prefRegisteredWearableNote;
+
+  /// No description provided for @prefAndroidDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Android Devices'**
+  String get prefAndroidDevices;
+
+  /// No description provided for @prefIosDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS Devices'**
+  String get prefIosDevices;
+
+  /// No description provided for @prefWebBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Web Browser'**
+  String get prefWebBrowser;
+
+  /// No description provided for @prefPushNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notification'**
+  String get prefPushNotification;
+
+  /// No description provided for @prefPushNotificationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Disabling the service will unregister the device from receiving alerts via push notifications.'**
+  String get prefPushNotificationNote;
+
+  /// No description provided for @prefFeedbackPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback Preferences'**
+  String get prefFeedbackPreferences;
+
+  /// No description provided for @prefFeedbackNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note : Disabling this will disable the feedback window after every transaction.'**
+  String get prefFeedbackNote;
+
+  /// No description provided for @prefLiveHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Help'**
+  String get prefLiveHelp;
+
+  /// No description provided for @prefLiveHelpNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note : Disabling this will disable the oracle live feature.'**
+  String get prefLiveHelpNote;
+
+  /// No description provided for @prefOtpDeliveryMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred Delivery Mode (Only for OTP)'**
+  String get prefOtpDeliveryMode;
+
+  /// No description provided for @prefDispatchMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Dispatch Method'**
+  String get prefDispatchMethod;
+
+  /// No description provided for @prefSms.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get prefSms;
+
+  /// No description provided for @prefEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get prefEmail;
+
+  /// No description provided for @prefBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get prefBoth;
+
+  /// No description provided for @prefOtpDeliveryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: The above configured dispatch method is applicable only if OTP is set up as the transaction authentication mode by the bank.'**
+  String get prefOtpDeliveryNote;
 }
 
 class _AppLocalizationsDelegate
