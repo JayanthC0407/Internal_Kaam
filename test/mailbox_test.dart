@@ -180,6 +180,118 @@ void main() {
     });
   });
 
+  group('Phase 2 model (compose-mail / message-detail hooks.js)', () {
+    test('categories flatten to subjects with their group; OTHERS is spotted', () {
+      final subjects = MailSubject.listFromPayload({
+        'mailCategoryDTOs': [
+          {
+            'name': 'Cards',
+            'subjects': [
+              {'subjectId': 'S1', 'subject': 'Card not received'},
+              {'subjectId': 'S9', 'subject': 'Others'},
+            ],
+          },
+        ],
+      });
+      expect(subjects.map((s) => s.id), ['S1', 'S9']);
+      expect(subjects.first.category, 'Cards');
+      expect(subjects.last.isOthers, isTrue);
+    });
+
+    test('parties: own first, then related; the Party field only with relations', () {
+      final parties = MailParty.fromPayloads(
+        {
+          'party': {
+            'id': {'value': 'P001'},
+            'personalDetails': {'fullName': 'Jane Doe'},
+          },
+        },
+        {
+          'partyToPartyRelationship': [
+            {
+              'relatedParty': {'value': 'P777'},
+              'relatedPartyName': 'Doe Traders',
+            },
+          ],
+        },
+      );
+      expect([for (final p in parties) p.id], ['P001', 'P777']);
+      expect(ComposeSetup(subjects: const [], parties: parties).showParty, isTrue);
+      expect(ComposeSetup(subjects: const [], parties: parties.take(1).toList()).showParty, isFalse);
+    });
+
+    test('compose body: OTHERS sends the remark as subject; the whole party id goes out', () {
+      const others = MailSubject(id: 'S9', label: 'OTHERS', category: 'General');
+      final body = composeMailBody(
+        subject: others,
+        otherRemark: 'Address change',
+        text: 'Please update.',
+        contents: const [
+          {'value': 'C1', 'displayValue': 'a.pdf'},
+        ],
+        party: 'P777',
+      );
+      expect(body['subject'], 'Address change');
+      expect(body['subjectId'], 'S9');
+      expect(body['messageType'], 'M');
+      expect(body['party'], {'value': 'P777'}, reason: 'OBDX [0] would send only "P"');
+      expect(body['contentDTO'], [
+        {
+          'contentId': {'value': 'C1', 'displayValue': 'a.pdf'},
+        },
+      ]);
+    });
+
+    test('reply body: "Re :" added once, linkedParent and subjectId from the mail', () {
+      final mail = Mail.listFromPayload({
+        'mails': [
+          {..._mail('7', 'Card query'), 'subjectId': 'S1'},
+        ],
+      }, userName: _me, folder: MailFolder.inbox).single;
+      final body = mail.replyBody('Thanks', const []);
+      expect(body['subject'], 'Re :Card query');
+      expect(body['messageId'], '7');
+      expect(body['subjectId'], 'S1');
+      expect((body['linkedParent'] as Map)['messageBody'], 'Body of Card query');
+      final again = Mail.listFromPayload({'mails': [_mail('8', 'Re :Card query')]}, userName: _me, folder: MailFolder.inbox);
+      expect(again.single.replyBody('x', const [])['subject'], 'Re :Card query');
+    });
+
+    test('upload rules: duplicate, then size, then type; mixed-case extension refused', () {
+      expect(MailUploadRules.check([('a.pdf', 10)], ['a.pdf']), MailUploadProblem.duplicate);
+      expect(MailUploadRules.check([('b.pdf', MailUploadRules.maxFileBytes + 1)], const []), MailUploadProblem.tooLarge);
+      expect(MailUploadRules.check([('c.exe', 10)], const []), MailUploadProblem.badType);
+      expect(MailUploadRules.allowedName('scan.PDF'), isTrue);
+      expect(MailUploadRules.allowedName('scan.Pdf'), isFalse);
+      expect(MailUploadRules.allowedName('photo.jpg'), isFalse, reason: 'OBDX lists .jpeg only');
+      expect(MailUploadRules.check([('ok.docx', 10)], const []), isNull);
+    });
+  });
+
+  group('Phase 2 repository', () {
+    test('send: 417 asks for the OTP, then 202 is pending approval', () async {
+      final api = _FakeApi()..answer = 417;
+      final repo = MailboxRepository(api: api);
+      final first = await repo.sendMail(const {'messageType': 'M'});
+      final challenge = (first as Success<MailboxWriteOutcome>).data!.challenge;
+      expect(challenge, isNotNull);
+      api.answer = 202;
+      final second = await repo.sendMail(const {'messageType': 'M'}, challenge: challenge, otp: '1234');
+      expect((second as Success<MailboxWriteOutcome>).data!.pendingApproval, isTrue);
+      expect(api.sent.length, 2);
+    });
+
+    test('upload: SUCCESSFUL gives the contentId; anything else fails', () async {
+      final api = _FakeApi();
+      final repo = MailboxRepository(api: api);
+      final ok = await repo.uploadAttachment('a.pdf', const [1, 2, 3], composeIndex: 0);
+      expect((ok as Success<MailboxWriteOutcome>).data!.contentId, {'value': 'C42', 'displayValue': 'a.pdf'});
+      expect(api.uploads.single, ('a.pdf', 'application/pdf', 0));
+      api.uploadResult = 'FAILURE';
+      expect(await repo.uploadAttachment('b.pdf', const [1]), isA<ExceptionError<MailboxWriteOutcome>>());
+    });
+  });
+
   Future<_FakeRepo> pump(WidgetTester tester, {double width = 390, List<Map<String, dynamic>>? mails}) async {
     SharedPreferences.setMockInitialValues({});
     tester.view.physicalSize = Size(width, 2000);
@@ -283,6 +395,57 @@ void main() {
     expect(find.text('1 / 3'), findsOneWidget);
   });
 
+  testWidgets('Compose: OBDX required checks, OTHERS shows Other Remark, send goes to Sent Mails', (tester) async {
+    final repo = await pump(tester);
+    await tester.tap(find.text('Compose Mail'));
+    await tester.pumpAndSettle();
+    expect(find.text('Party'), findsNothing, reason: 'no related parties');
+
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    expect(find.text('Please select a subject category'), findsOneWidget);
+    expect(find.text('Cannot send an empty mail'), findsOneWidget);
+    expect(repo.sentBodies, isEmpty);
+
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Others').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Other Remark'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).at(0), 'Address change');
+    await tester.enterText(find.byType(TextField).at(1), 'Please update my address.');
+    await tester.pumpAndSettle();
+    expect(find.text('975 Characters Left'), findsOneWidget);
+
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    final body = repo.sentBodies.single;
+    expect(body['subject'], 'Address change');
+    expect(body['subjectId'], 'S9');
+    expect(body['party'], {'value': 'P001'}, reason: 'own party when the field is hidden');
+    expect(find.text('Your message has been sent successfully.'), findsOneWidget);
+    expect(repo.folders.last, MailFolder.sent);
+  });
+
+  testWidgets('Reply: under the open mail, sends replyMail; none in Deleted Mails', (tester) async {
+    final repo = await pump(tester);
+    await tester.tap(find.text('Hello'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reply').first);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Thank you');
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    expect(repo.replies, [('2', 'Thank you')]);
+    expect(find.text('Your message has been sent successfully.'), findsOneWidget);
+
+    await tester.tap(find.text('Deleted Mails'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hello'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reply'), findsNothing);
+  });
+
   testWidgets('web: list beside the open item', (tester) async {
     await pump(tester, width: 1280);
     expect(find.text('Select an item to read it.'), findsOneWidget);
@@ -356,6 +519,34 @@ class _FakeRepo implements MailboxRepository {
     return ResponseHandler.success(const MailboxWriteOutcome.done(), code: 200);
   }
 
+  final sentBodies = <Map<String, dynamic>>[];
+  final replies = <(String, String)>[];
+
+  @override
+  Future<ResponseHandler<ComposeSetup>> fetchComposeSetup() async => ResponseHandler.success(
+        const ComposeSetup(
+          subjects: [
+            MailSubject(id: 'S1', label: 'Card not received', category: 'Cards'),
+            MailSubject(id: 'S9', label: 'Others', category: 'General'),
+          ],
+          parties: [MailParty(id: 'P001', name: 'Jane Doe')],
+        ),
+        code: 200,
+      );
+
+  @override
+  Future<ResponseHandler<MailboxWriteOutcome>> sendMail(Map<String, dynamic> body, {ObdxChallenge? challenge, String? otp}) async {
+    sentBodies.add(body);
+    return ResponseHandler.success(const MailboxWriteOutcome.done(), code: 200);
+  }
+
+  @override
+  Future<ResponseHandler<MailboxWriteOutcome>> replyMail(Mail mail, String text, List<Map<String, dynamic>> contents,
+      {ObdxChallenge? challenge, String? otp}) async {
+    replies.add((mail.id, text));
+    return ResponseHandler.success(const MailboxWriteOutcome.done(), code: 200);
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -385,6 +576,35 @@ class _FakeApi implements ObdxMailboxApi {
   @override
   Future<ResponseHandler<Map<String, dynamic>>> updateAlert(String id, Map<String, dynamic> body, {String? challengeResponseHeader}) =>
       _answer();
+
+  final sent = <Map<String, dynamic>>[];
+  final uploads = <(String, String, int?)>[];
+  String uploadResult = 'SUCCESSFUL';
+
+  @override
+  Future<ResponseHandler<Map<String, dynamic>>> sendMail(Map<String, dynamic> body, {String? challengeResponseHeader}) {
+    sent.add(body);
+    return _answer();
+  }
+
+  @override
+  Future<ResponseHandler<Map<String, dynamic>>> uploadContent({
+    required List<int> bytes,
+    required String fileName,
+    required String mimeType,
+    int? composeIndex,
+    String? challengeResponseHeader,
+  }) async {
+    uploads.add((fileName, mimeType, composeIndex));
+    return ResponseHandler.success(_wrap({
+      'status': {'result': uploadResult},
+      'contentDTOList': [
+        {
+          'contentId': {'value': 'C42', 'displayValue': fileName},
+        },
+      ],
+    }));
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

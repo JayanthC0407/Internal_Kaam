@@ -40,6 +40,14 @@ final notificationDetailProvider = FutureProvider.autoDispose.family<Notificatio
   throw MailboxLoadError(result is Error<NotificationDetail> ? result.error : null);
 });
 
+/// Compose: subject categories and parties (`mailCategories`, `me/party`,
+/// `me/party/relations`).
+final composeSetupProvider = FutureProvider.autoDispose<ComposeSetup>((ref) async {
+  final result = await ref.read(mailboxRepositoryProvider).fetchComposeSetup();
+  if (result is Success<ComposeSetup> && result.data != null) return result.data!;
+  throw MailboxLoadError(result is Error<ComposeSetup> ? result.error : null);
+});
+
 /// Load failure; [message] is OBDX's text when the server sent one.
 class MailboxLoadError implements Exception {
   const MailboxLoadError(this.message);

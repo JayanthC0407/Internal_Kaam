@@ -3347,4 +3347,71 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mailboxSelectHint => 'Select an item to read it.';
+
+  @override
+  String get mailboxComposeMail => 'Compose Mail';
+
+  @override
+  String get mailboxReply => 'Reply';
+
+  @override
+  String get mailboxParty => 'Party';
+
+  @override
+  String get mailboxCategory => 'Category';
+
+  @override
+  String get mailboxSelect => 'Select';
+
+  @override
+  String get mailboxOtherRemark => 'Other Remark';
+
+  @override
+  String get mailboxMessage => 'Message';
+
+  @override
+  String get mailboxSend => 'Send';
+
+  @override
+  String get mailboxAttachFile => 'Attach File';
+
+  @override
+  String mailboxCharactersLeft(int number) {
+    return '$number Characters Left';
+  }
+
+  @override
+  String get mailboxEmptySubject => 'Please select a subject category';
+
+  @override
+  String get mailboxEmptyMail => 'Cannot send an empty mail';
+
+  @override
+  String get mailboxMessageTooLong => 'Maximum Length of the Message Exceeded!';
+
+  @override
+  String get mailboxFileRules =>
+      'Maximum allowed file size 5 MB. Allowed file types : JPEG, PNG, DOC, PDF, TXT, ZIP, XLSX.';
+
+  @override
+  String get mailboxDuplicateFile => 'This document is already attached!';
+
+  @override
+  String get mailboxFileTooLarge =>
+      'Attached File Size Exceeded Allowed Size Limit';
+
+  @override
+  String get mailboxFileBadType => 'Attached File Type is Invalid.';
+
+  @override
+  String get mailboxSentSuccess => 'Your message has been sent successfully.';
+
+  @override
+  String get mailboxUploadFailed => 'The file could not be attached.';
+
+  @override
+  String get mailboxRemoveFile => 'Remove';
+
+  @override
+  String get mailboxPickFailed => 'The file could not be opened.';
 }
