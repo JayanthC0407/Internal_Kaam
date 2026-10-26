@@ -6225,6 +6225,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select an item to read it.'**
   String get mailboxSelectHint;
+
+  /// No description provided for @mailboxComposeMail.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose Mail'**
+  String get mailboxComposeMail;
+
+  /// No description provided for @mailboxReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get mailboxReply;
+
+  /// No description provided for @mailboxParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Party'**
+  String get mailboxParty;
+
+  /// No description provided for @mailboxCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get mailboxCategory;
+
+  /// No description provided for @mailboxSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get mailboxSelect;
+
+  /// No description provided for @mailboxOtherRemark.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Remark'**
+  String get mailboxOtherRemark;
+
+  /// No description provided for @mailboxMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get mailboxMessage;
+
+  /// No description provided for @mailboxSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get mailboxSend;
+
+  /// No description provided for @mailboxAttachFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach File'**
+  String get mailboxAttachFile;
+
+  /// No description provided for @mailboxCharactersLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{number} Characters Left'**
+  String mailboxCharactersLeft(int number);
+
+  /// No description provided for @mailboxEmptySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a subject category'**
+  String get mailboxEmptySubject;
+
+  /// No description provided for @mailboxEmptyMail.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot send an empty mail'**
+  String get mailboxEmptyMail;
+
+  /// No description provided for @mailboxMessageTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Length of the Message Exceeded!'**
+  String get mailboxMessageTooLong;
+
+  /// No description provided for @mailboxFileRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum allowed file size 5 MB. Allowed file types : JPEG, PNG, DOC, PDF, TXT, ZIP, XLSX.'**
+  String get mailboxFileRules;
+
+  /// No description provided for @mailboxDuplicateFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This document is already attached!'**
+  String get mailboxDuplicateFile;
+
+  /// No description provided for @mailboxFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached File Size Exceeded Allowed Size Limit'**
+  String get mailboxFileTooLarge;
+
+  /// No description provided for @mailboxFileBadType.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached File Type is Invalid.'**
+  String get mailboxFileBadType;
+
+  /// No description provided for @mailboxSentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message has been sent successfully.'**
+  String get mailboxSentSuccess;
+
+  /// No description provided for @mailboxUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be attached.'**
+  String get mailboxUploadFailed;
+
+  /// No description provided for @mailboxRemoveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get mailboxRemoveFile;
+
+  /// No description provided for @mailboxPickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be opened.'**
+  String get mailboxPickFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -120,11 +120,96 @@ class MailboxRepository extends ObdxRepositoryBase {
           {ObdxChallenge? challenge, String? otp}) =>
       _write((header) => _api.updateNotification(n.mapId, n.deleteBody(), challengeResponseHeader: header), challenge, otp);
 
+  // ── Compose / Reply (Phase 2, mailbox.md §6) ──
+
+  /// Categories and parties for Compose. OBDX loads `me/party`, then
+  /// `me/party/relations`, beside `mailCategories`; all three must arrive
+  /// before the form can be sent.
+  Future<ResponseHandler<ComposeSetup>> fetchComposeSetup() async {
+    final results = await Future.wait([
+      parseBody(await _api.fetchMailCategories(), (b) => b),
+      parseBody(await _api.fetchParty(), (b) => b),
+      parseBody(await _api.fetchPartyRelations(), (b) => b),
+    ]);
+    for (final r in results) {
+      if (r is! Success<Map<String, dynamic>>) return mapFailure(r);
+    }
+    Map<String, dynamic> body(int i) => (results[i] as Success<Map<String, dynamic>>).data!;
+    return ResponseHandler.success(
+      ComposeSetup(
+        subjects: MailSubject.listFromPayload(body(0)),
+        parties: MailParty.fromPayloads(body(1), body(2)),
+      ),
+      code: 200,
+    );
+  }
+
+  /// Compose → `POST mailbox/mails` with [body] from [composeMailBody].
+  Future<ResponseHandler<MailboxWriteOutcome>> sendMail(Map<String, dynamic> body, {ObdxChallenge? challenge, String? otp}) =>
+      _write((header) => _api.sendMail(body, challengeResponseHeader: header), challenge, otp);
+
+  /// Reply to [mail] with [text] and attachments [contents].
+  Future<ResponseHandler<MailboxWriteOutcome>> replyMail(
+    Mail mail,
+    String text,
+    List<Map<String, dynamic>> contents, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) =>
+      _write(
+        (header) => _api.replyMail(mail.id, mail.replyBody(text, contents), challengeResponseHeader: header),
+        challenge,
+        otp,
+      );
+
+  /// Uploads one file. Done carries its `contentId`; OBDX accepts it only
+  /// when `status.result == "SUCCESSFUL"` (compose-mail/hooks.js:382).
+  /// [composeIndex] is its place in the batch when uploaded from Compose.
+  Future<ResponseHandler<MailboxWriteOutcome>> uploadAttachment(
+    String fileName,
+    List<int> bytes, {
+    int? composeIndex,
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final dot = fileName.lastIndexOf('.');
+    final ext = dot < 0 ? '' : fileName.substring(dot + 1).toLowerCase();
+    final result = await _write(
+      (header) => _api.uploadContent(
+        bytes: bytes,
+        fileName: fileName,
+        mimeType: _mimeTypes[ext] ?? 'application/octet-stream',
+        composeIndex: composeIndex,
+        challengeResponseHeader: header,
+      ),
+      challenge,
+      otp,
+      contentOf: (body) {
+        if (ObdxApiUtils.asMap(body['status'])['result']?.toString() != 'SUCCESSFUL') return null;
+        final list = body['contentDTOList'];
+        final first = list is List && list.isNotEmpty ? ObdxApiUtils.asMap(list.first) : const <String, dynamic>{};
+        final id = ObdxApiUtils.asMap(first['contentId']);
+        return id['value'] == null ? null : id;
+      },
+    );
+    // Done without a content id: the upload did not succeed.
+    if (result is Success<MailboxWriteOutcome> && result.data!.challenge == null && result.data!.contentId == null) {
+      return ResponseHandler.exceptionError();
+    }
+    return result;
+  }
+
+  /// An attachment taken off before sending. OBDX ignores the answer
+  /// (compose-mail/hooks.js:259-261).
+  Future<ResponseHandler<MailboxWriteOutcome>> removeAttachment(String contentId, {ObdxChallenge? challenge, String? otp}) =>
+      _write((header) => _api.deleteContent(contentId, challengeResponseHeader: header), challenge, otp);
+
   Future<ResponseHandler<MailboxWriteOutcome>> _write(
     Future<ResponseHandler<Map<String, dynamic>>> Function(String? challengeResponseHeader) call,
     ObdxChallenge? challenge,
-    String? otp,
-  ) async {
+    String? otp, {
+    Map<String, dynamic>? Function(Map<String, dynamic> body)? contentOf,
+  }) async {
     final otpValue = otp?.trim() ?? '';
     final otpSubmitted = challenge != null && otpValue.isNotEmpty;
     final result = await call(otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null);
@@ -132,7 +217,7 @@ class MailboxRepository extends ObdxRepositoryBase {
       result,
       otpSubmitted: otpSubmitted,
       onOtp: (next, invalid) => MailboxWriteOutcome.otpRequired(next, invalidOtp: invalid),
-      onDone: (_, __, pending) => MailboxWriteOutcome.done(pendingApproval: pending),
+      onDone: (body, _, pending) => MailboxWriteOutcome.done(pendingApproval: pending, contentId: contentOf?.call(body)),
     );
   }
 }
