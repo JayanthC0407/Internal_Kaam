@@ -11,6 +11,7 @@ import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/infra/network/statement_download.dart';
 import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:ubci_bank/src/view/screens/common/mailbox/mail_compose.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
@@ -18,12 +19,12 @@ import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
 /// The three parts of OBDX's Mailbox menu.
 enum MailboxTab { mails, alerts, notifications }
 
-/// Mailbox (OBDX `components/mailbox`), Phase 1: read and manage. Tabs
-/// Mails ({n}) / Alerts ({n}) / Notifications ({n}) as OBDX's header view;
-/// Mails has Inbox / Sent Mails / Deleted Mails. Opening an item marks it
-/// read; Delete (and Restore in Deleted Mails) handle 417 OTP and approval.
-/// Wide screens show the open item beside the list (OBDX's right panel),
-/// a phone shows it full screen. Compose and Reply come in Phase 2.
+/// Mailbox (OBDX `components/mailbox`). Tabs Mails ({n}) / Alerts ({n}) /
+/// Notifications ({n}) as OBDX's header view; Mails has Inbox / Sent Mails
+/// / Deleted Mails, Compose Mail and Reply (mail_compose.dart). Opening an
+/// item marks it read; every write (delete, restore, send, reply, upload)
+/// handles 417 OTP and approval. Wide screens show the open item or Compose
+/// beside the list (OBDX's right panel), a phone shows it full screen.
 /// Evidence: docs/obdx/features/mailbox.md.
 class MailboxScreen extends ConsumerStatefulWidget {
   const MailboxScreen({
@@ -52,6 +53,9 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
   /// The open item: a [Mail], [MailboxAlert] or [MailboxNotification].
   Object? _open;
 
+  /// Compose Mail is showing (in place of an open item).
+  bool _composing = false;
+
   /// Ticked rows of the current list, by id.
   final _selected = <String>{};
 
@@ -72,6 +76,7 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
   void _switchTab(MailboxTab tab) => setState(() {
         _tab = tab;
         _open = null;
+        _composing = false;
         _selected.clear();
         _pager.reset();
       });
@@ -79,6 +84,7 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
   void _switchFolder(MailFolder folder) => setState(() {
         _folder = folder;
         _open = null;
+        _composing = false;
         _selected.clear();
         _pager.reset();
       });
@@ -102,7 +108,10 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
   // ── Open → mark read (OBDX does it on open; a failure keeps it unread) ──
 
   Future<void> _openMail(Mail mail) async {
-    setState(() => _open = mail);
+    setState(() {
+      _open = mail;
+      _composing = false;
+    });
     if (!mail.unread || _readIds.contains(mail.id)) return;
     setState(() => _readIds.add(mail.id));
     if (await ref.read(mailboxRepositoryProvider).markMailRead(mail, _folder)) ref.invalidate(mailboxCountsProvider);
@@ -157,19 +166,7 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
     var done = 0, pending = 0, failed = 0;
     String? failure;
     for (final item in items) {
-      var result = await call(item, null, null);
-      while (result is Success<MailboxWriteOutcome> && result.data?.challenge != null) {
-        final outcome = result.data!;
-        if (!mounted) return;
-        final otp = await showPayOtpPrompt(
-          context,
-          title: l10n.mailboxOtpTitle,
-          error: outcome.invalidOtp ? l10n.mailboxOtpInvalid : null,
-          attemptsLeft: outcome.challenge!.attemptsLeft,
-        );
-        if (!mounted || otp == null) break;
-        result = await call(item, outcome.challenge, otp);
-      }
+      final result = await runMailboxWrite(context, (c, otp) => call(item, c, otp));
       if (!mounted) return;
       if (result is Success<MailboxWriteOutcome> && result.data?.challenge == null) {
         result.data!.pendingApproval ? pending++ : done++;
@@ -239,6 +236,29 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
     await _runWrites<MailboxNotification>(list, (n, c, otp) => repo.deleteNotification(n, challenge: c, otp: otp));
   }
 
+  // ── Compose / Reply ──
+
+  void _compose() => setState(() {
+        _open = null;
+        _composing = true;
+      });
+
+  /// After Compose: OBDX shows Sent Mails (compose-mail/hooks.js:249).
+  void _afterSend(bool pending) {
+    final l10n = AppLocalizations.of(context);
+    _snack(pending ? l10n.mailboxPendingApproval : l10n.mailboxSentSuccess);
+    _switchFolder(MailFolder.sent);
+    _refresh();
+  }
+
+  /// After Reply: OBDX closes the mail and reloads the list.
+  void _afterReply(bool pending) {
+    final l10n = AppLocalizations.of(context);
+    _snack(pending ? l10n.mailboxPendingApproval : l10n.mailboxSentSuccess);
+    setState(() => _open = null);
+    _refresh();
+  }
+
   Future<void> _download(MailAttachment attachment) async {
     final l10n = AppLocalizations.of(context);
     final result = await ref.read(mailboxRepositoryProvider).downloadAttachment(attachment);
@@ -265,7 +285,11 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
       onBack: widget.embedded ? widget.onBack : null,
       builder: (context, wide) {
         final list = _buildList(context);
-        final detail = _open == null ? null : _buildDetail(context, onBack: wide ? null : () => setState(() => _open = null));
+        final detail = _composing
+            ? MailComposeView(onClose: () => setState(() => _composing = false), onSent: _afterSend)
+            : _open == null
+                ? null
+                : _buildDetail(context, onBack: wide ? null : () => setState(() => _open = null));
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -353,6 +377,7 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
                       toolbar: _Toolbar(
                         busy: _busy,
                         onRefresh: _refresh,
+                        onCompose: _compose,
                         onDelete: picked.isEmpty ? null : () => _deleteMails(picked),
                         onRestore: _folder == MailFolder.deleted && picked.isNotEmpty ? () => _restoreMails(picked) : null,
                       ),
@@ -450,8 +475,10 @@ class _MailboxScreenState extends ConsumerState<MailboxScreen> {
       Mail m => _MailDetail(
           key: ValueKey('mail-${m.id}'),
           mail: m,
+          folder: _folder,
           busy: _busy,
           onBack: onBack,
+          onReplied: _afterReply,
           onDelete: () => _deleteMails([m]),
           onDownload: _download,
         ),
@@ -519,10 +546,13 @@ class _ListCard extends StatelessWidget {
 }
 
 class _Toolbar extends StatelessWidget {
-  const _Toolbar({required this.busy, required this.onRefresh, this.onDelete, this.onRestore});
+  const _Toolbar({required this.busy, required this.onRefresh, this.onCompose, this.onDelete, this.onRestore});
 
   final bool busy;
   final VoidCallback onRefresh;
+
+  /// Mails only: OBDX's "Compose Mail".
+  final VoidCallback? onCompose;
   final VoidCallback? onDelete;
   final VoidCallback? onRestore;
 
@@ -534,6 +564,13 @@ class _Toolbar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(tooltip: l10n.mailboxRefresh, onPressed: busy ? null : onRefresh, icon: const Icon(Icons.refresh_rounded)),
+          // Ticked rows switch the bar to their actions, so it fits a phone.
+          if (onCompose != null && onDelete == null && onRestore == null)
+            TextButton.icon(
+              onPressed: busy ? null : onCompose,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: Text(l10n.mailboxComposeMail),
+            ),
           const Spacer(),
           if (busy) const Padding(padding: EdgeInsets.all(12), child: SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))),
           if (onRestore != null)
@@ -649,6 +686,7 @@ class _DetailCard extends StatelessWidget {
     required this.onDelete,
     this.date,
     this.onBack,
+    this.onReply,
     this.extra = const [],
     this.after = const [],
   });
@@ -659,6 +697,9 @@ class _DetailCard extends StatelessWidget {
   final bool busy;
   final VoidCallback onDelete;
   final VoidCallback? onBack;
+
+  /// Mails outside Deleted Mails: OBDX's "Reply".
+  final VoidCallback? onReply;
 
   /// Between the title and the body (a mail's From, Sent, Attachments).
   final List<Widget> extra;
@@ -691,6 +732,12 @@ class _DetailCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (onReply != null)
+                TextButton.icon(
+                  onPressed: busy ? null : onReply,
+                  icon: const Icon(Icons.reply_rounded, size: 18),
+                  label: Text(l10n.mailboxReply),
+                ),
               TextButton.icon(
                 onPressed: busy ? null : onDelete,
                 icon: Icon(Icons.delete_outline_rounded, size: 18, color: HomeColors.error(context)),
@@ -718,16 +765,22 @@ class _MailDetail extends ConsumerStatefulWidget {
   const _MailDetail({
     super.key,
     required this.mail,
+    required this.folder,
     required this.busy,
     required this.onDelete,
     required this.onDownload,
+    required this.onReplied,
     this.onBack,
   });
 
   final Mail mail;
+  final MailFolder folder;
   final bool busy;
   final VoidCallback onDelete;
   final ValueChanged<MailAttachment> onDownload;
+
+  /// After a reply was sent; true when it went for approval.
+  final ValueChanged<bool> onReplied;
   final VoidCallback? onBack;
 
   @override
@@ -736,6 +789,7 @@ class _MailDetail extends ConsumerStatefulWidget {
 
 class _MailDetailState extends ConsumerState<_MailDetail> {
   late List<MailAttachment> _attachments = widget.mail.attachments;
+  bool _replying = false;
 
   @override
   void initState() {
@@ -771,6 +825,8 @@ class _MailDetailState extends ConsumerState<_MailDetail> {
       busy: widget.busy,
       onBack: widget.onBack,
       onDelete: widget.onDelete,
+      // No Reply in Deleted Mails (message-detail.html:131).
+      onReply: widget.folder == MailFolder.deleted || _replying ? null : () => setState(() => _replying = true),
       extra: [
         if (mail.senderName != null) field(l10n.mailboxFrom, mail.senderName!),
         field(l10n.mailboxSent, _dateTime(context, mail.date)),
@@ -795,6 +851,13 @@ class _MailDetailState extends ConsumerState<_MailDetail> {
       // The thread: each earlier message with its From and Sent
       // (message-detail/hooks.js:189-211).
       after: [
+        if (_replying)
+          MailReplyBox(
+            mail: mail.copyWith(attachments: _attachments),
+            fromSent: widget.folder == MailFolder.sent,
+            onCancel: () => setState(() => _replying = false),
+            onSent: widget.onReplied,
+          ),
         for (final p in mail.thread) ...[
           Divider(height: 28, color: HomeColors.divider(context)),
           if (p.senderName != null) field(l10n.mailboxFrom, p.senderName!),
