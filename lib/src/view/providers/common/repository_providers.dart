@@ -3,6 +3,7 @@ import 'package:ubci_bank/src/infra/repositories/common/auth_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/cards_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/limits_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/mailbox_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/biometric_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/forgot_credentials_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/login_wizard_repository.dart';
@@ -63,6 +64,10 @@ final cardsRepositoryProvider = Provider(
 
 final limitsRepositoryProvider = Provider(
   (ref) => LimitsRepository(api: ref.watch(obdxLimitsApiProvider)),
+);
+
+final mailboxRepositoryProvider = Provider(
+  (ref) => MailboxRepository(api: ref.watch(obdxMailboxApiProvider)),
 );
 
 /// See [PaymentRepository] — currently a local mock; no `ObdxPaymentApi`

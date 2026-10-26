@@ -5925,6 +5925,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coming soon'**
   String get moduleComingSoon;
+
+  /// No description provided for @mailboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mailbox'**
+  String get mailboxTitle;
+
+  /// No description provided for @mailboxMails.
+  ///
+  /// In en, this message translates to:
+  /// **'Mails'**
+  String get mailboxMails;
+
+  /// No description provided for @mailboxAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get mailboxAlerts;
+
+  /// No description provided for @mailboxNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get mailboxNotifications;
+
+  /// No description provided for @mailboxMailsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Mails ({count})'**
+  String mailboxMailsCount(int count);
+
+  /// No description provided for @mailboxAlertsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts ({count})'**
+  String mailboxAlertsCount(int count);
+
+  /// No description provided for @mailboxNotificationsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications ({count})'**
+  String mailboxNotificationsCount(int count);
+
+  /// No description provided for @mailboxInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get mailboxInbox;
+
+  /// No description provided for @mailboxSentMails.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent Mails'**
+  String get mailboxSentMails;
+
+  /// No description provided for @mailboxDeletedMails.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted Mails'**
+  String get mailboxDeletedMails;
+
+  /// No description provided for @mailboxSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get mailboxSubject;
+
+  /// No description provided for @mailboxReferenceNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference No'**
+  String get mailboxReferenceNo;
+
+  /// No description provided for @mailboxDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get mailboxDate;
+
+  /// No description provided for @mailboxReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get mailboxReceived;
+
+  /// No description provided for @mailboxFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From :'**
+  String get mailboxFrom;
+
+  /// No description provided for @mailboxSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent :'**
+  String get mailboxSent;
+
+  /// No description provided for @mailboxAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments :'**
+  String get mailboxAttachments;
+
+  /// No description provided for @mailboxRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get mailboxRefresh;
+
+  /// No description provided for @mailboxDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get mailboxDelete;
+
+  /// No description provided for @mailboxRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get mailboxRestore;
+
+  /// No description provided for @mailboxNoInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'No item in Inbox'**
+  String get mailboxNoInbox;
+
+  /// No description provided for @mailboxNoSent.
+  ///
+  /// In en, this message translates to:
+  /// **'No item in Sent Mail'**
+  String get mailboxNoSent;
+
+  /// No description provided for @mailboxNoDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'No item in Deleted Mail'**
+  String get mailboxNoDeleted;
+
+  /// No description provided for @mailboxNoAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No item in alerts'**
+  String get mailboxNoAlerts;
+
+  /// No description provided for @mailboxNoNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No item in notifications'**
+  String get mailboxNoNotifications;
+
+  /// No description provided for @mailboxDeleteInboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Inbox Mails'**
+  String get mailboxDeleteInboxTitle;
+
+  /// No description provided for @mailboxDeleteSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Sent Mail'**
+  String get mailboxDeleteSentTitle;
+
+  /// No description provided for @mailboxDeleteDeletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Deleted Mail'**
+  String get mailboxDeleteDeletedTitle;
+
+  /// No description provided for @mailboxConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation'**
+  String get mailboxConfirmation;
+
+  /// No description provided for @mailboxDeleteMail.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this mail?'**
+  String get mailboxDeleteMail;
+
+  /// No description provided for @mailboxDeleteMails.
+  ///
+  /// In en, this message translates to:
+  /// **'You have selected {count} mails. Are you sure you want to delete them?'**
+  String mailboxDeleteMails(int count);
+
+  /// No description provided for @mailboxDeleteMailForever.
+  ///
+  /// In en, this message translates to:
+  /// **'This mail will be permanently deleted. Are you sure you want to continue?'**
+  String get mailboxDeleteMailForever;
+
+  /// No description provided for @mailboxDeleteMailsForever.
+  ///
+  /// In en, this message translates to:
+  /// **'You have selected {count} mails. All the mails will be permanently deleted. Are you sure you want to continue?'**
+  String mailboxDeleteMailsForever(int count);
+
+  /// No description provided for @mailboxDeleteAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this Alert?'**
+  String get mailboxDeleteAlert;
+
+  /// No description provided for @mailboxDeleteAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'You have selected {count} alerts. Are you sure you want to delete them?'**
+  String mailboxDeleteAlerts(int count);
+
+  /// No description provided for @mailboxDeleteNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this Notification?'**
+  String get mailboxDeleteNotification;
+
+  /// No description provided for @mailboxDeleteNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'You have selected ({count}) notifications. Are you sure you want to delete them?'**
+  String mailboxDeleteNotifications(int count);
+
+  /// No description provided for @mailboxYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get mailboxYes;
+
+  /// No description provided for @mailboxNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get mailboxNo;
+
+  /// No description provided for @mailboxConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get mailboxConfirm;
+
+  /// No description provided for @mailboxCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get mailboxCancel;
+
+  /// No description provided for @mailboxHighPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'High priority'**
+  String get mailboxHighPriority;
+
+  /// No description provided for @mailboxLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mailbox could not be loaded.'**
+  String get mailboxLoadFailed;
+
+  /// No description provided for @mailboxDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done.'**
+  String get mailboxDone;
+
+  /// No description provided for @mailboxPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent for approval.'**
+  String get mailboxPendingApproval;
+
+  /// No description provided for @mailboxActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That could not be completed. Please try again.'**
+  String get mailboxActionFailed;
+
+  /// No description provided for @mailboxOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to continue'**
+  String get mailboxOtpTitle;
+
+  /// No description provided for @mailboxOtpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That code is not right. Please try again.'**
+  String get mailboxOtpInvalid;
+
+  /// No description provided for @mailboxDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The attachment could not be downloaded.'**
+  String get mailboxDownloadFailed;
+
+  /// No description provided for @mailboxSelectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an item to read it.'**
+  String get mailboxSelectHint;
 }
 
 class _AppLocalizationsDelegate

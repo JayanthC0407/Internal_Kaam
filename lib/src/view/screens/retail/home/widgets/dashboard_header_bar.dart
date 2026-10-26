@@ -23,6 +23,7 @@ class WebDashboardHeaderBar extends StatelessWidget {
     this.onLanguageTap,
     this.onHelpTap,
     this.onNotificationsTap,
+    this.unreadNotificationCount = 0,
     this.onPersonalizeDashboard,
   });
 
@@ -50,6 +51,9 @@ class WebDashboardHeaderBar extends StatelessWidget {
   final VoidCallback? onHelpTap;
   final VoidCallback? onNotificationsTap;
 
+  /// Unread mails + alerts + notifications, on the bell.
+  final int unreadNotificationCount;
+
   @override
   Widget build(BuildContext context) {
     final id = userId?.trim() ?? '';
@@ -65,6 +69,7 @@ class WebDashboardHeaderBar extends StatelessWidget {
       onLanguageTap: onLanguageTap,
       onHelpTap: onHelpTap,
       onNotificationsTap: onNotificationsTap,
+      unreadNotificationCount: unreadNotificationCount,
       onPersonalizeDashboard: onPersonalizeDashboard,
     );
   }

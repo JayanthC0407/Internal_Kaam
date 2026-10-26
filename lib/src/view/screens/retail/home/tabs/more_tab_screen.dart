@@ -29,6 +29,7 @@ class MoreTabScreen extends ConsumerStatefulWidget {
     this.onRewardsTap,
     this.onPersonalize,
     this.onMyLimitsTap,
+    this.onMailboxTap,
   });
 
   /// Opens Personalize Dashboard; null hides the row (no personalisable
@@ -37,6 +38,9 @@ class MoreTabScreen extends ConsumerStatefulWidget {
 
   /// Opens Account Settings → My Limits; null hides the row.
   final VoidCallback? onMyLimitsTap;
+
+  /// Opens Mailbox; null keeps the old Coming soon.
+  final VoidCallback? onMailboxTap;
 
   /// Signed-in customer's name for the profile card.
   final String displayName;
@@ -227,10 +231,11 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
           onTap: () => _comingSoon(l10n.menuExploreProducts),
         ),
         _MenuRow(
-          title: l10n.menuNotification,
+          // OBDX's name for it: Mailbox (Mails, Alerts, Notifications).
+          title: widget.onMailboxTap == null ? l10n.menuNotification : l10n.mailboxTitle,
           icon: wide ? Icons.notifications_none_rounded : null,
           compact: wide,
-          onTap: () => _comingSoon(l10n.menuNotification),
+          onTap: widget.onMailboxTap ?? () => _comingSoon(l10n.menuNotification),
         ),
         if (widget.onPersonalize != null)
           _MenuRow(

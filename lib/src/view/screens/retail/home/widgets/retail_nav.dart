@@ -27,6 +27,7 @@ class RetailNav {
   static const accountsTermDeposits = 'accounts.termDeposits';
   static const creditCards = 'creditCards';
   static const billPayments = 'billPayments';
+  static const mailbox = 'mailbox';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -91,6 +92,12 @@ class RetailNav {
           id: billPayments,
           label: l10n.billPaymentsTitle,
           icon: Icons.receipt_long_rounded,
+        ),
+        // OBDX's Mailbox menu (Mails, Alerts, Notifications) on one page.
+        DashboardNavItem(
+          id: mailbox,
+          label: l10n.mailboxTitle,
+          icon: Icons.mail_outline_rounded,
         ),
         // Last, after Accounts: a catch-all reads best at the end.
         DashboardNavItem(
