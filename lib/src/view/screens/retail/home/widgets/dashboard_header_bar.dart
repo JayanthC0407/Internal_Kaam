@@ -8,9 +8,9 @@ import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 /// Retail **web** dashboard top bar — the shared [DashboardTopBar], the same
 /// bar the Corporate dashboard uses, fed from the Retail session.
 ///
-/// The profile menu shows the user's name over their sign-in ID and holds
-/// Log out; the settings menu holds Personalize Dashboard and the
-/// light/dark switch.
+/// The initials open My Preferences; the chevron beside them shows the
+/// user's name over their sign-in ID and holds Log out; the settings menu
+/// holds the light/dark and colour theme switches.
 class WebDashboardHeaderBar extends StatelessWidget {
   const WebDashboardHeaderBar({
     super.key,
@@ -24,8 +24,12 @@ class WebDashboardHeaderBar extends StatelessWidget {
     this.onHelpTap,
     this.onNotificationsTap,
     this.unreadNotificationCount = 0,
-    this.onPersonalizeDashboard,
+    this.onProfileTap,
   });
+
+  /// The initials: opens My Preferences. The chevron beside them keeps the
+  /// profile menu (name, Log out).
+  final VoidCallback? onProfileTap;
 
   /// The signed-in customer's name, for the profile menu and avatar.
   final String displayName;
@@ -35,11 +39,6 @@ class WebDashboardHeaderBar extends StatelessWidget {
   final String? userId;
 
   final VoidCallback onLogout;
-
-  /// Opens the Personalize Dashboard panel from the settings menu.
-  /// `null` omits the entry — used when `me` gave this user no
-  /// personalizable dashboard.
-  final VoidCallback? onPersonalizeDashboard;
 
   /// Opens the hamburger drawer. Only passed on tablet — desktop has the
   /// persistent side menu instead, so this is `null` there and
@@ -70,7 +69,8 @@ class WebDashboardHeaderBar extends StatelessWidget {
       onHelpTap: onHelpTap,
       onNotificationsTap: onNotificationsTap,
       unreadNotificationCount: unreadNotificationCount,
-      onPersonalizeDashboard: onPersonalizeDashboard,
+      onProfileTap: onProfileTap,
+      profileTooltip: AppLocalizations.of(context).prefTitle,
     );
   }
 }
@@ -182,8 +182,8 @@ class MobileDashboardHeaderRow extends StatelessWidget {
 }
 
 /// Phone Home header: menu on the left, the Demobank logo in the middle,
-/// the customer's profile avatar on the right (opens the Menu, where
-/// Personalize Dashboard, settings and help live).
+/// the customer's initials on the right (opens My Preferences, as OBDX's
+/// header profile does).
 class DemobankHomeHeader extends StatelessWidget {
   const DemobankHomeHeader({
     super.key,
@@ -234,7 +234,7 @@ class DemobankHomeHeader extends StatelessWidget {
         SizedBox(
           width: 48,
           child: Tooltip(
-            message: l10n.menuProfile,
+            message: l10n.prefTitle,
             child: ProfileAvatar(
               name: displayName.trim().isEmpty ? '?' : displayName,
               radius: 18,
