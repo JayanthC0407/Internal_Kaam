@@ -15,17 +15,37 @@ import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 /// each show Amount and Count as Utilized / Available / Total.
 /// Evidence and the app's deliberate differences:
 /// docs/obdx/features/my-limits.md.
-class MyLimitsScreen extends ConsumerStatefulWidget {
+class MyLimitsScreen extends StatelessWidget {
   const MyLimitsScreen({super.key, this.embedded = false, this.onBack});
 
   final bool embedded;
   final VoidCallback? onBack;
 
   @override
-  ConsumerState<MyLimitsScreen> createState() => _MyLimitsScreenState();
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return PayMenuPage(
+      title: l10n.myLimitsTitle,
+      subtitle: l10n.menuAccountSettings,
+      onBack: embedded ? onBack : null,
+      builder: (context, wide) => MyLimitsView(wide: wide),
+    );
+  }
 }
 
-class _MyLimitsScreenState extends ConsumerState<MyLimitsScreen> {
+/// My Limits without its page: the pickers and the limits. Also shown in
+/// Preferences → Limits & Controls.
+class MyLimitsView extends ConsumerStatefulWidget {
+  const MyLimitsView({super.key, required this.wide});
+
+  /// Pickers side by side and the wide limit layout.
+  final bool wide;
+
+  @override
+  ConsumerState<MyLimitsView> createState() => _MyLimitsViewState();
+}
+
+class _MyLimitsViewState extends ConsumerState<MyLimitsView> {
   String? _channelId;
   String? _transactionId;
 
@@ -71,11 +91,8 @@ class _MyLimitsScreenState extends ConsumerState<MyLimitsScreen> {
           onRetry: retry,
         );
 
-    return PayMenuPage(
-      title: l10n.myLimitsTitle,
-      subtitle: l10n.menuAccountSettings,
-      onBack: widget.embedded ? widget.onBack : null,
-      builder: (context, wide) => channels.when(
+    final wide = widget.wide;
+    return channels.when(
         loading: loading,
         error: (e, _) => failed(e, () => ref.invalidate(limitChannelsProvider)),
         data: (channelList) {
@@ -137,8 +154,7 @@ class _MyLimitsScreenState extends ConsumerState<MyLimitsScreen> {
             },
           );
         },
-      ),
-    );
+      );
   }
 }
 

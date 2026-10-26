@@ -259,39 +259,37 @@ void main() {
   });
 
   group('Menu', () {
-    testWidgets('Personalize Dashboard only when the customer has one', (tester) async {
-      await _pump(tester, const MoreTabScreen(displayName: 'Sarah Johnson'));
-      expect(find.text('Personalize Dashboard'), findsNothing);
-
-      var opened = 0;
+    testWidgets('a services hub: profile card, tiles and grouped list, no settings', (tester) async {
+      var rewards = 0;
+      var profile = 0;
       await _pump(
         tester,
-        MoreTabScreen(displayName: 'Sarah Johnson', onPersonalize: () => opened++),
+        MoreTabScreen(displayName: 'Sarah Johnson', onRewardsTap: () => rewards++, onProfileTap: () => profile++),
       );
-      await tester.tap(find.text('Personalize Dashboard'));
-      expect(opened, 1);
-    });
-
-
-    testWidgets('profile card, tiles and list; App Settings opens in place', (tester) async {
-      var rewards = 0;
-      await _pump(tester, MoreTabScreen(displayName: 'Sarah Johnson', onRewardsTap: () => rewards++));
       expect(find.text('Menu'), findsOneWidget);
       expect(find.text('Sarah Johnson'), findsOneWidget);
       expect(find.text('•••• •••• •••• 1022'), findsOneWidget);
       for (final label in [
         'Networth',
         'Rewards',
-        'Languages',
+        'SERVICES',
+        'Notification',
+        'DISCOVER',
         "What's New",
         'Explore Products',
-        'Notification',
-        'App Settings',
+        'HELP',
         'Need Help',
         'Log out',
       ]) {
         expect(find.text(label), findsOneWidget, reason: label);
       }
+      // Everything about the customer lives in My Preferences now.
+      for (final label in ['Languages', 'App Settings', 'My Limits', 'Personalize Dashboard']) {
+        expect(find.text(label), findsNothing, reason: label);
+      }
+
+      await tester.tap(find.text('Sarah Johnson'));
+      expect(profile, 1);
 
       await tester.tap(find.text('Rewards'));
       expect(rewards, 1);
@@ -299,16 +297,6 @@ void main() {
       await tester.tap(find.text('Networth'));
       await tester.pump();
       expect(find.textContaining('This feature will be available soon.'), findsOneWidget);
-
-      await tester.tap(find.text('App Settings'));
-      await tester.pumpAndSettle();
-      expect(find.text('Theme'), findsOneWidget);
-      expect(find.text('Forget device'), findsOneWidget);
-      expect(find.text('Log out'), findsNothing);
-
-      await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
-      expect(find.text('Menu'), findsOneWidget);
     });
   });
 }

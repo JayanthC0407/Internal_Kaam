@@ -78,25 +78,17 @@ void main() {
       expect(find.text('POOJA01'), findsNothing);
     });
 
-    testWidgets('settings offers Personalize Dashboard and the theme switch',
+    testWidgets('settings offers the theme switch; Personalize is in My Preferences',
         (tester) async {
-      var opened = false;
       await _pump(
         tester,
-        WebDashboardHeaderBar(
-          displayName: 'Pooja Jha',
-          onLogout: () {},
-          onPersonalizeDashboard: () => opened = true,
-        ),
+        WebDashboardHeaderBar(displayName: 'Pooja Jha', onLogout: () {}),
       );
 
       await tester.tap(find.byTooltip('Settings'));
       await tester.pumpAndSettle();
       expect(find.text('Switch to dark mode'), findsOneWidget);
-
-      await tester.tap(find.text('Personalize Dashboard'));
-      await tester.pumpAndSettle();
-      expect(opened, isTrue);
+      expect(find.text('Personalize Dashboard'), findsNothing);
     });
 
     testWidgets('Language opens the shared picker and changes the app locale',
