@@ -32,14 +32,13 @@ import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hu
 import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
 import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_customize_bar.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_dashboard_widgets.dart';
@@ -209,6 +208,26 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     );
   }
 
+  /// Preferences → Personalize Dashboard, its only entry point: Home first,
+  /// so the customer sees the widgets they are arranging.
+  void _personalizeFromPreferences() {
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+    setState(() => _selectedBottomNavIndex = 0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openPersonalize();
+    });
+  }
+
+  /// `userProfile.lastLoginTime` from the `me` response, when sent.
+  DateTime? _lastLoginFromTrace() {
+    final profileResponse = widget.args.loginTrace?['profileResponse'];
+    if (profileResponse is! Map) return null;
+    final body = profileResponse['body'];
+    final userProfile = body is Map ? body['userProfile'] : null;
+    if (userProfile is! Map) return null;
+    return DateTime.tryParse(userProfile['lastLoginTime']?.toString() ?? '');
+  }
+
   /// The Retail dashboard's widget area.
   ///
   /// Distinct states, which matter because they look different:
@@ -246,8 +265,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
     // Phone: the original home's rounded panel, drawn 16 px up over the
     // hero, with its 20 px margins — see [HomeContent] — so a personalized
-    // dashboard looks like the fixed one. The way into Personalize sits
-    // right above the widgets: a phone's header has no settings menu.
+    // dashboard looks like the fixed one. Personalize opens from My
+    // Preferences only.
     return Transform.translate(
       offset: const Offset(0, -16),
       child: DecoratedBox(
@@ -260,8 +279,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DashboardCustomizeBar(onCustomize: _openPersonalize),
-              const SizedBox(height: 8),
               area,
             ],
           ),
@@ -858,7 +875,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     // A module page and everything opened from it keep its entry lit.
     if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
     if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
-    if (index == _myLimitsIndex) return RetailNav.more;
     if (index == _mailboxIndex) return RetailNav.mailbox;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
@@ -921,12 +937,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       onLogout: _logout,
       onMenuTap: Responsive.of(context).isDesktop ? null : _openMenu,
       onNotificationsTap: _openMailbox,
+      onProfileTap: _openPreferences,
       unreadNotificationCount: ref.watch(mailboxCountsProvider).valueOrNull?.total ?? 0,
-      // Personalize applies to Home, so it is offered only there.
-      onPersonalizeDashboard: _selectedBottomNavIndex != 0 ||
-              ref.watch(personalizationProvider).isUnavailable
-          ? null
-          : _openPersonalize,
     );
   }
 
@@ -941,8 +953,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   static const _creditCardsIndex = 25;
   static const _cardTransactionsIndex = 26;
 
-  /// Account Settings → My Limits (OBDX `my-limit`), opened from the Menu tab.
-  static const _myLimitsIndex = 27;
+  // 27 was My Limits; it is now Preferences → Limits & Controls.
 
   /// The module pages the side menu opens (like the Payments hub), and Add
   /// Billers started from the Bill Payments page.
@@ -953,6 +964,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// Mailbox (OBDX Mails / Alerts / Notifications): side menu, the bell and
   /// the Menu tab.
   static const _mailboxIndex = 31;
+
+  /// Account Settings → Preferences (OBDX `side-menu`), opened from the
+  /// initials in the dashboard header, as OBDX's header profile does.
+  static const _preferencesIndex = 32;
+
+  /// The header initials: opens Preferences; Back returns to the screen it
+  /// was tapped on.
+  void _openPreferences() {
+    if (_selectedBottomNavIndex == _preferencesIndex) return;
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+    _openSection(index: _preferencesIndex, back: _selectedBottomNavIndex);
+  }
 
   /// The bell: opens Mailbox; Back returns to the screen it was tapped on.
   void _openMailbox() {
@@ -1011,10 +1034,19 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return CreditCardsScreen(embedded: true, onBack: _closeSection);
       case _cardTransactionsIndex:
         return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
-      case _myLimitsIndex:
-        return MyLimitsScreen(embedded: true, onBack: _closeSection);
       case _mailboxIndex:
         return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _closeSection);
+      case _preferencesIndex:
+        return PreferencesScreen(
+          userName: _signedInUserName(),
+          displayName: _displayNameFromTrace(),
+          lastLogin: _lastLoginFromTrace(),
+          onLogout: _logout,
+          // Only when the customer has a personalisable OBDX dashboard.
+          onPersonalize: ref.watch(personalizationProvider).isUnavailable ? null : _personalizeFromPreferences,
+          embedded: true,
+          onBack: _closeSection,
+        );
       case 1:
         return const InsightsTabScreen();
       case 2:
@@ -1042,13 +1074,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 4:
         return MoreTabScreen(
           displayName: _displayNameFromTrace(),
-          // Only when the customer has a personalisable OBDX dashboard.
-          onPersonalize: ref.watch(personalizationProvider).isUnavailable
-              ? null
-              : _openPersonalize,
           onRewardsTap: () => setState(() => _selectedBottomNavIndex = 3),
-          onMyLimitsTap: () => _openSection(index: _myLimitsIndex, back: 4),
           onMailboxTap: () => _openSection(index: _mailboxIndex, back: 4),
+          onProfileTap: _openPreferences,
         );
       case 5:
         return PayeesScreen(
@@ -1387,9 +1415,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               DemobankHomeHeader(
                 onMenuTap: _openMenu,
                 displayName: _displayNameFromTrace(),
-                // Profile → Menu (profile card, Personalize Dashboard,
-                // settings, help).
-                onProfileTap: () => setState(() => _selectedBottomNavIndex = 4),
+                // Initials → Preferences (OBDX's header profile).
+                onProfileTap: _openPreferences,
               ),
               const SizedBox(height: 12),
               card,

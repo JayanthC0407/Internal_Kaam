@@ -3409,4 +3409,503 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get mailboxPickFailed => 'The file could not be opened.';
+
+  @override
+  String get prefTitle => 'My Preferences';
+
+  @override
+  String get prefGroupAccount => 'Account';
+
+  @override
+  String get prefGroupSecurity => 'Security & Privacy';
+
+  @override
+  String get prefGroupApp => 'App';
+
+  @override
+  String get prefLimitsControls => 'Limits & Controls';
+
+  @override
+  String get prefPrivacyConsents => 'Privacy & Consents';
+
+  @override
+  String get prefNotificationsAlerts => 'Notifications & Alerts';
+
+  @override
+  String get prefAppearanceLanguage => 'Appearance & Language';
+
+  @override
+  String get prefDevices => 'Devices';
+
+  @override
+  String get prefProfileHint => 'Personal and contact details';
+
+  @override
+  String get prefPrimaryAccountHint => 'The account used by default';
+
+  @override
+  String get prefLimitsHint => 'Daily and monthly transaction limits';
+
+  @override
+  String get prefSecurityHint =>
+      'Biometric login, security questions, soft token, devices';
+
+  @override
+  String get prefPrivacyHint => 'Third party apps, feedback and Live Help';
+
+  @override
+  String get prefNotificationsHint => 'Push notifications and OTP delivery';
+
+  @override
+  String get prefAppearanceHint => 'Theme, colours and language';
+
+  @override
+  String get prefPersonalizeHint => 'Choose and arrange your dashboard widgets';
+
+  @override
+  String prefUserId(String id) {
+    return 'User ID: $id';
+  }
+
+  @override
+  String prefLastLogin(String when) {
+    return 'Last login $when';
+  }
+
+  @override
+  String get moreGroupServices => 'Services';
+
+  @override
+  String get moreGroupDiscover => 'Discover';
+
+  @override
+  String get moreGroupHelp => 'Help';
+
+  @override
+  String get prefProfile => 'Profile';
+
+  @override
+  String get prefPrimaryAccount => 'Primary Account Number';
+
+  @override
+  String get prefThirdPartyApps => 'Third Party Applications';
+
+  @override
+  String get prefSecurityLogin => 'Security & Login';
+
+  @override
+  String get prefLoadFailed => 'Your preferences could not be loaded.';
+
+  @override
+  String get prefSaveFailed => 'That could not be saved. Please try again.';
+
+  @override
+  String get prefOtpTitle => 'Verify to continue';
+
+  @override
+  String get prefOtpInvalid => 'That code is not right. Please try again.';
+
+  @override
+  String get prefPendingApproval => 'Sent for approval.';
+
+  @override
+  String get prefReview => 'Review';
+
+  @override
+  String get prefBack => 'Back';
+
+  @override
+  String get prefCancel => 'Cancel';
+
+  @override
+  String get prefSubmit => 'Submit';
+
+  @override
+  String get prefSave => 'Save';
+
+  @override
+  String get prefEdit => 'Edit';
+
+  @override
+  String get prefConfirm => 'Confirm';
+
+  @override
+  String get prefOk => 'Ok';
+
+  @override
+  String get prefApply => 'Apply';
+
+  @override
+  String get prefSuccess => 'Success';
+
+  @override
+  String get prefStatus => 'Status';
+
+  @override
+  String get prefStatusSuccessful => 'Successful';
+
+  @override
+  String get prefMessage => 'Message';
+
+  @override
+  String get prefPersonalInfo => 'Personal Information';
+
+  @override
+  String get prefContactInfo => 'Contact Information';
+
+  @override
+  String get prefDateOfBirth => 'Date of Birth';
+
+  @override
+  String get prefDownload => 'Download';
+
+  @override
+  String get prefDownloadFailed => 'The file could not be downloaded.';
+
+  @override
+  String prefEditField(String value) {
+    return 'Edit $value';
+  }
+
+  @override
+  String get prefUpdateProfile => 'Update Profile';
+
+  @override
+  String get prefProfileUpdated =>
+      'Your details have been updated successfully!!';
+
+  @override
+  String get prefEmailUpdated =>
+      'Your details have been updated successfully! To ensure that you receive your e-statements on the updated email ID, please unsubscribe and re-subscribe for the required e-statements.';
+
+  @override
+  String get prefAreaCode => 'Area Code';
+
+  @override
+  String get prefNumber => 'Number';
+
+  @override
+  String get prefLine1 => 'Line 1';
+
+  @override
+  String get prefLine2 => 'Line 2';
+
+  @override
+  String get prefLine3 => 'Line 3';
+
+  @override
+  String get prefCity => 'City';
+
+  @override
+  String get prefCountry => 'Country';
+
+  @override
+  String get prefSelectCountry => 'Select Country';
+
+  @override
+  String get prefZipCode => 'Zip Code';
+
+  @override
+  String get prefContactAttribute => 'Contact Attribute';
+
+  @override
+  String get prefInvalidNumber => 'Enter valid number';
+
+  @override
+  String get prefInvalidMobile => 'Enter valid mobile number';
+
+  @override
+  String get prefInvalidFax => 'Enter valid fax number';
+
+  @override
+  String get prefInvalidAddress => 'Enter valid address';
+
+  @override
+  String get prefInvalidCity => 'Enter only alphabets characters';
+
+  @override
+  String get prefInvalidZip => 'Invalid Zip Code';
+
+  @override
+  String get prefInvalidEmail => 'Invalid Email';
+
+  @override
+  String prefInvalidId(String id) {
+    return 'Enter valid $id';
+  }
+
+  @override
+  String prefIdTooLong(String id) {
+    return '$id must be less than or equal to 20 characters';
+  }
+
+  @override
+  String get prefSelectPrimaryAccount => 'Select Primary Account';
+
+  @override
+  String get prefSelect => 'Select';
+
+  @override
+  String get prefAccountTypeAndNumber => 'Account Type And Number';
+
+  @override
+  String get prefPartyName => 'Party Name';
+
+  @override
+  String get prefNickName => 'Nick Name';
+
+  @override
+  String get prefCurrentAccount => 'Current Account';
+
+  @override
+  String get prefSavingAccount => 'Saving Account';
+
+  @override
+  String get prefWalletAccount => 'Wallet Account';
+
+  @override
+  String get prefNoAccounts => 'No accounts available.';
+
+  @override
+  String get prefNoPrimaryWish => 'If you do not wish to set a primary account';
+
+  @override
+  String get prefClearSelection => 'Clear Selection';
+
+  @override
+  String get prefPrimarySaved => 'Primary account saved successfully !!';
+
+  @override
+  String get prefPrimaryCleared =>
+      'Primary account selection cleared successfully !!';
+
+  @override
+  String get prefNoAccountSelected =>
+      'No account selected. Please select an account to be marked as primary.';
+
+  @override
+  String get prefApplicationAccess => 'Application Access';
+
+  @override
+  String get prefGranted => 'Granted';
+
+  @override
+  String get prefRevoked => 'Revoked';
+
+  @override
+  String get prefCurrentAndSavings => 'Current & Savings';
+
+  @override
+  String get prefTermDeposits => 'Term Deposits';
+
+  @override
+  String get prefLoans => 'Loans';
+
+  @override
+  String get prefMapAllTransactions => 'Map All Transactions';
+
+  @override
+  String get prefTaskObInquiries => 'Open Banking Account Inquiries';
+
+  @override
+  String get prefTaskObPayments => 'Open Banking Payments';
+
+  @override
+  String get prefNoConsentAccounts => 'No accounts available.';
+
+  @override
+  String get prefNoThirdPartyApps =>
+      'You don\'t have any active third party applications to manage.';
+
+  @override
+  String get prefConsentReview =>
+      'You initiated a request for Third Party Consents. Please review details before you confirm!';
+
+  @override
+  String get prefConsentSuccess =>
+      'Third party consents initiated successfully.';
+
+  @override
+  String get prefSetSecurityQuestion => 'Set Security Question';
+
+  @override
+  String get prefSoftToken => 'Soft Token Authentication';
+
+  @override
+  String get prefSmsMissedCall => 'SMS and Missed Call Banking';
+
+  @override
+  String get prefSmsChatbot => 'SMS and Chatbot Banking';
+
+  @override
+  String get prefManageBiometric => 'Manage Touch ID / Face ID';
+
+  @override
+  String get prefSecurityQuestion => 'Security Question';
+
+  @override
+  String get prefUserSecurityQuestions => 'User Security Questions';
+
+  @override
+  String get prefQuestionsNotSetUp =>
+      'User Security Questions have not been setup yet.';
+
+  @override
+  String get prefSetUpNow => 'Set up now';
+
+  @override
+  String get prefSelectQuestion => 'Select Question';
+
+  @override
+  String get prefAnswer => 'Answer';
+
+  @override
+  String get prefQuestion => 'Question';
+
+  @override
+  String get prefInvalidAnswer => 'Invalid answer.';
+
+  @override
+  String get prefDuplicateQuestions =>
+      'Duplicate questions selected. Please select different questions';
+
+  @override
+  String get prefSecurityQuestionReview =>
+      'You initiated a request for User Security Question. Please review details before you confirm!';
+
+  @override
+  String get prefRequestInitiated =>
+      'Your request has been initiated successfully.';
+
+  @override
+  String prefRequestInitiatedRef(String referenceNo) {
+    return 'Your request has been initiated successfully. Reference Number is $referenceNo.';
+  }
+
+  @override
+  String get prefChooseAuthenticator => 'Choose Authenticator Type';
+
+  @override
+  String get prefOracleAuthenticator => 'Oracle Mobile Authenticator';
+
+  @override
+  String get prefOtherAuthenticator => 'Other Mobile Authenticator';
+
+  @override
+  String get prefCantScan => 'Can\'t scan? Copy the key.';
+
+  @override
+  String get prefKeyCopied => 'Key copied';
+
+  @override
+  String get prefMissedCallBanking => 'Missed Call Banking';
+
+  @override
+  String get prefSmsBanking => 'SMS Banking';
+
+  @override
+  String get prefSetResetPin => 'Set/Reset Pin';
+
+  @override
+  String get prefSetPin => 'Set Pin';
+
+  @override
+  String get prefConfirmPin => 'Confirm Pin';
+
+  @override
+  String get prefPinNumeric => 'Pin can only be numeric.';
+
+  @override
+  String get prefPinMismatch => 'Pin did not match.';
+
+  @override
+  String get prefPinSetUp => 'Pin has been successfully setup.';
+
+  @override
+  String get prefThemesIntro =>
+      'Select a theme to change the look of the application';
+
+  @override
+  String get prefSwitchDefaultTheme => 'Switch to Default Theme';
+
+  @override
+  String get prefCurrentTheme => 'Current';
+
+  @override
+  String get prefThemeApplied => 'Theme applied.';
+
+  @override
+  String get prefPreviewPageTitle => 'Page Title';
+
+  @override
+  String get prefPreviewBody => 'Body and information text';
+
+  @override
+  String get prefPreviewPrimary => 'Primary';
+
+  @override
+  String get prefPreviewSecondary => 'Secondary';
+
+  @override
+  String get prefRegisteredDevices => 'Registered Phones/Tablets';
+
+  @override
+  String get prefRegisteredDevicesNote =>
+      'Note: Unregistering will disable alternate login from all mobile devices.';
+
+  @override
+  String get prefRegisteredWearable => 'Registered Wearable';
+
+  @override
+  String get prefRegisteredWearableNote =>
+      'Note: Unregistering will disable alternate login from all wearable devices.';
+
+  @override
+  String get prefAndroidDevices => 'Android Devices';
+
+  @override
+  String get prefIosDevices => 'iOS Devices';
+
+  @override
+  String get prefWebBrowser => 'Web Browser';
+
+  @override
+  String get prefPushNotification => 'Push Notification';
+
+  @override
+  String get prefPushNotificationNote =>
+      'Note: Disabling the service will unregister the device from receiving alerts via push notifications.';
+
+  @override
+  String get prefFeedbackPreferences => 'Feedback Preferences';
+
+  @override
+  String get prefFeedbackNote =>
+      'Note : Disabling this will disable the feedback window after every transaction.';
+
+  @override
+  String get prefLiveHelp => 'Live Help';
+
+  @override
+  String get prefLiveHelpNote =>
+      'Note : Disabling this will disable the oracle live feature.';
+
+  @override
+  String get prefOtpDeliveryMode => 'Preferred Delivery Mode (Only for OTP)';
+
+  @override
+  String get prefDispatchMethod => 'Dispatch Method';
+
+  @override
+  String get prefSms => 'SMS';
+
+  @override
+  String get prefEmail => 'Email';
+
+  @override
+  String get prefBoth => 'Both';
+
+  @override
+  String get prefOtpDeliveryNote =>
+      'Note: The above configured dispatch method is applicable only if OTP is set up as the transaction authentication mode by the bank.';
 }

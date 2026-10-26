@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
 
@@ -20,12 +21,12 @@ class CorpDashboardHeaderBar extends ConsumerWidget {
     this.onLanguageTap,
     this.onHelpTap,
     this.onNotificationsTap,
-    this.onPersonalizeDashboard,
+    this.onProfileTap,
   });
 
-  /// Opens the Personalize Dashboard panel from the settings menu.
-  /// `null` omits the entry entirely.
-  final VoidCallback? onPersonalizeDashboard;
+  /// The initials: opens My Preferences (Personalize Dashboard lives
+  /// there). The chevron beside them keeps the profile menu.
+  final VoidCallback? onProfileTap;
 
   /// Fallback display name when the `me` response has not resolved a full
   /// name (used for the avatar initials and the profile menu header).
@@ -60,7 +61,8 @@ class CorpDashboardHeaderBar extends ConsumerWidget {
       onLanguageTap: onLanguageTap,
       onHelpTap: onHelpTap,
       onNotificationsTap: onNotificationsTap,
-      onPersonalizeDashboard: onPersonalizeDashboard,
+      onProfileTap: onProfileTap,
+      profileTooltip: AppLocalizations.of(context).prefTitle,
     );
   }
 }

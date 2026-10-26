@@ -16,9 +16,9 @@ import 'package:ubci_bank/src/view/widgets/language_picker.dart';
 /// has a thin adapter (`CorpDashboardHeaderBar`, `WebDashboardHeaderBar`)
 /// that resolves the signed-in user its own way.
 ///
-/// The settings menu holds Personalize Dashboard, the light/dark switch and
-/// the colour theme (palette) choice;
-/// the profile menu shows who is signed in and holds Log out. The remaining
+/// The settings menu holds the light/dark switch and the colour theme
+/// (palette) choice; the initials open My Preferences and the chevron
+/// beside them the profile menu (who is signed in, Log out). The remaining
 /// icons take optional callbacks so their destinations can be plugged in
 /// later without touching this widget.
 class DashboardTopBar extends ConsumerWidget {
@@ -35,8 +35,17 @@ class DashboardTopBar extends ConsumerWidget {
     this.onLanguageTap,
     this.onHelpTap,
     this.onNotificationsTap,
-    this.onPersonalizeDashboard,
+    this.onProfileTap,
+    this.profileTooltip,
   });
+
+  /// Tapping the initials runs this (My Preferences, where Personalize
+  /// Dashboard also lives); the chevron beside them then opens the profile
+  /// menu. `null` keeps the whole avatar as the menu button.
+  final VoidCallback? onProfileTap;
+
+  /// Tooltip of the initials when [onProfileTap] is set.
+  final String? profileTooltip;
 
   /// Shown at the top of the profile menu, and the source of the avatar's
   /// initials when [initials] is not given.
@@ -57,11 +66,6 @@ class DashboardTopBar extends ConsumerWidget {
   /// Opens the hamburger drawer. Pass it only when there is no persistent
   /// sidebar (below desktop width); `null` hides the menu button.
   final VoidCallback? onMenuTap;
-
-  /// Opens the Personalize Dashboard panel from the settings menu. `null`
-  /// omits the entry — used when `me` gave the user no personalizable
-  /// dashboard, so there would be nothing to open.
-  final VoidCallback? onPersonalizeDashboard;
 
   final ValueChanged<String>? onSearchSubmitted;
   final VoidCallback? onFavouritesTap;
@@ -143,13 +147,15 @@ class DashboardTopBar extends ConsumerWidget {
             badgeCount: unreadNotificationCount,
             onTap: onNotificationsTap,
           ),
-          _SettingsMenu(onPersonalizeDashboard: onPersonalizeDashboard),
+          const _SettingsMenu(),
           const SizedBox(width: 4),
           _ProfileMenu(
             displayName: displayName,
             initials: initials,
             subtitle: subtitle,
             onLogout: onLogout,
+            onAvatarTap: onProfileTap,
+            avatarTooltip: profileTooltip,
           ),
         ],
       ),
@@ -302,12 +308,10 @@ class _TopBarIconButton extends StatelessWidget {
   }
 }
 
-/// Gear + chevron. Holds the Personalize Dashboard action, the light/dark
-/// theme switch and the colour theme (palette) choice.
+/// Gear + chevron: quick light/dark and colour theme (palette) switches.
+/// Personalize Dashboard lives in My Preferences only.
 class _SettingsMenu extends ConsumerWidget {
-  const _SettingsMenu({this.onPersonalizeDashboard});
-
-  final VoidCallback? onPersonalizeDashboard;
+  const _SettingsMenu();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -315,17 +319,12 @@ class _SettingsMenu extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final isDark = settings.themeMode == ThemeMode.dark;
     final currentPalette = settings.palette;
-    final personalize = onPersonalizeDashboard;
 
     return PopupMenuButton<String>(
       tooltip: 'Settings',
       position: PopupMenuPosition.under,
       color: _TopBarColors.card(context),
       onSelected: (value) {
-        if (value == 'personalize') {
-          personalize?.call();
-          return;
-        }
         if (value.startsWith(_palettePrefix)) {
           ref.read(appSettingsProvider.notifier).setPalette(
                 AppThemePalette.parse(value.substring(_palettePrefix.length)),
@@ -338,15 +337,6 @@ class _SettingsMenu extends ConsumerWidget {
             );
       },
       itemBuilder: (context) => [
-        if (personalize != null)
-          PopupMenuItem(
-            value: 'personalize',
-            child: _MenuRow(
-              icon: Icons.dashboard_customize_outlined,
-              label: 'Personalize Dashboard',
-            ),
-          ),
-        if (personalize != null) const PopupMenuDivider(),
         PopupMenuItem(
           value: 'theme',
           child: _MenuRow(
@@ -481,19 +471,25 @@ class _MenuRow extends StatelessWidget {
   }
 }
 
-/// Initials avatar + chevron. Shows who is signed in and holds Log out.
+/// Initials avatar + chevron. The menu shows who is signed in and holds
+/// Log out. With [onAvatarTap] the initials do that instead (Retail: My
+/// Preferences) and only the chevron opens the menu.
 class _ProfileMenu extends StatelessWidget {
   const _ProfileMenu({
     required this.displayName,
     required this.initials,
     required this.subtitle,
     required this.onLogout,
+    this.onAvatarTap,
+    this.avatarTooltip,
   });
 
   final String displayName;
   final String? initials;
   final String? subtitle;
   final VoidCallback onLogout;
+  final VoidCallback? onAvatarTap;
+  final String? avatarTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -503,7 +499,31 @@ class _ProfileMenu extends StatelessWidget {
         given.isNotEmpty ? given : ProfileInitials.fromName(displayName);
     final secondLine = subtitle?.trim() ?? '';
 
-    return PopupMenuButton<String>(
+    final avatar = Container(
+      width: 30,
+      height: 30,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _TopBarColors.brand(context).withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        resolvedInitials,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: _TopBarColors.brand(context),
+        ),
+      ),
+    );
+    final chevron = Icon(
+      Icons.keyboard_arrow_down_rounded,
+      size: 16,
+      color: _TopBarColors.navInactive(context),
+    );
+    final avatarTap = onAvatarTap;
+
+    final menu = PopupMenuButton<String>(
       tooltip: displayName,
       position: PopupMenuPosition.under,
       color: _TopBarColors.card(context),
@@ -548,35 +568,31 @@ class _ProfileMenu extends StatelessWidget {
         ),
       ],
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: avatarTap == null ? 4 : 2, vertical: 6),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: _TopBarColors.brand(context).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                resolvedInitials,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: _TopBarColors.brand(context),
-                ),
-              ),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 16,
-              color: _TopBarColors.navInactive(context),
-            ),
+            if (avatarTap == null) avatar,
+            chevron,
           ],
         ),
       ),
+    );
+
+    if (avatarTap == null) return menu;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Tooltip(
+          message: avatarTooltip ?? displayName,
+          child: InkWell(
+            onTap: avatarTap,
+            customBorder: const CircleBorder(),
+            child: Padding(padding: const EdgeInsets.all(4), child: avatar),
+          ),
+        ),
+        menu,
+      ],
     );
   }
 }
