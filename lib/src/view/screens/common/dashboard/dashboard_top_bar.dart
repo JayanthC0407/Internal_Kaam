@@ -5,6 +5,7 @@ import 'package:ubci_bank/src/core/theme/app_colors.dart';
 import 'package:ubci_bank/src/core/theme/app_palette.dart';
 import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
 import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
+import 'package:ubci_bank/src/view/widgets/language_picker.dart';
 
 /// The web dashboard top bar shared by Retail and Corporate: search field on
 /// the left, icon strip on the right (favourites, language, help,
@@ -127,7 +128,8 @@ class DashboardTopBar extends ConsumerWidget {
             _TopBarIconButton(
               icon: Icons.language_rounded,
               tooltip: 'Language',
-              onTap: onLanguageTap,
+              // The shared picker unless a dashboard brings its own.
+              onTap: onLanguageTap ?? () => showLanguagePicker(context, ref),
             ),
             _TopBarIconButton(
               icon: Icons.help_outline_rounded,

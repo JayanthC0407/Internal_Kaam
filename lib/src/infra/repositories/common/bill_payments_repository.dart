@@ -1,11 +1,10 @@
-import 'package:http_status_code/http_status_code.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:ubci_bank/src/core/models/common/statement_format.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:ubci_bank/src/infra/network/statement_download.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Bill Payments (EBPP) — Billers and Add Billers. Parses
@@ -42,6 +41,31 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
   Future<ResponseHandler<List<BillPayment>>> fetchBillPayments(BillHistoryQuery query) async =>
       parseBody(await _api.fetchBillPayments(query.toQueryParameters()), BillPayment.listFromPayload);
 
+  /// Bill Payment History's download formats: only **CSV and PDF**, as OBDX
+  /// offers (payment-history/hooks.js:409-416).
+  Future<ResponseHandler<List<StatementFormat>>> fetchHistoryFormats() async => parseBody(
+        await _api.fetchHistoryMediaTypes(),
+        (body) => StatementFormat.listFromPayload(body)
+            .where((f) => f.code.toLowerCase() == 'csv' || f.code.toLowerCase() == 'pdf')
+            .toList(),
+      );
+
+  /// Downloads the history for [query] in [format] — decoded by the same
+  /// shared code as account statements (statement_download.dart).
+  Future<ResponseHandler<StatementFile>> downloadHistory(
+    BillHistoryQuery query,
+    StatementFormat format,
+  ) async =>
+      decodeStatementDownload(
+        await _api.downloadBillPayments(
+          query.toQueryParameters(),
+          media: format.mimeType,
+          mediaFormat: format.code.toLowerCase(),
+        ),
+        format: format,
+        fileName: statementFileName(query.period.searchBy, format.fileExtension, prefix: 'bill_payments'),
+      );
+
   /// Add Billers' list of billers, sorted by name.
   Future<ResponseHandler<List<BillerInfo>>> fetchBillers() async =>
       parseBody(await _api.fetchBillers(), BillerInfo.listFromPayload);
@@ -61,7 +85,7 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
       challengeResponseHeader:
           otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
     );
-    return _writeOutcome(
+    return writeOutcome(
       result,
       otpSubmitted: otpSubmitted,
       onOtp: (next, invalid) => BillerAddOutcome.otpRequired(next, invalidOtp: invalid),
@@ -87,7 +111,7 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
       challengeResponseHeader:
           otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
     );
-    return _writeOutcome(
+    return writeOutcome(
       result,
       otpSubmitted: otpSubmitted,
       onOtp: (next, invalid) => BillerEditOutcome.otpRequired(next, invalidOtp: invalid),
@@ -112,7 +136,7 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
       challengeResponseHeader:
           otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
     );
-    return _writeOutcome(
+    return writeOutcome(
       result,
       otpSubmitted: otpSubmitted,
       onOtp: (next, invalid) => BillerDeleteOutcome.otpRequired(next, invalidOtp: invalid),
@@ -121,40 +145,4 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
     );
   }
 
-  /// Shared handling of a write call's wrapped response (same steps as
-  /// payee delete, payee_repository.dart:333-387, plus OBDX's
-  /// `APPROVAL_STATUS` header, service-base.js:509).
-  ResponseHandler<T> _writeOutcome<T>(
-    ResponseHandler<Map<String, dynamic>> result, {
-    required bool otpSubmitted,
-    required T Function(ObdxChallenge next, bool invalidOtp) onOtp,
-    required T Function(Map<String, dynamic> body, String? reference, bool pendingApproval) onDone,
-  }) {
-    if (result is! Success<Map<String, dynamic>> || result.data == null) {
-      return mapFailure(result);
-    }
-    final wrapped = result.data!;
-    final status = wrapped['statusCode'] as int? ?? 0;
-    final body = ObdxApiUtils.asMap(wrapped['body'] ?? wrapped['rawBody']);
-
-    if (status == StatusCode.EXPECTATION_FAILED) {
-      final next = ObdxChallenge.fromPaymentChallengeHeaders(wrapped['headers']);
-      if (next != null) {
-        return ResponseHandler.success(onOtp(next, otpSubmitted), code: status);
-      }
-      final error = otpSubmitted
-          ? ObdxErrorMapper.fromChallengeResponse(status, body)
-          : ObdxErrorMapper.fromHttpResponse(status, body);
-      return ResponseHandler.error(error.httpStatusCode ?? status, error.userMessage, obdxError: error);
-    }
-
-    final approval = ObdxApiUtils.headerValue(wrapped['headers'], 'APPROVAL_STATUS');
-    final pending = status == StatusCode.ACCEPTED || (approval ?? '').toUpperCase() == 'INITIATED';
-    if (!pending && ObdxApiUtils.hasErrorMessage(body)) {
-      final error = ObdxErrorMapper.fromHttpResponse(status, body);
-      return ResponseHandler.error(error.httpStatusCode ?? status, error.userMessage, obdxError: error);
-    }
-    final reference = ObdxApiUtils.asMap(body['status'])['referenceNumber'] ?? body['externalReferenceId'];
-    return ResponseHandler.success(onDone(body, reference?.toString(), pending), code: status);
-  }
 }
