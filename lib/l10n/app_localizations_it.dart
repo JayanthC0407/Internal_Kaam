@@ -3031,4 +3031,315 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get ccTxLoadFailed => 'We couldn\'t load the card transactions.';
+
+  @override
+  String get billHistoryDownload => 'Download';
+
+  @override
+  String get billHistoryPasswordTitle => 'Password Combination';
+
+  @override
+  String get billHistoryPasswordBody =>
+      'On opening the PDF, you will be asked to enter a password. Your password consists of the first 4 letters of your user name in capital case, followed by the date and month of your birth (in DDMM format)';
+
+  @override
+  String get billHistoryPasswordExample =>
+      'For example, if the user name is Roopa Lal and the date of birth is 23-12-1976, then your password will be ROOP2312.';
+
+  @override
+  String get menuAccountSettings => 'Account Settings';
+
+  @override
+  String get myLimitsTitle => 'My Limits';
+
+  @override
+  String get limitsChannel => 'Channel';
+
+  @override
+  String get limitsTransactions => 'Transactions';
+
+  @override
+  String limitsTabTransaction(String taskName) {
+    return '$taskName Limits';
+  }
+
+  @override
+  String get limitsTabTransactionGroup => 'Transaction Group Limits';
+
+  @override
+  String get limitsTabChannelGroup => 'Channel Group Limits';
+
+  @override
+  String get limitsTabChannelTransactionGroup =>
+      'Channel & Transaction Group Limits';
+
+  @override
+  String get limitsTabConsolidated => 'Consolidated Limits';
+
+  @override
+  String get limitsTabConsolidatedTransactionGroup =>
+      'Consolidated & Transaction Group Limits';
+
+  @override
+  String get limitsMinimumAmount => 'Minimum Amount';
+
+  @override
+  String get limitsMaximumAmount => 'Maximum Amount';
+
+  @override
+  String get limitsDaily => 'Daily Limits';
+
+  @override
+  String get limitsMonthly => 'Monthly Limits';
+
+  @override
+  String limitsDailyNotAssigned(String accessPoint) {
+    return 'Daily limit package is not assigned for the selected transaction for $accessPoint Touch Point';
+  }
+
+  @override
+  String limitsMonthlyNotAssigned(String accessPoint) {
+    return 'Monthly limit package is not assigned for the selected transaction for $accessPoint Touch Point';
+  }
+
+  @override
+  String get limitsAmount => 'Amount';
+
+  @override
+  String get limitsCount => 'Count';
+
+  @override
+  String get limitsUtilized => 'Utilized';
+
+  @override
+  String get limitsAvailable => 'Available';
+
+  @override
+  String get limitsTotal => 'Total';
+
+  @override
+  String get limitsLoadFailed => 'Limits could not be loaded.';
+
+  @override
+  String get limitsNoTransactions =>
+      'No transactions have limits for this channel.';
+
+  @override
+  String get ccModuleSubtitle => 'Your cards and what you can do with them';
+
+  @override
+  String get ccListDesc => 'See your cards, limits and dues';
+
+  @override
+  String get ccCardDetails => 'Credit Card Details';
+
+  @override
+  String get ccTransactionsDesc => 'Unbilled and billed transactions';
+
+  @override
+  String get ccRequestPin => 'Request PIN';
+
+  @override
+  String get ccBlockUnblock => 'Block/Unblock Card';
+
+  @override
+  String get ccCancelCard => 'Cancel Card';
+
+  @override
+  String get ccAutoPay => 'Auto Pay';
+
+  @override
+  String get ccResetPin => 'Reset PIN';
+
+  @override
+  String get billsModuleSubtitle => 'Your billers and bill payments';
+
+  @override
+  String get billFavorites => 'Favorites';
+
+  @override
+  String get billersDesc => 'Your registered billers';
+
+  @override
+  String get billersAddDesc => 'Register a new biller';
+
+  @override
+  String get billQuickBillPay => 'Quick Bill Pay';
+
+  @override
+  String get billQuickRecharge => 'Quick Recharge';
+
+  @override
+  String get billHistoryDesc => 'Bill payments you have made';
+
+  @override
+  String get moduleComingSoon => 'Coming soon';
+
+  @override
+  String get mailboxTitle => 'Mailbox';
+
+  @override
+  String get mailboxMails => 'Mails';
+
+  @override
+  String get mailboxAlerts => 'Alerts';
+
+  @override
+  String get mailboxNotifications => 'Notifications';
+
+  @override
+  String mailboxMailsCount(int count) {
+    return 'Mails ($count)';
+  }
+
+  @override
+  String mailboxAlertsCount(int count) {
+    return 'Alerts ($count)';
+  }
+
+  @override
+  String mailboxNotificationsCount(int count) {
+    return 'Notifications ($count)';
+  }
+
+  @override
+  String get mailboxInbox => 'Inbox';
+
+  @override
+  String get mailboxSentMails => 'Sent Mails';
+
+  @override
+  String get mailboxDeletedMails => 'Deleted Mails';
+
+  @override
+  String get mailboxSubject => 'Subject';
+
+  @override
+  String get mailboxReferenceNo => 'Reference No';
+
+  @override
+  String get mailboxDate => 'Date';
+
+  @override
+  String get mailboxReceived => 'Received';
+
+  @override
+  String get mailboxFrom => 'From :';
+
+  @override
+  String get mailboxSent => 'Sent :';
+
+  @override
+  String get mailboxAttachments => 'Attachments :';
+
+  @override
+  String get mailboxRefresh => 'Refresh';
+
+  @override
+  String get mailboxDelete => 'Delete';
+
+  @override
+  String get mailboxRestore => 'Restore';
+
+  @override
+  String get mailboxNoInbox => 'No item in Inbox';
+
+  @override
+  String get mailboxNoSent => 'No item in Sent Mail';
+
+  @override
+  String get mailboxNoDeleted => 'No item in Deleted Mail';
+
+  @override
+  String get mailboxNoAlerts => 'No item in alerts';
+
+  @override
+  String get mailboxNoNotifications => 'No item in notifications';
+
+  @override
+  String get mailboxDeleteInboxTitle => 'Delete Inbox Mails';
+
+  @override
+  String get mailboxDeleteSentTitle => 'Delete Sent Mail';
+
+  @override
+  String get mailboxDeleteDeletedTitle => 'Delete Deleted Mail';
+
+  @override
+  String get mailboxConfirmation => 'Confirmation';
+
+  @override
+  String get mailboxDeleteMail => 'Are you sure you want to delete this mail?';
+
+  @override
+  String mailboxDeleteMails(int count) {
+    return 'You have selected $count mails. Are you sure you want to delete them?';
+  }
+
+  @override
+  String get mailboxDeleteMailForever =>
+      'This mail will be permanently deleted. Are you sure you want to continue?';
+
+  @override
+  String mailboxDeleteMailsForever(int count) {
+    return 'You have selected $count mails. All the mails will be permanently deleted. Are you sure you want to continue?';
+  }
+
+  @override
+  String get mailboxDeleteAlert =>
+      'Are you sure you want to delete this Alert?';
+
+  @override
+  String mailboxDeleteAlerts(int count) {
+    return 'You have selected $count alerts. Are you sure you want to delete them?';
+  }
+
+  @override
+  String get mailboxDeleteNotification =>
+      'Are you sure you want to delete this Notification?';
+
+  @override
+  String mailboxDeleteNotifications(int count) {
+    return 'You have selected ($count) notifications. Are you sure you want to delete them?';
+  }
+
+  @override
+  String get mailboxYes => 'Yes';
+
+  @override
+  String get mailboxNo => 'No';
+
+  @override
+  String get mailboxConfirm => 'Confirm';
+
+  @override
+  String get mailboxCancel => 'Cancel';
+
+  @override
+  String get mailboxHighPriority => 'High priority';
+
+  @override
+  String get mailboxLoadFailed => 'Mailbox could not be loaded.';
+
+  @override
+  String get mailboxDone => 'Done.';
+
+  @override
+  String get mailboxPendingApproval => 'Sent for approval.';
+
+  @override
+  String get mailboxActionFailed =>
+      'That could not be completed. Please try again.';
+
+  @override
+  String get mailboxOtpTitle => 'Verify to continue';
+
+  @override
+  String get mailboxOtpInvalid => 'That code is not right. Please try again.';
+
+  @override
+  String get mailboxDownloadFailed => 'The attachment could not be downloaded.';
+
+  @override
+  String get mailboxSelectHint => 'Select an item to read it.';
 }

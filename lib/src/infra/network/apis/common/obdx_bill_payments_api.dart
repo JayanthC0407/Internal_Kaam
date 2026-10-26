@@ -19,6 +19,7 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
       '/digx-payments/ebpp/v1/registeredBillers';
   static const _billers = '/digx-payments/ebpp/v1/billers';
   static const _ebillPayments = '/digx-payments/ebpp/v1/ebillPayments';
+  static const _mediaTypes = '/digx-payments/ebpp/v1/enumerations/mediatype';
 
   /// `GET …/ebpp/v1/registeredBillers` — the user's billers
   /// (`billerRegistrationDTOs`). OBDX sends no filters here.
@@ -55,6 +56,38 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
       return getErrorResponse(error);
     } catch (exc, stack) {
       return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  /// `GET …/ebpp/v1/enumerations/mediatype` — Bill Payment History's
+  /// download formats (payment-history/hooks.js:406-420).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchHistoryMediaTypes() => _get(_mediaTypes);
+
+  /// `GET …/ebpp/v1/ebillPayments` as a file: the current filter plus
+  /// `media` (MIME type) and `mediaFormat` (pdf / csv) — OBDX's Download
+  /// (payment-history/hooks.js:422-454). Bytes, decoded by the repository.
+  Future<ResponseHandler<List<int>>> downloadBillPayments(
+    Map<String, dynamic> queryParameters, {
+    required String media,
+    required String mediaFormat,
+  }) async {
+    try {
+      final response = await dio.get<List<int>>(
+        ObdxApiUtils.appendLocaleQuery(_ebillPayments),
+        queryParameters: {...queryParameters, 'media': media, 'mediaFormat': mediaFormat},
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 60),
+          headers: {'Accept': '$media, application/octet-stream, application/json, */*'},
+        ),
+      );
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) return ResponseHandler.exceptionError();
+      return ResponseHandler.success(List<int>.from(bytes), code: response.statusCode ?? 0);
+    } on DioException catch (error) {
+      return getErrorResponse<List<int>>(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse<List<int>>(exc, stack);
     }
   }
 
