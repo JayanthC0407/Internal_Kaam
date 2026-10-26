@@ -51,6 +51,7 @@ class Mail {
     this.myStatus,
     this.attachments = const [],
     this.thread = const [],
+    this.subjectId,
   });
 
   /// `messageId.value` / `.displayValue`.
@@ -83,6 +84,9 @@ class Mail {
   /// Earlier messages, newest first (the `linkedParent` chain).
   final List<Mail> thread;
 
+  /// The mail's subject category; Reply sends it back (message-detail/hooks.js:503).
+  final String? subjectId;
+
   Mail copyWith({bool? unread, String? myStatus, List<MailAttachment>? attachments}) => Mail(
         id: id,
         displayValue: displayValue,
@@ -95,6 +99,7 @@ class Mail {
         myStatus: myStatus ?? this.myStatus,
         attachments: attachments ?? this.attachments,
         thread: thread,
+        subjectId: subjectId,
       );
 
   static List<Mail> listFromPayload(Map<String, dynamic> body, {required String userName, required MailFolder folder}) => [
@@ -118,6 +123,7 @@ class Mail {
       displayValue: _str(id['displayValue']) ?? _str(id['value']) ?? '',
       subject: _str(raw['subject']) ?? '',
       interactionId: _str(raw['interactionId']),
+      subjectId: _str(raw['subjectId']),
       date: _date(raw['creationDate']),
       body: _str(raw['messageBody']) ?? '',
       senderName: sender ?? _str(raw['senderName']),
@@ -139,6 +145,31 @@ class Mail {
       ],
     );
   }
+
+  /// `POST mailbox/mails/{id}/replyMail` body (message-detail/hooks.js:493-517).
+  /// The subject gets OBDX's "Re :" prefix (no space after it) unless it
+  /// already has one; [contents] are the attachments' `contentId` objects.
+  Map<String, dynamic> replyBody(String text, List<Map<String, dynamic>> contents) => {
+        'messageType': 'M',
+        'subject': subject.contains(replyPrefix) ? subject : '$replyPrefix$subject',
+        'messageBody': text,
+        'expiryDate': null,
+        'subjectId': subjectId,
+        'messageId': id,
+        'contentDTO': [
+          for (final c in contents) {'contentId': c},
+        ],
+        'linkedParent': {
+          'messageId': id,
+          'messageType': 'M',
+          'subject': subject,
+          'messageBody': body,
+          'subjectId': subjectId,
+        },
+      };
+
+  /// nls compose-mail.js `replyPrefix`.
+  static const replyPrefix = 'Re :';
 
   /// `PUT mailbox/mails/{id}` body (mailbox.md §4-5).
   Map<String, dynamic> updateBody({required String status, required bool deleteStatus}) => {
@@ -276,20 +307,149 @@ class MailboxCounts {
   }
 }
 
-/// Result of a mailbox write (delete / restore): done, possibly pending
-/// approval, or an OTP to enter first (417).
+/// Result of a mailbox write (delete, restore, send, reply, upload): done,
+/// possibly pending approval, or an OTP to enter first (417).
 class MailboxWriteOutcome {
-  const MailboxWriteOutcome.done({this.pendingApproval = false})
+  const MailboxWriteOutcome.done({this.pendingApproval = false, this.contentId})
       : challenge = null,
         invalidOtp = false;
 
   const MailboxWriteOutcome.otpRequired(ObdxChallenge this.challenge, {this.invalidOtp = false})
-      : pendingApproval = false;
+      : pendingApproval = false,
+        contentId = null;
 
   final ObdxChallenge? challenge;
   final bool invalidOtp;
   final bool pendingApproval;
+
+  /// An upload's `contentDTOList[0].contentId` (`{value, displayValue}`),
+  /// sent back as is in `contentDTO`.
+  final Map<String, dynamic>? contentId;
 }
+
+/// A Compose category subject (`mailCategoryDTOs[].subjects[]`).
+class MailSubject {
+  const MailSubject({required this.id, required this.label, required this.category});
+
+  /// `subjectId`, sent as the mail's `subjectId`.
+  final String id;
+
+  /// `subject`, sent as the mail's subject (unless OTHERS).
+  final String label;
+
+  /// The group name (`mailCategoryDTOs[].name`).
+  final String category;
+
+  /// OBDX shows "Other Remark" and sends it as the subject instead
+  /// (compose-mail/hooks.js:115, 223).
+  bool get isOthers => label.toUpperCase() == 'OTHERS';
+
+  static List<MailSubject> listFromPayload(Map<String, dynamic> body) => [
+        for (final c in _list(body['mailCategoryDTOs']))
+          for (final s in _list(c['subjects']))
+            if (_str(s['subjectId']) != null)
+              MailSubject(id: _str(s['subjectId'])!, label: _str(s['subject']) ?? '', category: _str(c['name']) ?? ''),
+      ];
+}
+
+/// A party the mail can be sent for: the user's own, then related parties
+/// (`me/party`, `me/party/relations`; compose-mail/hooks.js:127-155).
+class MailParty {
+  const MailParty({required this.id, required this.name});
+
+  final String id;
+  final String name;
+
+  /// Own party first.
+  static List<MailParty> fromPayloads(Map<String, dynamic> me, Map<String, dynamic> relations) {
+    final party = ObdxApiUtils.asMap(me['party']);
+    final ownId = _str(ObdxApiUtils.asMap(party['id'])['value']);
+    return [
+      if (ownId != null)
+        MailParty(id: ownId, name: _str(ObdxApiUtils.asMap(party['personalDetails'])['fullName']) ?? ownId),
+      for (final r in _list(relations['partyToPartyRelationship']))
+        if (_str(ObdxApiUtils.asMap(r['relatedParty'])['value']) != null)
+          MailParty(
+            id: _str(ObdxApiUtils.asMap(r['relatedParty'])['value'])!,
+            name: _str(r['relatedPartyName']) ?? _str(ObdxApiUtils.asMap(r['relatedParty'])['value'])!,
+          ),
+    ];
+  }
+}
+
+/// What Compose needs before it can show its form.
+class ComposeSetup {
+  const ComposeSetup({required this.subjects, required this.parties});
+
+  final List<MailSubject> subjects;
+  final List<MailParty> parties;
+
+  /// OBDX shows the Party field only when there are related parties.
+  bool get showParty => parties.length > 1;
+}
+
+/// `POST mailbox/mails` body (compose-mail/hooks.js:220-240). [party] is
+/// the chosen party id. OBDX sends `partyOptionValue()[0]`, which on a
+/// single-select value is only the first character; the app sends the
+/// whole id. [APP]
+Map<String, dynamic> composeMailBody({
+  required MailSubject subject,
+  required String otherRemark,
+  required String text,
+  required List<Map<String, dynamic>> contents,
+  required String? party,
+}) =>
+    {
+      'interactionId': null,
+      'messageId': null,
+      'messageType': 'M',
+      'subject': subject.isOthers ? otherRemark : subject.label,
+      'messageBody': text,
+      'creationDate': null,
+      'expiryDate': null,
+      'messageUserMappings': null,
+      'subjectId': subject.id,
+      'linkedParent': null,
+      'contentDTO': [
+        for (final c in contents) {'contentId': c},
+      ],
+      if (party != null) 'party': {'value': party},
+    };
+
+/// OBDX attachment rules (compose-mail/hooks.js:288-355,
+/// message-detail/hooks.js:311-382).
+class MailUploadRules {
+  const MailUploadRules._();
+
+  /// Message limit (textarea `maxlength`, "{number} Characters Left").
+  static const maxMessageLength = 1000;
+
+  /// 5 MB.
+  static const maxFileBytes = 5242880;
+
+  /// The extension must be all lower or all upper case (".Pdf" is refused).
+  static const pickerExtensions = ['pdf', 'jpeg', 'png', 'txt', 'doc', 'docx', 'zip', 'xlsx'];
+
+  static bool allowedName(String name) {
+    final dot = name.lastIndexOf('.');
+    if (dot < 0) return false;
+    final ext = name.substring(dot + 1);
+    return pickerExtensions.contains(ext) || pickerExtensions.map((e) => e.toUpperCase()).contains(ext);
+  }
+
+  /// OBDX checks the whole batch before uploading any of it, and the first
+  /// problem refuses every file: a name already attached, then size, then
+  /// type.
+  static MailUploadProblem? check(List<(String, int)> picked, Iterable<String> attachedNames) {
+    final attached = attachedNames.toSet();
+    if (picked.any((f) => attached.contains(f.$1))) return MailUploadProblem.duplicate;
+    if (picked.any((f) => f.$2 > maxFileBytes)) return MailUploadProblem.tooLarge;
+    if (picked.any((f) => !allowedName(f.$1))) return MailUploadProblem.badType;
+    return null;
+  }
+}
+
+enum MailUploadProblem { duplicate, tooLarge, badType }
 
 /// Alerts and notifications carry HTML (OBDX binds it as HTML); the app has
 /// no HTML renderer, so it shows the text with line breaks kept. [APP]
