@@ -9,13 +9,17 @@ import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
 import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/widgets/bills_help_panel.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 
 /// Add Billers — OBDX `flows/add-biller` (Payment Type **Manual** only so
 /// far). Details → Review → Done, like OBDX's two stages plus its confirm
 /// screen: pick a biller, fill its reference fields (one per biller
 /// specification), nickname and customer name; Confirm sends
-/// `POST registeredBillers`. Evidence: docs/obdx/features/bill-payments.md §4.
+/// `POST registeredBillers`. The Details step follows the designer's form
+/// (UI designs 2026-10-27): boxed fields in two columns on web, "Required"
+/// tags, a note naming what is still empty, Submit / Cancel.
+/// Evidence: docs/obdx/features/bill-payments.md §4.
 class AddBillerScreen extends ConsumerStatefulWidget {
   const AddBillerScreen({super.key, required this.onExit, required this.onAdded});
 
@@ -195,12 +199,22 @@ class _AddBillerScreenState extends ConsumerState<AddBillerScreen> {
 
     return PayFlowScaffold(
       title: l10n.billersAdd,
-      subtitle: _step == 1 ? l10n.addBillerReviewMessage : null,
+      subtitle: switch (_step) {
+        0 => l10n.addBillerIntro,
+        1 => l10n.addBillerReviewMessage,
+        _ => null,
+      },
       step: _step,
       onBackStep: _busy ? null : () => setState(() => _step = 0),
       onExit: _busy ? null : widget.onExit,
       action: switch (_step) {
-        0 => PayPrimaryButton(label: l10n.addBillerSubmit, onPressed: _submit),
+        0 => Row(
+            children: [
+              Expanded(child: PayPrimaryButton(label: l10n.addBillerSubmit, onPressed: _submit)),
+              const SizedBox(width: 12),
+              Expanded(child: PaySecondaryButton(label: l10n.cancel, onPressed: widget.onExit)),
+            ],
+          ),
         1 => PayPrimaryButton(label: l10n.addBillerConfirm, loading: _busy, onPressed: _busy ? null : _confirm),
         _ => PayPrimaryButton(
             label: l10n.addBillerBackToBillers,
@@ -211,94 +225,137 @@ class _AddBillerScreenState extends ConsumerState<AddBillerScreen> {
     );
   }
 
+  /// The required fields still empty, by label (for the design's note).
+  List<String> _missing(AppLocalizations l10n) {
+    final biller = _biller;
+    if (biller == null) return const [];
+    return [
+      for (final spec in biller.specifications)
+        if (spec.required && (_specs[spec.id]?.text.trim().isEmpty ?? true)) spec.label,
+      if (_nickname.text.trim().isEmpty) l10n.billerNickname,
+      if (_customerName.text.trim().isEmpty) l10n.billerCustomerName,
+    ];
+  }
+
+  /// "A, B and C" for the note.
+  String _joinLabels(List<String> labels) => labels.length <= 1
+      ? labels.join()
+      : '${labels.sublist(0, labels.length - 1).join(', ')} and ${labels.last}';
+
   Widget _details(AppLocalizations l10n) {
     final billers = ref.watch(availableBillersProvider);
     final biller = _biller;
+    final missing = _missing(l10n);
+
+    final nameField = billers.when(
+      loading: () => PayBoxedPicker(label: l10n.billerName, placeholder: l10n.addBillerSelect, required: true, loading: true),
+      error: (error, _) => PayErrorRetry(
+        message: error is BillPaymentsLoadError && error.message != null ? error.message! : l10n.addBillerLoadFailed,
+        onRetry: () => ref.invalidate(availableBillersProvider),
+      ),
+      data: (list) => PayBoxedPicker(
+        label: l10n.billerName,
+        value: biller?.name,
+        placeholder: l10n.addBillerSelect,
+        required: true,
+        error: _showErrors && biller == null ? l10n.addBillerFieldRequired(l10n.billerName) : null,
+        onTap: () => _pickBiller(list),
+      ),
+    );
+
+    final fields = <Widget>[
+      nameField,
+      if (biller != null) ...[
+        // Read-only, from the biller picked (OBDX shows them as text).
+        PayBoxedPicker(label: l10n.addBillerCategory, value: biller.pickerLabel),
+        PayBoxedPicker(label: l10n.billerType, value: billerTypeLabel(l10n, biller.type)),
+        PayBoxedTextField(
+          label: l10n.billerNickname,
+          required: true,
+          controller: _nickname,
+          hint: l10n.billerNickname,
+          inputFormatters: [LengthLimitingTextInputFormatter(BillerFieldRules.nicknameMaxLength)],
+          onChanged: (_) => setState(() {}),
+          error: _errorText(
+            l10n,
+            l10n.billerNickname,
+            BillerFieldRules.nickname(_nickname.text),
+            max: BillerFieldRules.nicknameMaxLength,
+            invalid: l10n.addBillerNicknameError,
+          ),
+        ),
+        for (final spec in biller.specifications)
+          PayBoxedTextField(
+            label: spec.label,
+            required: spec.required,
+            controller: _specs[spec.id]!,
+            hint: spec.label,
+            keyboardType: spec.datatype == 'NUMERIC' ? TextInputType.number : TextInputType.text,
+            inputFormatters: [
+              if (spec.maxLength != null && spec.maxLength! > 0) LengthLimitingTextInputFormatter(spec.maxLength),
+            ],
+            onChanged: (_) => setState(() {}),
+            error: _errorText(l10n, spec.label, BillerFieldRules.spec(spec, _specs[spec.id]!.text), max: spec.maxLength),
+          ),
+        PayBoxedTextField(
+          label: l10n.billerCustomerName,
+          required: true,
+          controller: _customerName,
+          hint: l10n.billerCustomerName,
+          textCapitalization: TextCapitalization.words,
+          inputFormatters: [LengthLimitingTextInputFormatter(BillerFieldRules.customerNameMaxLength)],
+          onChanged: (_) => setState(() {}),
+          error: _errorText(
+            l10n,
+            l10n.billerCustomerName,
+            BillerFieldRules.customerName(_customerName.text),
+            max: BillerFieldRules.customerNameMaxLength,
+            invalid: l10n.addBillerCustomerNameError,
+          ),
+        ),
+      ],
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PaySection(
-          title: l10n.billerDetailsTitle,
-          icon: Icons.storefront_outlined,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PayFieldLabel(l10n.billerName, required: true),
-              const SizedBox(height: 6),
-              billers.when(
-                loading: () => PayPickerField(placeholder: l10n.addBillerSelect, onTap: null, loading: true),
-                error: (error, _) => PayErrorRetry(
-                  message: error is BillPaymentsLoadError && error.message != null
-                      ? error.message!
-                      : l10n.addBillerLoadFailed,
-                  onRetry: () => ref.invalidate(availableBillersProvider),
-                ),
-                data: (list) => PayPickerField(
-                  placeholder: l10n.addBillerSelect,
-                  title: biller?.name,
-                  subtitle: biller?.pickerLabel,
-                  icon: Icons.storefront_outlined,
-                  error: _showErrors && biller == null ? l10n.addBillerFieldRequired(l10n.billerName) : null,
-                  onTap: () => _pickBiller(list),
-                ),
-              ),
-              if (biller != null) ...[
-                for (final spec in biller.specifications) ...[
-                  const SizedBox(height: 14),
-                  PayTextField(
-                    label: spec.label,
-                    required: spec.required,
-                    controller: _specs[spec.id]!,
-                    keyboardType: spec.datatype == 'NUMERIC' ? TextInputType.number : TextInputType.text,
-                    inputFormatters: [
-                      if (spec.maxLength != null && spec.maxLength! > 0)
-                        LengthLimitingTextInputFormatter(spec.maxLength),
-                    ],
-                    onChanged: (_) => setState(() {}),
-                    error: _errorText(
-                      l10n,
-                      spec.label,
-                      BillerFieldRules.spec(spec, _specs[spec.id]!.text),
-                      max: spec.maxLength,
+        PayCard(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Two columns when there is room (the design's web form).
+              final twoColumns = constraints.maxWidth >= 560;
+              final rows = <Widget>[];
+              for (var k = 0; k < fields.length; k += twoColumns ? 2 : 1) {
+                if (rows.isNotEmpty) rows.add(const SizedBox(height: 16));
+                rows.add(twoColumns
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: fields[k]),
+                          const SizedBox(width: 24),
+                          Expanded(child: k + 1 < fields.length ? fields[k + 1] : const SizedBox.shrink()),
+                        ],
+                      )
+                    : fields[k]);
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...rows,
+                  if (missing.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    PayInfoBanner(
+                      title: l10n.addBillerRequiredTitle,
+                      message: l10n.addBillerRequiredBody(_joinLabels(missing)),
                     ),
-                  ),
+                  ],
                 ],
-                const SizedBox(height: 14),
-                PayTextField(
-                  label: l10n.billerNickname,
-                  required: true,
-                  controller: _nickname,
-                  inputFormatters: [LengthLimitingTextInputFormatter(BillerFieldRules.nicknameMaxLength)],
-                  onChanged: (_) => setState(() {}),
-                  error: _errorText(
-                    l10n,
-                    l10n.billerNickname,
-                    BillerFieldRules.nickname(_nickname.text),
-                    max: BillerFieldRules.nicknameMaxLength,
-                    invalid: l10n.addBillerNicknameError,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                PayTextField(
-                  label: l10n.billerCustomerName,
-                  required: true,
-                  controller: _customerName,
-                  textCapitalization: TextCapitalization.words,
-                  inputFormatters: [LengthLimitingTextInputFormatter(BillerFieldRules.customerNameMaxLength)],
-                  onChanged: (_) => setState(() {}),
-                  error: _errorText(
-                    l10n,
-                    l10n.billerCustomerName,
-                    BillerFieldRules.customerName(_customerName.text),
-                    max: BillerFieldRules.customerNameMaxLength,
-                    invalid: l10n.addBillerCustomerNameError,
-                  ),
-                ),
-              ],
-            ],
+              );
+            },
           ),
         ),
         const SizedBox(height: 14),
+        // OBDX's Payment Type (Manual only so far).
         PaySection(
           title: l10n.billerPaymentType,
           icon: Icons.payments_outlined,
@@ -315,6 +372,8 @@ class _AddBillerScreenState extends ConsumerState<AddBillerScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 14),
+        BillsHelpPanel.add(l10n),
       ],
     );
   }

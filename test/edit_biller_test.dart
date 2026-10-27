@@ -141,7 +141,7 @@ void main() {
 
   Future<void> openEdit(WidgetTester tester, String nickname) async {
     final tile = find.ancestor(of: find.text(nickname), matching: find.byType(InkWell)).first;
-    await tester.tap(find.descendant(of: tile, matching: find.byIcon(Icons.more_vert_rounded)));
+    await tester.tap(find.descendant(of: tile, matching: find.byIcon(Icons.more_horiz_rounded)));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Edit Biller').last);
     await tester.pumpAndSettle();

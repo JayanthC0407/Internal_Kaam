@@ -38,6 +38,7 @@ class CreditCard {
     this.rawStatus,
     this.isPrimary = true,
     this.availableCredit,
+    this.creditLimit,
     this.currentOutstanding,
     this.totalDue,
     this.minimumDue,
@@ -61,6 +62,10 @@ class CreditCard {
 
   /// `limits[type == CR].available` — "Available Credit Limit".
   final MoneyAmount? availableCredit;
+
+  /// `limits[type == CR].total` — the card's whole limit (UAT shows it next
+  /// to `available`); summed for the design's "Total Credit Limit" tile.
+  final MoneyAmount? creditLimit;
 
   /// `due.unbilledAmount` — "Current Outstanding".
   final MoneyAmount? currentOutstanding;
@@ -119,6 +124,7 @@ class CreditCard {
       rawStatus: _str(map['cardStatus']),
       isPrimary: (_str(map['cardOwnershipType']) ?? 'PRIMARY').toUpperCase() == 'PRIMARY',
       availableCredit: money(creditLimit?['available']),
+      creditLimit: money(creditLimit?['total']),
       currentOutstanding: money(due['unbilledAmount']),
       totalDue: money(due['billedAmount']),
       minimumDue: money(due['minimumAmount']),
@@ -283,4 +289,135 @@ String? _str(dynamic value) {
   if (value == null) return null;
   final text = value.toString().trim();
   return text.isEmpty ? null : text;
+}
+
+/// A credit card's row menu, in OBDX's order (credit-card-listing/
+/// hooks.js:147-227): Credit Card Details always, then by ownership and
+/// status. Only Transactions is built; the others are Access Denied in UAT.
+enum CreditCardAction {
+  details,
+  transactions,
+  cardPayment,
+  requestPin,
+  resetPin,
+  blockCard,
+  unblockCard,
+  cancelCard,
+  autoPay,
+  addOnCard,
+}
+
+List<CreditCardAction> creditCardMenu(CreditCard card) {
+  final s = card.status;
+  final primary = card.isPrimary;
+  return [
+    CreditCardAction.details,
+    if (primary && s != CreditCardStatus.inactive) CreditCardAction.transactions,
+    if (primary &&
+        (s == CreditCardStatus.active || s == CreditCardStatus.hotlisted || s == CreditCardStatus.blocked))
+      CreditCardAction.cardPayment,
+    if (s == CreditCardStatus.active) ...[
+      CreditCardAction.requestPin,
+      CreditCardAction.resetPin,
+      CreditCardAction.blockCard,
+    ],
+    if (s == CreditCardStatus.blocked) CreditCardAction.unblockCard,
+    if (s != CreditCardStatus.cancelled) CreditCardAction.cancelCard,
+    if (primary && s == CreditCardStatus.active) ...[
+      CreditCardAction.autoPay,
+      CreditCardAction.addOnCard,
+    ],
+  ];
+}
+
+/// The design's summary tiles (UI designs 2026-10-27; not in OBDX), added
+/// up from the card list per currency: Total Credit Limit, Current
+/// Outstanding, Total Due, the active cards and the next due date.
+class CreditCardTotals {
+  const CreditCardTotals({
+    required this.currency,
+    required this.creditLimit,
+    required this.outstanding,
+    required this.totalDue,
+    required this.activeCards,
+    this.nextDue,
+  });
+
+  final String currency;
+  final double creditLimit;
+  final double outstanding;
+  final double totalDue;
+
+  /// Cards with status ACT.
+  final int activeCards;
+
+  /// The earliest Due On of a card with dues.
+  final DateTime? nextDue;
+
+  /// Current Outstanding as a share of the limit, in percent (null without
+  /// a limit).
+  double? get outstandingShare => creditLimit > 0 ? outstanding / creditLimit * 100 : null;
+
+  /// One entry per currency, in the order the cards first use it. A card's
+  /// currency is its limit's, else its dues'.
+  static List<CreditCardTotals> fromCards(List<CreditCard> cards) {
+    final order = <String>[];
+    final byCurrency = <String, List<CreditCard>>{};
+    for (final c in cards) {
+      final cur = c.creditLimit?.currency ??
+          c.availableCredit?.currency ??
+          c.currentOutstanding?.currency ??
+          c.totalDue?.currency ??
+          '';
+      if (!byCurrency.containsKey(cur)) order.add(cur);
+      byCurrency.putIfAbsent(cur, () => []).add(c);
+    }
+    return [
+      for (final cur in order)
+        () {
+          final list = byCurrency[cur]!;
+          DateTime? next;
+          for (final c in list) {
+            final d = c.dueDate;
+            if (c.hasDues && d != null && (next == null || d.isBefore(next))) next = d;
+          }
+          double sum(MoneyAmount? Function(CreditCard) f) => list.fold(0, (t, c) => t + (f(c)?.amount ?? 0));
+          return CreditCardTotals(
+            currency: cur,
+            creditLimit: sum((c) => c.creditLimit),
+            outstanding: sum((c) => c.currentOutstanding),
+            totalDue: sum((c) => c.hasDues ? c.totalDue : null),
+            activeCards: list.where((c) => c.status == CreditCardStatus.active).length,
+            nextDue: next,
+          );
+        }(),
+    ];
+  }
+}
+
+/// The design's search ("Card Number or Holder Name") and Filter
+/// (ownership, card number) — applied on the device; OBDX's list has
+/// neither.
+class CreditCardFilter {
+  const CreditCardFilter({this.query = '', this.primary, this.cardId});
+
+  final String query;
+
+  /// true Primary, false Add-On, null both.
+  final bool? primary;
+  final String? cardId;
+
+  bool get isActive => primary != null || cardId != null;
+
+  bool matches(CreditCard c) {
+    final q = query.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      final digits = q.replaceAll(RegExp(r'\s+'), '');
+      final number = c.displayNumber.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+      if (!number.contains(digits) && !(c.ownerName ?? '').toLowerCase().contains(q)) return false;
+    }
+    if (primary != null && c.isPrimary != primary) return false;
+    if (cardId != null && c.id != cardId) return false;
+    return true;
+  }
 }

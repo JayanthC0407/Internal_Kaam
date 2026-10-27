@@ -18,8 +18,10 @@ import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
 
 /// Bill Payment History — OBDX `payment-history`: the user's bill payments
 /// for a period (Current Period by default), newest first, with OBDX's
-/// Filter (Select Period / Date From / Date To) and Download (CSV / PDF,
-/// PDF with OBDX's password note). Attachments are not built yet.
+/// Select Period / Date From / Date To and Download (CSV / PDF, PDF with
+/// OBDX's password note). Laid out as the designer's page (UI designs
+/// 2026-10-27): the period inline above a table; a choice reloads at once
+/// (no Apply, user decision). Attachments are not built yet ("—").
 /// Evidence: docs/obdx/features/bill-payments.md §5.
 class BillPaymentHistoryScreen extends ConsumerStatefulWidget {
   const BillPaymentHistoryScreen({super.key, this.embedded = false, this.onBack});
@@ -41,6 +43,11 @@ const _fallbackHistoryFormats = [
 class _BillPaymentHistoryScreenState extends ConsumerState<BillPaymentHistoryScreen> {
   BillHistoryQuery _query = const BillHistoryQuery();
   bool _downloading = false;
+
+  /// The period picked; Date Range waits for both dates before it loads.
+  BillHistoryPeriod _period = BillHistoryPeriod.currentPeriod;
+  DateTime? _from;
+  DateTime? _to;
 
   /// OBDX's Download (payment-history/hooks.js:422-454): pick CSV or PDF,
   /// see the password note for a PDF, then fetch the current filter as a
@@ -102,96 +109,145 @@ class _BillPaymentHistoryScreenState extends ConsumerState<BillPaymentHistoryScr
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _openFilter(bool wide) async {
-    final panel = _FilterPanel(initial: _query);
-    // Web: a dialog; phone: a bottom sheet.
-    final Future<BillHistoryQuery?> picked;
-    if (wide) {
-      picked = showDialog<BillHistoryQuery>(
-        context: context,
-        builder: (_) => Dialog(
-          child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 440), child: panel),
-        ),
-      );
-    } else {
-      picked = showModalBottomSheet<BillHistoryQuery>(
-        context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (_) => panel,
-      );
-    }
-    final next = await picked;
-    if (next != null && mounted) setState(() => _query = next);
+  Future<void> _pickPeriod() async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showPayPicker<BillHistoryPeriod>(
+      context,
+      title: l10n.billHistorySelectPeriod,
+      selected: _period,
+      options: [for (final p in BillHistoryPeriod.values) PayOption(value: p, title: _periodLabel(l10n, p))],
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _period = picked;
+      if (picked != BillHistoryPeriod.dateRange) {
+        _from = null;
+        _to = null;
+        _query = BillHistoryQuery(period: picked);
+      }
+    });
+  }
+
+  /// A Date Range loads once both dates are set (From ≤ To ≤ today).
+  void _setRange({DateTime? from, DateTime? to}) {
+    setState(() {
+      _from = from ?? _from;
+      _to = to ?? _to;
+      final query = BillHistoryQuery(period: BillHistoryPeriod.dateRange, from: _from, to: _to);
+      if (query.isComplete) _query = query;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final payments = ref.watch(billPaymentHistoryProvider(_query));
-    final loc = MaterialLocalizations.of(context);
+    final today = DateUtils.dateOnly(DateTime.now());
+    final earliest = DateTime(today.year - 10);
+    final range = _period == BillHistoryPeriod.dateRange;
 
     return PayMenuPage(
       title: l10n.billHistoryTitle,
       subtitle: l10n.billHistorySubtitle,
       onBack: widget.embedded ? widget.onBack : null,
-      builder: (context, wide) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _periodSummary(l10n, loc, _query),
-                  style: TextStyle(fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
-                ),
-              ),
-              // OBDX shows Download only when there are payments.
-              if ((payments.valueOrNull ?? const []).isNotEmpty) ...[
-                _downloading
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14),
-                        child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
-                      )
-                    : IconButton(
-                        tooltip: l10n.billHistoryDownload,
-                        onPressed: _download,
-                        icon: Icon(Icons.download_rounded, color: HomeColors.brand(context)),
-                      ),
-                const SizedBox(width: 4),
-              ],
-              PaySecondaryButton(
-                label: l10n.billHistoryFilter,
-                icon: Icons.tune_rounded,
-                onPressed: () => _openFilter(wide),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          payments.when(
-            loading: () => const PayCard(
-              child: Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-            ),
-            error: (error, _) => PayErrorRetry(
-              message: error is BillPaymentsLoadError && error.message != null
-                  ? error.message!
-                  : l10n.billHistoryLoadFailed,
-              onRetry: () => ref.invalidate(billPaymentHistoryProvider(_query)),
-            ),
-            data: (list) => list.isEmpty
-                ? PayCard(child: PayMuted(l10n.billHistoryNoData))
-                : PaySection(
-                    child: Column(
+      builder: (context, wide) {
+        final periodField = PayBoxedPicker(
+          label: l10n.billHistorySelectPeriod,
+          value: _periodLabel(l10n, _period),
+          onTap: _pickPeriod,
+        );
+        // From ≤ To ≤ today, as OBDX's filter panel.
+        Widget dateBox(String label, DateTime? value, DateTime first, DateTime last, ValueChanged<DateTime> onPicked) =>
+            PayBoxedPicker(
+              label: label,
+              required: true,
+              value: value == null ? null : payDate(value),
+              placeholder: l10n.billHistoryDatesRequired,
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: value ?? last,
+                  firstDate: first,
+                  lastDate: last,
+                );
+                if (picked != null) onPicked(picked);
+              },
+            );
+        final dates = [
+          dateBox(l10n.billHistoryDateFrom, _from, earliest, _to ?? today, (d) => _setRange(from: d)),
+          dateBox(l10n.billHistoryDateTo, _to, _from ?? earliest, today, (d) => _setRange(to: d)),
+        ];
+        // OBDX shows Download only when there are payments.
+        final download = (payments.valueOrNull ?? const []).isEmpty
+            ? null
+            : _downloading
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : IconButton.outlined(
+                    tooltip: l10n.billHistoryDownload,
+                    onPressed: _download,
+                    icon: Icon(Icons.download_rounded, color: HomeColors.brand(context)),
+                  );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PayCard(
+              child: wide
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (wide) const _HeaderRow(),
-                        for (final (i, p) in list.indexed)
-                          _PaymentRow(payment: p, wide: wide, last: i == list.length - 1),
+                        SizedBox(width: 320, child: periodField),
+                        if (range) ...[
+                          const SizedBox(width: 16),
+                          SizedBox(width: 240, child: dates[0]),
+                          const SizedBox(width: 16),
+                          SizedBox(width: 240, child: dates[1]),
+                        ],
+                        const Spacer(),
+                        if (download != null) download,
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(children: [Expanded(child: periodField), if (download != null) ...[const SizedBox(width: 8), download]]),
+                        if (range) ...[const SizedBox(height: 12), dates[0], const SizedBox(height: 12), dates[1]],
                       ],
                     ),
-                  ),
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(height: 14),
+            payments.when(
+              loading: () => const PayCard(
+                child: Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+              ),
+              error: (error, _) => PayErrorRetry(
+                message: error is BillPaymentsLoadError && error.message != null
+                    ? error.message!
+                    : l10n.billHistoryLoadFailed,
+                onRetry: () => ref.invalidate(billPaymentHistoryProvider(_query)),
+              ),
+              data: (list) => list.isEmpty
+                  ? PayCard(child: PayMuted(l10n.billHistoryNoData))
+                  : PayCard(
+                      padding: 0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (wide) const _HeaderRow(),
+                          for (final (i, p) in list.indexed)
+                            _PaymentRow(payment: p, wide: wide, last: i == list.length - 1),
+                        ],
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 14),
+            PayInfoBanner(message: l10n.billHistoryPeriodNote),
+          ],
+        );
+      },
     );
   }
 }
@@ -202,12 +258,6 @@ String _periodLabel(AppLocalizations l10n, BillHistoryPeriod period) => switch (
       BillHistoryPeriod.previousQuarter => l10n.billHistoryPreviousQuarter,
       BillHistoryPeriod.dateRange => l10n.billHistoryDateRange,
     };
-
-String _periodSummary(AppLocalizations l10n, MaterialLocalizations loc, BillHistoryQuery q) {
-  final label = _periodLabel(l10n, q.period);
-  if (q.period != BillHistoryPeriod.dateRange || q.from == null || q.to == null) return label;
-  return '$label: ${loc.formatMediumDate(q.from!)} – ${loc.formatMediumDate(q.to!)}';
-}
 
 String statusLabel(AppLocalizations l10n, BillPayment p) => switch (p.status) {
       BillPaymentStatus.sent => l10n.billHistoryStatusSent,
@@ -224,21 +274,15 @@ class _HeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final style = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: HomeColors.textSecondary(context));
-    Widget cell(String t, int flex, {TextAlign align = TextAlign.start}) =>
-        Expanded(flex: flex, child: Text(t, style: style, textAlign: align));
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(children: [
-        cell(l10n.billHistoryDate, 2),
-        cell(l10n.billHistoryBiller, 3),
-        cell(l10n.addBillerCategory, 3),
-        cell(l10n.billerBillAmount, 2, align: TextAlign.end),
-        const SizedBox(width: 16),
-        cell(l10n.billHistoryReferenceNo, 3),
-        cell(l10n.billHistoryStatus, 2),
-      ]),
-    );
+    return PayTableHeader(cells: [
+      (l10n.billHistoryDate, 2),
+      (l10n.billHistoryBiller, 3),
+      (l10n.addBillerCategory, 3),
+      (l10n.billerBillAmount, 2),
+      (l10n.billHistoryReferenceNo, 2),
+      (l10n.billHistoryStatus, 2),
+      (l10n.billHistoryAttachment, 2),
+    ]);
   }
 }
 
@@ -266,10 +310,11 @@ class _PaymentRow extends StatelessWidget {
               Expanded(flex: 2, child: Text(date, style: TextStyle(color: primary))),
               Expanded(flex: 3, child: Text(p.billerName ?? '', style: TextStyle(fontWeight: FontWeight.w600, color: primary))),
               Expanded(flex: 3, child: Text(p.category ?? '', style: TextStyle(color: secondary))),
-              Expanded(flex: 2, child: Text(amount, textAlign: TextAlign.end, style: TextStyle(fontWeight: FontWeight.w600, color: primary))),
-              const SizedBox(width: 16),
-              Expanded(flex: 3, child: Text(p.referenceNo, style: TextStyle(color: secondary))),
+              Expanded(flex: 2, child: Text(amount, style: TextStyle(color: primary))),
+              Expanded(flex: 2, child: Text(p.referenceNo, style: TextStyle(color: secondary))),
               Expanded(flex: 2, child: Align(alignment: AlignmentDirectional.centerStart, child: status)),
+              // Attachments are not built yet.
+              Expanded(flex: 2, child: Text('—', style: TextStyle(color: secondary))),
             ],
           )
         : Column(
@@ -306,7 +351,7 @@ class _PaymentRow extends StatelessWidget {
           );
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: wide ? 20 : 14),
       decoration: BoxDecoration(
         border: last ? null : Border(bottom: BorderSide(color: HomeColors.divider(context))),
       ),
@@ -334,86 +379,6 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
       child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
-    );
-  }
-}
-
-/// OBDX's Filter panel (bill-payment-history-panel): Select Period, and
-/// Date From / Date To for Date Range. To ≤ today, From ≤ To.
-class _FilterPanel extends StatefulWidget {
-  const _FilterPanel({required this.initial});
-
-  final BillHistoryQuery initial;
-
-  @override
-  State<_FilterPanel> createState() => _FilterPanelState();
-}
-
-class _FilterPanelState extends State<_FilterPanel> {
-  late BillHistoryPeriod _period = widget.initial.period;
-  late DateTime? _from = widget.initial.from;
-  late DateTime? _to = widget.initial.to;
-  bool _showError = false;
-
-  void _apply() {
-    final query = BillHistoryQuery(
-      period: _period,
-      from: _period == BillHistoryPeriod.dateRange ? _from : null,
-      to: _period == BillHistoryPeriod.dateRange ? _to : null,
-    );
-    if (!query.isComplete) return setState(() => _showError = true);
-    Navigator.of(context).pop(query);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final today = DateUtils.dateOnly(DateTime.now());
-    final earliest = DateTime(today.year - 10);
-    final range = _period == BillHistoryPeriod.dateRange;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 8, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.billHistoryFilter, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            PayFieldLabel(l10n.billHistorySelectPeriod, required: true),
-            PayChoiceChips<BillHistoryPeriod>(
-              options: [for (final p in BillHistoryPeriod.values) (p, _periodLabel(l10n, p))],
-              selected: _period,
-              onChanged: (p) => setState(() {
-                _period = p;
-                _showError = false;
-              }),
-            ),
-            if (range) ...[
-              const SizedBox(height: 16),
-              PayFieldLabel(l10n.billHistoryDateFrom, required: true),
-              PayDateField(
-                value: _from,
-                first: earliest,
-                last: _to ?? today,
-                onChanged: (d) => setState(() => _from = d),
-                error: _showError && _from == null ? l10n.billHistoryDatesRequired : null,
-              ),
-              const SizedBox(height: 12),
-              PayFieldLabel(l10n.billHistoryDateTo, required: true),
-              PayDateField(
-                value: _to,
-                first: _from ?? earliest,
-                last: today,
-                onChanged: (d) => setState(() => _to = d),
-                error: _showError && _to == null ? l10n.billHistoryDatesRequired : null,
-              ),
-            ],
-            const SizedBox(height: 20),
-            PayPrimaryButton(label: l10n.billHistoryApply, onPressed: _apply),
-          ],
-        ),
-      ),
     );
   }
 }
