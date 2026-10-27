@@ -20,7 +20,13 @@ enum CorpNavDestination {
   bill('Bill', Icons.receipt_long_outlined),
   statements('Statements', Icons.description_outlined),
   creditCard('Credit Card', Icons.credit_card_outlined),
-  insurance('Insurance', Icons.shield_outlined);
+  insurance('Insurance', Icons.shield_outlined),
+  serviceRequests('Service Requests', Icons.support_agent_rounded);
+
+  /// OBDX's two Service Requests entries — the same shared page, opened on
+  /// either half.
+  static const serviceRequestsTrackId = 'serviceRequests.track';
+  static const serviceRequestsRaiseId = 'serviceRequests.raise';
 
   const CorpNavDestination(this.label, this.icon);
 
@@ -47,6 +53,17 @@ enum CorpNavDestination {
       if (destination == tradeFinance) {
         final item = _tradeFinanceItem(lcPermissions);
         if (item != null) items.add(item);
+      } else if (destination == serviceRequests) {
+        // TODO(l10n): like the other corporate labels.
+        items.add(DashboardNavItem(
+          id: destination.name,
+          label: destination.label,
+          icon: destination.icon,
+          children: const [
+            DashboardNavItem(id: serviceRequestsTrackId, label: 'Track Requests', icon: Icons.manage_search_rounded),
+            DashboardNavItem(id: serviceRequestsRaiseId, label: 'Raise a New Request', icon: Icons.add_comment_outlined),
+          ],
+        ));
       } else {
         items.add(DashboardNavItem(
           id: destination.name,
