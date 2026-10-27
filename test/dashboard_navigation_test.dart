@@ -154,6 +154,7 @@ void main() {
         RetailNav.billPayments,
         RetailNav.serviceRequests,
         RetailNav.mailbox,
+        RetailNav.calculators,
         RetailNav.more,
       ]);
     });
