@@ -12,36 +12,23 @@ import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:ubci_bank/src/view/widgets/obdx_write_runner.dart';
 
 /// Mailbox Phase 2: Compose Mail and Reply, with attachments
 /// (docs/obdx/features/mailbox.md §6).
 
-/// Runs one mailbox write, asking for the OTP on each 417 until it is done,
-/// fails or the user cancels (then the last 417 result comes back).
+/// Runs one mailbox write through the shared OTP loop ([runWithOtp]), with
+/// the mailbox's own OTP texts.
 Future<ResponseHandler<MailboxWriteOutcome>> runMailboxWrite(
   BuildContext context,
   Future<ResponseHandler<MailboxWriteOutcome>> Function(ObdxChallenge? challenge, String? otp) call,
-) async {
+) {
   final l10n = AppLocalizations.of(context);
-  var result = await call(null, null);
-  while (result is Success<MailboxWriteOutcome> && result.data?.challenge != null) {
-    final outcome = result.data!;
-    if (!context.mounted) return result;
-    final otp = await showPayOtpPrompt(
-      context,
-      title: l10n.mailboxOtpTitle,
-      error: outcome.invalidOtp ? l10n.mailboxOtpInvalid : null,
-      attemptsLeft: outcome.challenge!.attemptsLeft,
-    );
-    if (otp == null || !context.mounted) return result;
-    result = await call(outcome.challenge, otp);
-  }
-  return result;
+  return runWithOtp(context, call, title: l10n.mailboxOtpTitle, invalidOtp: l10n.mailboxOtpInvalid);
 }
 
 /// Done: not failed and no OTP still waiting.
-bool mailboxWriteDone(ResponseHandler<MailboxWriteOutcome> r) =>
-    r is Success<MailboxWriteOutcome> && r.data != null && r.data!.challenge == null;
+bool mailboxWriteDone(ResponseHandler<MailboxWriteOutcome> r) => obdxWriteDone(r);
 
 /// An attached file: its name and the `contentId` object OBDX returned.
 class _Attached {
@@ -274,7 +261,7 @@ class _MailComposeViewState extends ConsumerState<MailComposeView> with _Attachm
       text: _text.text,
       contents: contents,
       // The chosen party, else the own one (OBDX's Party is not required). [APP]
-      party: _party ?? (setup.parties.isEmpty ? null : setup.parties.first.id),
+      party: setup.parties.where((p) => p.id == _party).firstOrNull ?? setup.parties.firstOrNull,
     );
     final repo = ref.read(mailboxRepositoryProvider);
     final r = await runMailboxWrite(context, (c, otp) => repo.sendMail(body, challenge: c, otp: otp));

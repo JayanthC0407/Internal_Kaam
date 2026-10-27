@@ -153,6 +153,7 @@ void main() {
         RetailNav.creditCards,
         RetailNav.billPayments,
         RetailNav.mailbox,
+        RetailNav.calculators,
         RetailNav.more,
       ]);
     });
