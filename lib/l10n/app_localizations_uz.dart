@@ -4295,4 +4295,68 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get payBillChooseFile => 'Choose File';
+
+  @override
+  String get payBillsTitle => 'Pay Bills';
+
+  @override
+  String payBillsReviewMessage(int count) {
+    return 'You have initiated $count bill payments. Please review the details before you confirm!';
+  }
+
+  @override
+  String get payBillsEdit => 'Edit Bill Payment';
+
+  @override
+  String get payBillsDelete => 'Delete Bill Payment';
+
+  @override
+  String get payBillsSave => 'Save';
+
+  @override
+  String get payBillsSaveAll => 'Please save all unsaved payments.';
+
+  @override
+  String get payBillsSelectAccount => 'Select an account to proceed';
+
+  @override
+  String get payBillsCopyAccount =>
+      'Default this account for all the bill payments records';
+
+  @override
+  String get payBillsCopyDate =>
+      'Default this date for all the bill payments records';
+
+  @override
+  String get payBillsStatusTitle => 'Multiple Bill Payment Status';
+
+  @override
+  String get payBillsFromAccount => 'From Account';
+
+  @override
+  String get payBillsHostReference => 'Host Reference No.';
+
+  @override
+  String get payBillsReference => 'Reference No.';
+
+  @override
+  String get payBillsStatus => 'Status';
+
+  @override
+  String get payBillsCompleted => 'Completed';
+
+  @override
+  String get payBillsInitiated => 'Initiated';
+
+  @override
+  String get payBillsPendingApproval => 'Pending for approval';
+
+  @override
+  String get payBillsFailed => 'Failed';
+
+  @override
+  String get payBillsNoAnswer => 'No answer was received for this bill.';
+
+  @override
+  String get payBillsSendFailed => 'We couldn\'t send the payments.';
 }

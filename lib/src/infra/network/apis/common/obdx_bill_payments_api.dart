@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
@@ -219,11 +220,52 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
   /// `dda demandDeposit?taskCode=EB_F_BP`, CREDITCARD
   /// `card cards/credit?expand=ALL`, DEBITCARD
   /// `dda demandDeposit?expand=DEBITCARDS`.
-  Future<ResponseHandler<Map<String, dynamic>>> fetchPayAccounts(String paymentType) => switch (paymentType) {
+  ///
+  /// [taskCode] goes with CASA only; null sends none (the several-bills
+  /// flow after the user picks Account again).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchPayAccounts(String paymentType, {String? taskCode}) =>
+      switch (paymentType) {
         'CREDITCARD' => _get(_creditCards, const {'expand': 'ALL'}),
         'DEBITCARD' => _get(_demandDeposit, const {'expand': 'DEBITCARDS'}),
-        _ => _get(_demandDeposit, const {'taskCode': 'EB_F_BP'}),
+        _ => _get(_demandDeposit, {if (taskCode != null) 'taskCode': taskCode}),
       };
+
+  /// `POST /digx-payments/batch` — several bills in one multipart request
+  /// (initiate-multiple-bill-payments-review/model.js:11-21; one part per
+  /// bill, built by the shared [ObdxBatchEncoder]). OBDX sends
+  /// `X-BATCH_TYPE` as `params.type`, undefined here (service-base.js:881),
+  /// so the app sends none [UNKNOWN: bill-payments.md §8.6]. 200 / 207 carry
+  /// a result per bill; 417 asks one OTP for the whole batch.
+  Future<ResponseHandler<Map<String, dynamic>>> payBills(
+    List<ObdxBatchItem> items, {
+    String? challengeResponseHeader,
+    String? boundary,
+  }) async {
+    try {
+      final separator = boundary ?? ObdxBatchEncoder.newBoundary();
+      final contentType = 'multipart/form-data; boundary=$separator';
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(ApiConst.paymentsBatchApi),
+        data: ObdxBatchEncoder.encode(items, separator),
+        options: Options(
+          contentType: contentType,
+          headers: {
+            ApiConst.contentTypeKey: contentType,
+            // The servlet splits the body on this header.
+            'boundary': separator,
+            if (challengeResponseHeader != null && challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          validateStatus: (status) => status == 200 || status == 207 || status == 417,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
 
   /// `POST …/ebpp/v1/ebillPayments` — Confirm (RV/pay-bill-review.js:91).
   /// UAT answered 400 `DIGX_FL_015` (limits not set for the user); 417 and

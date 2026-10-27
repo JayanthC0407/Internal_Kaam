@@ -1,10 +1,12 @@
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_pay_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/common/statement_format.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/statement_download.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
@@ -157,9 +159,66 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
   Future<ResponseHandler<Map<String, dynamic>>> fetchOperationalArea(String id) async =>
       parseBody(await _api.fetchOperationalArea(id), (body) => body);
 
-  /// Pay From for [type], filtered as OBDX does.
-  Future<ResponseHandler<List<BillPayAccount>>> fetchPayAccounts(BillPayType type) async =>
-      parseBody(await _api.fetchPayAccounts(type.code), (body) => BillPayAccount.listFromPayload(type, body));
+  /// Pay From for [type], filtered as OBDX does. [taskCode] goes with the
+  /// CASA list (null: none); [multiple] is the several-bills flow's debit
+  /// card filter.
+  Future<ResponseHandler<List<BillPayAccount>>> fetchPayAccounts(
+    BillPayType type, {
+    String? taskCode = billPayTaskCode,
+    bool multiple = false,
+  }) async =>
+      parseBody(
+        await _api.fetchPayAccounts(type.code, taskCode: taskCode),
+        (body) => BillPayAccount.listFromPayload(type, body, multiple: multiple),
+      );
+
+  /// Confirm for several bills: one `POST /digx-payments/batch`, a part
+  /// per bill (`POST /ebillPayments`, initiate-multiple-bill-payments-
+  /// review.js:93-115). One OTP for the batch (417); then a row per bill,
+  /// matched by `sequenceId` (OBDX matches by position).
+  Future<ResponseHandler<BillBatchOutcome>> payBills(
+    List<PayBillRequest> requests, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final otpValue = otp?.trim() ?? '';
+    final otpSubmitted = challenge != null && otpValue.isNotEmpty;
+    final result = await _api.payBills(
+      [
+        for (final r in requests)
+          ObdxBatchItem(
+            method: 'POST',
+            uri: '/ebillPayments',
+            applicationId: 'digx-payments/ebpp',
+            body: r.toJson(multiple: true),
+          ),
+      ],
+      challengeResponseHeader: otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
+    );
+    if (result is Success<Map<String, dynamic>> && result.data?['statusCode'] == 417) {
+      final wrapped = result.data!;
+      final next = ObdxChallenge.fromPaymentChallengeHeaders(wrapped['headers']);
+      if (next != null) {
+        return ResponseHandler.success(BillBatchOutcome.otpRequired(next, invalidOtp: otpSubmitted), code: 417);
+      }
+      final body = ObdxApiUtils.asMap(wrapped['body'] ?? wrapped['rawBody']);
+      final error = otpSubmitted
+          ? ObdxErrorMapper.fromChallengeResponse(417, body)
+          : ObdxErrorMapper.fromHttpResponse(417, body);
+      return ResponseHandler.error(error.httpStatusCode ?? 417, error.userMessage, obdxError: error);
+    }
+    return parseBody(
+      result,
+      (body) {
+        final parts = {for (final p in ObdxBatchItemResult.listFromPayload(body)) p.sequenceId: p};
+        return BillBatchOutcome.done([
+          for (var i = 0; i < requests.length; i++)
+            if (parts[i] case final p?) BillBatchRow.fromPart(p.status, p.body, p.headers) else const BillBatchRow(status: 0),
+        ]);
+      },
+      successCodes: const {200, 207},
+    );
+  }
 
   /// Confirm → `POST ebillPayments`.
   Future<ResponseHandler<BillPayOutcome>> payBill(

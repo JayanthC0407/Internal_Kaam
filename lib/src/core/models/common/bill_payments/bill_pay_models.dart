@@ -16,6 +16,11 @@ import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 /// account list and used for limits.
 const billPayTaskCode = 'EB_F_BP';
 
+/// The CASA list's task code in OBDX's multiple bill payment flow
+/// (initiate-multiple-bill-payments-stage1/hooks.js:168, 482) — not
+/// `EB_F_BP`. After the user picks Account again OBDX sends none (:756).
+const billPayMultipleTaskCode = 'PC_F_INTRNL';
+
 /// `paymentMethodsList[].paymentType`: what the bill is paid from.
 enum BillPayType {
   casa('CASA'),
@@ -105,7 +110,15 @@ class BillPayAccount {
   /// "{displayValue} - {nickname}" (nls/account-input.js:8).
   String get label => nickname == null ? displayNumber : '$displayNumber - $nickname';
 
-  static List<BillPayAccount> listFromPayload(BillPayType type, Map<String, dynamic> body) {
+  /// [multiple]: the several-bills flow keeps debit cards `ISSUED`
+  /// (initiate-multiple-bill-payments-stage1/hooks.js:801); pay-bill keeps
+  /// `ACTIVATED` / `ACTIVE`.
+  static List<BillPayAccount> listFromPayload(
+    BillPayType type,
+    Map<String, dynamic> body, {
+    bool multiple = false,
+  }) {
+    final debitStatuses = multiple ? const {'ISSUED'} : const {'ACTIVATED', 'ACTIVE'};
     switch (type) {
       case BillPayType.casa:
         return [
@@ -134,11 +147,11 @@ class BillPayAccount {
                 ),
         ];
       case BillPayType.debitCard:
-        // The accounts' debit cards that are ACTIVATED or ACTIVE.
+        // The accounts' debit cards in [debitStatuses].
         return [
           for (final a in _list(body['accounts']))
             for (final d in _list(a['debitCards']))
-              if (_str(d['cardStatus']) == 'ACTIVATED' || _str(d['cardStatus']) == 'ACTIVE')
+              if (debitStatuses.contains(_str(d['cardStatus'])))
                 if (_id(d['cardNo']) case final id?)
                   BillPayAccount(
                     value: id.$1,
@@ -356,7 +369,11 @@ class PayBillRequest {
 
   DateTime get paymentDate => payLater && scheduledDate != null ? scheduledDate! : today;
 
-  Map<String, dynamic> toJson() => {
+  /// [multiple]: a part of the several-bills batch, where OBDX adds
+  /// `attachmentId` only once a file was uploaded
+  /// (initiate-multiple-bill-payments-stage1/hooks.js:958; pay-bill always
+  /// sends the key).
+  Map<String, dynamic> toJson({bool multiple = false}) => {
         'id': null,
         'debitAccount': {'value': account.value, 'displayValue': account.label},
         'customerName': registration.customerName,
@@ -387,7 +404,7 @@ class PayBillRequest {
           'autopayInstructions': {'frequency': null, 'endDate': null},
           'subcategory': registration.subcategory ?? '',
         },
-        'attachmentId': attachmentId,
+        if (!multiple || attachmentId != null) 'attachmentId': attachmentId,
       };
 }
 
@@ -405,6 +422,88 @@ class BillPayOutcome implements ObdxOtpOutcome {
   /// `status.referenceNumber`, else `billPayment.id` (RV/pay-bill-review.js:92-94).
   final String? reference;
   final bool pendingApproval;
+  @override
+  final ObdxChallenge? challenge;
+  @override
+  final bool invalidOtp;
+}
+
+/// One bill's answer in the several-bills batch, read the way OBDX's review
+/// does (initiate-multiple-bill-payments-review.js:126-153) and shown the
+/// way its status table does (initiate-multiple-bill-payment-status.html).
+class BillBatchRow {
+  const BillBatchRow({
+    required this.status,
+    this.approvalInitiated = false,
+    this.externalReference,
+    this.paymentId,
+    this.referenceNumber,
+    this.failureReason,
+  });
+
+  /// The part's own HTTP status; 0 when the batch had no answer for it.
+  final int status;
+
+  /// `APPROVAL_STATUS: INITIATED` on the part ("Initiated").
+  final bool approvalInitiated;
+
+  /// `status.externalReferenceNumber` and `billPayment.id` — "Host
+  /// Reference No." (the latter for non-corporate users).
+  final String? externalReference;
+  final String? paymentId;
+
+  /// `status.referenceNumber` — "Reference No." when any bill went for
+  /// approval.
+  final String? referenceNumber;
+  final String? failureReason;
+
+  /// 200 / 201 / 202 (OBDX `isSuccess`).
+  bool get succeeded => status == 200 || status == 201 || status == 202;
+  bool get completed => status == 200 || status == 201;
+  bool get pendingApproval => status == 202;
+
+  static BillBatchRow fromPart(int status, Map<String, dynamic> body, Map<String, String> headers) {
+    final st = ObdxApiUtils.asMap(body['status']);
+    final message = ObdxApiUtils.asMap(body['message']);
+    final validation = message['validationError'];
+    final ok = status == 200 || status == 201 || status == 202;
+    // OBDX: status.message.detail, else validationError[0].errorMessage,
+    // else message.title / detail, else status.result.
+    final reason = ok
+        ? null
+        : _str(ObdxApiUtils.asMap(st['message'])['detail']) ??
+            (validation is List && validation.isNotEmpty
+                ? _str(ObdxApiUtils.asMap(validation.first)['errorMessage'])
+                : null) ??
+            _str(message['title']) ??
+            _str(message['detail']) ??
+            _str(st['result']);
+    return BillBatchRow(
+      status: status,
+      approvalInitiated: headers['APPROVAL_STATUS']?.toUpperCase() == 'INITIATED',
+      externalReference: _str(st['externalReferenceNumber']),
+      paymentId: _str(ObdxApiUtils.asMap(body['billPayment'])['id']),
+      referenceNumber: _str(st['referenceNumber']),
+      failureReason: reason,
+    );
+  }
+}
+
+/// Result of Confirm for several bills: one OTP for the whole batch (417),
+/// then a row per bill in the order they were sent.
+class BillBatchOutcome implements ObdxOtpOutcome {
+  const BillBatchOutcome.done(List<BillBatchRow> this.rows)
+      : challenge = null,
+        invalidOtp = false;
+
+  const BillBatchOutcome.otpRequired(ObdxChallenge this.challenge, {this.invalidOtp = false}) : rows = null;
+
+  final List<BillBatchRow>? rows;
+
+  /// OBDX `isInitAuth`: any bill went for approval (202) — the reference
+  /// column then shows "Reference No.".
+  bool get anyPending => rows?.any((r) => r.pendingApproval) ?? false;
+
   @override
   final ObdxChallenge? challenge;
   @override
