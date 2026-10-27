@@ -38,6 +38,7 @@ class HomeContent extends StatelessWidget {
     this.displayName = '',
     this.onTransferTap,
     this.onBillsTap,
+    this.onCalculatorTap,
     this.onCasaAccountTap,
     this.onLoanAccountTap,
     this.onDepositTap,
@@ -86,6 +87,9 @@ class HomeContent extends StatelessWidget {
 
   /// Home "Bill" quick action → Billers.
   final VoidCallback? onBillsTap;
+
+  /// Home "Calculator" quick action → the Calculators page.
+  final VoidCallback? onCalculatorTap;
 
   /// Invoked when a CASA account is tapped, on either the Overview tab's
   /// account preview or the Accounts tab's Current & Savings list. Falls
@@ -182,6 +186,7 @@ class HomeContent extends StatelessWidget {
           onToggleAccountVisibility: onToggleAccountVisibility,
           onTransferTap: onTransferTap,
           onBillsTap: onBillsTap,
+          onCalculatorTap: onCalculatorTap,
           onViewAllAccountsTap: onViewAllAccountsTap ?? () => onTopTabSelected(1),
           onViewAllLoans: onViewAllLoans,
           onLoanAccountTap: onLoanAccountTap,
@@ -387,6 +392,7 @@ class _OverviewContent extends StatelessWidget {
     required this.onToggleAccountVisibility,
     this.onTransferTap,
     this.onBillsTap,
+    this.onCalculatorTap,
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
     this.onLoanAccountTap,
@@ -406,6 +412,7 @@ class _OverviewContent extends StatelessWidget {
 
   /// Home "Bill" quick action → Billers.
   final VoidCallback? onBillsTap;
+  final VoidCallback? onCalculatorTap;
   final VoidCallback? onViewAllAccountsTap;
   final VoidCallback? onViewAllLoans;
   final ValueChanged<LoanAccount>? onLoanAccountTap;
@@ -442,7 +449,7 @@ class _OverviewContent extends StatelessWidget {
       onChequeBook: () => _comingSoon(context, 'Cheque Book'),
       onPassbook: () => _comingSoon(context, 'Passbook'),
       onNewDebitCard: () => _comingSoon(context, 'New Debit card'),
-      onCalculator: () => _comingSoon(context, 'Calculator'),
+      onCalculator: onCalculatorTap ?? () => _comingSoon(context, 'Calculator'),
       // Phone Home design: Transfer is the second tile.
       onTransfer: isWide ? null : onTransferTap,
           );

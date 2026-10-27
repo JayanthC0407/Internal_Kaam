@@ -3409,6 +3409,138 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mailboxPickFailed => 'The file could not be opened.';
 
   @override
+  String get calcTitle => 'Calculators';
+
+  @override
+  String get calcTd => 'Term Deposit Calculator';
+
+  @override
+  String get calcLoanInstallment => 'Loan Installment Calculator';
+
+  @override
+  String get calcLoanEligibility => 'Loan Eligibility Calculator';
+
+  @override
+  String get calcForex => 'Forex Calculator';
+
+  @override
+  String get calcDepositAmount => 'Deposit Amount';
+
+  @override
+  String get calcDepositTenure => 'Deposit Tenure';
+
+  @override
+  String get calcYears => 'Years';
+
+  @override
+  String get calcMonths => 'Months';
+
+  @override
+  String get calcDays => 'Days';
+
+  @override
+  String get calcInterestRate => 'Interest Rate';
+
+  @override
+  String get calcMaturityAmount => 'Maturity Amount';
+
+  @override
+  String get calcEnterValidValue => 'Enter a Valid Value';
+
+  @override
+  String get calcEnterValidInterest => 'Please enter valid Interest';
+
+  @override
+  String get calcLoanAmount => 'Loan Amount';
+
+  @override
+  String get calcLoanTenureYears => 'Loan Tenure (In Years)';
+
+  @override
+  String get calcInstallmentAmount => 'Installment Amount';
+
+  @override
+  String get calcGrossIncome => 'Gross Income (Monthly)';
+
+  @override
+  String get calcTotalExpenses => 'Total Expenses (Monthly)';
+
+  @override
+  String get calcInterestRateIn => 'Interest Rate (In %)';
+
+  @override
+  String get calcEligibleAmount => 'Eligible Amount';
+
+  @override
+  String get calcAverageInstallment => 'Average Installment';
+
+  @override
+  String calcPerMonth(String amount) {
+    return '$amount / Month';
+  }
+
+  @override
+  String get calcExpensesHigh =>
+      'Your monthly expenses seem to be higher than your monthly income. Please modify the values to recalculate loan eligibility.';
+
+  @override
+  String get calcFromCurrency => 'From Currency';
+
+  @override
+  String get calcToCurrency => 'To Currency';
+
+  @override
+  String get calcForeignCurrency => 'Foreign Currency';
+
+  @override
+  String get calcAmount => 'Amount';
+
+  @override
+  String calcRate(String from, String rate, String to) {
+    return '@1 $from = $rate $to';
+  }
+
+  @override
+  String get calcSelectCurrency => 'Please Select Currency';
+
+  @override
+  String get calcValidAmount => 'Please enter a valid amount';
+
+  @override
+  String get calcHubSubtitle => 'Plan deposits, loans and currency exchange';
+
+  @override
+  String get calcTdDesc => 'What your deposit will be worth at maturity';
+
+  @override
+  String get calcLoanInstallmentDesc =>
+      'Your installment for a loan amount and tenure';
+
+  @override
+  String get calcLoanEligibilityDesc =>
+      'How much you may borrow from your income';
+
+  @override
+  String get calcForexDesc => 'Convert an amount between currencies';
+
+  @override
+  String get calcLoadFailed => 'The calculator could not be loaded.';
+
+  @override
+  String get calcFailed => 'The result could not be calculated.';
+
+  @override
+  String calcRangeHint(String min, String max) {
+    return 'Between $min and $max';
+  }
+
+  @override
+  String get calcDecrease => 'Decrease';
+
+  @override
+  String get calcIncrease => 'Increase';
+
+  @override
   String get prefTitle => 'My Preferences';
 
   @override
