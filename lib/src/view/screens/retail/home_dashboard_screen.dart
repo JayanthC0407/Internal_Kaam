@@ -879,11 +879,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     // A module page and everything opened from it keep its entry lit.
     if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
     if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
-    if (index == _mailboxIndex) return RetailNav.mailbox;
-    if (index == _serviceRequestsIndex) {
-      return _srTab == SrTab.raise ? RetailNav.serviceRequestsRaise : RetailNav.serviceRequestsTrack;
+    // Rewards (tab 3), Mailbox, Service Requests and Calculators open from More.
+    if (index == 3 || index == _mailboxIndex || index == _serviceRequestsIndex || _calculatorScreens.contains(index)) {
+      return RetailNav.more;
     }
-    if (_calculatorScreens.contains(index)) return RetailNav.calculators;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -916,17 +915,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case RetailNav.creditCards:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
         _openSection(index: _creditCardsHubIndex);
-        return;
-      case RetailNav.mailbox:
-        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _mailboxIndex);
-        return;
-      case RetailNav.serviceRequestsTrack:
-      case RetailNav.serviceRequestsRaise:
-        _openServiceRequests(id == RetailNav.serviceRequestsRaise ? SrTab.raise : SrTab.track);
-      case RetailNav.calculators:
-        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _calculatorsHubIndex);
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -984,18 +972,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// initials in the dashboard header, as OBDX's header profile does.
   static const _preferencesIndex = 32;
 
-  /// Service Requests (OBDX Track Requests / Raise a New Request): the side
-  /// menu and More → Services.
-  static const _serviceRequestsIndex = 33;
-
-  /// Which half the side menu opened Service Requests on.
-  SrTab _srTab = SrTab.track;
-
-  void _openServiceRequests(SrTab tab, {int back = 0}) {
-    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-    _srTab = tab;
-    _openSection(index: _serviceRequestsIndex, back: back);
-  }
+  /// Service Requests (OBDX Track Requests / Raise a New Request), from
+  /// More → Services; it opens on Track, with Raise one switch away.
+  static const _serviceRequestsIndex = 38;
 
   /// The header initials: opens Preferences; Back returns to the screen it
   /// was tapped on.
@@ -1095,7 +1074,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case _mailboxIndex:
         return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _closeSection);
       case _serviceRequestsIndex:
-        return ServiceRequestsScreen(initialTab: _srTab, embedded: true, onBack: _closeSection);
+        return ServiceRequestsScreen(embedded: true, onBack: _closeSection);
       case _preferencesIndex:
         return PreferencesScreen(
           userName: _signedInUserName(),
@@ -1136,7 +1115,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           displayName: _displayNameFromTrace(),
           onRewardsTap: () => setState(() => _selectedBottomNavIndex = 3),
           onMailboxTap: () => _openSection(index: _mailboxIndex, back: 4),
-          onServiceRequestsTap: () => _openServiceRequests(SrTab.track, back: 4),
+          onServiceRequestsTap: () => _openSection(index: _serviceRequestsIndex, back: 4),
+          onCalculatorsTap: () => _openSection(index: _calculatorsHubIndex, back: 4),
           onProfileTap: _openPreferences,
         );
       case 5:

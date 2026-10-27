@@ -27,11 +27,6 @@ class RetailNav {
   static const accountsTermDeposits = 'accounts.termDeposits';
   static const creditCards = 'creditCards';
   static const billPayments = 'billPayments';
-  static const mailbox = 'mailbox';
-  static const serviceRequests = 'serviceRequests';
-  static const serviceRequestsTrack = 'serviceRequests.track';
-  static const serviceRequestsRaise = 'serviceRequests.raise';
-  static const calculators = 'calculators';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -55,11 +50,8 @@ class RetailNav {
           // OBDX's Payments. One entry, no submenu: it opens the Payments
           // hub, which lays out every transfer on one page.
         ),
-        DashboardNavItem(
-          id: rewards,
-          label: l10n.rewards,
-          icon: Icons.card_giftcard_rounded,
-        ),
+        // Rewards, Mailbox, Service Requests and Calculators live in More,
+        // not here.
         DashboardNavItem(
           id: accounts,
           label: l10n.accounts,
@@ -97,30 +89,8 @@ class RetailNav {
           label: l10n.billPaymentsTitle,
           icon: Icons.receipt_long_rounded,
         ),
-        // OBDX's Service Requests menu and its two entries; both open one
-        // page, on that half.
-        DashboardNavItem(
-          id: serviceRequests,
-          label: l10n.srTitle,
-          icon: Icons.support_agent_rounded,
-          children: [
-            DashboardNavItem(id: serviceRequestsTrack, label: l10n.srTrackRequests, icon: Icons.manage_search_rounded),
-            DashboardNavItem(id: serviceRequestsRaise, label: l10n.srRaiseNew, icon: Icons.add_comment_outlined),
-          ],
-        ),
-        // OBDX's Mailbox menu (Mails, Alerts, Notifications) on one page.
-        DashboardNavItem(
-          id: mailbox,
-          label: l10n.mailboxTitle,
-          icon: Icons.mail_outline_rounded,
-        ),
-        // OBDX's Calculators menu: the four calculators on one page.
-        DashboardNavItem(
-          id: calculators,
-          label: l10n.calcTitle,
-          icon: Icons.calculate_outlined,
-        ),
-        // Last, after Accounts: a catch-all reads best at the end.
+        // Last, after Accounts: a catch-all reads best at the end. It also
+        // holds Rewards, Mailbox, Service Requests and Calculators.
         DashboardNavItem(
           id: more,
           label: l10n.more,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
 import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
@@ -8,9 +9,8 @@ import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 /// Retail **web** dashboard top bar — the shared [DashboardTopBar], the same
 /// bar the Corporate dashboard uses, fed from the Retail session.
 ///
-/// The initials open My Preferences; the chevron beside them shows the
-/// user's name over their sign-in ID and holds Log out; the settings menu
-/// holds the light/dark and colour theme switches.
+/// The initials open My Preferences; the settings gear holds the
+/// light/dark and colour theme switches.
 class WebDashboardHeaderBar extends StatelessWidget {
   const WebDashboardHeaderBar({
     super.key,
@@ -27,8 +27,7 @@ class WebDashboardHeaderBar extends StatelessWidget {
     this.onProfileTap,
   });
 
-  /// The initials: opens My Preferences. The chevron beside them keeps the
-  /// profile menu (name, Log out).
+  /// The initials: opens My Preferences (which holds Log out).
   final VoidCallback? onProfileTap;
 
   /// The signed-in customer's name, for the profile menu and avatar.
@@ -216,19 +215,8 @@ class DemobankHomeHeader extends StatelessWidget {
         ),
         Expanded(
           child: Center(
-            child: Image.asset(
-              'assets/images/demobank_logo.png',
-              height: 36,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Text(
-                l10n.brandName,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: iconColor,
-                ),
-              ),
-            ),
+            // White in dark mode.
+            child: BrandLogo(height: 36, fallbackColor: iconColor),
           ),
         ),
         SizedBox(

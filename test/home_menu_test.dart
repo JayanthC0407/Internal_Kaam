@@ -199,10 +199,22 @@ void main() {
       );
       await tester.tap(find.text('Credit Card'));
       await _settle(tester);
-      // Real cards from cards/credit, one per page.
+      // Real cards from cards/credit, one per page — details hidden at
+      // first, like the account cards.
+      expect(find.text('xxxx xxxx xxxx 1111'), findsNothing);
+      expect(find.text('•••• •••• •••• ••••'), findsOneWidget);
+      expect(find.text('••/••'), findsOneWidget);
+
+      // The eye shows every detail of that card.
+      await tester.tap(find.byTooltip('Show card details').first);
+      await tester.pumpAndSettle();
       expect(find.text('xxxx xxxx xxxx 1111'), findsOneWidget);
       expect(find.text('xxxx xxxx xxxx 2222'), findsNothing);
       await tester.drag(find.byType(PageView), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+      // Each card has its own eye; the second is still hidden.
+      expect(find.text('xxxx xxxx xxxx 2222'), findsNothing);
+      await tester.tap(find.byTooltip('Show card details').last);
       await tester.pumpAndSettle();
       expect(find.text('xxxx xxxx xxxx 2222'), findsOneWidget);
       expect(find.text('03/28'), findsOneWidget, reason: 'expiry as MM/YY');

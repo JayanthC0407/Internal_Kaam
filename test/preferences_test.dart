@@ -206,10 +206,11 @@ void main() {
         ),
       );
       expect(find.text('My Preferences'), findsOneWidget);
-      // The card: name from me/party, user id, masked contact, last login.
+      // The card: name from me/party, user id, last login — no contact details.
       expect(find.text('TOM PHILIP'), findsOneWidget);
       expect(find.text('User ID: tom01'), findsOneWidget);
-      expect(find.text('t••@example.com  ·  •••• 0123'), findsOneWidget);
+      expect(find.textContaining('example.com'), findsNothing);
+      expect(find.textContaining('0123'), findsNothing);
       expect(find.textContaining('Last login 25 Oct 2026'), findsOneWidget);
       for (final g in ['ACCOUNT', 'SECURITY & PRIVACY', 'APP']) {
         expect(find.text(g), findsOneWidget, reason: g);
@@ -296,7 +297,7 @@ void main() {
       }
     }
 
-    testWidgets('web header: the initials open Preferences, the chevron keeps Log out', (tester) async {
+    testWidgets('web header: only the icons are tap targets; the initials open Preferences', (tester) async {
       var preferences = 0;
       var logout = 0;
       await pump(
@@ -314,14 +315,15 @@ void main() {
       await tester.tap(find.text('TP'));
       await tester.pumpAndSettle();
       expect(preferences, 1);
+      // No dropdown: Log out is in My Preferences.
       expect(find.text('Log out'), findsNothing);
+      expect(logout, 0);
+      // No chevrons beside the settings gear or the initials.
+      expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsNothing);
 
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded).last);
+      await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Log out'));
-      await tester.pumpAndSettle();
-      expect(logout, 1);
-      expect(preferences, 1);
+      expect(find.text('Switch to dark mode'), findsOneWidget);
     });
 
     testWidgets('themes: Apply only after choosing another theme, then it is the app theme', (tester) async {

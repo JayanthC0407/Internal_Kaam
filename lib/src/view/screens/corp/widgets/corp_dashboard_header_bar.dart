@@ -24,8 +24,8 @@ class CorpDashboardHeaderBar extends ConsumerWidget {
     this.onProfileTap,
   });
 
-  /// The initials: opens My Preferences (Personalize Dashboard lives
-  /// there). The chevron beside them keeps the profile menu.
+  /// The initials: opens My Preferences (Personalize Dashboard and Log out
+  /// live there).
   final VoidCallback? onProfileTap;
 
   /// Fallback display name when the `me` response has not resolved a full
