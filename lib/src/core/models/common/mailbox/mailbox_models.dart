@@ -1,4 +1,5 @@
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_otp_outcome.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Mailbox (OBDX `components/mailbox`). Every rule here is from
@@ -309,7 +310,7 @@ class MailboxCounts {
 
 /// Result of a mailbox write (delete, restore, send, reply, upload): done,
 /// possibly pending approval, or an OTP to enter first (417).
-class MailboxWriteOutcome {
+class MailboxWriteOutcome implements ObdxOtpOutcome {
   const MailboxWriteOutcome.done({this.pendingApproval = false, this.contentId})
       : challenge = null,
         invalidOtp = false;
@@ -318,7 +319,9 @@ class MailboxWriteOutcome {
       : pendingApproval = false,
         contentId = null;
 
+  @override
   final ObdxChallenge? challenge;
+  @override
   final bool invalidOtp;
   final bool pendingApproval;
 
@@ -389,15 +392,17 @@ class ComposeSetup {
 }
 
 /// `POST mailbox/mails` body (compose-mail/hooks.js:220-240). [party] is
-/// the chosen party id. OBDX sends `partyOptionValue()[0]`, which on a
+/// the chosen party. OBDX sends `partyOptionValue()[0]`, which on a
 /// single-select value is only the first character; the app sends the
-/// whole id. [APP]
+/// whole id. [APP] The UAT build also sends `partyName` (the party's
+/// `personalDetails.fullName`; mailbox.har 2026-10-26), which the source
+/// copy does not. [UAT]
 Map<String, dynamic> composeMailBody({
   required MailSubject subject,
   required String otherRemark,
   required String text,
   required List<Map<String, dynamic>> contents,
-  required String? party,
+  required MailParty? party,
 }) =>
     {
       'interactionId': null,
@@ -413,7 +418,8 @@ Map<String, dynamic> composeMailBody({
       'contentDTO': [
         for (final c in contents) {'contentId': c},
       ],
-      if (party != null) 'party': {'value': party},
+      if (party != null) 'party': {'value': party.id},
+      if (party != null) 'partyName': party.name,
     };
 
 /// OBDX attachment rules (compose-mail/hooks.js:288-355,
@@ -482,5 +488,7 @@ DateTime? _date(dynamic value) {
   if (text == null) return null;
   final dmy = RegExp(r'^(\d{2})-(\d{2})-(\d{4})').firstMatch(text);
   if (dmy != null) return DateTime(int.parse(dmy.group(3)!), int.parse(dmy.group(2)!), int.parse(dmy.group(1)!));
-  return DateTime.tryParse(text);
+  // Mailbox times come in UTC (`…T09:57:07.000Z`, mailbox.har 2026-10-26);
+  // show them in the user's time. A time without a zone stays as it is.
+  return DateTime.tryParse(text)?.toLocal();
 }

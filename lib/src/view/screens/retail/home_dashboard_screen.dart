@@ -32,6 +32,8 @@ import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hu
 import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/calculators/calculator_screens.dart';
+import 'package:ubci_bank/src/view/screens/common/calculators/calculators_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
@@ -527,6 +529,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       displayName: _displayNameFromTrace(),
       onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
       onBillsTap: _openSection,
+      onCalculatorTap: () => _openSection(index: _calculatorsHubIndex),
     );
   }
 
@@ -880,6 +883,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     if (index == _serviceRequestsIndex) {
       return _srTab == SrTab.raise ? RetailNav.serviceRequestsRaise : RetailNav.serviceRequestsTrack;
     }
+    if (_calculatorScreens.contains(index)) return RetailNav.calculators;
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -920,6 +924,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case RetailNav.serviceRequestsTrack:
       case RetailNav.serviceRequestsRaise:
         _openServiceRequests(id == RetailNav.serviceRequestsRaise ? SrTab.raise : SrTab.track);
+      case RetailNav.calculators:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _calculatorsHubIndex);
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -998,6 +1005,21 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     _openSection(index: _preferencesIndex, back: _selectedBottomNavIndex);
   }
 
+  /// Calculators (OBDX `CALCULATOR_TITLE`): the page, then Term Deposit,
+  /// Loan Installment, Loan Eligibility and Forex. 33-37: 32 is Preferences.
+  static const _calculatorsHubIndex = 33;
+  static const _tdCalculatorIndex = 34;
+  static const _loanInstallmentIndex = 35;
+  static const _loanEligibilityIndex = 36;
+  static const _forexCalculatorIndex = 37;
+  static const _calculatorScreens = {
+    _calculatorsHubIndex,
+    _tdCalculatorIndex,
+    _loanInstallmentIndex,
+    _loanEligibilityIndex,
+    _forexCalculatorIndex,
+  };
+
   /// The bell: opens Mailbox; Back returns to the screen it was tapped on.
   void _openMailbox() {
     if (_selectedBottomNavIndex == _mailboxIndex) return;
@@ -1055,6 +1077,21 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return CreditCardsScreen(embedded: true, onBack: _closeSection);
       case _cardTransactionsIndex:
         return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
+      case _calculatorsHubIndex:
+        return CalculatorsHubScreen(
+          onTdTap: () => _openSection(index: _tdCalculatorIndex, back: _calculatorsHubIndex),
+          onLoanInstallmentTap: () => _openSection(index: _loanInstallmentIndex, back: _calculatorsHubIndex),
+          onLoanEligibilityTap: () => _openSection(index: _loanEligibilityIndex, back: _calculatorsHubIndex),
+          onForexTap: () => _openSection(index: _forexCalculatorIndex, back: _calculatorsHubIndex),
+        );
+      case _tdCalculatorIndex:
+        return TdCalculatorScreen(onBack: _closeSection);
+      case _loanInstallmentIndex:
+        return LoanInstallmentScreen(onBack: _closeSection);
+      case _loanEligibilityIndex:
+        return LoanEligibilityScreen(onBack: _closeSection);
+      case _forexCalculatorIndex:
+        return ForexCalculatorScreen(onBack: _closeSection);
       case _mailboxIndex:
         return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _closeSection);
       case _serviceRequestsIndex:

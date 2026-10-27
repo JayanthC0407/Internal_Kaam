@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/src/infra/repositories/common/auth_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
+import 'package:ubci_bank/src/infra/repositories/common/calculators_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/cards_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/limits_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/common/mailbox_repository.dart';
@@ -70,6 +71,10 @@ final limitsRepositoryProvider = Provider(
 
 final mailboxRepositoryProvider = Provider(
   (ref) => MailboxRepository(api: ref.watch(obdxMailboxApiProvider)),
+);
+
+final calculatorsRepositoryProvider = Provider(
+  (ref) => CalculatorsRepository(api: ref.watch(obdxCalculatorsApiProvider)),
 );
 
 final preferencesRepositoryProvider = Provider(
