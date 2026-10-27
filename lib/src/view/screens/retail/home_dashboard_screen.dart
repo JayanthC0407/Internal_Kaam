@@ -33,9 +33,9 @@ import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.d
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/calculators/calculator_screens.dart';
-import 'package:ubci_bank/src/view/screens/common/calculators/calculators_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
 import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
@@ -878,8 +878,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     // A module page and everything opened from it keep its entry lit.
     if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
     if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
-    if (index == _mailboxIndex) return RetailNav.mailbox;
-    if (_calculatorScreens.contains(index)) return RetailNav.calculators;
+    // Rewards (tab 3), Mailbox, Service Requests and Calculators open from More.
+    if (index == 3 || index == _mailboxIndex || index == _serviceRequestsIndex || _calculatorScreens.contains(index)) {
+      return RetailNav.more;
+    }
     // Every screen started from the Transfer hub keeps Transfer lit, so the
     // menu always shows where you are.
     if (_transferScreens.contains(index)) return RetailNav.transfer;
@@ -912,14 +914,6 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case RetailNav.creditCards:
         SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
         _openSection(index: _creditCardsHubIndex);
-        return;
-      case RetailNav.mailbox:
-        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _mailboxIndex);
-        return;
-      case RetailNav.calculators:
-        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-        _openSection(index: _calculatorsHubIndex);
         return;
     }
     final index = RetailNav.tabIds.indexOf(id);
@@ -976,6 +970,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// Account Settings → Preferences (OBDX `side-menu`), opened from the
   /// initials in the dashboard header, as OBDX's header profile does.
   static const _preferencesIndex = 32;
+
+  /// Service Requests (OBDX Track Requests / Raise a New Request), from
+  /// More → Services; it opens on Track, with Raise one switch away.
+  static const _serviceRequestsIndex = 38;
 
   /// The header initials: opens Preferences; Back returns to the screen it
   /// was tapped on.
@@ -1057,13 +1055,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return CreditCardsScreen(embedded: true, onBack: _closeSection);
       case _cardTransactionsIndex:
         return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
+      // One Financial Calculator page with the four calculators as tabs
+      // (the design); it replaces the hub of four tiles.
       case _calculatorsHubIndex:
-        return CalculatorsHubScreen(
-          onTdTap: () => _openSection(index: _tdCalculatorIndex, back: _calculatorsHubIndex),
-          onLoanInstallmentTap: () => _openSection(index: _loanInstallmentIndex, back: _calculatorsHubIndex),
-          onLoanEligibilityTap: () => _openSection(index: _loanEligibilityIndex, back: _calculatorsHubIndex),
-          onForexTap: () => _openSection(index: _forexCalculatorIndex, back: _calculatorsHubIndex),
-        );
+        return FinancialCalculatorScreen(onBack: _closeSection);
       case _tdCalculatorIndex:
         return TdCalculatorScreen(onBack: _closeSection);
       case _loanInstallmentIndex:
@@ -1074,6 +1069,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return ForexCalculatorScreen(onBack: _closeSection);
       case _mailboxIndex:
         return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _closeSection);
+      case _serviceRequestsIndex:
+        return ServiceRequestsScreen(embedded: true, onBack: _closeSection);
       case _preferencesIndex:
         return PreferencesScreen(
           userName: _signedInUserName(),
@@ -1114,6 +1111,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           displayName: _displayNameFromTrace(),
           onRewardsTap: () => setState(() => _selectedBottomNavIndex = 3),
           onMailboxTap: () => _openSection(index: _mailboxIndex, back: 4),
+          onServiceRequestsTap: () => _openSection(index: _serviceRequestsIndex, back: 4),
+          onCalculatorsTap: () => _openSection(index: _calculatorsHubIndex, back: 4),
           onProfileTap: _openPreferences,
         );
       case 5:

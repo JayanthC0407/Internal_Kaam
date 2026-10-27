@@ -14,7 +14,6 @@ import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/calculators_repository.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/calculators/calculator_screens.dart';
-import 'package:ubci_bank/src/view/screens/common/calculators/calculators_hub_screen.dart';
 
 // Field names follow OBDX components/widgets/calculators
 // (docs/obdx/features/calculators.md); values are made up.
@@ -139,18 +138,23 @@ void main() {
       expect(repo.loanBodies.length, 1);
       expect(repo.loanBodies.single['principalAmount'], {'currency': 'GBP', 'amount': 250000.0});
       expect(repo.loanBodies.single['interestRate'], 7.5);
-      expect(find.text('Installment Amount'), findsOneWidget);
+      expect(find.text('Calculated monthly installment'), findsOneWidget);
       expect(find.text(MoneyFormat.format(2317.57, currencyCode: 'GBP')), findsOneWidget);
+      // Total repayment and interest, from the installment over the tenure.
+      expect(find.textContaining('Total repayment', findRichText: true), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
 
-  testWidgets('a slider asks again only when let go (2b)', (tester) async {
+  testWidgets('the tenure box asks again only after the typing pause (2b)', (tester) async {
     final repo = await pump(tester, const LoanInstallmentScreen());
-    await tester.drag(find.byType(Slider).at(1), const Offset(60, 0));
+    await tester.enterText(find.byType(TextField).at(1), '20');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(repo.loanBodies.length, 1);
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
-    expect(repo.loanBodies.length, 2, reason: 'one call for the whole drag');
-    expect((repo.loanBodies.last['tenure'] as Map)['year'], isNot(15));
+    expect(repo.loanBodies.length, 2);
+    expect((repo.loanBodies.last['tenure'] as Map)['year'], 20);
   });
 
   testWidgets('typing in a box waits for the pause before asking (2b)', (tester) async {
@@ -173,7 +177,7 @@ void main() {
     expect(find.text('Between 10000 and 5000000'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
-    expect(tester.widget<TextField>(box).controller!.text, '10000');
+    expect(tester.widget<TextField>(box).controller!.text, '10,000');
   });
 
   testWidgets('Loan Eligibility: income not above expenses → OBDX message, no call', (tester) async {
@@ -182,25 +186,30 @@ void main() {
     expect(find.textContaining('Your monthly expenses seem to be higher'), findsOneWidget);
   });
 
-  testWidgets('Loan Eligibility shows Eligible Amount and the per-month installment', (tester) async {
+  testWidgets('Loan Eligibility: disposable income first, then the bank\'s Eligible Amount and installment', (tester) async {
     final repo = await pump(tester, const LoanEligibilityScreen());
     expect(repo.eligibilityBodies.length, 1);
-    expect(find.text(MoneyFormat.format(150000, currencyCode: 'GBP')), findsOneWidget);
-    expect(find.text('${MoneyFormat.format(1800, currencyCode: 'GBP')} / Month'), findsOneWidget);
+    expect(find.text('Calculated monthly disposable income'), findsOneWidget);
+    expect(find.text(MoneyFormat.format(4000, currencyCode: 'GBP')), findsOneWidget);
+    expect(find.textContaining(MoneyFormat.format(150000, currencyCode: 'GBP'), findRichText: true), findsOneWidget);
+    expect(find.textContaining('${MoneyFormat.format(1800, currencyCode: 'GBP')} / Month', findRichText: true), findsOneWidget);
   });
 
-  testWidgets('TD: needs an interest rate (OBDX message), then + asks for the maturity', (tester) async {
+  testWidgets('TD: needs an interest rate (OBDX message), then asks for the maturity', (tester) async {
     final repo = await pump(tester, const TdCalculatorScreen());
+    // Deposit Amount, Years, Months, Days, Interest Rate.
     await tester.enterText(find.byType(TextField).first, '1000');
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
     expect(find.text('Please enter valid Interest'), findsOneWidget);
     expect(repo.tdBodies, isEmpty);
 
-    await tester.tap(find.byTooltip('Increase'));
+    await tester.enterText(find.byType(TextField).at(4), '0.25');
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
     expect(repo.tdBodies.single['interestRate'], 0.25);
     expect(find.text(MoneyFormat.format(1072.5, currencyCode: 'GBP')), findsOneWidget);
+    expect(find.textContaining('0.25%', findRichText: true), findsOneWidget);
   });
 
   testWidgets('Forex: pick From and To, rate lines shown; a tiny result leaves Amount alone (4b)', (tester) async {
@@ -216,30 +225,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.forexBodies.single['buyCurrency'], {'currency': 'USD', 'amount': 1.0});
     expect(find.text('@1 USD = 0.005 JPY'), findsOneWidget);
+    expect(find.text('Converted amount'), findsOneWidget);
     final amount = tester.widget<TextField>(find.byType(TextField).first);
     expect(amount.controller!.text, '1', reason: 'OBDX would turn it into 1000');
     expect(repo.forexBodies.length, 1, reason: 'no second call with ×1000');
   });
 
-  testWidgets('the Calculators page opens all four', (tester) async {
-    final opened = <String>[];
-    await pump(
-      tester,
-      Scaffold(
-        drawer: const Drawer(),
-        body: CalculatorsHubScreen(
-          onTdTap: () => opened.add('td'),
-          onLoanInstallmentTap: () => opened.add('li'),
-          onLoanEligibilityTap: () => opened.add('le'),
-          onForexTap: () => opened.add('fx'),
-        ),
-      ),
-    );
-    for (final t in ['Term Deposit Calculator', 'Loan Installment Calculator', 'Loan Eligibility Calculator', 'Forex Calculator']) {
-      await tester.tap(find.text(t));
-    }
-    expect(opened, ['td', 'li', 'le', 'fx']);
-  });
+  for (final width in [390.0, 1280.0]) {
+    testWidgets('Financial Calculator: the four tabs switch calculators (${width.toInt()})', (tester) async {
+      await pump(tester, const FinancialCalculatorScreen(), width: width);
+      expect(find.text('Financial Calculator'), findsOneWidget);
+      expect(find.text('Term Deposit Calculator'), findsOneWidget);
+      for (final (tab, title) in [
+        ('Loan Installment', 'Loan Installment Calculator'),
+        ('Loan Eligibility', 'Loan Eligibility Calculator'),
+        ('Term Deposit', 'Term Deposit Calculator'),
+      ]) {
+        // On a phone the tab strip scrolls sideways.
+        await tester.ensureVisible(find.text(tab).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(tab).first);
+        await tester.pumpAndSettle();
+        expect(find.text(title), findsOneWidget, reason: tab);
+      }
+      await tester.ensureVisible(find.text('Forex'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Forex'));
+      await tester.pumpAndSettle();
+      expect(find.text('Converted amount'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 class _FakeRepo implements CalculatorsRepository {

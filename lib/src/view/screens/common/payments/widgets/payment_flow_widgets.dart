@@ -1478,7 +1478,8 @@ Future<T?> showPayPicker<T>(
           color: HomeColors.card(sheet),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: SafeArea(top: false, child: panel),
+        // Its own Material, so the rows' ink shows over the coloured sheet.
+        child: Material(type: MaterialType.transparency, child: SafeArea(top: false, child: panel)),
       ),
     ),
   );

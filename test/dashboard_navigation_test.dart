@@ -148,12 +148,10 @@ void main() {
         RetailNav.home,
         RetailNav.insights,
         RetailNav.transfer,
-        RetailNav.rewards,
         RetailNav.accounts,
         RetailNav.creditCards,
         RetailNav.billPayments,
-        RetailNav.mailbox,
-        RetailNav.calculators,
+        // Rewards, Mailbox, Service Requests and Calculators are in More.
         RetailNav.more,
       ]);
     });
