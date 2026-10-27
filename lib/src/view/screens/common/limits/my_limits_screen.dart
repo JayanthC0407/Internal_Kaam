@@ -34,7 +34,10 @@ class MyLimitsScreen extends StatelessWidget {
 }
 
 /// My Limits without its page: the pickers and the limits. Also shown in
-/// Preferences → Limits & Controls.
+/// Preferences → Limits & Controls. Laid out as the designer's Limits page
+/// (UI designs 2026-10-27): boxed Channel / Transactions, the tab label as
+/// the heading with OBDX's limit tabs in a dropdown beside it, and white
+/// Daily / Monthly Limits cards. A choice reloads at once (no Apply).
 class MyLimitsView extends ConsumerStatefulWidget {
   const MyLimitsView({super.key, required this.wide});
 
@@ -108,27 +111,25 @@ class _MyLimitsViewState extends ConsumerState<MyLimitsView> {
                 _Picker(
                   label: l10n.limitsChannel,
                   value: channel.description,
-                  icon: Icons.devices_outlined,
                   onTap: channelList.length > 1 ? () => _pickChannel(channelList, channel) : null,
                 ),
                 _Picker(
                   label: l10n.limitsTransactions,
                   value: txn.name,
-                  icon: Icons.receipt_long_outlined,
                   onTap: txnList.length > 1 ? () => _pickTransaction(txnList, txn) : null,
                 ),
               ];
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PaySection(
+                  PayCard(
                     child: wide
                         ? Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(child: pickers[0]),
                               const SizedBox(width: 16),
-                              Expanded(flex: 2, child: pickers[1]),
+                              Expanded(child: pickers[1]),
                             ],
                           )
                         : Column(
@@ -136,7 +137,7 @@ class _MyLimitsViewState extends ConsumerState<MyLimitsView> {
                             children: [pickers[0], const SizedBox(height: 14), pickers[1]],
                           ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 22),
                   ref.watch(myLimitsProvider(channel.id)).when(
                         loading: loading,
                         error: (e, _) => failed(e, () => ref.invalidate(myLimitsProvider(channel.id))),
@@ -168,25 +169,19 @@ String limitTabLabel(AppLocalizations l10n, LimitTab tab, String taskName) => sw
     };
 
 class _Picker extends StatelessWidget {
-  const _Picker({required this.label, required this.value, required this.icon, this.onTap});
+  const _Picker({required this.label, required this.value, this.onTap});
 
   final String label;
   final String value;
-  final IconData icon;
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          PayFieldLabel(label),
-          PayPickerField(placeholder: value, title: value, icon: icon, onTap: onTap),
-        ],
-      );
+  Widget build(BuildContext context) => PayBoxedPicker(label: label, value: value, onTap: onTap);
 }
 
-/// Tabs plus the selected tab's limits. Web: tabs as a vertical list on
-/// the left (OBDX's vertical nav-bar); phone: scrollable chips on top.
+/// The selected tab's limits: its label as the heading, OBDX's other tabs
+/// in a dropdown beside it (no field label: OBDX's tabs have none), then
+/// the Daily and Monthly Limits cards.
 class _LimitsBody extends StatelessWidget {
   const _LimitsBody({
     required this.limits,
@@ -211,61 +206,59 @@ class _LimitsBody extends StatelessWidget {
     final label = limitTabLabel(l10n, tab, transaction.name);
     final range = limits.effectiveSameDay ? slot?.amountRange : null;
 
-    final detail = PaySection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
-          ),
-          if (range != null) ...[
-            const SizedBox(height: 10),
-            _AmountRange(range: range),
-          ],
-          const SizedBox(height: 16),
-          _PeriodPair(
-            daily: _PeriodCard(
-              title: l10n.limitsDaily,
-              limit: slot?.daily,
-              emptyText: l10n.limitsDailyNotAssigned(channelName),
-            ),
-            monthly: _PeriodCard(
-              title: l10n.limitsMonthly,
-              limit: slot?.monthly,
-              emptyText: l10n.limitsMonthlyNotAssigned(channelName),
-            ),
-            sideBySide: wide,
-          ),
-        ],
-      ),
+    final heading = Text(
+      label,
+      style: TextStyle(fontSize: wide ? 22 : 18, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
     );
+    final Widget? dropdown = limits.tabs.length <= 1
+        ? null
+        : _TabDropdown(
+            tabs: [for (final t in limits.tabs) (t, limitTabLabel(l10n, t, transaction.name))],
+            selected: tab,
+            onTab: onTab,
+          );
 
-    if (limits.tabs.length <= 1) return detail;
-    final tabs = [for (final t in limits.tabs) (t, limitTabLabel(l10n, t, transaction.name))];
-    if (wide) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 240, child: _TabList(tabs: tabs, selected: tab, onTab: onTab)),
-          const SizedBox(width: 16),
-          Expanded(child: detail),
-        ],
-      );
-    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _TabChips(tabs: tabs, selected: tab, onTab: onTab),
-        const SizedBox(height: 12),
-        detail,
+        if (wide)
+          Row(
+            children: [
+              Expanded(child: heading),
+              if (dropdown != null) ...[const SizedBox(width: 16), SizedBox(width: 360, child: dropdown)],
+            ],
+          )
+        else ...[
+          heading,
+          if (dropdown != null) ...[const SizedBox(height: 10), dropdown],
+        ],
+        if (range != null) ...[
+          const SizedBox(height: 12),
+          _AmountRange(range: range),
+        ],
+        const SizedBox(height: 16),
+        _PeriodPair(
+          daily: _PeriodCard(
+            title: l10n.limitsDaily,
+            limit: slot?.daily,
+            emptyText: l10n.limitsDailyNotAssigned(channelName),
+          ),
+          monthly: _PeriodCard(
+            title: l10n.limitsMonthly,
+            limit: slot?.monthly,
+            emptyText: l10n.limitsMonthlyNotAssigned(channelName),
+          ),
+          sideBySide: wide,
+        ),
       ],
     );
   }
 }
 
-class _TabList extends StatelessWidget {
-  const _TabList({required this.tabs, required this.selected, required this.onTab});
+/// OBDX's limit tabs as the design's dropdown: the selected tab's label
+/// and a chevron, the list in the app's picker.
+class _TabDropdown extends StatelessWidget {
+  const _TabDropdown({required this.tabs, required this.selected, required this.onTab});
 
   final List<(LimitTab, String)> tabs;
   final LimitTab selected;
@@ -273,85 +266,44 @@ class _TabList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brand = HomeColors.brand(context);
-    return PayCard(
-      padding: 8,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final (tab, label) in tabs)
-            Semantics(
-              button: true,
-              selected: tab == selected,
-              child: Material(
-                color: tab == selected ? brand.withValues(alpha: 0.10) : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => onTab(tab),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: tab == selected ? FontWeight.w600 : FontWeight.w500,
-                        color: tab == selected ? brand : HomeColors.textPrimary(context),
-                      ),
-                    ),
+    final current = tabs.where((t) => t.$1 == selected).firstOrNull?.$2 ?? '';
+    return Semantics(
+      button: true,
+      child: Material(
+        color: HomeColors.card(context),
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () async {
+            final picked = await showPayPicker<LimitTab>(
+              context,
+              title: current,
+              selected: selected,
+              options: [for (final (t, label) in tabs) PayOption(value: t, title: label)],
+            );
+            if (picked != null) onTab(picked);
+          },
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: HomeColors.divider(context)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    current,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
                   ),
                 ),
-              ),
+                Icon(Icons.keyboard_arrow_down_rounded, color: HomeColors.textPrimary(context)),
+              ],
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TabChips extends StatelessWidget {
-  const _TabChips({required this.tabs, required this.selected, required this.onTab});
-
-  final List<(LimitTab, String)> tabs;
-  final LimitTab selected;
-  final ValueChanged<LimitTab> onTab;
-
-  @override
-  Widget build(BuildContext context) {
-    final brand = HomeColors.brand(context);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final (i, (tab, label)) in tabs.indexed) ...[
-            if (i > 0) const SizedBox(width: 8),
-            Semantics(
-              button: true,
-              selected: tab == selected,
-              child: Material(
-                color: tab == selected ? brand : HomeColors.card(context),
-                shape: StadiumBorder(
-                  side: BorderSide(color: tab == selected ? brand : HomeColors.divider(context)),
-                ),
-                child: InkWell(
-                  customBorder: const StadiumBorder(),
-                  onTap: () => onTab(tab),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: tab == selected ? FontWeight.w600 : FontWeight.w500,
-                        color: tab == selected ? Colors.white : HomeColors.textPrimary(context),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -419,24 +371,47 @@ class _PeriodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final l = limit;
+    final brand = HomeColors.brand(context);
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: HomeColors.backgroundSecondary(context),
-        borderRadius: BorderRadius.circular(12),
+        color: HomeColors.card(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: HomeColors.divider(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context))),
-          const SizedBox(height: 12),
+          Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context))),
+          const SizedBox(height: 14),
           if (l == null || !l.isAssigned)
-            Row(
-              children: [
-                Icon(Icons.info_outline_rounded, size: 20, color: HomeColors.textSecondary(context)),
-                const SizedBox(width: 8),
-                Expanded(child: PayMuted(emptyText)),
-              ],
+            // The design's empty panel, with OBDX's sentence kept whole.
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              decoration: BoxDecoration(
+                color: HomeColors.backgroundSecondary(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: brand.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: brand.withValues(alpha: 0.25)),
+                    ),
+                    child: Icon(Icons.receipt_long_outlined, color: brand, size: 30),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    emptyText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13.5, height: 1.4, fontWeight: FontWeight.w600, color: HomeColors.textSecondary(context)),
+                  ),
+                ],
+              ),
             )
           else
             Row(
