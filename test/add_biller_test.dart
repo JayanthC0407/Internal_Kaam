@@ -168,23 +168,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.listLoads, 1);
 
-    await tester.tap(find.text('Add Billers'));
+    // The page action (the empty list's help card has one too).
+    await tester.tap(find.text('Add Billers').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Please Select'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Power Co').last);
     await tester.pumpAndSettle();
-    expect(find.text('Consumer Number *'), findsOneWidget); // required → red asterisk
+    // Required → the design's "Required" tag: Biller Name, Nickname,
+    // Consumer Number, Customer Name (Reference is optional).
+    expect(find.text('Consumer Number'), findsWidgets); // label + hint
+    expect(find.text('Required'), findsNWidgets(4));
+    expect(find.text('Required fields'), findsOneWidget);
 
     // Submit with nothing filled: OBDX-style errors, no step change.
     await tester.tap(find.text('Submit'));
     await tester.pumpAndSettle();
     expect(find.text('Consumer Number is required.'), findsOneWidget);
 
+    // Design order: Nickname, the biller's fields, Customer Name.
     final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), '12345');
-    await tester.enterText(fields.at(2), 'Home');
+    await tester.enterText(fields.at(0), 'Home');
+    await tester.enterText(fields.at(1), '12345');
     await tester.enterText(fields.at(3), 'Test Customer');
+    await tester.pumpAndSettle();
+    expect(find.text('Required fields'), findsNothing, reason: 'nothing required is empty');
     await tester.tap(find.text('Submit'));
     await tester.pumpAndSettle();
     expect(find.text('You initiated a request for add biller. Please review details before you confirm!'), findsWidgets);

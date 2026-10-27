@@ -7533,6 +7533,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note: The above configured dispatch method is applicable only if OTP is set up as the transaction authentication mode by the bank.'**
   String get prefOtpDeliveryNote;
+
+  /// No description provided for @billersColBillType.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Type'**
+  String get billersColBillType;
+
+  /// No description provided for @billersColStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get billersColStatus;
+
+  /// No description provided for @billersColActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get billersColActions;
+
+  /// No description provided for @billersSelectAllToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all to Pay'**
+  String get billersSelectAllToPay;
+
+  /// No description provided for @billersSelectAtLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one presented bill for payment to proceed.'**
+  String get billersSelectAtLeastOne;
+
+  /// No description provided for @billHistoryAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment'**
+  String get billHistoryAttachment;
+
+  /// No description provided for @payRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get payRequired;
+
+  /// No description provided for @billsHelpPayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay bills hassle free'**
+  String get billsHelpPayTitle;
+
+  /// No description provided for @billsHelpPayBody1.
+  ///
+  /// In en, this message translates to:
+  /// **'Make your bills payments and recharges hassle free with Demo Bank Bill Payment Service. You can view all your bills in one place and plan their payments.'**
+  String get billsHelpPayBody1;
+
+  /// No description provided for @billsHelpPayBody2.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay either one bill or multiple bills in one go and set up auto payments to avoid paying bills late.'**
+  String get billsHelpPayBody2;
+
+  /// No description provided for @billsHelpPayBody3.
+  ///
+  /// In en, this message translates to:
+  /// **'And there is more. You can receive alerts whenever a bill is presented or close to due date.'**
+  String get billsHelpPayBody3;
+
+  /// No description provided for @billsHelpAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided to make online bill payment? Great!'**
+  String get billsHelpAddTitle;
+
+  /// No description provided for @billsHelpAddBody1.
+  ///
+  /// In en, this message translates to:
+  /// **'The first step is to add billers who you want to pay. Once billers validate your registration you are all set to pay bills. You can even add billers who give paper bills and pay them online.'**
+  String get billsHelpAddBody1;
+
+  /// No description provided for @billsHelpAddBody2.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo Bank\'s Bill Payment Service makes online bill payment & recharges hassle free.'**
+  String get billsHelpAddBody2;
+
+  /// No description provided for @addBillerIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Register a biller for faster payments and reminders.'**
+  String get addBillerIntro;
+
+  /// No description provided for @addBillerRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Required fields'**
+  String get addBillerRequiredTitle;
+
+  /// No description provided for @addBillerRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete {fields} before submitting.'**
+  String addBillerRequiredBody(String fields);
+
+  /// No description provided for @billHistoryPeriodNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment history is shown for the selected period.'**
+  String get billHistoryPeriodNote;
+
+  /// No description provided for @payBillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Bill'**
+  String get payBillTitle;
+
+  /// No description provided for @payBillSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory'**
+  String get payBillSubcategory;
+
+  /// No description provided for @payBillSubCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub Category'**
+  String get payBillSubCategory;
+
+  /// No description provided for @payBillAcceptsVia.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: This biller accepts payment via {key}'**
+  String payBillAcceptsVia(String key);
+
+  /// No description provided for @payBillAcceptsJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'{accountOne} and {accountTwo}'**
+  String payBillAcceptsJoin(String accountOne, String accountTwo);
+
+  /// No description provided for @payBillTypeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get payBillTypeAccount;
+
+  /// No description provided for @payBillTypeCreditCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Cards'**
+  String get payBillTypeCreditCards;
+
+  /// No description provided for @payBillTypeDebitCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit Cards'**
+  String get payBillTypeDebitCards;
+
+  /// No description provided for @payBillExpiryMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Month'**
+  String get payBillExpiryMonth;
+
+  /// No description provided for @payBillExpiryYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Year'**
+  String get payBillExpiryYear;
+
+  /// No description provided for @payBillSelectPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Plan'**
+  String get payBillSelectPlan;
+
+  /// No description provided for @payBillPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get payBillPlan;
+
+  /// No description provided for @payBillSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get payBillSelect;
+
+  /// No description provided for @payBillPaymentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Amount'**
+  String get payBillPaymentAmount;
+
+  /// No description provided for @payBillRechargeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Recharge Amount'**
+  String get payBillRechargeAmount;
+
+  /// No description provided for @payBillScheduledDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled Date'**
+  String get payBillScheduledDate;
+
+  /// No description provided for @payBillAddAttachmentQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to add an attachment ?'**
+  String get payBillAddAttachmentQuestion;
+
+  /// No description provided for @payBillDropFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop files here or click here to Add Files'**
+  String get payBillDropFiles;
+
+  /// No description provided for @payBillFileSizeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'File size should not be more than 15MB'**
+  String get payBillFileSizeNote;
+
+  /// No description provided for @payBillSupportedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported Files : JPEG, PNG, DOC, PDF, TXT, ZIP.'**
+  String get payBillSupportedFiles;
+
+  /// No description provided for @payBillAmountNotPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount should be greater than 0'**
+  String get payBillAmountNotPositive;
+
+  /// No description provided for @payBillAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount should be lesser than 1 trillion'**
+  String get payBillAmountInvalid;
+
+  /// No description provided for @payBillInvalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid File Type'**
+  String get payBillInvalidFile;
+
+  /// No description provided for @payBillFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File exceeds the maximum allowed size.'**
+  String get payBillFileTooLarge;
+
+  /// No description provided for @payBillInvalidExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid card expiry date'**
+  String get payBillInvalidExpiry;
+
+  /// No description provided for @payBillReviewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for bill payments. Please review details before you confirm!'**
+  String get payBillReviewMessage;
+
+  /// No description provided for @payBillPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get payBillPaymentMethod;
+
+  /// No description provided for @payBillPayWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay When'**
+  String get payBillPayWhen;
+
+  /// No description provided for @payBillAddAnAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an attachment ?'**
+  String get payBillAddAnAttachment;
+
+  /// No description provided for @payBillDetailedBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Bill'**
+  String get payBillDetailedBill;
+
+  /// No description provided for @payBillBillerNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Biller Number'**
+  String get payBillBillerNumber;
+
+  /// No description provided for @payBillBillDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Date'**
+  String get payBillBillDate;
+
+  /// No description provided for @payBillEarlyPayDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Early Pay Date'**
+  String get payBillEarlyPayDate;
+
+  /// No description provided for @payBillEarlyPayDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Early Pay Discount'**
+  String get payBillEarlyPayDiscount;
+
+  /// No description provided for @payBillEarlyPayBillAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Early Pay Bill Amount'**
+  String get payBillEarlyPayBillAmount;
+
+  /// No description provided for @payBillLatePayCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Late Pay Charges'**
+  String get payBillLatePayCharges;
+
+  /// No description provided for @payBillLatePayBillAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Late Pay Bill Amount'**
+  String get payBillLatePayBillAmount;
+
+  /// No description provided for @payBillDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get payBillDescription;
+
+  /// No description provided for @payBillReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number'**
+  String get payBillReferenceNumber;
+
+  /// No description provided for @payBillSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Request submitted successfully.'**
+  String get payBillSuccess;
+
+  /// No description provided for @payBillPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Bill submitted for approval.'**
+  String get payBillPendingApproval;
+
+  /// No description provided for @payBillNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to do next?'**
+  String get payBillNextAction;
+
+  /// No description provided for @payBillPayAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Another Bill'**
+  String get payBillPayAnother;
+
+  /// No description provided for @payBillAddBiller.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Biller'**
+  String get payBillAddBiller;
+
+  /// No description provided for @payBillAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get payBillAmount;
+
+  /// No description provided for @payBillAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get payBillAttachments;
+
+  /// No description provided for @payBillGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Payment'**
+  String get payBillGateTitle;
+
+  /// No description provided for @payBillAutopayWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This bill is registered for auto payment. Initiating a bill payment now might lead to duplicate payment of the same bill. Would you still like to continue?'**
+  String get payBillAutopayWarning;
+
+  /// No description provided for @payBillScheduledWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'A Scheduled payment has been setup for this bill. Initiating a bill payment now might lead to duplicate payment of the same bill. Would you still like to continue?'**
+  String get payBillScheduledWarning;
+
+  /// No description provided for @payBillLateBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Date of Bill Payment has Passed. Late Payment not allowed by Biller!'**
+  String get payBillLateBlocked;
+
+  /// No description provided for @payBillContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get payBillContinue;
+
+  /// No description provided for @payBillOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ok'**
+  String get payBillOk;
+
+  /// No description provided for @payBillLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load this bill payment.'**
+  String get payBillLoadFailed;
+
+  /// No description provided for @payBillAccountsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your accounts.'**
+  String get payBillAccountsFailed;
+
+  /// No description provided for @payBillNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing available to pay from.'**
+  String get payBillNoAccounts;
+
+  /// No description provided for @payBillFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t complete the payment.'**
+  String get payBillFailed;
+
+  /// No description provided for @payBillUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t upload the attachment.'**
+  String get payBillUploadFailed;
+
+  /// No description provided for @payBillPickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open that file.'**
+  String get payBillPickFailed;
+
+  /// No description provided for @payBillRemoveAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove attachment'**
+  String get payBillRemoveAttachment;
+
+  /// No description provided for @payBillChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose File'**
+  String get payBillChooseFile;
 }
 
 class _AppLocalizationsDelegate

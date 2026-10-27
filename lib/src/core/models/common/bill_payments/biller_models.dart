@@ -96,25 +96,60 @@ class BillerRelationship {
 }
 
 /// A presented bill (`ebill`). OBDX spells the registration id
-/// `billerRegistartionId`.
+/// `billerRegistartionId`. The early / late pay fields and [description]
+/// are what Pay Bill's "Detailed Bill" shows (pay-bill-review.html:78-155).
 class EBill {
-  const EBill({this.id, this.dueDate, this.status, this.totalAmount});
+  const EBill({
+    this.id,
+    this.dueDate,
+    this.status,
+    this.totalAmount,
+    this.amountPaid,
+    this.generationDate,
+    this.earlyPayDate,
+    this.earlyPayDiscount,
+    this.earlyPayBillAmount,
+    this.latePayCharges,
+    this.latePayBillAmount,
+    this.description,
+  });
 
   final String? id;
   final DateTime? dueDate;
   final String? status;
   final MoneyAmount? totalAmount;
 
+  /// Paid so far; used when [status] is `PARTIALPAID`.
+  final MoneyAmount? amountPaid;
+
+  /// "Bill Date".
+  final DateTime? generationDate;
+  final DateTime? earlyPayDate;
+  final MoneyAmount? earlyPayDiscount;
+  final MoneyAmount? earlyPayBillAmount;
+  final MoneyAmount? latePayCharges;
+  final MoneyAmount? latePayBillAmount;
+  final String? description;
+
+  bool get isPartPaid => (status ?? '').toUpperCase() == 'PARTIALPAID';
+
   static EBill? fromJson(dynamic json) {
     if (json is! Map) return null;
     final map = ObdxApiUtils.asMap(json);
+    MoneyAmount? money(dynamic v) => v == null ? null : MoneyAmount.fromJson(v);
     return EBill(
       id: _str(map['id']),
       dueDate: _date(map['dueDate']),
       status: _str(map['status']),
-      totalAmount: map['totalAmount'] == null
-          ? null
-          : MoneyAmount.fromJson(map['totalAmount']),
+      totalAmount: money(map['totalAmount']),
+      amountPaid: money(map['amountPaid']),
+      generationDate: _date(map['generationDate']),
+      earlyPayDate: _date(map['earlyPayDate']),
+      earlyPayDiscount: money(map['earlyPayDiscount']),
+      earlyPayBillAmount: money(map['earlyPayBillAmount']),
+      latePayCharges: money(map['latePayCharges']),
+      latePayBillAmount: money(map['latePayBillAmount']),
+      description: _str(map['description']),
     );
   }
 }
@@ -209,6 +244,7 @@ class BillerInfo {
     this.operationalAreaName,
     this.specifications = const [],
     this.paymentTypes = const [],
+    this.latePaymentAllowed = true,
   });
 
   final String id;
@@ -227,6 +263,10 @@ class BillerInfo {
 
   /// `paymentMethodsList[].paymentType` — CASA / CREDITCARD / DEBITCARD.
   final List<String> paymentTypes;
+
+  /// `paymentOptions.latePayment`; only an explicit `false` refuses a
+  /// payment after the due date (manage-bill-payments/hooks.js:627-630).
+  final bool latePaymentAllowed;
 
   /// `specifications[].id` → `label`: names the customer's
   /// `relationshipDetails` (OBDX biller-details/hooks.js:198-206).
@@ -248,6 +288,7 @@ class BillerInfo {
         : const <String, dynamic>{};
     final specs = map['specifications'];
     final methods = map['paymentMethodsList'];
+    final options = ObdxApiUtils.asMap(map['paymentOptions']);
     return BillerInfo(
       id: _str(map['id']) ?? '',
       name: _str(map['name']),
@@ -267,6 +308,7 @@ class BillerInfo {
               .whereType<String>()
               .toList()
           : const [],
+      latePaymentAllowed: options['latePayment'] != false,
     );
   }
 
@@ -304,6 +346,10 @@ class RegisteredBiller {
     this.relationships = const [],
     this.ebill,
     this.biller,
+    this.subcategory,
+    this.paymentType,
+    this.payLater = false,
+    this.debitAccountValue,
     this.raw,
   });
 
@@ -333,6 +379,14 @@ class RegisteredBiller {
 
   /// Embedded on list items, absent on `registeredBillers/{id}`.
   final BillerInfo? biller;
+
+  /// Read by Pay Bill when present (pay-bill-stage1/hooks.js:397-437):
+  /// the sub-category, the Payment Type and Pay From to start with, and
+  /// Pay Now / Later (`"true"` / `"false"` strings in OBDX).
+  final String? subcategory;
+  final String? paymentType;
+  final bool payLater;
+  final String? debitAccountValue;
 
   /// The item exactly as the server sent it. OBDX sends this back as the
   /// DELETE body (manage-bill-payments-list/hooks.js:40-49).
@@ -366,6 +420,10 @@ class RegisteredBiller {
           : const [],
       ebill: EBill.fromJson(map['ebill']),
       biller: BillerInfo.fromJson(map['biller']),
+      subcategory: _str(map['subcategory']),
+      paymentType: _str(map['paymentType']),
+      payLater: _str(map['payLater'])?.toLowerCase() == 'true',
+      debitAccountValue: _str(ObdxApiUtils.asMap(map['debitAccount'])['value']),
       raw: map,
     );
   }
@@ -416,8 +474,18 @@ class RegisteredBiller {
     }
   }
 
+  /// OBDX shows a row's Pay for an APPROVED biller that is not a
+  /// presentment one, or is one with a bill presented
+  /// (manage-bill-payments-list.html:65).
+  bool get canPayNow => isApproved && (type != BillerType.presentment || ebill != null);
+
   /// "Bills Due" / "No Bills Due" — shown for presented billers only.
   bool get hasBillDue => ebill != null;
+
+  /// Gets a tick box for Select all to Pay: a presenting biller with a bill
+  /// presented (manage-bill-payments-list/hooks.js:161, 179).
+  bool get selectableForPay =>
+      (type == BillerType.presentment || type == BillerType.presentmentPayment) && ebill != null;
 
   /// Edit is refused while a change is awaiting bank approval
   /// (hooks.js:476-479).
