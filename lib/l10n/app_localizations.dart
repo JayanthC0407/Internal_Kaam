@@ -8121,6 +8121,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn\'t send the payments.'**
   String get payBillsSendFailed;
+
+  /// No description provided for @ccBlockCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Block Card'**
+  String get ccBlockCard;
+
+  /// No description provided for @ccUnblockCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock Card'**
+  String get ccUnblockCard;
+
+  /// No description provided for @ccListSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View balances, due amounts and manage each card.'**
+  String get ccListSubtitle;
+
+  /// No description provided for @ccTotalCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Credit Limit'**
+  String get ccTotalCreditLimit;
+
+  /// No description provided for @ccActiveCards.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active cards'**
+  String ccActiveCards(int count);
+
+  /// No description provided for @ccShareOfLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of total limit'**
+  String ccShareOfLimit(String percent);
+
+  /// No description provided for @ccNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due {date}'**
+  String ccNextDue(String date);
+
+  /// No description provided for @ccSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Card Number or Holder Name'**
+  String get ccSearchHint;
+
+  /// No description provided for @ccOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'Ownership'**
+  String get ccOwnership;
+
+  /// No description provided for @ccAllCards.
+  ///
+  /// In en, this message translates to:
+  /// **'All cards'**
+  String get ccAllCards;
+
+  /// No description provided for @ccNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No credit cards match your search.'**
+  String get ccNoMatch;
+
+  /// No description provided for @ccClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get ccClearFilters;
+
+  /// No description provided for @ccHideAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide amounts'**
+  String get ccHideAmounts;
+
+  /// No description provided for @ccShowAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts'**
+  String get ccShowAmounts;
+
+  /// No description provided for @ccCopyNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy card number'**
+  String get ccCopyNumber;
+
+  /// No description provided for @ccNumberCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Card number copied'**
+  String get ccNumberCopied;
+
+  /// No description provided for @ccMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get ccMoreActions;
 }
 
 class _AppLocalizationsDelegate
