@@ -6466,6 +6466,432 @@ abstract class AppLocalizations {
   /// **'Last login {when}'**
   String prefLastLogin(String when);
 
+  /// No description provided for @srTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Requests'**
+  String get srTitle;
+
+  /// No description provided for @srTrackRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Requests'**
+  String get srTrackRequests;
+
+  /// No description provided for @srTrackRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Request'**
+  String get srTrackRequest;
+
+  /// No description provided for @srRaiseNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a New Request'**
+  String get srRaiseNew;
+
+  /// No description provided for @srRaiseAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise Another Request'**
+  String get srRaiseAnother;
+
+  /// No description provided for @srLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Service requests could not be loaded.'**
+  String get srLoadFailed;
+
+  /// No description provided for @srFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get srFilter;
+
+  /// No description provided for @srProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Name'**
+  String get srProductName;
+
+  /// No description provided for @srCategoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category Name'**
+  String get srCategoryName;
+
+  /// No description provided for @srFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From Date'**
+  String get srFromDate;
+
+  /// No description provided for @srToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date'**
+  String get srToDate;
+
+  /// No description provided for @srStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get srStatus;
+
+  /// No description provided for @srPleaseSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select'**
+  String get srPleaseSelect;
+
+  /// No description provided for @srApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get srApply;
+
+  /// No description provided for @srReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get srReset;
+
+  /// No description provided for @srDateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter both From Date and To Date.'**
+  String get srDateRequired;
+
+  /// No description provided for @srToBeforeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date cannot be before From Date.'**
+  String get srToBeforeFrom;
+
+  /// No description provided for @srDateRange90.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date must be within 90 days of From Date.'**
+  String get srDateRange90;
+
+  /// No description provided for @srAllRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'All requests'**
+  String get srAllRequests;
+
+  /// No description provided for @srNoRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No Service Request Found'**
+  String get srNoRequests;
+
+  /// No description provided for @srShowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} more'**
+  String srShowMore(int count);
+
+  /// No description provided for @srDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get srDate;
+
+  /// No description provided for @srRequestName.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Name'**
+  String get srRequestName;
+
+  /// No description provided for @srReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number'**
+  String get srReferenceNumber;
+
+  /// No description provided for @srStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get srStatusPending;
+
+  /// No description provided for @srStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get srStatusDelivered;
+
+  /// No description provided for @srStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get srStatusCompleted;
+
+  /// No description provided for @srStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get srStatusRejected;
+
+  /// No description provided for @srStatusInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Initiated'**
+  String get srStatusInitiated;
+
+  /// No description provided for @srStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In-progress'**
+  String get srStatusInProgress;
+
+  /// No description provided for @srStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get srStatusRequested;
+
+  /// No description provided for @srStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get srStatusClosed;
+
+  /// No description provided for @srStatusReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get srStatusReturned;
+
+  /// No description provided for @srStatusDispatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Dispatched'**
+  String get srStatusDispatched;
+
+  /// No description provided for @srStatusIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get srStatusIssued;
+
+  /// No description provided for @srStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get srStatusAccepted;
+
+  /// No description provided for @srDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get srDetails;
+
+  /// No description provided for @srRequestDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Details'**
+  String get srRequestDetails;
+
+  /// No description provided for @srRequestFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Request For'**
+  String get srRequestFor;
+
+  /// No description provided for @srDateRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Requested'**
+  String get srDateRequested;
+
+  /// No description provided for @srClosureComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Closure Comments from Bank'**
+  String get srClosureComments;
+
+  /// No description provided for @srCommentsFromBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments from Bank'**
+  String get srCommentsFromBank;
+
+  /// No description provided for @srStatusHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Status History'**
+  String get srStatusHistory;
+
+  /// No description provided for @srRemarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks : {note}'**
+  String srRemarks(String note);
+
+  /// No description provided for @srAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment'**
+  String get srAttachment;
+
+  /// No description provided for @srDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The attachment could not be downloaded.'**
+  String get srDownloadFailed;
+
+  /// No description provided for @srServiceRequestForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Request Form'**
+  String get srServiceRequestForm;
+
+  /// No description provided for @srSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search...'**
+  String get srSearchHint;
+
+  /// No description provided for @srOr.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get srOr;
+
+  /// No description provided for @srOrganizedByProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Request form organized by Product and Category'**
+  String get srOrganizedByProduct;
+
+  /// No description provided for @srProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get srProducts;
+
+  /// No description provided for @srNoDefinitions.
+  ///
+  /// In en, this message translates to:
+  /// **'No service request found'**
+  String get srNoDefinitions;
+
+  /// No description provided for @srInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get srInformation;
+
+  /// No description provided for @srRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required.'**
+  String get srRequired;
+
+  /// No description provided for @srInvalidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid value.'**
+  String get srInvalidValue;
+
+  /// No description provided for @srSelectValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Value'**
+  String get srSelectValue;
+
+  /// No description provided for @srSelectAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Account'**
+  String get srSelectAccount;
+
+  /// No description provided for @srSelectGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Gender'**
+  String get srSelectGender;
+
+  /// No description provided for @srSelectSalutation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Salutation'**
+  String get srSelectSalutation;
+
+  /// No description provided for @srAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get srAccountNumber;
+
+  /// No description provided for @srDebitCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit Card'**
+  String get srDebitCard;
+
+  /// No description provided for @srCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get srCountry;
+
+  /// No description provided for @srState.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get srState;
+
+  /// No description provided for @srChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose File'**
+  String get srChooseFile;
+
+  /// No description provided for @srRemoveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get srRemoveFile;
+
+  /// No description provided for @srFileTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'.jpg .jpeg .png .pdf .zip'**
+  String get srFileTypes;
+
+  /// No description provided for @srFileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed file types: .jpg, .jpeg, .png, .pdf, .zip'**
+  String get srFileType;
+
+  /// No description provided for @srUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be uploaded.'**
+  String get srUploadFailed;
+
+  /// No description provided for @srReviewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a Service request. Please review details before you confirm!'**
+  String get srReviewMessage;
+
+  /// No description provided for @srSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Request submitted successfully'**
+  String get srSubmitted;
+
+  /// No description provided for @srPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been sent for approval.'**
+  String get srPendingApproval;
+
   /// No description provided for @moreGroupServices.
   ///
   /// In en, this message translates to:

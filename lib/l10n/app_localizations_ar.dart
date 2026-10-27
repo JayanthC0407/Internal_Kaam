@@ -3463,6 +3463,225 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get srTitle => 'Service Requests';
+
+  @override
+  String get srTrackRequests => 'Track Requests';
+
+  @override
+  String get srTrackRequest => 'Track Request';
+
+  @override
+  String get srRaiseNew => 'Raise a New Request';
+
+  @override
+  String get srRaiseAnother => 'Raise Another Request';
+
+  @override
+  String get srLoadFailed => 'Service requests could not be loaded.';
+
+  @override
+  String get srFilter => 'Filter';
+
+  @override
+  String get srProductName => 'Product Name';
+
+  @override
+  String get srCategoryName => 'Category Name';
+
+  @override
+  String get srFromDate => 'From Date';
+
+  @override
+  String get srToDate => 'To Date';
+
+  @override
+  String get srStatus => 'Status';
+
+  @override
+  String get srPleaseSelect => 'Please Select';
+
+  @override
+  String get srApply => 'Apply';
+
+  @override
+  String get srReset => 'Reset';
+
+  @override
+  String get srDateRequired => 'Enter both From Date and To Date.';
+
+  @override
+  String get srToBeforeFrom => 'To Date cannot be before From Date.';
+
+  @override
+  String get srDateRange90 => 'To Date must be within 90 days of From Date.';
+
+  @override
+  String get srAllRequests => 'All requests';
+
+  @override
+  String get srNoRequests => 'No Service Request Found';
+
+  @override
+  String srShowMore(int count) {
+    return 'Show $count more';
+  }
+
+  @override
+  String get srDate => 'Date';
+
+  @override
+  String get srRequestName => 'Request Name';
+
+  @override
+  String get srReferenceNumber => 'Reference Number';
+
+  @override
+  String get srStatusPending => 'Pending';
+
+  @override
+  String get srStatusDelivered => 'Delivered';
+
+  @override
+  String get srStatusCompleted => 'Completed';
+
+  @override
+  String get srStatusRejected => 'Rejected';
+
+  @override
+  String get srStatusInitiated => 'Initiated';
+
+  @override
+  String get srStatusInProgress => 'In-progress';
+
+  @override
+  String get srStatusRequested => 'Requested';
+
+  @override
+  String get srStatusClosed => 'Closed';
+
+  @override
+  String get srStatusReturned => 'Returned';
+
+  @override
+  String get srStatusDispatched => 'Dispatched';
+
+  @override
+  String get srStatusIssued => 'Issued';
+
+  @override
+  String get srStatusAccepted => 'Accepted';
+
+  @override
+  String get srDetails => 'Details';
+
+  @override
+  String get srRequestDetails => 'Request Details';
+
+  @override
+  String get srRequestFor => 'Request For';
+
+  @override
+  String get srDateRequested => 'Date Requested';
+
+  @override
+  String get srClosureComments => 'Closure Comments from Bank';
+
+  @override
+  String get srCommentsFromBank => 'Comments from Bank';
+
+  @override
+  String get srStatusHistory => 'Status History';
+
+  @override
+  String srRemarks(String note) {
+    return 'Remarks : $note';
+  }
+
+  @override
+  String get srAttachment => 'Attachment';
+
+  @override
+  String get srDownloadFailed => 'The attachment could not be downloaded.';
+
+  @override
+  String get srServiceRequestForm => 'Service Request Form';
+
+  @override
+  String get srSearchHint => 'Search...';
+
+  @override
+  String get srOr => 'OR';
+
+  @override
+  String get srOrganizedByProduct =>
+      'Service Request form organized by Product and Category';
+
+  @override
+  String get srProducts => 'Products';
+
+  @override
+  String get srNoDefinitions => 'No service request found';
+
+  @override
+  String get srInformation => 'Information';
+
+  @override
+  String get srRequired => 'This field is required.';
+
+  @override
+  String get srInvalidValue => 'Enter a valid value.';
+
+  @override
+  String get srSelectValue => 'Select Value';
+
+  @override
+  String get srSelectAccount => 'Select Account';
+
+  @override
+  String get srSelectGender => 'Select Gender';
+
+  @override
+  String get srSelectSalutation => 'Select Salutation';
+
+  @override
+  String get srAccountNumber => 'Account Number';
+
+  @override
+  String get srDebitCard => 'Debit Card';
+
+  @override
+  String get srCountry => 'Country';
+
+  @override
+  String get srState => 'State';
+
+  @override
+  String get srChooseFile => 'Choose File';
+
+  @override
+  String get srRemoveFile => 'Remove';
+
+  @override
+  String get srFileTypes => '.jpg .jpeg .png .pdf .zip';
+
+  @override
+  String get srFileType => 'Allowed file types: .jpg, .jpeg, .png, .pdf, .zip';
+
+  @override
+  String get srUploadFailed => 'The file could not be uploaded.';
+
+  @override
+  String get srReviewMessage =>
+      'You initiated a Service request. Please review details before you confirm!';
+
+  @override
+  String get srSubmitted => 'Service Request submitted successfully';
+
+  @override
+  String get srPendingApproval => 'Your request has been sent for approval.';
+
+  @override
   String get moreGroupServices => 'Services';
 
   @override

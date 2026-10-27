@@ -152,6 +152,7 @@ void main() {
         RetailNav.accounts,
         RetailNav.creditCards,
         RetailNav.billPayments,
+        RetailNav.serviceRequests,
         RetailNav.mailbox,
         RetailNav.more,
       ]);
