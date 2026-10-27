@@ -4348,4 +4348,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get payBillsSendFailed => 'We couldn\'t send the payments.';
+
+  @override
+  String get ccBlockCard => 'Block Card';
+
+  @override
+  String get ccUnblockCard => 'Unblock Card';
+
+  @override
+  String get ccListSubtitle =>
+      'View balances, due amounts and manage each card.';
+
+  @override
+  String get ccTotalCreditLimit => 'Total Credit Limit';
+
+  @override
+  String ccActiveCards(int count) {
+    return '$count active cards';
+  }
+
+  @override
+  String ccShareOfLimit(String percent) {
+    return '$percent% of total limit';
+  }
+
+  @override
+  String ccNextDue(String date) {
+    return 'Next due $date';
+  }
+
+  @override
+  String get ccSearchHint => 'Search Card Number or Holder Name';
+
+  @override
+  String get ccOwnership => 'Ownership';
+
+  @override
+  String get ccAllCards => 'All cards';
+
+  @override
+  String get ccNoMatch => 'No credit cards match your search.';
+
+  @override
+  String get ccClearFilters => 'Clear filters';
+
+  @override
+  String get ccHideAmounts => 'Hide amounts';
+
+  @override
+  String get ccShowAmounts => 'Show amounts';
+
+  @override
+  String get ccCopyNumber => 'Copy card number';
+
+  @override
+  String get ccNumberCopied => 'Card number copied';
+
+  @override
+  String get ccMoreActions => 'More actions';
 }
