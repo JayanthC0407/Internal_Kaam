@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:ubci_bank/src/core/theme/app_gradients.dart';
 import 'package:ubci_bank/src/core/utils/common/money_format.dart';
 import 'package:ubci_bank/src/core/utils/common/responsive.dart';
 import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
@@ -524,14 +525,8 @@ class _TotalBalanceTile extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(minHeight: 96),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF087C91),
-            Color(0xFF176A9A),
-          ],
-        ),
+        // The active palette's gradient, so it follows the colour theme.
+        gradient: AppGradients.primary(context),
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.hardEdge,

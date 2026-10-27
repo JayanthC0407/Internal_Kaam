@@ -189,7 +189,8 @@ void main() {
         SingleChildScrollView(
           child: AccountsTabCard(
             accounts: const [_savings, _current],
-            revealedAccountIds: const {},
+            // Revealed, so each card shows its last 4 to tell them apart.
+            revealedAccountIds: const {'SAV1022', 'CUR3381'},
             onToggleAccountVisibility: (_) {},
             displayName: 'Sarah Johnson',
           ),
@@ -206,6 +207,24 @@ void main() {
       expect(find.textContaining('3381'), findsWidgets);
       expect(find.textContaining('1022'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('hidden, the card masks the whole number, last 4 included', (tester) async {
+      await _pump(
+        tester,
+        SingleChildScrollView(
+          child: AccountsTabCard(
+            accounts: const [_savings],
+            revealedAccountIds: const {},
+            onToggleAccountVisibility: (_) {},
+            displayName: 'Sarah Johnson',
+          ),
+        ),
+      );
+      await tester.tap(find.text('Savings Account').first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('1022'), findsNothing);
+      expect(find.textContaining('••••  ••••  ••••  ••••'), findsWidgets);
     });
 
     testWidgets('one account type: a label, not a dropdown', (tester) async {

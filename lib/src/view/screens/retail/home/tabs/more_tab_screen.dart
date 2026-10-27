@@ -24,7 +24,15 @@ class MoreTabScreen extends ConsumerStatefulWidget {
     this.onRewardsTap,
     this.onMailboxTap,
     this.onProfileTap,
+    this.onServiceRequestsTap,
+    this.onCalculatorsTap,
   });
+
+  /// Opens Calculators; null hides the row.
+  final VoidCallback? onCalculatorsTap;
+
+  /// Opens Service Requests (Track / Raise); null hides the row.
+  final VoidCallback? onServiceRequestsTap;
 
   /// Opens Mailbox; null keeps the old Coming soon.
   final VoidCallback? onMailboxTap;
@@ -149,8 +157,13 @@ class _MoreTabScreenState extends ConsumerState<MoreTabScreen> {
               widget.onMailboxTap == null ? l10n.menuNotification : l10n.mailboxTitle,
               Icons.notifications_none_rounded,
               widget.onMailboxTap ?? () => _comingSoon(l10n.menuNotification),
-              last: true,
+              last: widget.onServiceRequestsTap == null && widget.onCalculatorsTap == null,
             ),
+            if (widget.onServiceRequestsTap != null)
+              row(l10n.srTitle, Icons.support_agent_rounded, widget.onServiceRequestsTap!,
+                  last: widget.onCalculatorsTap == null),
+            if (widget.onCalculatorsTap != null)
+              row(l10n.calcTitle, Icons.calculate_outlined, widget.onCalculatorsTap!, last: true),
           ],
         ),
         const SizedBox(height: 14),

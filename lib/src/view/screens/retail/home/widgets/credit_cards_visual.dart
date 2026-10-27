@@ -41,7 +41,7 @@ class CreditCardsVisual extends ConsumerWidget {
           return Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: Text(l10n.ccEmpty));
         }
         final faces = [
-          for (final (i, card) in list.indexed) CreditCardFace(card: card, index: i, onTap: onOpen),
+          for (final (i, card) in list.indexed) CreditCardFace(card: card, index: i, onTap: onOpen, initiallyHidden: true),
         ];
         return LayoutBuilder(
           builder: (context, constraints) {

@@ -1,57 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 
-/// Demo Bank lockup used in place of the legacy UBCI image asset.
-///
-/// [demo_bank_logo_dark] is the white wordmark for dark surfaces.
-/// [demo_bank_logo_light] is the black wordmark for light surfaces.
+/// The Demobank logo, following the theme: the teal artwork on light
+/// surfaces, white in dark mode (the same artwork tinted, as on the auth
+/// screens' dark frame) so it never sits teal-on-navy.
 class BrandLogo extends StatelessWidget {
   const BrandLogo({
     super.key,
     this.height = 32,
-    this.color,
+    this.alignment = Alignment.center,
+    this.onDark,
+    this.fallbackColor,
   });
 
-  static const lightAsset = 'assets/images/demo_bank_logo_light.png';
-  static const darkAsset = 'assets/images/demo_bank_logo_dark.png';
+  static const asset = 'assets/images/demobank_logo.png';
 
   /// Rendered height; width follows the asset aspect ratio.
   final double height;
+  final Alignment alignment;
 
-  /// Optional hint: a light [color] selects the white-on-dark lockup.
-  /// The image is not tinted, so the teal mark stays intact.
-  final Color? color;
+  /// Forces white (true) or the original colours (false); null follows
+  /// the theme's brightness.
+  final bool? onDark;
+
+  /// Colour of the text shown if the image cannot load.
+  final Color? fallbackColor;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final onDark = _isOnDarkBackground(context);
-    return Image.asset(
-      onDark ? darkAsset : lightAsset,
+    // Nullable lookup: the logo also shows where no localizations exist.
+    final name = Localizations.of<AppLocalizations>(context, AppLocalizations)?.brandName ?? 'Demobank';
+    final white = onDark ?? Theme.of(context).brightness == Brightness.dark;
+    final image = Image.asset(
+      asset,
       height: height,
       fit: BoxFit.contain,
-      alignment: Alignment.centerLeft,
+      alignment: alignment,
       filterQuality: FilterQuality.high,
-      semanticLabel: l10n.brandName,
+      semanticLabel: name,
       errorBuilder: (_, __, ___) => Text(
-        l10n.brandName,
+        name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: color ?? Theme.of(context).colorScheme.primary,
-          fontSize: height * 0.72,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.2,
+          color: white ? Colors.white : (fallbackColor ?? Theme.of(context).colorScheme.primary),
+          fontSize: height * 0.7,
+          fontWeight: FontWeight.w700,
           height: 1.0,
         ),
       ),
     );
-  }
-
-  bool _isOnDarkBackground(BuildContext context) {
-    if (color != null) {
-      return ThemeData.estimateBrightnessForColor(color!) == Brightness.light;
-    }
-    return Theme.of(context).brightness == Brightness.dark;
+    if (!white) return image;
+    return ColorFiltered(
+      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      child: image,
+    );
   }
 }

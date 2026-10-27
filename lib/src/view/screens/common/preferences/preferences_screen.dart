@@ -231,23 +231,14 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   }
 }
 
-/// Who is signed in: initials, name, user id, masked email and mobile
-/// (from `me/party`) and the last login — a quick fraud check.
+/// Who is signed in: initials, name (from `me/party`), user id and the
+/// last login — a quick fraud check.
 class _ProfileCard extends ConsumerWidget {
   const _ProfileCard({required this.userName, required this.displayName, this.lastLogin});
 
   final String userName;
   final String displayName;
   final DateTime? lastLogin;
-
-  static String _maskEmail(String email) {
-    final at = email.indexOf('@');
-    if (at <= 1) return email;
-    return '${email[0]}${'•' * (at - 1).clamp(1, 6)}${email.substring(at)}';
-  }
-
-  static String _maskPhone(String phone) =>
-      phone.length <= 4 ? phone : '•••• ${phone.substring(phone.length - 4)}';
 
   static String _when(BuildContext context, DateTime t) {
     final local = t.toLocal();
@@ -260,10 +251,6 @@ class _ProfileCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final profile = ref.watch(partyProfileProvider).valueOrNull;
     final name = profile?.displayName.isNotEmpty == true ? profile!.displayName : (displayName.isEmpty ? userName : displayName);
-    final contact = [
-      if (profile != null && profile.email.isNotEmpty) _maskEmail(profile.email),
-      if (profile != null && profile.phone.number.isNotEmpty) _maskPhone(profile.phone.number),
-    ];
     const muted = TextStyle(color: Colors.white, fontSize: 12.5);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -287,10 +274,6 @@ class _ProfileCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(l10n.prefUserId(userName), style: muted.copyWith(color: Colors.white.withValues(alpha: 0.9))),
-                if (contact.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(contact.join('  ·  '), style: muted.copyWith(color: Colors.white.withValues(alpha: 0.9))),
-                ],
                 if (lastLogin != null) ...[
                   const SizedBox(height: 6),
                   Row(
