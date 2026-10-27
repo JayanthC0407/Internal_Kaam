@@ -13,11 +13,13 @@ import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_
 import 'package:ubci_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
 import 'package:ubci_bank/src/view/screens/common/service_requests/track_requests_views.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:ubci_bank/src/view/widgets/design_page.dart';
 
 // ── Choosing a request (service-requests-base-main) ──────────────────────
 
-/// "Service Request Form": search every request by name, OR pick a
-/// Product, then a request under one of its categories.
+/// Raise a New Ticket in the app's design: "Service Request Form" with a
+/// search over every request, OR, then Products beside the chosen
+/// product's requests.
 class SrCatalogView extends ConsumerStatefulWidget {
   const SrCatalogView({super.key, required this.onPick});
 
@@ -37,82 +39,120 @@ class _SrCatalogViewState extends ConsumerState<SrCatalogView> {
           loading: () => const SrLoading(),
           error: (e, _) => SrFailed(error: e, onRetry: () => ref.invalidate(srDefinitionsProvider)),
           data: (definitions) {
-            if (definitions.isEmpty) return PayCard(child: PayMuted(l10n.srNoDefinitions));
+            if (definitions.isEmpty) return DesignCard(child: PayMuted(l10n.srNoDefinitions));
             final products = {for (final d in definitions) d.product}.where((p) => p.isNotEmpty).toList()..sort();
             final product = products.contains(_product) ? _product! : products.first;
-            return LayoutBuilder(
-              builder: (context, c) {
-                final wide = c.maxWidth >= 700;
-                final productList = _ProductList(
-                  products: products,
-                  selected: product,
-                  vertical: wide,
-                  onSelect: (p) => setState(() => _product = p),
-                );
-                final categories = _Categories(
-                  product: product,
-                  definitions: [
-                    for (final d in definitions)
-                      if (d.product == product) d
-                  ],
-                  onPick: widget.onPick,
-                );
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PaySection(
-                      title: l10n.srServiceRequestForm,
-                      icon: Icons.search_rounded,
-                      child: _Search(definitions: definitions, onPick: widget.onPick),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: Row(
+            final requests = [for (final d in definitions) if (d.product == product) d];
+            return Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1030),
+                child: DesignCard(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+                  child: LayoutBuilder(
+                    builder: (context, c) {
+                      final wide = c.maxWidth >= 640;
+                      final products0 = _Products(
+                        products: products,
+                        selected: product,
+                        vertical: wide,
+                        onSelect: (p) => setState(() => _product = p),
+                      );
+                      final list = _Requests(product: product, requests: requests, onPick: widget.onPick);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(child: Divider(color: HomeColors.divider(context))),
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 12),
-                            width: 36,
-                            height: 36,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: HomeColors.card(context),
-                              border: Border.all(color: HomeColors.divider(context)),
-                            ),
-                            child: Text(
-                              l10n.srOr,
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: HomeColors.textSecondary(context)),
-                            ),
+                          Text(
+                            l10n.srServiceRequestForm,
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
                           ),
-                          Expanded(child: Divider(color: HomeColors.divider(context))),
-                        ],
-                      ),
-                    ),
-                    PaySection(
-                      title: l10n.srOrganizedByProduct,
-                      icon: Icons.category_outlined,
-                      child: wide
-                          ? Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(width: 220, child: productList),
-                                const SizedBox(width: 20),
-                                Expanded(child: categories),
-                              ],
+                          const SizedBox(height: 16),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 925),
+                            child: _Search(definitions: definitions, onPick: widget.onPick),
+                          ),
+                          const SizedBox(height: 22),
+                          ConstrainedBox(constraints: const BoxConstraints(maxWidth: 925), child: const _OrDivider()),
+                          const SizedBox(height: 26),
+                          Text(
+                            l10n.srOrganizedByProduct,
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: HomeColors.textSecondary(context)),
+                          ),
+                          const SizedBox(height: 18),
+                          if (wide)
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 880, minHeight: 450),
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    SizedBox(width: 286, child: _Panel(child: products0)),
+                                    const SizedBox(width: 2),
+                                    Expanded(child: _Panel(child: list)),
+                                  ],
+                                ),
+                              ),
                             )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [productList, const SizedBox(height: 12), categories],
-                            ),
-                    ),
-                  ],
-                );
-              },
+                          else ...[
+                            products0,
+                            const SizedBox(height: 12),
+                            _Panel(child: list),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
             );
           },
         );
   }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(minHeight: 450),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        decoration: BoxDecoration(
+          color: HomeColors.card(context),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: HomeColors.divider(context)),
+        ),
+        child: child,
+      );
+}
+
+/// The divider with "OR" in a circle.
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          Expanded(child: Divider(color: HomeColors.divider(context), thickness: 1.2)),
+          Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: HomeColors.card(context),
+              border: Border.all(color: HomeColors.divider(context)),
+            ),
+            child: Text(
+              AppLocalizations.of(context).srOr,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
+            ),
+          ),
+          Expanded(child: Divider(color: HomeColors.divider(context), thickness: 1.2)),
+        ],
+      );
 }
 
 class _Search extends StatelessWidget {
@@ -124,6 +164,10 @@ class _Search extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: HomeColors.divider(context)),
+    );
     return Autocomplete<SrDefinition>(
       displayStringForOption: (d) => d.name,
       optionsBuilder: (value) {
@@ -136,13 +180,20 @@ class _Search extends StatelessWidget {
         controller: controller,
         focusNode: focus,
         onSubmitted: (_) => submit(),
-        decoration: payInputDecoration(
-          context,
-          hint: l10n.srSearchHint,
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 12, right: 8),
-            child: Icon(Icons.search_rounded, color: HomeColors.textSecondary(context)),
+        style: TextStyle(fontSize: 13.5, color: HomeColors.textPrimary(context)),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: HomeColors.card(context),
+          hintText: l10n.srSearchRequests,
+          hintStyle: TextStyle(fontSize: 12, color: HomeColors.textSecondary(context)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Icon(Icons.search_rounded, size: 20, color: HomeColors.brand(context)),
           ),
+          border: border,
+          enabledBorder: border,
+          focusedBorder: border.copyWith(borderSide: BorderSide(color: HomeColors.brand(context), width: 1.4)),
         ),
       ),
       optionsViewBuilder: (context, select, options) => Align(
@@ -173,10 +224,9 @@ class _Search extends StatelessWidget {
   }
 }
 
-/// OBDX's "Products" nav-bar: vertical beside the categories on wide
-/// layouts, a row of chips on a phone.
-class _ProductList extends StatelessWidget {
-  const _ProductList({required this.products, required this.selected, required this.vertical, required this.onSelect});
+/// "Products": a list with the chosen one tinted (wide), or chips (phone).
+class _Products extends StatelessWidget {
+  const _Products({required this.products, required this.selected, required this.vertical, required this.onSelect});
 
   final List<String> products;
   final String selected;
@@ -211,78 +261,62 @@ class _ProductList extends StatelessWidget {
         ),
       );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PayFieldLabel(l10n.srProducts),
-        for (final p in products)
-          Material(
-            color: p == selected ? brand.withValues(alpha: 0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            child: ListTile(
-              dense: true,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              title: Text(
-                p,
-                style: TextStyle(
-                  fontWeight: p == selected ? FontWeight.w700 : FontWeight.w500,
-                  color: p == selected ? brand : HomeColors.textPrimary(context),
-                ),
-              ),
-              onTap: () => onSelect(p),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-/// One collapsible per category that has requests, each listing them.
-class _Categories extends ConsumerWidget {
-  const _Categories({required this.product, required this.definitions, required this.onPick});
-
-  final String product;
-  final List<SrDefinition> definitions;
-  final ValueChanged<SrDefinition> onPick;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final names = ref.watch(srCategoriesProvider(product)).valueOrNull ?? const <SrCategory>[];
-    String nameOf(String type) => names.where((c) => c.id == type || c.name == type).firstOrNull?.name ?? type;
-    final byCategory = <String, List<SrDefinition>>{};
-    for (final d in definitions) {
-      byCategory.putIfAbsent(d.categoryType, () => []).add(d);
-    }
-    final keys = byCategory.keys.toList()..sort((a, b) => nameOf(a).compareTo(nameOf(b)));
-    // Its own Material: the tiles' ink would hide under the card otherwise.
     return Material(
       type: MaterialType.transparency,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final (i, key) in keys.indexed)
-            Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                key: PageStorageKey('$product/$key'),
-                initiallyExpanded: i == 0,
-                tilePadding: const EdgeInsets.symmetric(horizontal: 4),
-                iconColor: HomeColors.brand(context),
-                collapsedIconColor: HomeColors.textSecondary(context),
-                title: Text(
-                  nameOf(key).isEmpty ? '—' : nameOf(key),
-                  style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
+          Text(l10n.srProducts, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context))),
+          for (final p in products)
+            InkWell(
+              onTap: () => onSelect(p),
+              child: Container(
+                height: 42,
+                margin: const EdgeInsets.only(right: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 11),
+                alignment: AlignmentDirectional.centerStart,
+                color: p == selected ? brand.withValues(alpha: 0.12) : Colors.transparent,
+                child: Text(
+                  p,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: p == selected ? FontWeight.w600 : FontWeight.w500,
+                    color: p == selected ? brand : HomeColors.textPrimary(context),
+                  ),
                 ),
-                children: [
-                  for (final d in byCategory[key]!)
-                    ListTile(
-                      dense: true,
-                      leading: Icon(Icons.description_outlined, color: HomeColors.brand(context), size: 20),
-                      title: Text(d.name, style: TextStyle(fontSize: 14, color: HomeColors.textPrimary(context))),
-                      trailing: Icon(Icons.chevron_right_rounded, color: HomeColors.navInactive(context)),
-                      onTap: () => onPick(d),
-                    ),
-                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The chosen product's requests, as links.
+class _Requests extends StatelessWidget {
+  const _Requests({required this.product, required this.requests, required this.onPick});
+
+  final String product;
+  final List<SrDefinition> requests;
+  final ValueChanged<SrDefinition> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(product, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context))),
+          for (final d in requests)
+            InkWell(
+              onTap: () => onPick(d),
+              child: Container(
+                height: 46,
+                padding: const EdgeInsets.symmetric(horizontal: 11),
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(d.name, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: brand)),
               ),
             ),
         ],

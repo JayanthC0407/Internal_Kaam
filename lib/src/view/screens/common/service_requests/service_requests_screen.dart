@@ -5,6 +5,7 @@ import 'package:ubci_bank/src/core/models/common/service_requests/service_reques
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/common/service_requests/raise_request_views.dart';
 import 'package:ubci_bank/src/view/screens/common/service_requests/track_requests_views.dart';
+import 'package:ubci_bank/src/view/widgets/design_page.dart';
 
 /// OBDX's two Service Requests menu entries, one module page.
 enum SrTab { track, raise }
@@ -151,41 +152,33 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final step = _tab == SrTab.track
+    // The design's titles: "Track Requests" and "Raise a New Ticket"; a
+    // request's form takes its own name.
+    final title = _tab == SrTab.track
         ? (_openRequest == null ? l10n.srTrackRequests : l10n.srRequestDetails)
         : (_done != null
-            ? l10n.srRaiseNew
+            ? l10n.srRaiseTicket
             : _review != null
                 ? l10n.prefReview
-                : _definition?.name ?? l10n.srRaiseNew);
+                : _definition?.name ?? l10n.srRaiseTicket);
     return PopScope(
       canPop: _atTop,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _back();
       },
-      child: PayMenuPage(
-        title: l10n.srTitle,
-        subtitle: step,
+      // The ⋮ menu goes to the other half.
+      child: DesignPage(
+        title: title,
         onBack: _back,
-        builder: (context, wide) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: PaySegmented<SrTab>(
-                options: [(SrTab.track, l10n.srTrackRequests), (SrTab.raise, l10n.srRaiseNew)],
-                selected: _tab,
-                onChanged: (t) {
-                  if (t != _tab) _switchTab(t);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            KeyedSubtree(
-              key: ValueKey('$_tab-${_openRequest?.id}-${_definition?.id}-${_review != null}-${_done != null}'),
-              child: _body(wide),
-            ),
-          ],
+        menu: [
+          if (_tab == SrTab.track) (l10n.srRaiseTicket, () => _switchTab(SrTab.raise)),
+          if (_tab == SrTab.raise) (l10n.srTrackRequests, () => _switchTab(SrTab.track)),
+        ],
+        child: LayoutBuilder(
+          builder: (context, c) => KeyedSubtree(
+            key: ValueKey('$_tab-${_openRequest?.id}-${_definition?.id}-${_review != null}-${_done != null}'),
+            child: _body(c.maxWidth >= 900),
+          ),
         ),
       ),
     );

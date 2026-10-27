@@ -15,6 +15,7 @@ import 'package:ubci_bank/src/infra/network/apis/common/obdx_limits_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_mailbox_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_preferences_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_service_requests_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_account_settings_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_registration_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
 import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
@@ -96,4 +97,8 @@ final obdxLoginWizardApiProvider = Provider(
 /// Own-account transfer — ported from vendor branch.
 final obdxPaymentsApiProvider = Provider(
   (ref) => ObdxPaymentsApi(ref.watch(obdxDioClientProvider)),
+);
+
+final obdxAccountSettingsApiProvider = Provider(
+  (ref) => ObdxAccountSettingsApi(ref.watch(obdxDioClientProvider)),
 );
