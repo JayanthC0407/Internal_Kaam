@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/models/common/forgot_credentials_pending.dart';
@@ -31,11 +32,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  //static const _logoAsset = 'assets/images/demobank_logo.png';
-  String get _logoAsset {
-    return 'assets/images/demobank_logo.png';
-  }
-
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -890,20 +886,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildLogo(Color brand) {
-    final l10n = AppLocalizations.of(context);
-    return Image.asset(
-      height: 32,
-      _logoAsset,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Text(
-        l10n.brandName,
-        style: TextStyle(
-          color: brand,
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
+  /// White in dark mode.
+  Widget _buildLogo(Color brand) => BrandLogo(height: 32, fallbackColor: brand);
 }

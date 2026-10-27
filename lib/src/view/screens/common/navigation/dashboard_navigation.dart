@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
 import 'package:ubci_bank/src/core/theme/app_colors.dart';
 
 /// One entry of a dashboard's side menu.
@@ -282,12 +283,8 @@ class _DashboardNavContentState extends State<DashboardNavContent> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Image.asset(
-                      DashboardNavContent.logoAsset,
-                      height: 52,
-                      alignment: Alignment.centerLeft,
-                      fit: BoxFit.contain,
-                    ),
+                    // White in dark mode.
+                    child: const BrandLogo(height: 52, alignment: Alignment.centerLeft),
                   ),
                   if (toggle != null) ...[
                     const SizedBox(width: 6),

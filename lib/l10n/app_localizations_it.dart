@@ -3605,6 +3605,12 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get ccShowDetails => 'Show card details';
+
+  @override
+  String get ccHideDetails => 'Hide card details';
+
+  @override
   String get srTitle => 'Service Requests';
 
   @override

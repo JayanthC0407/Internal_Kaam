@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
 import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
 
 class AuthLogoHeader extends StatelessWidget {
@@ -9,16 +9,11 @@ class AuthLogoHeader extends StatelessWidget {
     this.trailing,
   });
 
-  //static const _logoAsset = 'assets/images/demobank_logo.png';
-  static const _logoAsset = 'assets/images/demobank_logo.png';
-
   final VoidCallback? onBack;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return Row(
       children: [
         if (onBack != null) ...[
@@ -31,19 +26,8 @@ class AuthLogoHeader extends StatelessWidget {
           ),
           const SizedBox(width: 4),
         ],
-        Image.asset(
-          _logoAsset,
-          height: 32,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Text(
-            l10n.brandName,
-            style: TextStyle(
-              color: AuthColors.brand(context),
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+        // White in dark mode.
+        BrandLogo(height: 32, fallbackColor: AuthColors.brand(context)),
         const Spacer(),
         if (trailing != null) trailing!,
       ],

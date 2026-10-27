@@ -755,10 +755,12 @@ class _HeroAccountCard extends StatelessWidget {
 
   /// Groups a raw account number into "•••• •••• •••• 1234" — every digit
   /// masked except the trailing 4, chunked in fours like a card number.
-  String _groupedMaskedNumber(String raw) {
+  /// While the balance is hidden ([showLastFour] false) those 4 are masked
+  /// too, so the eye hides the whole number.
+  String _groupedMaskedNumber(String raw, {required bool showLastFour}) {
     final digits = raw.replaceAll(RegExp(r'\s+'), '');
     if (digits.isEmpty) return '';
-    final visibleLength = digits.length >= 4 ? 4 : digits.length;
+    final visibleLength = !showLastFour ? 0 : (digits.length >= 4 ? 4 : digits.length);
     final maskedLength = digits.length - visibleLength;
     final combined =
         ('•' * maskedLength) + digits.substring(digits.length - visibleLength);
@@ -780,7 +782,7 @@ class _HeroAccountCard extends StatelessWidget {
         : revealed
             ? MoneyFormat.format(balance.amount, currencyCode: currency)
             : '${currency.isEmpty ? '' : '$currency '}\u2022\u2022\u2022\u2022';
-    final numberText = _groupedMaskedNumber(account.displayNumber);
+    final numberText = _groupedMaskedNumber(account.displayNumber, showLastFour: revealed);
 
     return Container(
       width: double.infinity,

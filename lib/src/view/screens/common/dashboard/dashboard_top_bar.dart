@@ -16,9 +16,9 @@ import 'package:ubci_bank/src/view/widgets/language_picker.dart';
 /// has a thin adapter (`CorpDashboardHeaderBar`, `WebDashboardHeaderBar`)
 /// that resolves the signed-in user its own way.
 ///
-/// The settings menu holds the light/dark switch and the colour theme
-/// (palette) choice; the initials open My Preferences and the chevron
-/// beside them the profile menu (who is signed in, Log out). The remaining
+/// The settings gear holds the light/dark switch and the colour theme
+/// (palette) choice; the initials open My Preferences. Only the icons are
+/// tap targets — no chevrons beside them. The remaining
 /// icons take optional callbacks so their destinations can be plugged in
 /// later without touching this widget.
 class DashboardTopBar extends ConsumerWidget {
@@ -40,8 +40,8 @@ class DashboardTopBar extends ConsumerWidget {
   });
 
   /// Tapping the initials runs this (My Preferences, where Personalize
-  /// Dashboard also lives); the chevron beside them then opens the profile
-  /// menu. `null` keeps the whole avatar as the menu button.
+  /// Dashboard and Log out also live). `null` makes the initials open the
+  /// profile menu (who is signed in, Log out) instead.
   final VoidCallback? onProfileTap;
 
   /// Tooltip of the initials when [onProfileTap] is set.
@@ -368,22 +368,13 @@ class _SettingsMenu extends ConsumerWidget {
             ),
           ),
       ],
+      // The gear alone, like the other header icons — no chevron.
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.settings_outlined,
-              size: 20,
-              color: _TopBarColors.textSecondary(context),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 16,
-              color: _TopBarColors.navInactive(context),
-            ),
-          ],
+        padding: const EdgeInsets.all(8),
+        child: Icon(
+          Icons.settings_outlined,
+          size: 20,
+          color: _TopBarColors.textSecondary(context),
         ),
       ),
     );
@@ -471,9 +462,9 @@ class _MenuRow extends StatelessWidget {
   }
 }
 
-/// Initials avatar + chevron. The menu shows who is signed in and holds
-/// Log out. With [onAvatarTap] the initials do that instead (Retail: My
-/// Preferences) and only the chevron opens the menu.
+/// The initials, with no chevron. With [onAvatarTap] (Retail and
+/// Corporate: My Preferences, which also holds Log out) they only do that;
+/// without it they open a menu of who is signed in and Log out.
 class _ProfileMenu extends StatelessWidget {
   const _ProfileMenu({
     required this.displayName,
@@ -516,14 +507,19 @@ class _ProfileMenu extends StatelessWidget {
         ),
       ),
     );
-    final chevron = Icon(
-      Icons.keyboard_arrow_down_rounded,
-      size: 16,
-      color: _TopBarColors.navInactive(context),
-    );
     final avatarTap = onAvatarTap;
+    if (avatarTap != null) {
+      return Tooltip(
+        message: avatarTooltip ?? displayName,
+        child: InkWell(
+          onTap: avatarTap,
+          customBorder: const CircleBorder(),
+          child: Padding(padding: const EdgeInsets.all(4), child: avatar),
+        ),
+      );
+    }
 
-    final menu = PopupMenuButton<String>(
+    return PopupMenuButton<String>(
       tooltip: displayName,
       position: PopupMenuPosition.under,
       color: _TopBarColors.card(context),
@@ -567,32 +563,7 @@ class _ProfileMenu extends StatelessWidget {
           ),
         ),
       ],
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: avatarTap == null ? 4 : 2, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (avatarTap == null) avatar,
-            chevron,
-          ],
-        ),
-      ),
-    );
-
-    if (avatarTap == null) return menu;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Tooltip(
-          message: avatarTooltip ?? displayName,
-          child: InkWell(
-            onTap: avatarTap,
-            customBorder: const CircleBorder(),
-            child: Padding(padding: const EdgeInsets.all(4), child: avatar),
-          ),
-        ),
-        menu,
-      ],
+      child: Padding(padding: const EdgeInsets.all(4), child: avatar),
     );
   }
 }

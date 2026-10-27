@@ -1234,6 +1234,8 @@
   "@prefUserId": {"placeholders": {"id": {"type": "String"}}},
   "prefLastLogin": "Last login {when}",
   "@prefLastLogin": {"placeholders": {"when": {"type": "String"}}},
+  "ccShowDetails": "Show card details",
+  "ccHideDetails": "Hide card details",
   "srTitle": "Service Requests",
   "srTrackRequests": "Track Requests",
   "srTrackRequest": "Track Request",

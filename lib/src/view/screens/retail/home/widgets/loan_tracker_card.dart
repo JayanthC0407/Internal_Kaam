@@ -33,7 +33,6 @@ class LoanTrackerCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(loanAccountsProvider);
     final summary = state.summary;
-final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Loans in more than one currency share the same selected-currency tab
     // as the "Loans & Finances" list screen, so the two stay in sync.
@@ -45,17 +44,13 @@ final isDark = Theme.of(context).brightness == Brightness.dark;
     final card = DashboardCardSurface(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-decoration: BoxDecoration(
-  borderRadius: BorderRadius.circular(14),
-  color: isDark
-      ? const Color(0xFF143847)
-      : Colors.white,
-  border: Border.all(
-    color: isDark
-        ? const Color(0x330AAADF)
-        : const Color(0xFFE5E7EB),
-  ),
-  boxShadow: [
+      // The active palette's card and divider, like the cards around it —
+      // a fixed teal here clashed with the orange and indigo dark themes.
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: HomeColors.card(context),
+        border: Border.all(color: HomeColors.divider(context)),
+        boxShadow: [
           BoxShadow(
             color: HomeColors.brandLight(context).withValues(alpha: 0.30),
             blurRadius: 15,
@@ -513,7 +508,6 @@ class _AnimatedLoanGaugeState
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     // widget.progress is the *outstanding* fraction (what's still owed),
     // but the risk color should track health — i.e. how much has been
     // repaid — so it's inverted here rather than changing what the color
@@ -579,7 +573,7 @@ class _AnimatedLoanGaugeState
                               )
                             : TextStyle(
                                 fontSize: 13,
-                                color: isDark ? Colors.white70 : Colors.black54,
+                                color: HomeColors.textSecondary(context),
                               ),
                       ),
                     ],

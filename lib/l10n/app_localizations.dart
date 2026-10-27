@@ -6712,6 +6712,18 @@ abstract class AppLocalizations {
   /// **'Last login {when}'**
   String prefLastLogin(String when);
 
+  /// No description provided for @ccShowDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show card details'**
+  String get ccShowDetails;
+
+  /// No description provided for @ccHideDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide card details'**
+  String get ccHideDetails;
+
   /// No description provided for @srTitle.
   ///
   /// In en, this message translates to:
