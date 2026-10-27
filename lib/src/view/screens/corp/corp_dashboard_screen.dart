@@ -13,7 +13,7 @@ import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
 import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_customize_bar.dart';
+import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
@@ -107,6 +107,10 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// same as any other unopened module.
   LcMenuAction? _lcAction;
 
+  /// My Preferences, opened from the header initials, shown over
+  /// [_destination] until Back or a menu choice.
+  bool _preferencesOpen = false;
+
   @override
   void initState() {
     super.initState();
@@ -167,8 +171,24 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     // A menu choice replaces whatever was opened on top.
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() {
+      _preferencesOpen = false;
       _destination = destination;
       if (lcAction != null) _lcAction = lcAction;
+    });
+  }
+
+  /// The header initials: My Preferences over the current destination.
+  void _openPreferences() {
+    SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+    setState(() => _preferencesOpen = true);
+  }
+
+  /// Preferences → Personalize Dashboard, its only entry point: Home first,
+  /// so the user sees the widgets they are arranging.
+  void _personalizeFromPreferences() {
+    _selectDestination(CorpNavDestination.home);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openPersonalize();
     });
   }
 
@@ -258,13 +278,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           onLogout: _logout,
           onMenuTap:
               isDesktop ? null : () => _scaffoldKey.currentState?.openDrawer(),
-          // Hidden when `me` resolved no personalizable dashboard, rather
-          // than opening a screen with nothing to save to.
-          onPersonalizeDashboard:
-              ref.watch(personalizationProvider).isUnavailable ||
-                      _destination != CorpNavDestination.home
-                  ? null
-                  : _openPersonalize,
+          onProfileTap: _openPreferences,
         ),
         Expanded(
           child: RefreshIndicator(
@@ -393,8 +407,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
             child: const _DashboardBodyMessage(
               icon: Icons.dashboard_customize_outlined,
               title: 'No widgets on your dashboard',
-              message: 'Add some from Personalize Dashboard in the settings '
-                  'menu.',
+              message: 'Add some from Personalize Dashboard in My '
+                  'Preferences.',
             ),
           ),
         ];
@@ -438,6 +452,20 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   }
 
   Widget _buildDestination(Responsive responsive) {
+    if (_preferencesOpen) {
+      final profileState = ref.watch(corpProfileProvider);
+      return PreferencesScreen(
+        userName: profileState.profile?.userName ?? widget.args.userName,
+        displayName: profileState.displayName(widget.args.fallbackDisplayName),
+        lastLogin: profileState.profile?.lastLoginTime,
+        onLogout: _logout,
+        // Hidden when `me` resolved no personalizable dashboard, rather
+        // than opening a screen with nothing to save to.
+        onPersonalize: ref.watch(personalizationProvider).isUnavailable ? null : _personalizeFromPreferences,
+        embedded: true,
+        onBack: () => setState(() => _preferencesOpen = false),
+      );
+    }
     if (_destination == CorpNavDestination.home) {
       return _buildHome(responsive);
     }
@@ -528,19 +556,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
                       : null,
                 );
 
-                // Phone: Personalize right above the widgets, as on Retail
-                // — the top bar's settings menu is easy to miss there.
-                final showCustomize = PersonalizeLauncher.usesSheet(context) &&
-                    !ref.watch(personalizationProvider).isUnavailable;
-                if (!showCustomize) return grid;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    DashboardCustomizeBar(onCustomize: _openPersonalize),
-                    const SizedBox(height: 8),
-                    grid,
-                  ],
-                );
+                // Personalize Dashboard opens from My Preferences only.
+                return grid;
               },
             ),
           ),
