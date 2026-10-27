@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/service_requests_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:ubci_bank/src/view/widgets/design_page.dart';
 
 // ── Shared ───────────────────────────────────────────────────────────────
 
@@ -87,11 +88,10 @@ class SrStatusChip extends ConsumerWidget {
 
 // ── Track Requests (service-requests-track + -track-panel) ───────────────
 
-/// The filter, then — once applied — the requests it finds.
 class SrTrackView extends ConsumerStatefulWidget {
   const SrTrackView({super.key, required this.filter, required this.wide, required this.onApply, required this.onOpen});
 
-  /// The filter last applied; null shows the filter alone, as OBDX does.
+  /// The filter in effect; the list follows it.
   final SrFilter? filter;
   final bool wide;
   final ValueChanged<SrFilter> onApply;
@@ -101,17 +101,17 @@ class SrTrackView extends ConsumerStatefulWidget {
   ConsumerState<SrTrackView> createState() => _SrTrackViewState();
 }
 
+/// Track Requests in the app's design: Product Name and Status, From and
+/// To Date in boxed fields, applied as they change (no Apply button); the
+/// criteria in a tinted strip; then the requests, or "No Service Request
+/// Found" with Change filters.
 class _SrTrackViewState extends ConsumerState<SrTrackView> {
   late String? _product = widget.filter?.product;
-  late SrCategory? _category = widget.filter?.category;
   late DateTime? _from = widget.filter?.fromDate;
   late DateTime? _to = widget.filter?.toDate;
   late String? _status = widget.filter?.status;
   String? _fromError;
   String? _toError;
-
-  /// The filter folds away once applied; the filter button reopens it.
-  late bool _editing = widget.filter == null;
 
   /// OBDX pages by 10.
   int _shown = 10;
@@ -121,50 +121,22 @@ class _SrTrackViewState extends ConsumerState<SrTrackView> {
     return DateTime(n.year, n.month, n.day);
   }
 
-  Future<void> _pickProduct(List<String> products) async {
-    final picked = await showPayPicker<String>(
-      context,
-      title: AppLocalizations.of(context).srProductName,
-      selected: _product,
-      options: [for (final p in products) PayOption(value: p, title: p)],
-    );
-    // A new product clears the rest of the filter (track-panel).
-    if (picked != null && picked != _product && mounted) {
-      setState(() {
-        _product = picked;
-        _category = null;
-        _status = null;
-        _from = null;
-        _to = null;
+  @override
+  void initState() {
+    super.initState();
+    // The list shows from the start: every request until narrowed.
+    if (widget.filter == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onApply(const SrFilter());
       });
     }
   }
 
-  Future<void> _pickCategory(List<SrCategory> categories) async {
-    final picked = await showPayPicker<String>(
-      context,
-      title: AppLocalizations.of(context).srCategoryName,
-      selected: _category?.id,
-      options: [for (final c in categories) PayOption(value: c.id, title: c.name)],
-    );
-    if (picked != null && mounted) setState(() => _category = categories.firstWhere((c) => c.id == picked));
-  }
-
-  Future<void> _pickStatus(List<SrOption> statuses) async {
-    final l10n = AppLocalizations.of(context);
-    final picked = await showPayPicker<String>(
-      context,
-      title: l10n.srStatus,
-      selected: _status,
-      options: [for (final s in statuses) PayOption(value: s.code, title: s.description)],
-    );
-    if (picked != null && mounted) setState(() => _status = picked);
-  }
-
+  /// Checks OBDX's date rules, then applies the filter. Each date is
+  /// required once the other is given; To Date is at most 90 days after
+  /// From Date and never in the future.
   void _apply() {
     final l10n = AppLocalizations.of(context);
-    // Each date is required once the other is given; To Date is at most 90
-    // days after From Date and never in the future.
     setState(() {
       _fromError = _from == null && _to != null ? l10n.srDateRequired : null;
       _toError = _to == null && _from != null ? l10n.srDateRequired : null;
@@ -178,165 +150,139 @@ class _SrTrackViewState extends ConsumerState<SrTrackView> {
     });
     if (_fromError != null || _toError != null) return;
     _shown = 10;
-    setState(() => _editing = false);
-    widget.onApply(SrFilter(product: _product, category: _category, fromDate: _from, toDate: _to, status: _status));
+    widget.onApply(SrFilter(product: _product, fromDate: _from, toDate: _to, status: _status));
   }
 
-  void _reset() => setState(() {
-        _product = null;
-        _category = null;
-        _from = null;
-        _to = null;
-        _status = null;
-        _fromError = null;
-        _toError = null;
-      });
+  void _reset() {
+    setState(() {
+      _product = null;
+      _from = null;
+      _to = null;
+      _status = null;
+      _fromError = null;
+      _toError = null;
+    });
+    _apply();
+  }
 
-  Widget _filterForm(AppLocalizations l10n) {
+  Future<void> _pickProduct(List<String> products) async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showPayPicker<String>(
+      context,
+      title: l10n.srProductName,
+      selected: _product,
+      options: [for (final p in products) PayOption(value: p, title: p)],
+    );
+    if (picked != null && picked != _product && mounted) {
+      setState(() => _product = picked);
+      _apply();
+    }
+  }
+
+  Future<void> _pickStatus(List<SrOption> statuses) async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showPayPicker<String>(
+      context,
+      title: l10n.srStatus,
+      selected: _status,
+      options: [for (final s in statuses) PayOption(value: s.code, title: s.description)],
+    );
+    if (picked != null && mounted) {
+      setState(() => _status = picked);
+      _apply();
+    }
+  }
+
+  Future<void> _pickDate({required bool from}) async {
+    final today = _today;
+    final first = from ? DateTime(today.year - 10) : (_from ?? DateTime(today.year - 10));
+    final last = from
+        ? (_to ?? today)
+        : (_from == null ? today : (_from!.add(const Duration(days: 90)).isBefore(today) ? _from!.add(const Duration(days: 90)) : today));
+    final current = from ? _from : _to;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current != null && !current.isBefore(first) && !current.isAfter(last) ? current : last,
+      firstDate: first,
+      lastDate: last,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => from ? _from = picked : _to = picked);
+    // One date alone waits for the other before applying.
+    if ((_from == null) == (_to == null)) _apply();
+  }
+
+  /// `10/8/26`.
+  static String _short(DateTime d) => '${d.month}/${d.day}/${(d.year % 100).toString().padLeft(2, '0')}';
+
+  Widget _filters(AppLocalizations l10n) {
     final products = ref.watch(srProductsProvider);
-    final categories = _product == null ? null : ref.watch(srCategoriesProvider(_product!));
     final statuses = ref.watch(srEnumerationProvider('srStatus'));
     final statusList = statuses.valueOrNull ?? [for (final c in SrStatus.all) SrOption(code: c, description: srStatusLabel(l10n, c))];
-    final today = _today;
-
-    Widget field(String label, Widget child) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [PayFieldLabel(label), child],
-        );
-
-    final fields = <Widget>[
-      field(
-        l10n.srProductName,
-        PayPickerField(
-          placeholder: l10n.srPleaseSelect,
-          title: _product,
-          dense: true,
-          loading: products.isLoading,
-          error: products.hasError ? l10n.srLoadFailed : null,
-          onTap: products.valueOrNull == null ? null : () => _pickProduct(products.value!),
-        ),
+    final cells = [
+      DesignBoxSelect(
+        label: l10n.srProductName,
+        value: _product,
+        placeholder: l10n.srPleaseSelect,
+        loading: products.isLoading,
+        onTap: products.valueOrNull == null ? null : () => _pickProduct(products.value!),
       ),
-      if (_product != null)
-        field(
-          l10n.srCategoryName,
-          PayPickerField(
-            placeholder: l10n.srPleaseSelect,
-            title: _category?.name,
-            dense: true,
-            loading: categories?.isLoading ?? false,
-            onTap: categories?.valueOrNull == null ? null : () => _pickCategory(categories!.value!),
-          ),
-        ),
-      field(
-        l10n.srFromDate,
-        PayDateField(
-          value: _from,
-          placeholder: l10n.srPleaseSelect,
-          first: DateTime(today.year - 10),
-          last: _to ?? today,
-          error: _fromError,
-          onChanged: (d) => setState(() {
-            _from = d;
-            _fromError = null;
-          }),
-        ),
+      DesignBoxSelect(
+        label: l10n.srStatus,
+        value: _status == null ? null : srStatusLabel(l10n, _status!, statuses.valueOrNull),
+        placeholder: l10n.srPleaseSelect,
+        onTap: () => _pickStatus(statusList),
       ),
-      field(
-        l10n.srToDate,
-        PayDateField(
-          value: _to,
-          placeholder: l10n.srPleaseSelect,
-          first: _from ?? DateTime(today.year - 10),
-          last: _from == null
-              ? today
-              : (_from!.add(const Duration(days: 90)).isBefore(today) ? _from!.add(const Duration(days: 90)) : today),
-          error: _toError,
-          onChanged: (d) => setState(() {
-            _to = d;
-            _toError = null;
-          }),
-        ),
-      ),
-      field(
-        l10n.srStatus,
-        PayPickerField(
-          placeholder: l10n.srPleaseSelect,
-          title: _status == null ? null : srStatusLabel(l10n, _status!, statuses.valueOrNull),
-          dense: true,
-          onTap: () => _pickStatus(statusList),
-        ),
-      ),
+      _DateBox(label: l10n.srFromDate, value: _from, error: _fromError, onTap: () => _pickDate(from: true)),
+      _DateBox(label: l10n.srToDate, value: _to, error: _toError, onTap: () => _pickDate(from: false)),
     ];
-
-    return PaySection(
-      title: l10n.srFilter,
-      icon: Icons.filter_list_rounded,
-      child: Column(
+    if (!widget.wide) {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (widget.wide)
-            Wrap(
-              spacing: 16,
-              runSpacing: 14,
-              children: [for (final f in fields) SizedBox(width: 260, child: f)],
-            )
-          else
-            for (final (i, f) in fields.indexed) ...[if (i > 0) const SizedBox(height: 14), f],
-          const SizedBox(height: 18),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: _reset,
-                style: TextButton.styleFrom(foregroundColor: HomeColors.brand(context)),
-                child: Text(l10n.srReset),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(width: 160, child: PayPrimaryButton(label: l10n.srApply, onPressed: _apply)),
-            ],
-          ),
-        ],
+        children: [for (final (i, c) in cells.indexed) ...[if (i > 0) const SizedBox(height: 12), c]],
+      );
+    }
+    Widget pair(Widget a, Widget b) => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [Expanded(child: a), const SizedBox(width: 88), Expanded(child: b)],
+        );
+    return Padding(
+      padding: const EdgeInsets.only(right: 28),
+      child: Column(
+        children: [pair(cells[0], cells[1]), const SizedBox(height: 24), pair(cells[2], cells[3])],
       ),
     );
   }
 
-  /// OBDX's grey strip of what was searched for, with the filter button.
-  Widget _summary(AppLocalizations l10n, SrFilter f) {
+  /// The tinted strip of what is being searched for: product in the brand
+  /// colour, the dates, the status in green.
+  Widget? _strip(AppLocalizations l10n, SrFilter f) {
     final statuses = ref.watch(srEnumerationProvider('srStatus')).valueOrNull;
-    final parts = [
-      if (f.product != null) f.product!,
-      if (f.category != null) f.category!.name,
-      if (f.fromDate != null && f.toDate != null) '${payDate(f.fromDate)} - ${payDate(f.toDate)}',
-      if (f.status != null) srStatusLabel(l10n, f.status!, statuses),
+    final parts = <Widget>[
+      if (f.product != null)
+        Text(f.product!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: HomeColors.brand(context))),
+      if (f.category != null)
+        Text(f.category!.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context))),
+      if (f.fromDate != null && f.toDate != null)
+        Text(
+          '${_short(f.fromDate!)} - ${_short(f.toDate!)}',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
+        ),
+      if (f.status != null)
+        Text(
+          srStatusLabel(l10n, f.status!, statuses),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: SrStatus.isNegative(f.status!) ? HomeColors.error(context) : HomeColors.success(context),
+          ),
+        ),
     ];
-    return PayCard(
-      padding: 10,
-      child: Row(
-        children: [
-          const SizedBox(width: 6),
-          Expanded(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                if (parts.isEmpty) PayMuted(l10n.srAllRequests),
-                for (final p in parts)
-                  Chip(
-                    label: Text(p, style: TextStyle(fontSize: 12.5, color: HomeColors.textPrimary(context))),
-                    backgroundColor: HomeColors.bg(context),
-                    side: BorderSide(color: HomeColors.divider(context)),
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: l10n.srFilter,
-            icon: Icon(Icons.filter_list_rounded, color: HomeColors.brand(context)),
-            onPressed: () => setState(() => _editing = true),
-          ),
-        ],
-      ),
+    if (parts.isEmpty) return null;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      color: HomeColors.brand(context).withValues(alpha: 0.12),
+      child: Wrap(spacing: 80, runSpacing: 8, children: parts),
     );
   }
 
@@ -344,32 +290,31 @@ class _SrTrackViewState extends ConsumerState<SrTrackView> {
         loading: () => const SrLoading(),
         error: (e, _) => SrFailed(error: e, onRetry: () => ref.invalidate(srRequestsProvider(f))),
         data: (list) {
-          if (list.isEmpty) return PayCard(child: PayMuted(l10n.srNoRequests));
+          if (list.isEmpty) return _Empty(onChangeFilters: _reset);
           final shown = list.take(_shown).toList();
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PayCard(
-                padding: 8,
-                child: Column(
-                  children: [
-                    if (widget.wide) _TableHeader(l10n: l10n),
-                    for (final (i, r) in shown.indexed)
-                      _RequestRow(request: r, wide: widget.wide, last: i == shown.length - 1, onTap: () => widget.onOpen(r)),
-                  ],
-                ),
-              ),
-              if (list.length > _shown) ...[
-                const SizedBox(height: 12),
-                Center(
-                  child: TextButton(
-                    onPressed: () => setState(() => _shown += 10),
-                    style: TextButton.styleFrom(foregroundColor: HomeColors.brand(context)),
-                    child: Text(l10n.srShowMore(list.length - _shown)),
+          return Container(
+            decoration: BoxDecoration(
+              color: HomeColors.card(context),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: HomeColors.divider(context)),
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (widget.wide) _TableHeader(l10n: l10n),
+                for (final (i, r) in shown.indexed)
+                  _RequestRow(request: r, wide: widget.wide, last: i == shown.length - 1, onTap: () => widget.onOpen(r)),
+                if (list.length > _shown)
+                  Center(
+                    child: TextButton(
+                      onPressed: () => setState(() => _shown += 10),
+                      style: TextButton.styleFrom(foregroundColor: HomeColors.brand(context)),
+                      child: Text(l10n.srShowMore(list.length - _shown)),
+                    ),
                   ),
-                ),
               ],
-            ],
+            ),
           );
         },
       );
@@ -378,12 +323,101 @@ class _SrTrackViewState extends ConsumerState<SrTrackView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final applied = widget.filter;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_editing || applied == null) _filterForm(l10n) else _summary(l10n, applied),
-        if (applied != null) ...[const SizedBox(height: 16), _results(l10n, applied)],
-      ],
+    final strip = applied == null ? null : _strip(l10n, applied);
+    return DesignCard(
+      padding: EdgeInsets.fromLTRB(widget.wide ? 22 : 14, 22, widget.wide ? 20 : 14, widget.wide ? 120 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _filters(l10n),
+          const SizedBox(height: 36),
+          if (strip != null) ...[strip, const SizedBox(height: 18)],
+          if (applied != null) _results(l10n, applied),
+        ],
+      ),
+    );
+  }
+}
+
+/// A date in the design box, with the calendar mark at the right.
+class _DateBox extends StatelessWidget {
+  const _DateBox({required this.label, required this.value, required this.onTap, this.error});
+
+  final String label;
+  final DateTime? value;
+  final String? error;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DesignBoxSelect(
+            label: label,
+            value: value == null ? null : payDate(value),
+            placeholder: label,
+            trailingIcon: Icons.calendar_month_outlined,
+            onTap: onTap,
+          ),
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 4),
+              child: Text(error!, style: TextStyle(fontSize: 11.5, color: HomeColors.error(context))),
+            ),
+        ],
+      );
+}
+
+/// "No Service Request Found": the icon tile, the line under it, and
+/// Change filters (which clears them).
+class _Empty extends StatelessWidget {
+  const _Empty({required this.onChangeFilters});
+
+  final VoidCallback onChangeFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final brand = HomeColors.brand(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 56),
+      decoration: BoxDecoration(
+        color: HomeColors.card(context),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: HomeColors.divider(context)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              color: brand.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: brand.withValues(alpha: 0.3)),
+            ),
+            child: Icon(Icons.north_east_rounded, color: brand, size: 30),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            l10n.srNoRequests,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.srNoRequestsMatch,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: HomeColors.textSecondary(context)),
+          ),
+          const SizedBox(height: 6),
+          TextButton(
+            onPressed: onChangeFilters,
+            style: TextButton.styleFrom(foregroundColor: brand),
+            child: Text(l10n.srChangeFilters, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
     );
   }
 }

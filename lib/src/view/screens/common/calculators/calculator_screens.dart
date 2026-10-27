@@ -15,13 +15,14 @@ import 'package:ubci_bank/src/view/providers/common/calculator_providers.dart';
 import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:ubci_bank/src/view/widgets/design_page.dart';
 import 'package:ubci_bank/src/view/widgets/obdx_write_runner.dart';
 
-/// The four OBDX calculators (docs/obdx/features/calculators.md). The server
-/// does every calculation. The app asks again when a slider is let go or
-/// typing pauses (decision 2b), and at once when the defaults load (1b).
-/// Inputs are a slider and a number box kept in step: for amounts the box
-/// leads, for tenure and rate the slider does.
+/// The four OBDX calculators (docs/obdx/features/calculators.md) on one
+/// "Financial Calculator" page, a tab each, in the app's design: boxed
+/// fields, and the result in a tinted panel. The server does every
+/// calculation. The app asks again when typing pauses (decision 2b), and
+/// at once when the defaults load (1b).
 
 /// Typing pause before a new calculation.
 const _debounce = Duration(milliseconds: 400);
@@ -31,185 +32,176 @@ String _plain(double v, int decimals) {
   return decimals == 0 || !s.contains('.') ? s : s.replaceFirst(RegExp(r'\.?0+$'), '');
 }
 
-/// A slider and a number box showing one value. [onChanged] follows every
-/// move; [onCommit] fires when the slider is let go or typing pauses, with
-/// the value kept inside [min]..[max].
-class LinkedSliderField extends StatefulWidget {
-  const LinkedSliderField({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-    required this.onCommit,
-    this.step = 1,
-    this.decimals = 0,
-    this.currency,
-    this.suffix,
-    this.boxFirst = false,
-  });
+/// The four tabs, in the design's order.
+enum CalcTab { termDeposit, loanInstallment, loanEligibility, forex }
 
-  final String label;
-  final double value;
-  final double min;
-  final double max;
+class FinancialCalculatorScreen extends StatefulWidget {
+  const FinancialCalculatorScreen({super.key, this.initialTab = CalcTab.termDeposit, this.onBack});
 
-  /// Slider step (OBDX: amounts 10, tenure 1, rates 1 percentage point).
-  final double step;
-  final int decimals;
-
-  /// Amounts: the currency shown on the box.
-  final String? currency;
-  final String? suffix;
-
-  /// Amounts: the box is the main control (full width, above the slider).
-  final bool boxFirst;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<double> onCommit;
+  final CalcTab initialTab;
+  final VoidCallback? onBack;
 
   @override
-  State<LinkedSliderField> createState() => _LinkedSliderFieldState();
+  State<FinancialCalculatorScreen> createState() => _FinancialCalculatorScreenState();
 }
 
-class _LinkedSliderFieldState extends State<LinkedSliderField> {
-  late final _text = TextEditingController(text: _plain(widget.value, widget.decimals));
-  Timer? _timer;
-  bool _outOfRange = false;
-
-  /// The last change came from typing: the box keeps what was typed (a
-  /// first digit below the minimum must not be replaced by the minimum).
-  bool _fromBox = false;
-
-  @override
-  void didUpdateWidget(LinkedSliderField old) {
-    super.didUpdateWidget(old);
-    // The slider moved: keep the box in step.
-    if (!_fromBox && old.value != widget.value) _text.text = _plain(widget.value, widget.decimals);
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _text.dispose();
-    super.dispose();
-  }
-
-  double _clamp(double v) => v < widget.min ? widget.min : (v > widget.max ? widget.max : v);
-
-  void _typed(String text) {
-    _fromBox = true;
-    final v = double.tryParse(text.replaceAll(',', ''));
-    setState(() => _outOfRange = v != null && (v < widget.min || v > widget.max));
-    _timer?.cancel();
-    if (v == null) return;
-    widget.onChanged(_clamp(v));
-    _timer = Timer(_debounce, () {
-      // The pause: an out-of-range entry becomes the nearest limit (still
-      // flagged until the next edit).
-      if (_outOfRange && mounted) _text.text = _plain(_clamp(v), widget.decimals);
-      widget.onCommit(_clamp(v));
-    });
-  }
-
-  void _slid(double v, {required bool end}) {
-    _fromBox = false;
-    _timer?.cancel();
-    if (_outOfRange) setState(() => _outOfRange = false);
-    end ? widget.onCommit(_stepped(v)) : widget.onChanged(_stepped(v));
-  }
-
-  double _stepped(double v) {
-    if (widget.step <= 0) return v;
-    final n = ((v - widget.min) / widget.step).round();
-    return _clamp(widget.min + n * widget.step);
-  }
+class _FinancialCalculatorScreenState extends State<FinancialCalculatorScreen> {
+  late CalcTab _tab = widget.initialTab;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final secondary = HomeColors.textSecondary(context);
-    final hint = l10n.calcRangeHint(_plain(widget.min, widget.decimals), _plain(widget.max, widget.decimals));
-    final formatters = [
-      FilteringTextInputFormatter.allow(RegExp(widget.decimals == 0 ? r'[0-9]' : r'[0-9.]')),
-    ];
-
-    final box = widget.currency != null
-        ? PayAmountField(
-            controller: _text,
-            currency: widget.currency!,
-            error: _outOfRange ? hint : null,
-            onChanged: _typed,
-            compact: true,
-          )
-        : SizedBox(
-            width: 110,
-            child: TextField(
-              controller: _text,
-              textAlign: TextAlign.end,
-              keyboardType: TextInputType.numberWithOptions(decimal: widget.decimals > 0),
-              inputFormatters: formatters,
-              onChanged: _typed,
-              decoration: InputDecoration(
-                isDense: true,
-                suffixText: widget.suffix,
-                errorText: _outOfRange ? '' : null,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-          );
-
-    final span = widget.max - widget.min;
-    final divisions = widget.step > 0 && span > 0 && span / widget.step <= 1000 ? (span / widget.step).round() : null;
-    final slider = Slider(
-      value: _clamp(widget.value),
-      min: widget.min,
-      max: widget.max <= widget.min ? widget.min + 1 : widget.max,
-      divisions: divisions,
-      label: _plain(widget.value, widget.decimals),
-      onChanged: span <= 0 ? null : (v) => _slid(v, end: false),
-      onChangeEnd: span <= 0 ? null : (v) => _slid(v, end: true),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (widget.boxFirst) ...[
-          PayFieldLabel(widget.label),
-          box,
-        ] else
-          Row(
-            children: [
-              Expanded(child: PayFieldLabel(widget.label)),
-              box,
-            ],
+    return DesignPage(
+      title: l10n.fcTitle,
+      onBack: widget.onBack,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Tabs(selected: _tab, onSelect: (t) => setState(() => _tab = t)),
+          const SizedBox(height: 28),
+          // Each calculator keeps its own state while it is shown.
+          KeyedSubtree(
+            key: ValueKey(_tab),
+            child: switch (_tab) {
+              CalcTab.termDeposit => const _TdCalculator(),
+              CalcTab.loanInstallment => const _LoanInstallmentCalculator(),
+              CalcTab.loanEligibility => const _LoanEligibilityCalculator(),
+              CalcTab.forex => const _ForexCalculator(),
+            },
           ),
-        Semantics(label: widget.label, child: slider),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              Text(_plain(widget.min, widget.decimals), style: TextStyle(fontSize: 11.5, color: secondary)),
-              const Spacer(),
-              if (_outOfRange && widget.currency == null)
-                Text(hint, style: TextStyle(fontSize: 11.5, color: HomeColors.error(context))),
-              const Spacer(),
-              Text(_plain(widget.max, widget.decimals), style: TextStyle(fontSize: 11.5, color: secondary)),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-/// Calculation state shared by the four screens: one call at a time in
-/// effect (an older answer arriving late is dropped), loading, error.
+/// Opens Financial Calculator on Term Deposit (the old page's name).
+class TdCalculatorScreen extends StatelessWidget {
+  const TdCalculatorScreen({super.key, this.onBack});
+
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) => FinancialCalculatorScreen(onBack: onBack);
+}
+
+/// Opens Financial Calculator on Loan Installment.
+class LoanInstallmentScreen extends StatelessWidget {
+  const LoanInstallmentScreen({super.key, this.onBack});
+
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) => FinancialCalculatorScreen(initialTab: CalcTab.loanInstallment, onBack: onBack);
+}
+
+/// Opens Financial Calculator on Loan Eligibility.
+class LoanEligibilityScreen extends StatelessWidget {
+  const LoanEligibilityScreen({super.key, this.onBack});
+
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) => FinancialCalculatorScreen(initialTab: CalcTab.loanEligibility, onBack: onBack);
+}
+
+/// Opens Financial Calculator on Forex.
+class ForexCalculatorScreen extends StatelessWidget {
+  const ForexCalculatorScreen({super.key, this.onBack});
+
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) => FinancialCalculatorScreen(initialTab: CalcTab.forex, onBack: onBack);
+}
+
+/// The tab strip: equal tabs in a bordered bar, the chosen one tinted.
+class _Tabs extends StatelessWidget {
+  const _Tabs({required this.selected, required this.onSelect});
+
+  final CalcTab selected;
+  final ValueChanged<CalcTab> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final brand = HomeColors.brand(context);
+    String label(CalcTab t) => switch (t) {
+          CalcTab.termDeposit => l10n.fcTabTd,
+          CalcTab.loanInstallment => l10n.fcTabLoanInstallment,
+          CalcTab.loanEligibility => l10n.fcTabLoanEligibility,
+          CalcTab.forex => l10n.fcTabForex,
+        };
+    return LayoutBuilder(
+      builder: (context, c) {
+        final narrow = c.maxWidth < 640;
+        Widget tab(CalcTab t) {
+          final on = t == selected;
+          return Semantics(
+            selected: on,
+            button: true,
+            child: Material(
+              color: on ? brand.withValues(alpha: 0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(6),
+                onTap: () => onSelect(t),
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    label(t),
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: on ? FontWeight.w700 : FontWeight.w600,
+                      color: on ? brand : HomeColors.textPrimary(context),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: HomeColors.card(context),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: HomeColors.divider(context)),
+          ),
+          child: narrow
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: [for (final t in CalcTab.values) tab(t)]),
+                )
+              : Row(
+                  children: [
+                    for (final t in CalcTab.values) ...[
+                      SizedBox(width: (c.maxWidth - 16) / 5.2, child: tab(t)),
+                      const SizedBox(width: 18),
+                    ],
+                  ],
+                ),
+        );
+      },
+    );
+  }
+}
+
+/// Calculation state shared by the four tabs: one call at a time in effect
+/// (an older answer arriving late is dropped), loading, error.
 mixin _Calculation<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   T? result;
   String? error;
   bool loading = false;
   int _request = 0;
+
+  /// The last error came from a local check (no call was made), so there
+  /// is nothing to retry.
+  bool blockedLocally = false;
 
   /// Runs [call] with OBDX's OTP / approval handling (decision 3a).
   Future<void> calculate(
@@ -220,6 +212,7 @@ mixin _Calculation<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     setState(() {
       loading = true;
       error = null;
+      blockedLocally = false;
     });
     final r = await runWithOtp(context, call);
     if (!mounted || id != _request) return;
@@ -239,104 +232,193 @@ mixin _Calculation<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
         loading = false;
         result = null;
         error = message;
+        blockedLocally = true;
       });
-}
-
-/// Fields on the left and the result on the right (web), or stacked (phone).
-class _CalcPage extends StatelessWidget {
-  const _CalcPage({required this.title, required this.onBack, required this.body});
-
-  final String title;
-  final VoidCallback? onBack;
-  final Widget Function(bool wide) body;
-
-  @override
-  Widget build(BuildContext context) =>
-      PayMenuPage(title: title, subtitle: AppLocalizations.of(context).calcTitle, onBack: onBack, builder: (_, wide) => body(wide));
-}
-
-Widget _split(bool wide, Widget fields, Widget result) => wide
-    ? Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Expanded(flex: 3, child: fields), const SizedBox(width: 16), Expanded(flex: 2, child: result)],
-      )
-    : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [fields, const SizedBox(height: 14), result]);
-
-/// The result card: one or more labelled figures, a spinner while asking,
-/// or the error with Retry.
-class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.rows, required this.loading, required this.error, required this.onRetry});
-
-  final List<(String, String)> rows;
-  final bool loading;
-  final String? error;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final brand = HomeColors.brand(context);
-    final secondary = HomeColors.textSecondary(context);
-    final message = error;
-    if (!loading && message != null) {
-      // A failed call can be retried; a local check (e.g. income ≤
-      // expenses) only explains why nothing was asked.
-      final retry = onRetry;
-      return retry != null
-          ? PayErrorRetry(message: message, onRetry: retry)
-          : PayCard(child: Text(message, style: TextStyle(color: HomeColors.error(context), height: 1.4)));
-    }
-    return PayCard(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: loading
-            ? const Padding(
-                key: ValueKey('loading'),
-                padding: EdgeInsets.all(18),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : Column(
-                    key: ValueKey(rows.map((r) => r.$2).join()),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final (i, (label, value)) in rows.indexed) ...[
-                        if (i > 0) const SizedBox(height: 14),
-                        Text(label, style: TextStyle(fontSize: 13, color: secondary)),
-                        const SizedBox(height: 4),
-                        Text(
-                          value,
-                          style: TextStyle(fontSize: i == 0 ? 26 : 16, fontWeight: FontWeight.w700, color: i == 0 ? brand : HomeColors.textPrimary(context)),
-                        ),
-                      ],
-                    ],
-                  ),
-      ),
-    );
-  }
 }
 
 String _money(MoneyAmount? m, String fallbackCurrency) =>
     m == null ? '-' : MoneyFormat.format(m.amount, currencyCode: m.currency ?? fallbackCurrency);
 
-Widget _loading() => const PayCard(child: Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())));
+Widget _loading() => const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()));
 
 Widget _loadFailed(BuildContext context, Object e, VoidCallback retry) => PayErrorRetry(
       message: e is CalcLoadError && e.message != null ? e.message! : AppLocalizations.of(context).calcLoadFailed,
       onRetry: retry,
     );
 
-// ── Term Deposit Calculator ──
+/// The calculator card: its title, a line under it, then [children]. The
+/// fields take the left of a wide card, as in the design.
+class _CalcCard extends StatelessWidget {
+  const _CalcCard({required this.children, this.title, this.subtitle});
 
-class TdCalculatorScreen extends ConsumerStatefulWidget {
-  const TdCalculatorScreen({super.key, this.onBack});
-
-  final VoidCallback? onBack;
+  final String? title;
+  final String? subtitle;
+  final List<Widget> children;
 
   @override
-  ConsumerState<TdCalculatorScreen> createState() => _TdCalculatorScreenState();
+  Widget build(BuildContext context) => DesignCard(
+        padding: const EdgeInsets.fromLTRB(18, 20, 18, 28),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 870),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (title != null)
+                  Text(title!, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context))),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 10),
+                  Text(subtitle!, style: TextStyle(fontSize: 11.5, color: HomeColors.textSecondary(context))),
+                ],
+                if (title != null || subtitle != null) const SizedBox(height: 14),
+                ...children,
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
-class _TdCalculatorScreenState extends ConsumerState<TdCalculatorScreen> with _Calculation<TdCalculatorScreen, TdMaturity> {
-  final _amount = TextEditingController();
+/// Two side by side on a wide card (each half the fields column), stacked
+/// on a phone.
+Widget _row(BuildContext context, List<Widget> cells, {bool halfWidth = true}) => LayoutBuilder(
+      builder: (context, c) {
+        if (c.maxWidth < 560) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [for (final (i, w) in cells.indexed) ...[if (i > 0) const SizedBox(height: 12), w]],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (i, w) in cells.indexed) ...[
+              if (i > 0) const SizedBox(width: 18),
+              Expanded(child: w),
+            ],
+            // A lone field keeps the design's half width.
+            if (halfWidth && cells.length == 1) ...[const SizedBox(width: 18), const Expanded(child: SizedBox.shrink())],
+          ],
+        );
+      },
+    );
+
+/// A number in a design box. It follows [value] unless the user is typing;
+/// typing reports through [onChanged] at once and [onCommit] after a pause,
+/// with a value outside [min]..[max] flagged and then moved to the limit.
+class _NumberBox extends StatefulWidget {
+  const _NumberBox({
+    required this.label,
+    required this.value,
+    required this.onCommit,
+    this.onChanged,
+    this.min,
+    this.max,
+    this.decimals = 0,
+    this.suffix,
+    this.grouped = false,
+  });
+
+  final String label;
+  final double? value;
+  final double? min;
+  final double? max;
+  final int decimals;
+  final String? suffix;
+
+  /// "10,000" as in the design.
+  final bool grouped;
+  final ValueChanged<double>? onChanged;
+  final ValueChanged<double> onCommit;
+
+  @override
+  State<_NumberBox> createState() => _NumberBoxState();
+}
+
+class _NumberBoxState extends State<_NumberBox> {
+  late final _text = TextEditingController(text: _show(widget.value));
+  Timer? _timer;
+  bool _outOfRange = false;
+
+  String _show(double? v) {
+    if (v == null) return '';
+    final plain = _plain(v, widget.decimals);
+    if (!widget.grouped) return plain;
+    final parts = plain.split('.');
+    final whole = parts.first.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
+    return parts.length > 1 ? '$whole.${parts[1]}' : whole;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _text.dispose();
+    super.dispose();
+  }
+
+  double _clamp(double v) {
+    if (widget.min != null && v < widget.min!) return widget.min!;
+    if (widget.max != null && v > widget.max!) return widget.max!;
+    return v;
+  }
+
+  void _typed(String text) {
+    final v = double.tryParse(text.replaceAll(',', ''));
+    setState(() => _outOfRange = v != null && v != _clamp(v));
+    _timer?.cancel();
+    if (v == null) return;
+    widget.onChanged?.call(_clamp(v));
+    _timer = Timer(_debounce, () {
+      // The pause: an out-of-range entry becomes the nearest limit (still
+      // flagged until the next edit).
+      if (_outOfRange && mounted) _text.text = _show(_clamp(v));
+      widget.onCommit(_clamp(v));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final range = widget.min != null && widget.max != null
+        ? l10n.calcRangeHint(_plain(widget.min!, widget.decimals), _plain(widget.max!, widget.decimals))
+        : null;
+    return DesignBoxField(
+      label: widget.label,
+      controller: _text,
+      hint: l10n.fcEnterValue,
+      error: _outOfRange ? range : null,
+      suffixText: widget.suffix,
+      keyboardType: TextInputType.numberWithOptions(decimal: widget.decimals > 0),
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(widget.decimals == 0 ? r'[0-9,]' : r'[0-9.,]'))],
+      onChanged: _typed,
+    );
+  }
+}
+
+/// An error under the result: Retry for a failed call, the reason alone
+/// for a local check.
+Widget _errorLine(BuildContext context, String? error, VoidCallback? retry) {
+  if (error == null) return const SizedBox.shrink();
+  return Padding(
+    padding: const EdgeInsets.only(top: 10),
+    child: retry != null
+        ? PayErrorRetry(message: error, onRetry: retry)
+        : Text(error, style: TextStyle(color: HomeColors.error(context), fontSize: 12.5, height: 1.4)),
+  );
+}
+
+// ── Term Deposit Calculator ──
+
+class _TdCalculator extends ConsumerStatefulWidget {
+  const _TdCalculator();
+
+  @override
+  ConsumerState<_TdCalculator> createState() => _TdCalculatorState();
+}
+
+class _TdCalculatorState extends ConsumerState<_TdCalculator> with _Calculation<_TdCalculator, TdMaturity> {
+  double _amount = 0;
   final _years = TextEditingController(text: '1');
   final _months = TextEditingController(text: '0');
   final _days = TextEditingController(text: '0');
@@ -348,14 +430,13 @@ class _TdCalculatorScreenState extends ConsumerState<TdCalculatorScreen> with _C
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in [_amount, _years, _months, _days]) {
+    for (final c in [_years, _months, _days]) {
       c.dispose();
     }
     super.dispose();
   }
 
   int _int(TextEditingController c) => int.tryParse(c.text) ?? 0;
-  double get _amountValue => double.tryParse(_amount.text.replaceAll(',', '')) ?? 0;
 
   void _later() {
     _timer?.cancel();
@@ -364,11 +445,11 @@ class _TdCalculatorScreenState extends ConsumerState<TdCalculatorScreen> with _C
 
   void _run() {
     final ccy = ref.read(calcLocalCurrencyProvider).valueOrNull;
-    if (ccy == null || _amountValue <= 0) return;
+    if (ccy == null || _amount <= 0) return;
     if (_interest <= 0) return blocked(AppLocalizations.of(context).calcEnterValidInterest);
     final body = tdMaturityBody(
       currency: ccy,
-      amount: _amountValue,
+      amount: _amount,
       years: _int(_years),
       months: _int(_months),
       days: _int(_days),
@@ -378,93 +459,107 @@ class _TdCalculatorScreenState extends ConsumerState<TdCalculatorScreen> with _C
     calculate((c, otp) => repo.tdMaturity(body, challenge: c, otp: otp));
   }
 
-  /// − / + in steps of 0.25%, as OBDX (minus stops at 1%; hooks.js:87-103).
-  void _nudge(double delta) {
-    final next = (_interest + delta).clamp(0.0, 25.0);
-    if (delta < 0 && _interest <= 1) return;
-    setState(() => _interest = (next * 100).roundToDouble() / 100);
-    _run();
-  }
-
-  Widget _tenureBox(String label, TextEditingController c, int max) => Expanded(
-        child: TextField(
-          controller: c,
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, _MaxIntFormatter(max)],
-          onChanged: (_) => _later(),
-          decoration: InputDecoration(
-            labelText: label,
-            helperText: '0 - $max',
-            isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+  /// One part of the tenure: a small label over a bare number, as designed.
+  Widget _tenure(String label, TextEditingController c, int max) {
+    final secondary = HomeColors.textSecondary(context);
+    return SizedBox(
+      width: 80,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: secondary)),
+          TextField(
+            controller: c,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, _MaxIntFormatter(max)],
+            onChanged: (_) => _later(),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: HomeColors.textPrimary(context)),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: HomeColors.brand(context))),
+              contentPadding: const EdgeInsets.only(top: 2, bottom: 2),
+              hintText: '0 - $max',
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return _CalcPage(
-      title: l10n.calcTd,
-      onBack: widget.onBack,
-      body: (wide) => ref.watch(calcLocalCurrencyProvider).when(
-            loading: _loading,
-            error: (e, _) => _loadFailed(context, e, () => ref.invalidate(calcLocalCurrencyProvider)),
-            data: (ccy) => _split(
-              wide,
-              PayCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ref.watch(calcLocalCurrencyProvider).when(
+          loading: _loading,
+          error: (e, _) => _loadFailed(context, e, () => ref.invalidate(calcLocalCurrencyProvider)),
+          data: (ccy) => _CalcCard(
+            title: l10n.fcTdTitle,
+            subtitle: l10n.fcTdSubtitle,
+            children: [
+              _row(context, [
+                _NumberBox(
+                  label: l10n.calcDepositAmount,
+                  value: null,
+                  decimals: 2,
+                  onChanged: (v) => _amount = v,
+                  onCommit: (v) {
+                    _amount = v;
+                    _run();
+                  },
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    PayFieldLabel(l10n.calcDepositAmount, required: true),
-                    PayAmountField(controller: _amount, currency: ccy, onChanged: (_) => _later()),
-                    const SizedBox(height: 16),
-                    PayFieldLabel(l10n.calcDepositTenure),
-                    Row(
-                      children: [
-                        _tenureBox(l10n.calcYears, _years, 120),
-                        const SizedBox(width: 10),
-                        _tenureBox(l10n.calcMonths, _months, 12),
-                        const SizedBox(width: 10),
-                        _tenureBox(l10n.calcDays, _days, 31),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    LinkedSliderField(
-                      label: l10n.calcInterestRate,
-                      value: _interest,
-                      min: 0,
-                      max: 25,
-                      step: 0.25,
-                      decimals: 2,
-                      suffix: '%',
-                      onChanged: (v) => setState(() => _interest = v),
-                      onCommit: (v) {
-                        setState(() => _interest = v);
-                        _run();
-                      },
+                    Text(
+                      l10n.calcDepositTenure,
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: HomeColors.textSecondary(context)),
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        IconButton.outlined(tooltip: l10n.calcDecrease, onPressed: () => _nudge(-0.25), icon: const Icon(Icons.remove)),
-                        const SizedBox(width: 16),
-                        IconButton.outlined(tooltip: l10n.calcIncrease, onPressed: () => _nudge(0.25), icon: const Icon(Icons.add)),
+                        _tenure(l10n.calcYears, _years, 120),
+                        const SizedBox(width: 14),
+                        _tenure(l10n.calcMonths, _months, 12),
+                        const SizedBox(width: 14),
+                        _tenure(l10n.calcDays, _days, 31),
                       ],
                     ),
                   ],
                 ),
+              ]),
+              const SizedBox(height: 34),
+              _row(
+                context,
+                [
+                  _NumberBox(
+                    label: l10n.calcInterestRate,
+                    value: null,
+                    min: 0,
+                    max: 25,
+                    decimals: 2,
+                    suffix: '%',
+                    onChanged: (v) => _interest = v,
+                    onCommit: (v) {
+                      setState(() => _interest = v);
+                      _run();
+                    },
+                  ),
+                ],
+                halfWidth: false,
               ),
-              _ResultCard(
-                rows: [(l10n.calcMaturityAmount, _money(result?.maturityAmount, ccy))],
+              const SizedBox(height: 18),
+              DesignResultPanel(
+                caption: l10n.calcMaturityAmount,
+                value: _money(result?.maturityAmount, ccy),
                 loading: loading,
-                error: error,
-                onRetry: error == null ? null : _run,
+                lines: [if (_interest > 0) (l10n.fcInterest, '${_plain(_interest, 2)}%')],
               ),
-            ),
+              _errorLine(context, error, blockedLocally ? null : _run),
+            ],
           ),
-    );
+        );
   }
 }
 
@@ -483,17 +578,15 @@ class _MaxIntFormatter extends TextInputFormatter {
 
 // ── Loan Installment Calculator ──
 
-class LoanInstallmentScreen extends ConsumerStatefulWidget {
-  const LoanInstallmentScreen({super.key, this.onBack});
-
-  final VoidCallback? onBack;
+class _LoanInstallmentCalculator extends ConsumerStatefulWidget {
+  const _LoanInstallmentCalculator();
 
   @override
-  ConsumerState<LoanInstallmentScreen> createState() => _LoanInstallmentScreenState();
+  ConsumerState<_LoanInstallmentCalculator> createState() => _LoanInstallmentCalculatorState();
 }
 
-class _LoanInstallmentScreenState extends ConsumerState<LoanInstallmentScreen>
-    with _Calculation<LoanInstallmentScreen, LoanInstallment> {
+class _LoanInstallmentCalculatorState extends ConsumerState<_LoanInstallmentCalculator>
+    with _Calculation<_LoanInstallmentCalculator, LoanInstallment> {
   double? _principal;
   double? _tenure;
   double? _interest;
@@ -514,99 +607,90 @@ class _LoanInstallmentScreenState extends ConsumerState<LoanInstallmentScreen>
     final l10n = AppLocalizations.of(context);
     final ccy = ref.watch(calcLocalCurrencyProvider);
     final ranges = ref.watch(calcRangesProvider(CalcKind.loanInstallment));
-    return _CalcPage(
-      title: l10n.calcLoanInstallment,
-      onBack: widget.onBack,
-      body: (wide) {
-        if (ccy.hasError) return _loadFailed(context, ccy.error!, () => ref.invalidate(calcLocalCurrencyProvider));
-        if (ranges.hasError) {
-          return _loadFailed(context, ranges.error!, () => ref.invalidate(calcRangesProvider(CalcKind.loanInstallment)));
-        }
-        final currency = ccy.valueOrNull;
-        final r = ranges.valueOrNull;
-        if (currency == null || r == null) return _loading();
-        final amount = r['PRINCIPALAMOUNT']!, tenure = r['TENURE']!, rate = r['INTERESTRATE']!;
-        if (_principal == null) {
-          // Defaults loaded: show a result at once (decision 1b).
-          _principal = amount.defaultValue;
-          _tenure = tenure.defaultValue;
-          _interest = rate.defaultValue;
-          WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _run(currency) : null);
-        }
-        return _split(
-          wide,
-          PayCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LinkedSliderField(
-                  label: l10n.calcLoanAmount,
-                  value: _principal!,
-                  min: amount.min,
-                  max: amount.max,
-                  step: 10,
-                  currency: currency,
-                  boxFirst: true,
-                  onChanged: (v) => setState(() => _principal = v),
-                  onCommit: (v) {
-                    setState(() => _principal = v);
-                    _run(currency);
-                  },
-                ),
-                const SizedBox(height: 12),
-                LinkedSliderField(
-                  label: l10n.calcLoanTenureYears,
-                  value: _tenure!,
-                  min: tenure.min,
-                  max: tenure.max,
-                  onChanged: (v) => setState(() => _tenure = v),
-                  onCommit: (v) {
-                    setState(() => _tenure = v);
-                    _run(currency);
-                  },
-                ),
-                const SizedBox(height: 12),
-                LinkedSliderField(
-                  label: l10n.calcInterestRate,
-                  value: _interest!,
-                  min: rate.min,
-                  max: rate.max,
-                  decimals: 2,
-                  suffix: '%',
-                  onChanged: (v) => setState(() => _interest = v),
-                  onCommit: (v) {
-                    setState(() => _interest = v);
-                    _run(currency);
-                  },
-                ),
-              ],
-            ),
+    if (ccy.hasError) return _loadFailed(context, ccy.error!, () => ref.invalidate(calcLocalCurrencyProvider));
+    if (ranges.hasError) {
+      return _loadFailed(context, ranges.error!, () => ref.invalidate(calcRangesProvider(CalcKind.loanInstallment)));
+    }
+    final currency = ccy.valueOrNull;
+    final r = ranges.valueOrNull;
+    if (currency == null || r == null) return _loading();
+    final amount = r['PRINCIPALAMOUNT']!, tenure = r['TENURE']!, rate = r['INTERESTRATE']!;
+    if (_principal == null) {
+      // Defaults loaded: show a result at once (decision 1b).
+      _principal = amount.defaultValue;
+      _tenure = tenure.defaultValue;
+      _interest = rate.defaultValue;
+      WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _run(currency) : null);
+    }
+    void commit(VoidCallback set) {
+      setState(set);
+      _run(currency);
+    }
+
+    // Repaid over the tenure, and the interest in that.
+    final installment = result?.installment;
+    final total = installment == null ? null : installment.amount * _tenure!.round() * 12;
+    return _CalcCard(
+      title: l10n.fcLoanInstallmentTitle,
+      subtitle: l10n.fcLoanInstallmentSubtitle,
+      children: [
+        _row(context, [
+          _NumberBox(
+            label: l10n.calcLoanAmount,
+            value: _principal,
+            min: amount.min,
+            max: amount.max,
+            grouped: true,
+            onCommit: (v) => commit(() => _principal = v),
           ),
-          _ResultCard(
-            rows: [(l10n.calcInstallmentAmount, _money(result?.installment, currency))],
-            loading: loading,
-            error: error,
-            onRetry: error == null ? null : () => _run(currency),
+          _NumberBox(
+            label: l10n.calcLoanTenureYears,
+            value: _tenure,
+            min: tenure.min,
+            max: tenure.max,
+            onCommit: (v) => commit(() => _tenure = v),
           ),
-        );
-      },
+        ]),
+        const SizedBox(height: 28),
+        _row(context, [
+          _NumberBox(
+            label: l10n.calcInterestRate,
+            value: _interest,
+            min: rate.min,
+            max: rate.max,
+            decimals: 2,
+            suffix: '%',
+            onCommit: (v) => commit(() => _interest = v),
+          ),
+        ]),
+        const SizedBox(height: 12),
+        DesignResultPanel(
+          caption: l10n.fcMonthlyInstallment,
+          value: _money(installment, currency),
+          loading: loading,
+          lines: [
+            if (total != null) (l10n.fcTotalRepayment, MoneyFormat.format(total, currencyCode: installment!.currency ?? currency)),
+            if (total != null)
+              (l10n.fcInterest, MoneyFormat.format(total - _principal!, currencyCode: installment!.currency ?? currency)),
+          ],
+        ),
+        _errorLine(context, error, error == null ? null : () => _run(currency)),
+      ],
     );
   }
 }
 
 // ── Loan Eligibility Calculator ──
 
-class LoanEligibilityScreen extends ConsumerStatefulWidget {
-  const LoanEligibilityScreen({super.key, this.onBack});
-
-  final VoidCallback? onBack;
+class _LoanEligibilityCalculator extends ConsumerStatefulWidget {
+  const _LoanEligibilityCalculator();
 
   @override
-  ConsumerState<LoanEligibilityScreen> createState() => _LoanEligibilityScreenState();
+  ConsumerState<_LoanEligibilityCalculator> createState() => _LoanEligibilityCalculatorState();
 }
 
-class _LoanEligibilityScreenState extends ConsumerState<LoanEligibilityScreen>
-    with _Calculation<LoanEligibilityScreen, LoanEligibility> {
+class _LoanEligibilityCalculatorState extends ConsumerState<_LoanEligibilityCalculator>
+    with _Calculation<_LoanEligibilityCalculator, LoanEligibility> {
   double? _income;
   double? _expenses;
   double? _tenure;
@@ -631,111 +715,101 @@ class _LoanEligibilityScreenState extends ConsumerState<LoanEligibilityScreen>
     final l10n = AppLocalizations.of(context);
     final ccy = ref.watch(calcLocalCurrencyProvider);
     final ranges = ref.watch(calcRangesProvider(CalcKind.loanEligibility));
-    return _CalcPage(
-      title: l10n.calcLoanEligibility,
-      onBack: widget.onBack,
-      body: (wide) {
-        if (ccy.hasError) return _loadFailed(context, ccy.error!, () => ref.invalidate(calcLocalCurrencyProvider));
-        if (ranges.hasError) {
-          return _loadFailed(context, ranges.error!, () => ref.invalidate(calcRangesProvider(CalcKind.loanEligibility)));
-        }
-        final currency = ccy.valueOrNull;
-        final r = ranges.valueOrNull;
-        if (currency == null || r == null) return _loading();
-        final income = r['GROSSMONTHLYINCOME']!, expenses = r['MONTHLYEXPENSES']!, tenure = r['TENURE']!, rate = r['INTERESTRATE']!;
-        if (_income == null) {
-          _income = income.defaultValue;
-          _expenses = expenses.defaultValue;
-          _tenure = tenure.defaultValue;
-          _interest = rate.defaultValue;
-          WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _run(currency) : null);
-        }
-        void commit(VoidCallback set) {
-          setState(set);
-          _run(currency);
-        }
+    if (ccy.hasError) return _loadFailed(context, ccy.error!, () => ref.invalidate(calcLocalCurrencyProvider));
+    if (ranges.hasError) {
+      return _loadFailed(context, ranges.error!, () => ref.invalidate(calcRangesProvider(CalcKind.loanEligibility)));
+    }
+    final currency = ccy.valueOrNull;
+    final r = ranges.valueOrNull;
+    if (currency == null || r == null) return _loading();
+    final income = r['GROSSMONTHLYINCOME']!, expenses = r['MONTHLYEXPENSES']!, tenure = r['TENURE']!, rate = r['INTERESTRATE']!;
+    if (_income == null) {
+      _income = income.defaultValue;
+      _expenses = expenses.defaultValue;
+      _tenure = tenure.defaultValue;
+      _interest = rate.defaultValue;
+      WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _run(currency) : null);
+    }
+    void commit(VoidCallback set) {
+      setState(set);
+      _run(currency);
+    }
 
-        final monthly = result?.monthlyInstallment;
-        return _split(
-          wide,
-          PayCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LinkedSliderField(
-                  label: l10n.calcGrossIncome,
-                  value: _income!,
-                  min: income.min,
-                  max: income.max,
-                  step: 10,
-                  currency: currency,
-                  boxFirst: true,
-                  onChanged: (v) => setState(() => _income = v),
-                  onCommit: (v) => commit(() => _income = v),
-                ),
-                const SizedBox(height: 12),
-                LinkedSliderField(
-                  label: l10n.calcTotalExpenses,
-                  value: _expenses!,
-                  min: expenses.min,
-                  max: expenses.max,
-                  step: 10,
-                  currency: currency,
-                  boxFirst: true,
-                  onChanged: (v) => setState(() => _expenses = v),
-                  onCommit: (v) => commit(() => _expenses = v),
-                ),
-                const SizedBox(height: 12),
-                LinkedSliderField(
-                  label: l10n.calcLoanTenureYears,
-                  value: _tenure!,
-                  min: tenure.min,
-                  max: tenure.max,
-                  onChanged: (v) => setState(() => _tenure = v),
-                  onCommit: (v) => commit(() => _tenure = v),
-                ),
-                const SizedBox(height: 12),
-                LinkedSliderField(
-                  label: l10n.calcInterestRateIn,
-                  value: _interest!,
-                  min: rate.min,
-                  max: rate.max,
-                  decimals: 2,
-                  suffix: '%',
-                  onChanged: (v) => setState(() => _interest = v),
-                  onCommit: (v) => commit(() => _interest = v),
-                ),
-              ],
-            ),
+    final eligible = result;
+    final disposable = _income! - _expenses!;
+    return _CalcCard(
+      title: l10n.fcLoanEligibilityTitle,
+      subtitle: l10n.fcLoanEligibilitySubtitle,
+      children: [
+        _row(context, [
+          _NumberBox(
+            label: l10n.calcGrossIncome,
+            value: _income,
+            min: income.min,
+            max: income.max,
+            grouped: true,
+            onChanged: (v) => setState(() => _income = v),
+            onCommit: (v) => commit(() => _income = v),
           ),
-          _ResultCard(
-            rows: [
-              (l10n.calcEligibleAmount, _money(result?.eligibleAmount, currency)),
-              (l10n.calcAverageInstallment, monthly == null ? '-' : l10n.calcPerMonth(_money(monthly, currency))),
-            ],
-            loading: loading,
-            error: error,
-            onRetry: error == null ? null : () => _run(currency),
+          _NumberBox(
+            label: l10n.calcTotalExpenses,
+            value: _expenses,
+            min: expenses.min,
+            max: expenses.max,
+            grouped: true,
+            onChanged: (v) => setState(() => _expenses = v),
+            onCommit: (v) => commit(() => _expenses = v),
           ),
-        );
-      },
+        ]),
+        const SizedBox(height: 18),
+        _row(context, [
+          _NumberBox(
+            label: l10n.calcLoanTenureYears,
+            value: _tenure,
+            min: tenure.min,
+            max: tenure.max,
+            onCommit: (v) => commit(() => _tenure = v),
+          ),
+          _NumberBox(
+            label: l10n.calcInterestRateIn,
+            value: _interest,
+            min: rate.min,
+            max: rate.max,
+            decimals: 2,
+            onCommit: (v) => commit(() => _interest = v),
+          ),
+        ]),
+        const SizedBox(height: 18),
+        // The design leads with what is left each month; the bank's own
+        // eligible amount follows once it has answered.
+        DesignResultPanel(
+          caption: l10n.fcDisposableIncome,
+          value: MoneyFormat.format(disposable < 0 ? 0 : disposable, currencyCode: currency),
+          minHeight: 110,
+          lines: [
+            if (eligible != null) (l10n.calcEligibleAmount, _money(eligible.eligibleAmount, currency)),
+            if (eligible?.monthlyInstallment != null)
+              (l10n.calcAverageInstallment, l10n.calcPerMonth(_money(eligible!.monthlyInstallment, currency))),
+          ],
+          note: eligible == null && !loading ? l10n.fcEligibilityNote : null,
+        ),
+        if (loading) const Padding(padding: EdgeInsets.only(top: 10), child: LinearProgressIndicator(minHeight: 2)),
+        _errorLine(context, error, blockedLocally ? null : () => _run(currency)),
+      ],
     );
   }
 }
 
 // ── Forex Calculator ──
 
-class ForexCalculatorScreen extends ConsumerStatefulWidget {
-  const ForexCalculatorScreen({super.key, this.onBack});
-
-  final VoidCallback? onBack;
+class _ForexCalculator extends ConsumerStatefulWidget {
+  const _ForexCalculator();
 
   @override
-  ConsumerState<ForexCalculatorScreen> createState() => _ForexCalculatorScreenState();
+  ConsumerState<_ForexCalculator> createState() => _ForexCalculatorState();
 }
 
-class _ForexCalculatorScreenState extends ConsumerState<ForexCalculatorScreen>
-    with _Calculation<ForexCalculatorScreen, ForexQuote> {
+class _ForexCalculatorState extends ConsumerState<_ForexCalculator> with _Calculation<_ForexCalculator, ForexQuote> {
   final _amount = TextEditingController(text: '1');
   String? _from;
   String? _to;
@@ -744,6 +818,9 @@ class _ForexCalculatorScreenState extends ConsumerState<ForexCalculatorScreen>
   /// 0.01 and asks again; the app shows the result for the amount typed
   /// (decision 4b).
   Timer? _timer;
+
+  /// The amount the shown result is for (the "1,000 INR × rate" line).
+  double? _quotedAmount;
 
   @override
   void dispose() {
@@ -760,6 +837,7 @@ class _ForexCalculatorScreenState extends ConsumerState<ForexCalculatorScreen>
     if (_amountValue <= 0) return blocked(l10n.calcValidAmount);
     final repo = ref.read(calculatorsRepositoryProvider);
     final amount = _amountValue;
+    _quotedAmount = amount;
     final body = forexBody(from: _from!, to: _to!, amount: amount);
     calculate((c, otp) => repo.forex(body, challenge: c, otp: otp));
   }
@@ -779,80 +857,145 @@ class _ForexCalculatorScreenState extends ConsumerState<ForexCalculatorScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return _CalcPage(
-      title: l10n.calcForex,
-      onBack: widget.onBack,
-      body: (wide) => ref.watch(forexPairsProvider).when(
-            loading: _loading,
-            error: (e, _) => _loadFailed(context, e, () => ref.invalidate(forexPairsProvider)),
-            data: (pairs) {
-              final q = result;
-              return _split(
-                wide,
-                PayCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      PayFieldLabel(l10n.calcFromCurrency, required: true),
-                      PayPickerField(
-                        placeholder: l10n.calcForeignCurrency,
-                        title: _from,
-                        icon: Icons.currency_exchange_rounded,
-                        onTap: () => _pick(l10n.calcFromCurrency, pairs.fromCurrencies, _from, (v) {
-                          // OBDX: a new From resets Amount to 1 and clears To.
-                          setState(() {
-                            _from = v;
-                            _to = null;
-                            _amount.text = '1';
-                            result = null;
-                            error = null;
-                          });
-                        }),
-                      ),
-                      const SizedBox(height: 14),
-                      PayFieldLabel(l10n.calcAmount, required: true),
-                      PayAmountField(
-                        controller: _amount,
-                        currency: _from ?? '',
-                        onChanged: (_) {
-                          _timer?.cancel();
-                          _timer = Timer(_debounce, _run);
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      PayFieldLabel(l10n.calcToCurrency, required: true),
-                      PayPickerField(
-                        placeholder: l10n.calcForeignCurrency,
-                        title: _to,
-                        icon: Icons.currency_exchange_rounded,
-                        onTap: _from == null
-                            ? null
-                            : () => _pick(l10n.calcToCurrency, pairs.toFor(_from!), _to, (v) {
-                                  setState(() => _to = v);
-                                  _run();
-                                }),
-                      ),
-                    ],
-                  ),
-                ),
-                _from == null || _to == null
-                    ? PayCard(child: PayMuted(l10n.calcSelectCurrency))
-                    : _ResultCard(
-                        rows: [
-                          (
-                            l10n.calcAmount,
-                            q == null ? '-' : MoneyFormat.format(q.converted, currencyCode: _to!),
+    return ref.watch(forexPairsProvider).when(
+          loading: _loading,
+          error: (e, _) => _loadFailed(context, e, () => ref.invalidate(forexPairsProvider)),
+          data: (pairs) {
+            final q = result;
+            final from = DesignBoxSelect(
+              label: l10n.fcFrom,
+              caption: l10n.fcCurrency,
+              value: _from,
+              placeholder: l10n.calcForeignCurrency,
+              onTap: () => _pick(l10n.calcFromCurrency, pairs.fromCurrencies, _from, (v) {
+                // OBDX: a new From resets Amount to 1 and clears To.
+                setState(() {
+                  _from = v;
+                  _to = null;
+                  _amount.text = '1';
+                  result = null;
+                  error = null;
+                });
+              }),
+            );
+            final to = DesignBoxSelect(
+              label: l10n.fcTo,
+              caption: l10n.fcCurrency,
+              value: _to,
+              placeholder: l10n.calcForeignCurrency,
+              onTap: _from == null
+                  ? null
+                  : () => _pick(l10n.calcToCurrency, pairs.toFor(_from!), _to, (v) {
+                        setState(() => _to = v);
+                        _run();
+                      }),
+            );
+            final amount = DesignBoxField(
+              label: l10n.calcAmount,
+              controller: _amount,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+              onChanged: (_) {
+                _timer?.cancel();
+                _timer = Timer(_debounce, _run);
+              },
+            );
+            final rates = Container(
+              constraints: const BoxConstraints(minHeight: 70),
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              decoration: BoxDecoration(
+                color: HomeColors.bg(context),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: HomeColors.divider(context)),
+              ),
+              child: q == null || _from == null || _to == null
+                  ? Text(
+                      l10n.calcSelectCurrency,
+                      style: TextStyle(fontSize: 12.5, color: HomeColors.textSecondary(context)),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.calcRate(_from!, _rate(q.rate), _to!),
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: HomeColors.textPrimary(context)),
+                        ),
+                        Text(
+                          l10n.calcRate(_to!, _rate(q.reverseRate), _from!),
+                          style: TextStyle(fontSize: 12, color: HomeColors.textSecondary(context)),
+                        ),
+                      ],
+                    ),
+            );
+            final arrow = Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: HomeColors.divider(context))),
+              child: Icon(Icons.arrow_right_alt_rounded, color: HomeColors.brand(context), size: 28),
+            );
+            final converted = q == null || _to == null ? '-' : MoneyFormat.format(q.converted, currencyCode: _to!);
+            final working = q == null || _from == null || _quotedAmount == null
+                ? null
+                : '${MoneyFormat.format(_quotedAmount!, currencyCode: '').trim()} ${_from!} × ${_rate(q.rate)}';
+
+            return DesignCard(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final wide = c.maxWidth >= 640;
+                  final panel = DesignResultPanel(
+                    caption: l10n.fcConvertedAmount,
+                    value: converted,
+                    loading: loading,
+                    minHeight: 120,
+                    detail: working,
+                  );
+                  if (!wide) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        from,
+                        const SizedBox(height: 12),
+                        amount,
+                        const SizedBox(height: 12),
+                        Center(child: RotatedBox(quarterTurns: 1, child: arrow)),
+                        const SizedBox(height: 12),
+                        to,
+                        const SizedBox(height: 12),
+                        rates,
+                        const SizedBox(height: 16),
+                        panel,
+                        _errorLine(context, error, blockedLocally ? null : _run),
+                      ],
+                    );
+                  }
+                  return Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 870),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: Column(children: [from, const SizedBox(height: 12), amount])),
+                              Padding(padding: const EdgeInsets.symmetric(horizontal: 34), child: arrow),
+                              Expanded(child: Column(children: [to, const SizedBox(height: 12), rates])),
+                            ],
                           ),
-                          if (q != null) ('', l10n.calcRate(_from!, _rate(q.rate), _to!)),
-                          if (q != null) ('', l10n.calcRate(_to!, _rate(q.reverseRate), _from!)),
+                          const SizedBox(height: 16),
+                          panel,
+                          _errorLine(context, error, blockedLocally ? null : _run),
                         ],
-                        loading: loading,
-                        error: error,
-                        onRetry: error == null ? null : _run,
                       ),
-              );
-            },
-          ),
-    );
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        );
   }
 }

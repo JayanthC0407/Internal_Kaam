@@ -33,7 +33,6 @@ import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.d
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/calculators/calculator_screens.dart';
-import 'package:ubci_bank/src/view/screens/common/calculators/calculators_hub_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
@@ -1056,13 +1055,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return CreditCardsScreen(embedded: true, onBack: _closeSection);
       case _cardTransactionsIndex:
         return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
+      // One Financial Calculator page with the four calculators as tabs
+      // (the design); it replaces the hub of four tiles.
       case _calculatorsHubIndex:
-        return CalculatorsHubScreen(
-          onTdTap: () => _openSection(index: _tdCalculatorIndex, back: _calculatorsHubIndex),
-          onLoanInstallmentTap: () => _openSection(index: _loanInstallmentIndex, back: _calculatorsHubIndex),
-          onLoanEligibilityTap: () => _openSection(index: _loanEligibilityIndex, back: _calculatorsHubIndex),
-          onForexTap: () => _openSection(index: _forexCalculatorIndex, back: _calculatorsHubIndex),
-        );
+        return FinancialCalculatorScreen(onBack: _closeSection);
       case _tdCalculatorIndex:
         return TdCalculatorScreen(onBack: _closeSection);
       case _loanInstallmentIndex:
