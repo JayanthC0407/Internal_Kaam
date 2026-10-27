@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
 import 'package:ubci_bank/src/infra/network/api_constants.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
 import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
@@ -197,10 +198,140 @@ class ObdxBillPaymentsApi extends ObdxApiBase {
     }
   }
 
-  Future<ResponseHandler<Map<String, dynamic>>> _get(String path) async {
+  // ── Pay Bill (flows/pay-bill; bill-payments.md §7) ───────────────────
+
+  static const _plans = '/digx-payments/ebpp/v1/plans';
+  static const _operationalAreas = '/digx-payments/ebpp/v1/operationalareas';
+  static const _demandDeposit = '/digx-common/dda/v1/demandDeposit';
+  static const _creditCards = '/digx-common/card/v1/cards/credit';
+  static const _contents = '/digx-common/content/v1/contents';
+
+  /// `GET …/ebpp/v1/plans?billerID=` — recharge plans (`planDTOs`;
+  /// S1/hooks.js:376).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchPlans(String billerId) =>
+      _get(_plans, {'billerID': billerId});
+
+  /// `GET …/ebpp/v1/operationalareas/{id}` — the biller's location
+  /// (S1/hooks.js:668).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchOperationalArea(String id) =>
+      _get('$_operationalAreas/${Uri.encodeComponent(id)}');
+
+  /// Pay From, by Payment Type (S1/hooks.js:446-453, 719-726): CASA
+  /// `dda demandDeposit?taskCode=EB_F_BP`, CREDITCARD
+  /// `card cards/credit?expand=ALL`, DEBITCARD
+  /// `dda demandDeposit?expand=DEBITCARDS`.
+  ///
+  /// [taskCode] goes with CASA only; null sends none (the several-bills
+  /// flow after the user picks Account again).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchPayAccounts(String paymentType, {String? taskCode}) =>
+      switch (paymentType) {
+        'CREDITCARD' => _get(_creditCards, const {'expand': 'ALL'}),
+        'DEBITCARD' => _get(_demandDeposit, const {'expand': 'DEBITCARDS'}),
+        _ => _get(_demandDeposit, {if (taskCode != null) 'taskCode': taskCode}),
+      };
+
+  /// `POST /digx-payments/batch` — several bills in one multipart request
+  /// (initiate-multiple-bill-payments-review/model.js:11-21; one part per
+  /// bill, built by the shared [ObdxBatchEncoder]). OBDX sends
+  /// `X-BATCH_TYPE` as `params.type`, undefined here (service-base.js:881),
+  /// so the app sends none [UNKNOWN: bill-payments.md §8.6]. 200 / 207 carry
+  /// a result per bill; 417 asks one OTP for the whole batch.
+  Future<ResponseHandler<Map<String, dynamic>>> payBills(
+    List<ObdxBatchItem> items, {
+    String? challengeResponseHeader,
+    String? boundary,
+  }) async {
+    try {
+      final separator = boundary ?? ObdxBatchEncoder.newBoundary();
+      final contentType = 'multipart/form-data; boundary=$separator';
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(ApiConst.paymentsBatchApi),
+        data: ObdxBatchEncoder.encode(items, separator),
+        options: Options(
+          contentType: contentType,
+          headers: {
+            ApiConst.contentTypeKey: contentType,
+            // The servlet splits the body on this header.
+            'boundary': separator,
+            if (challengeResponseHeader != null && challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          validateStatus: (status) => status == 200 || status == 207 || status == 417,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  /// `POST …/ebpp/v1/ebillPayments` — Confirm (RV/pay-bill-review.js:91).
+  /// UAT answered 400 `DIGX_FL_015` (limits not set for the user); 417 and
+  /// 202 come back as results like the other writes.
+  Future<ResponseHandler<Map<String, dynamic>>> payBill(
+    Map<String, dynamic> body, {
+    String? challengeResponseHeader,
+  }) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(_ebillPayments),
+        data: body,
+        options: Options(
+          headers: {
+            ApiConst.contentTypeKey: ApiConst.contentTypeValue,
+            if (challengeResponseHeader != null && challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          validateStatus: (status) => status == 200 || status == 201 || status == 202 || status == 417,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  /// `POST content contents`, multipart `file` + `moduleIdentifier=BILLPAYMENT`
+  /// — Pay Bill's attachment, uploaded on Submit (S1/hooks.js:1006-1013).
+  Future<ResponseHandler<Map<String, dynamic>>> uploadAttachment({
+    required List<int> bytes,
+    required String fileName,
+    required String mimeType,
+    String? challengeResponseHeader,
+  }) async {
+    try {
+      final response = await dio.post(
+        ObdxApiUtils.appendLocaleQuery(_contents),
+        data: FormData.fromMap({
+          'file': MultipartFile.fromBytes(bytes, filename: fileName, contentType: DioMediaType.parse(mimeType)),
+          'moduleIdentifier': 'BILLPAYMENT',
+        }),
+        options: Options(
+          contentType: 'multipart/form-data',
+          headers: {
+            if (challengeResponseHeader != null && challengeResponseHeader.isNotEmpty)
+              ApiConst.xChallengeResponse: challengeResponseHeader,
+          },
+          validateStatus: (status) => status == 200 || status == 201 || status == 202 || status == 417,
+        ),
+      );
+      return ResponseHandler.success(ObdxApiUtils.wrapHttpResponse(response));
+    } on DioException catch (error) {
+      return getErrorResponse(error);
+    } catch (exc, stack) {
+      return getExceptionErrorResponse(exc, stack);
+    }
+  }
+
+  Future<ResponseHandler<Map<String, dynamic>>> _get(String path, [Map<String, dynamic>? query]) async {
     try {
       final response = await dio.get(
         ObdxApiUtils.appendLocaleQuery(path),
+        queryParameters: query,
         options: Options(
           headers: {ApiConst.contentTypeKey: ApiConst.contentTypeValue},
         ),

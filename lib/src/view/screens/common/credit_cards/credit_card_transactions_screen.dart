@@ -13,6 +13,11 @@ import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 /// or Billed Transactions for a Month taken from the 12 months before the
 /// last statement. Evidence: docs/obdx/features/credit-cards.md §4.
 ///
+/// Laid out as the designer's page (UI designs 2026-10-27): the choices
+/// inline above a table on web; a choice reloads at once (no Apply, user
+/// decision). OBDX's Amount field is left out: for cards it is never sent
+/// nor applied (account-transactions/hooks.js:1218-1232; user decision).
+///
 /// Differs from OBDX in one place: Billed pre-selects the latest month
 /// instead of waiting for a pick (same request, one tap less).
 class CreditCardTransactionsScreen extends ConsumerStatefulWidget {
@@ -53,6 +58,25 @@ class _CreditCardTransactionsScreenState extends ConsumerState<CreditCardTransac
     }
   }
 
+  Future<void> _pickType() async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showPayPicker<CardStatementType>(
+      context,
+      title: l10n.casaFilterViewOptions,
+      selected: _type,
+      options: [
+        PayOption(value: CardStatementType.unbilled, title: l10n.ccUnbilled),
+        PayOption(value: CardStatementType.billed, title: l10n.ccBilled),
+      ],
+    );
+    if (picked != null && picked != _type && mounted) {
+      setState(() {
+        _type = picked;
+        _month = null;
+      });
+    }
+  }
+
   Future<void> _pickMonth(List<CardStatementMonth> months) async {
     final l10n = AppLocalizations.of(context);
     final picked = await showPayPicker<CardStatementMonth>(
@@ -85,51 +109,56 @@ class _CreditCardTransactionsScreenState extends ConsumerState<CreditCardTransac
           final eligible = all.where((c) => c.canViewTransactions).toList();
           if (eligible.isEmpty) return PayCard(child: PayMuted(l10n.ccEmpty));
           final card = eligible.firstWhere((c) => c.id == _cardId, orElse: () => eligible.first);
+          final cardField = PayBoxedPicker(
+            label: l10n.ccCardNumber,
+            value: card.displayNumber,
+            onTap: eligible.length > 1 ? () => _pickCard(eligible) : null,
+          );
+          final typeField = PayBoxedPicker(
+            label: l10n.casaFilterViewOptions,
+            value: _type == CardStatementType.unbilled ? l10n.ccUnbilled : l10n.ccBilled,
+            onTap: _pickType,
+          );
+          final monthField = _type == CardStatementType.billed
+              ? _BilledMonth(
+                  cardId: card.id,
+                  month: _month,
+                  label: (m) => _monthLabel(context, m),
+                  onDefault: (m) => WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _month == null) setState(() => _month = m);
+                  }),
+                  onPick: _pickMonth,
+                )
+              : null;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PaySection(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PayFieldLabel(l10n.ccCardNumber),
-                    PayPickerField(
-                      placeholder: card.displayNumber,
-                      title: card.displayNumber,
-                      subtitle: card.ownerName,
-                      icon: Icons.credit_card_rounded,
-                      onTap: eligible.length > 1 ? () => _pickCard(eligible) : null,
-                    ),
-                    const SizedBox(height: 14),
-                    PayChoiceChips<CardStatementType>(
-                      options: [
-                        (CardStatementType.unbilled, l10n.ccUnbilled),
-                        (CardStatementType.billed, l10n.ccBilled),
-                      ],
-                      selected: _type,
-                      onChanged: (t) => setState(() {
-                        _type = t;
-                        _month = null;
-                      }),
-                    ),
-                    if (_type == CardStatementType.billed) ...[
-                      const SizedBox(height: 14),
-                      _BilledMonth(
-                        cardId: card.id,
-                        month: _month,
-                        label: (m) => _monthLabel(context, m),
-                        onDefault: (m) => WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted && _month == null) setState(() => _month = m);
-                        }),
-                        onPick: _pickMonth,
+              PayCard(
+                child: wide
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: cardField),
+                          const SizedBox(width: 16),
+                          Expanded(child: typeField),
+                          const SizedBox(width: 16),
+                          Expanded(child: monthField ?? const SizedBox.shrink()),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          cardField,
+                          const SizedBox(height: 12),
+                          typeField,
+                          if (monthField != null) ...[const SizedBox(height: 12), monthField],
+                        ],
                       ),
-                    ],
-                  ],
-                ),
               ),
               const SizedBox(height: 14),
               if (_type == CardStatementType.unbilled || _month != null)
                 _TransactionList(
+                  wide: wide,
                   query: CardTransactionsQuery(
                     cardId: card.id,
                     type: _type,
@@ -168,7 +197,7 @@ class _BilledMonth extends ConsumerWidget {
       CardTransactionsQuery(cardId: cardId, type: CardStatementType.billed),
     ));
     return probe.when(
-      loading: () => PayPickerField(placeholder: l10n.addBillerSelect, onTap: null, loading: true),
+      loading: () => PayBoxedPicker(label: l10n.ccMonth, placeholder: l10n.addBillerSelect, loading: true),
       error: (error, _) => PayErrorRetry(
         message: error is CardsLoadError && error.message != null ? error.message! : l10n.ccTxLoadFailed,
         onRetry: () => ref.invalidate(cardTransactionsProvider(
@@ -180,17 +209,11 @@ class _BilledMonth extends ConsumerWidget {
         if (date == null) return PayMuted(l10n.casaTransactionsEmpty);
         final months = billedMonths(date);
         if (month == null) onDefault(months.first);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            PayFieldLabel(l10n.ccMonth),
-            PayPickerField(
-              placeholder: l10n.addBillerSelect,
-              title: month == null ? null : label(month!),
-              icon: Icons.calendar_month_rounded,
-              onTap: () => onPick(months),
-            ),
-          ],
+        return PayBoxedPicker(
+          label: l10n.ccMonth,
+          value: month == null ? null : label(month!),
+          placeholder: l10n.addBillerSelect,
+          onTap: () => onPick(months),
         );
       },
     );
@@ -198,9 +221,12 @@ class _BilledMonth extends ConsumerWidget {
 }
 
 class _TransactionList extends ConsumerWidget {
-  const _TransactionList({required this.query});
+  const _TransactionList({required this.query, required this.wide});
 
   final CardTransactionsQuery query;
+
+  /// Web: OBDX's table (Date, Description, Transaction Type, Amount).
+  final bool wide;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -217,6 +243,62 @@ class _TransactionList extends ConsumerWidget {
       ),
       data: (data) {
         if (data.transactions.isEmpty) return PayCard(child: PayMuted(l10n.casaTransactionsEmpty));
+        if (wide) {
+          final primary = HomeColors.textPrimary(context);
+          return PayCard(
+            padding: 0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PayTableHeader(cells: [
+                  (l10n.casaFilterDate, 2),
+                  (l10n.casaColDescription, 6),
+                  (l10n.casaColType, 2),
+                  (l10n.casaColAmount, 2),
+                ]),
+                for (final (i, t) in data.transactions.indexed)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      border: i == data.transactions.length - 1
+                          ? null
+                          : Border(bottom: BorderSide(color: HomeColors.divider(context))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(t.date == null ? '' : loc.formatShortDate(t.date!), style: TextStyle(color: primary)),
+                        ),
+                        Expanded(
+                          flex: 6,
+                          child: Text(t.description, style: TextStyle(fontWeight: FontWeight.w600, color: primary)),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            t.isCredit ? l10n.casaTxnTypeCredit : l10n.casaTxnTypeDebit,
+                            style: TextStyle(color: primary),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            cardMoney(t.amount),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: t.isCredit ? HomeColors.success(context) : primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }
         return PaySection(
           child: Column(
             children: [

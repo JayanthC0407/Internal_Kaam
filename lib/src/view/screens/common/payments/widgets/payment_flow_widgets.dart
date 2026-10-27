@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/l10n/app_localizations.dart';
 
 import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
 import 'package:ubci_bank/src/core/utils/common/money_format.dart';
@@ -2480,6 +2481,251 @@ class _OtpPromptState extends State<_OtpPrompt> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Designer widgets (UI designs, 2026-10-27) ──────────────────────────
+// Bills, Credit Cards and Limits share one field look: the label (and a
+// "Required" tag) inside an outlined box, the value or input under it.
+
+/// The boxed field: [label] on top, [child] (a value, an input) below,
+/// optional [trailing] (a chevron), a red border and message for [error].
+class PayBoxedField extends StatelessWidget {
+  const PayBoxedField({
+    super.key,
+    required this.label,
+    required this.child,
+    this.required = false,
+    this.error,
+    this.trailing,
+    this.onTap,
+  });
+
+  final String label;
+  final Widget child;
+
+  /// Shows the teal "Required" tag beside the label.
+  final bool required;
+  final String? error;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final hasError = error != null;
+    final errorColor = HomeColors.error(context);
+    final box = Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: HomeColors.card(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: hasError ? errorColor : HomeColors.divider(context), width: hasError ? 1.4 : 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: hasError ? errorColor : HomeColors.textSecondary(context),
+                  ),
+                ),
+              ),
+              if (required)
+                Text(
+                  l10n.payRequired,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: HomeColors.brand(context)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(child: child),
+              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+            ],
+          ),
+          if (hasError) ...[
+            const SizedBox(height: 6),
+            Text(error!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: errorColor)),
+          ],
+        ],
+      ),
+    );
+    final tap = onTap;
+    if (tap == null) return box;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(onTap: tap, borderRadius: BorderRadius.circular(12), child: box),
+    );
+  }
+}
+
+/// [PayBoxedField] holding a borderless text input.
+class PayBoxedTextField extends StatelessWidget {
+  const PayBoxedTextField({
+    super.key,
+    required this.label,
+    required this.controller,
+    this.hint,
+    this.required = false,
+    this.error,
+    this.keyboardType,
+    this.inputFormatters,
+    this.onChanged,
+    this.textCapitalization = TextCapitalization.none,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final String? hint;
+  final bool required;
+  final String? error;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onChanged;
+  final TextCapitalization textCapitalization;
+
+  @override
+  Widget build(BuildContext context) => PayBoxedField(
+        label: label,
+        required: required,
+        error: error,
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          onChanged: onChanged,
+          textCapitalization: textCapitalization,
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: HomeColors.textPrimary(context)),
+          decoration: InputDecoration.collapsed(
+            hintText: hint,
+            hintStyle: TextStyle(color: HomeColors.textSecondary(context).withValues(alpha: 0.75)),
+          ),
+        ),
+      );
+}
+
+/// [PayBoxedField] showing a choice: the [value] (or [placeholder]) with a
+/// chevron when [onTap] is set; without [onTap] it is a read-only value.
+class PayBoxedPicker extends StatelessWidget {
+  const PayBoxedPicker({
+    super.key,
+    required this.label,
+    this.value,
+    this.placeholder,
+    this.onTap,
+    this.required = false,
+    this.error,
+    this.loading = false,
+  });
+
+  final String label;
+  final String? value;
+  final String? placeholder;
+  final VoidCallback? onTap;
+  final bool required;
+  final String? error;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final empty = value == null || value!.isEmpty;
+    return PayBoxedField(
+      label: label,
+      required: required,
+      error: error,
+      onTap: loading ? null : onTap,
+      trailing: loading
+          ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+          : onTap == null
+              ? null
+              : Icon(Icons.keyboard_arrow_down_rounded, color: HomeColors.textPrimary(context)),
+      child: Text(
+        empty ? (placeholder ?? '') : value!,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: empty ? FontWeight.w400 : FontWeight.w600,
+          color: empty ? HomeColors.textSecondary(context).withValues(alpha: 0.75) : HomeColors.textPrimary(context),
+        ),
+      ),
+    );
+  }
+}
+
+/// The designer's teal banner: an optional bold [title] over [message],
+/// or an info icon beside a one-line [message].
+class PayInfoBanner extends StatelessWidget {
+  const PayInfoBanner({super.key, required this.message, this.title});
+
+  final String message;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = HomeColors.brand(context);
+    final text = Text(message, style: TextStyle(fontSize: 13, height: 1.4, color: brand));
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: brand.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: brand.withValues(alpha: 0.25)),
+      ),
+      child: title == null
+          ? Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 18, color: brand),
+                const SizedBox(width: 8),
+                Expanded(child: text),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title!, style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: brand)),
+                const SizedBox(height: 4),
+                text,
+              ],
+            ),
+    );
+  }
+}
+
+/// The grey header row of the designer's web tables: [cells] are
+/// (label, flex) in column order; null labels keep a column empty.
+class PayTableHeader extends StatelessWidget {
+  const PayTableHeader({super.key, required this.cells, this.leading = 0});
+
+  final List<(String?, int)> cells;
+
+  /// Space before the first column (e.g. a row checkbox).
+  final double leading;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: HomeColors.textSecondary(context));
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: HomeColors.backgroundSecondary(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      child: Row(
+        children: [
+          if (leading > 0) SizedBox(width: leading),
+          for (final (label, flex) in cells) Expanded(flex: flex, child: Text(label ?? '', style: style)),
+        ],
       ),
     );
   }
