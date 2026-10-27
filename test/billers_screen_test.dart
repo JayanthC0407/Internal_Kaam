@@ -74,12 +74,12 @@ class _FakeRepo implements BillPaymentsRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Future<_FakeRepo> _pump(WidgetTester tester, {double width = 390}) async {
+Future<_FakeRepo> _pump(WidgetTester tester, {double width = 390, List<RegisteredBiller>? billers}) async {
   SharedPreferences.setMockInitialValues({});
   tester.view.physicalSize = Size(width, 1800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  final repo = _FakeRepo([
+  final repo = _FakeRepo(billers ?? [
     _biller('1', 'Home power', 'PRESENTMENT', autopay: true, ebill: {
       'dueDate': '2099-01-10T00:00:00',
       'totalAmount': {'currency': 'GBP', 'amount': 42},
@@ -103,30 +103,60 @@ Future<_FakeRepo> _pump(WidgetTester tester, {double width = 390}) async {
 }
 
 void main() {
-  testWidgets('phone: OBDX groups, labels and badges', (tester) async {
+  testWidgets('phone: one table in OBDX group order, labels and badges', (tester) async {
     await _pump(tester);
     expect(find.text('Billers'), findsWidgets);
-    expect(find.text('Bills Presented'), findsOneWidget);
-    expect(find.text('Recharge Bill Payment'), findsOneWidget);
-    expect(find.text('Direct Bill Payment'), findsOneWidget);
+    // The design's single table keeps OBDX's order: presented, recharge, direct.
+    final y = [for (final n in ['Home power', 'Mobile', 'Water']) tester.getTopLeft(find.text(n)).dy];
+    expect(y, orderedEquals([...y]..sort()));
+    expect(find.text('eBill'), findsOneWidget);
+    expect(find.text('Recharge'), findsOneWidget);
+    expect(find.text('Manual'), findsOneWidget);
     expect(find.text('Auto Pay'), findsOneWidget);
     expect(find.text('Bills Due'), findsOneWidget);
     expect(find.textContaining('GBP 42.00'), findsOneWidget);
+    expect(find.text('Select all to Pay'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('search keeps only matching groups', (tester) async {
+  testWidgets('Select all to Pay ticks presented bills only; Pay waits for a tick', (tester) async {
+    await _pump(tester);
+    final payAll = find.widgetWithText(FilledButton, 'Pay');
+    expect(tester.widget<FilledButton>(payAll).onPressed, isNull);
+    await tester.tap(find.text('Select all to Pay'));
+    await tester.pumpAndSettle();
+    // Only "Home power" has a presented bill (two boxes: Select all + its row).
+    expect(tester.widgetList<Checkbox>(find.byType(Checkbox)).where((c) => c.value == true), hasLength(2));
+    expect(tester.widget<FilledButton>(payAll).onPressed, isNotNull);
+  });
+
+  testWidgets('no presented bill: the Select all / Pay bar is hidden', (tester) async {
+    await _pump(tester, billers: [_biller('2', 'Mobile', 'RECHARGE'), _biller('3', 'Water', 'PAYMENT')]);
+    expect(find.text('Water'), findsOneWidget);
+    expect(find.text('Select all to Pay'), findsNothing);
+    expect(find.widgetWithText(FilledButton, 'Pay'), findsNothing);
+    expect(find.byType(Checkbox), findsNothing);
+  });
+
+  testWidgets('search keeps only matching billers', (tester) async {
     await _pump(tester);
     await tester.enterText(find.byType(TextField), 'wat');
     await tester.pumpAndSettle();
     expect(find.text('Water'), findsOneWidget);
     expect(find.text('Home power'), findsNothing);
-    expect(find.text('Bills Presented'), findsNothing);
+  });
+
+  testWidgets('web: the design table header', (tester) async {
+    await _pump(tester, width: 1280);
+    for (final h in ['Biller Name', 'Bill Type', 'Status', 'Bill Amount', 'Actions']) {
+      expect(find.text(h), findsOneWidget, reason: h);
+    }
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('delete is blocked while auto pay is on (OBDX rule)', (tester) async {
     final repo = await _pump(tester);
-    await tester.tap(find.byIcon(Icons.more_vert_rounded).first);
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete Biller').last);
     await tester.pumpAndSettle();
@@ -140,7 +170,7 @@ void main() {
   testWidgets('delete asks first, then deletes', (tester) async {
     final repo = await _pump(tester);
     // "Water" is the third row (Direct Bill Payment).
-    await tester.tap(find.byIcon(Icons.more_vert_rounded).at(2));
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded).at(2));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete Biller').last);
     await tester.pumpAndSettle();

@@ -109,22 +109,25 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Filter: Date Range needs both dates; Previous Month reloads with L1M', (tester) async {
+  testWidgets('Select Period: Date Range waits for both dates; Previous Month reloads at once', (tester) async {
     final repo = await pump(tester);
-    await tester.tap(find.text('Filter'));
+    await tester.tap(find.text('Current Period'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Date Range').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Apply'));
-    await tester.pumpAndSettle();
-    expect(find.text('Select both dates.'), findsNWidgets(2));
+    // Date From / Date To appear; nothing loads until both are set.
+    expect(find.text('Date From'), findsOneWidget);
+    expect(find.text('Date To'), findsOneWidget);
+    expect(repo.queries, hasLength(1));
 
-    await tester.tap(find.text('Previous Month').last);
+    // No Apply (user decision): a period choice reloads straight away.
+    await tester.tap(find.text('Date Range'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Apply'));
+    await tester.tap(find.text('Previous Month').last);
     await tester.pumpAndSettle();
     expect(repo.queries.last.period, BillHistoryPeriod.previousMonth);
     expect(find.text('Previous Month'), findsOneWidget);
+    expect(find.text('Date From'), findsNothing);
   });
 
   testWidgets('empty: OBDX no-data text', (tester) async {
@@ -134,7 +137,7 @@ void main() {
 
   testWidgets('web: column headers like OBDX table', (tester) async {
     await pump(tester, width: 1280);
-    for (final h in ['Date', 'Biller', 'Category', 'Bill Amount', 'Reference No', 'Status']) {
+    for (final h in ['Date', 'Biller', 'Category', 'Bill Amount', 'Reference No', 'Status', 'Attachment']) {
       expect(find.text(h), findsOneWidget, reason: h);
     }
     expect(find.text('REF2'), findsOneWidget);

@@ -1,8 +1,10 @@
+import 'package:ubci_bank/src/core/models/common/bill_payments/bill_pay_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
 import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
 import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
 import 'package:ubci_bank/src/core/models/common/statement_format.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/network/statement_download.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
@@ -145,4 +147,88 @@ class BillPaymentsRepository extends ObdxRepositoryBase {
     );
   }
 
+  // ── Pay Bill (bill-payments.md §7) ────────────────────────────────────
+
+  /// Recharge plans for [billerId].
+  Future<ResponseHandler<List<BillPlan>>> fetchPlans(String billerId) async =>
+      parseBody(await _api.fetchPlans(billerId), BillPlan.listFromPayload);
+
+  /// The `operationalareas/{id}` answer as sent; [billLocationLabel] reads it.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchOperationalArea(String id) async =>
+      parseBody(await _api.fetchOperationalArea(id), (body) => body);
+
+  /// Pay From for [type], filtered as OBDX does.
+  Future<ResponseHandler<List<BillPayAccount>>> fetchPayAccounts(BillPayType type) async =>
+      parseBody(await _api.fetchPayAccounts(type.code), (body) => BillPayAccount.listFromPayload(type, body));
+
+  /// Confirm → `POST ebillPayments`.
+  Future<ResponseHandler<BillPayOutcome>> payBill(
+    PayBillRequest request, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final otpValue = otp?.trim() ?? '';
+    final otpSubmitted = challenge != null && otpValue.isNotEmpty;
+    final result = await _api.payBill(
+      request.toJson(),
+      challengeResponseHeader: otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
+    );
+    return writeOutcome(
+      result,
+      otpSubmitted: otpSubmitted,
+      onOtp: (next, invalid) => BillPayOutcome.otpRequired(next, invalidOtp: invalid),
+      onDone: (body, reference, pending) => BillPayOutcome.done(
+        // OBDX: `status.referenceNumber`, else `billPayment.id`.
+        reference: reference ?? ObdxApiUtils.asMap(body['billPayment'])['id']?.toString(),
+        pendingApproval: pending,
+      ),
+    );
+  }
+
+  /// Uploads Pay Bill's attachment; its `contentId` becomes `attachmentId`.
+  Future<ResponseHandler<BillAttachmentOutcome>> uploadAttachment(
+    BillAttachment file, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) async {
+    final otpValue = otp?.trim() ?? '';
+    final otpSubmitted = challenge != null && otpValue.isNotEmpty;
+    final dot = file.name.lastIndexOf('.');
+    final ext = dot < 0 ? '' : file.name.substring(dot + 1).toLowerCase();
+    final result = await _api.uploadAttachment(
+      bytes: file.bytes,
+      fileName: file.name,
+      mimeType: _mimeTypes[ext] ?? 'application/octet-stream',
+      challengeResponseHeader: otpSubmitted ? challenge.toChallengeResponseHeader(otpValue) : null,
+    );
+    final outcome = writeOutcome(
+      result,
+      otpSubmitted: otpSubmitted,
+      onOtp: (next, invalid) => BillAttachmentOutcome.otpRequired(next, invalidOtp: invalid),
+      onDone: (body, _, __) {
+        final list = body['contentDTOList'];
+        final first = list is List && list.isNotEmpty ? ObdxApiUtils.asMap(list.first) : const <String, dynamic>{};
+        final id = ObdxApiUtils.asMap(first['contentId']);
+        return BillAttachmentOutcome.uploaded(id['value'] == null ? null : id);
+      },
+    );
+    // A 2xx without a content id is a failed upload.
+    if (outcome is Success<BillAttachmentOutcome> &&
+        outcome.data!.challenge == null &&
+        outcome.data!.contentId == null) {
+      return ResponseHandler.exceptionError();
+    }
+    return outcome;
+  }
+
+  static const _mimeTypes = {
+    'pdf': 'application/pdf',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'zip': 'application/zip',
+    'txt': 'text/plain',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  };
 }

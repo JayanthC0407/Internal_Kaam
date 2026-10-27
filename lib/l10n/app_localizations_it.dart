@@ -4040,4 +4040,258 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get prefOtpDeliveryNote =>
       'Note: The above configured dispatch method is applicable only if OTP is set up as the transaction authentication mode by the bank.';
+
+  @override
+  String get billersColBillType => 'Bill Type';
+
+  @override
+  String get billersColStatus => 'Status';
+
+  @override
+  String get billersColActions => 'Actions';
+
+  @override
+  String get billersSelectAllToPay => 'Select all to Pay';
+
+  @override
+  String get billersSelectAtLeastOne =>
+      'Select at least one presented bill for payment to proceed.';
+
+  @override
+  String get billHistoryAttachment => 'Attachment';
+
+  @override
+  String get payRequired => 'Required';
+
+  @override
+  String get billsHelpPayTitle => 'Pay bills hassle free';
+
+  @override
+  String get billsHelpPayBody1 =>
+      'Make your bills payments and recharges hassle free with Demo Bank Bill Payment Service. You can view all your bills in one place and plan their payments.';
+
+  @override
+  String get billsHelpPayBody2 =>
+      'Pay either one bill or multiple bills in one go and set up auto payments to avoid paying bills late.';
+
+  @override
+  String get billsHelpPayBody3 =>
+      'And there is more. You can receive alerts whenever a bill is presented or close to due date.';
+
+  @override
+  String get billsHelpAddTitle => 'Decided to make online bill payment? Great!';
+
+  @override
+  String get billsHelpAddBody1 =>
+      'The first step is to add billers who you want to pay. Once billers validate your registration you are all set to pay bills. You can even add billers who give paper bills and pay them online.';
+
+  @override
+  String get billsHelpAddBody2 =>
+      'Demo Bank\'s Bill Payment Service makes online bill payment & recharges hassle free.';
+
+  @override
+  String get addBillerIntro =>
+      'Register a biller for faster payments and reminders.';
+
+  @override
+  String get addBillerRequiredTitle => 'Required fields';
+
+  @override
+  String addBillerRequiredBody(String fields) {
+    return 'Complete $fields before submitting.';
+  }
+
+  @override
+  String get billHistoryPeriodNote =>
+      'Payment history is shown for the selected period.';
+
+  @override
+  String get payBillTitle => 'Pay Bill';
+
+  @override
+  String get payBillSubcategory => 'Subcategory';
+
+  @override
+  String get payBillSubCategory => 'Sub Category';
+
+  @override
+  String payBillAcceptsVia(String key) {
+    return 'Note: This biller accepts payment via $key';
+  }
+
+  @override
+  String payBillAcceptsJoin(String accountOne, String accountTwo) {
+    return '$accountOne and $accountTwo';
+  }
+
+  @override
+  String get payBillTypeAccount => 'Account';
+
+  @override
+  String get payBillTypeCreditCards => 'Credit Cards';
+
+  @override
+  String get payBillTypeDebitCards => 'Debit Cards';
+
+  @override
+  String get payBillExpiryMonth => 'Expiry Month';
+
+  @override
+  String get payBillExpiryYear => 'Expiry Year';
+
+  @override
+  String get payBillSelectPlan => 'Select Plan';
+
+  @override
+  String get payBillPlan => 'Plan';
+
+  @override
+  String get payBillSelect => 'Select';
+
+  @override
+  String get payBillPaymentAmount => 'Payment Amount';
+
+  @override
+  String get payBillRechargeAmount => 'Recharge Amount';
+
+  @override
+  String get payBillScheduledDate => 'Scheduled Date';
+
+  @override
+  String get payBillAddAttachmentQuestion =>
+      'Do you want to add an attachment ?';
+
+  @override
+  String get payBillDropFiles => 'Drop files here or click here to Add Files';
+
+  @override
+  String get payBillFileSizeNote => 'File size should not be more than 15MB';
+
+  @override
+  String get payBillSupportedFiles =>
+      'Supported Files : JPEG, PNG, DOC, PDF, TXT, ZIP.';
+
+  @override
+  String get payBillAmountNotPositive => 'Amount should be greater than 0';
+
+  @override
+  String get payBillAmountInvalid => 'Amount should be lesser than 1 trillion';
+
+  @override
+  String get payBillInvalidFile => 'Invalid File Type';
+
+  @override
+  String get payBillFileTooLarge => 'File exceeds the maximum allowed size.';
+
+  @override
+  String get payBillInvalidExpiry => 'Invalid card expiry date';
+
+  @override
+  String get payBillReviewMessage =>
+      'You initiated a request for bill payments. Please review details before you confirm!';
+
+  @override
+  String get payBillPaymentMethod => 'Payment Method';
+
+  @override
+  String get payBillPayWhen => 'Pay When';
+
+  @override
+  String get payBillAddAnAttachment => 'Add an attachment ?';
+
+  @override
+  String get payBillDetailedBill => 'Detailed Bill';
+
+  @override
+  String get payBillBillerNumber => 'Biller Number';
+
+  @override
+  String get payBillBillDate => 'Bill Date';
+
+  @override
+  String get payBillEarlyPayDate => 'Early Pay Date';
+
+  @override
+  String get payBillEarlyPayDiscount => 'Early Pay Discount';
+
+  @override
+  String get payBillEarlyPayBillAmount => 'Early Pay Bill Amount';
+
+  @override
+  String get payBillLatePayCharges => 'Late Pay Charges';
+
+  @override
+  String get payBillLatePayBillAmount => 'Late Pay Bill Amount';
+
+  @override
+  String get payBillDescription => 'Description';
+
+  @override
+  String get payBillReferenceNumber => 'Reference Number';
+
+  @override
+  String get payBillSuccess => 'Request submitted successfully.';
+
+  @override
+  String get payBillPendingApproval => 'Pay Bill submitted for approval.';
+
+  @override
+  String get payBillNextAction => 'What would you like to do next?';
+
+  @override
+  String get payBillPayAnother => 'Pay Another Bill';
+
+  @override
+  String get payBillAddBiller => 'Add Biller';
+
+  @override
+  String get payBillAmount => 'Amount';
+
+  @override
+  String get payBillAttachments => 'Attachments';
+
+  @override
+  String get payBillGateTitle => 'Bill Payment';
+
+  @override
+  String get payBillAutopayWarning =>
+      'This bill is registered for auto payment. Initiating a bill payment now might lead to duplicate payment of the same bill. Would you still like to continue?';
+
+  @override
+  String get payBillScheduledWarning =>
+      'A Scheduled payment has been setup for this bill. Initiating a bill payment now might lead to duplicate payment of the same bill. Would you still like to continue?';
+
+  @override
+  String get payBillLateBlocked =>
+      'Last Date of Bill Payment has Passed. Late Payment not allowed by Biller!';
+
+  @override
+  String get payBillContinue => 'Continue';
+
+  @override
+  String get payBillOk => 'Ok';
+
+  @override
+  String get payBillLoadFailed => 'We couldn\'t load this bill payment.';
+
+  @override
+  String get payBillAccountsFailed => 'We couldn\'t load your accounts.';
+
+  @override
+  String get payBillNoAccounts => 'Nothing available to pay from.';
+
+  @override
+  String get payBillFailed => 'We couldn\'t complete the payment.';
+
+  @override
+  String get payBillUploadFailed => 'We couldn\'t upload the attachment.';
+
+  @override
+  String get payBillPickFailed => 'We couldn\'t open that file.';
+
+  @override
+  String get payBillRemoveAttachment => 'Remove attachment';
+
+  @override
+  String get payBillChooseFile => 'Choose File';
 }
