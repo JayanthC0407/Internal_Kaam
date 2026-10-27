@@ -3611,6 +3611,350 @@ class AppLocalizationsIt extends AppLocalizations {
   String get ccHideDetails => 'Hide card details';
 
   @override
+  String get ssTitle => 'Session Summary';
+
+  @override
+  String get ssHint => 'Every sign-in and what was done in it';
+
+  @override
+  String get ssStartDateTime => 'Start Date & Time';
+
+  @override
+  String get ssEndDateTime => 'End Date & Time';
+
+  @override
+  String get ssChannel => 'Channel';
+
+  @override
+  String get ssIpAddress => 'IP Address';
+
+  @override
+  String get ssTransactionName => 'Transaction Name';
+
+  @override
+  String get ssStatus => 'Status';
+
+  @override
+  String get ssTransactionDateTime => 'Transaction Date & Time';
+
+  @override
+  String get ssSuccess => 'Success';
+
+  @override
+  String get ssFailure => 'Failure';
+
+  @override
+  String get ssEmpty => 'No sessions to show.';
+
+  @override
+  String get ssNoActivity => 'Nothing was done in this session.';
+
+  @override
+  String get ssToggleDetails => 'Show or hide what was done in this session';
+
+  @override
+  String get ssChannelInternet => 'Internet';
+
+  @override
+  String get ssChannelMobileResponsive => 'Mobile (Responsive)';
+
+  @override
+  String get ssChannelChatbot => 'Siri/Chatbot';
+
+  @override
+  String get ssChannelWearables => 'Wearables';
+
+  @override
+  String get ssChannelMobileApp => 'Mobile Application';
+
+  @override
+  String get ssChannelMobileBrowser => 'Mobile Web Browser';
+
+  @override
+  String get ssChannelDesktopBrowser => 'Desktop Web Browser';
+
+  @override
+  String get ssChannelSoftToken => 'Soft Token Application';
+
+  @override
+  String get ssChannelUnknown => 'Unknown';
+
+  @override
+  String get cpTitle => 'Change Password';
+
+  @override
+  String get cpHint => 'Set a new sign-in password';
+
+  @override
+  String get cpIntro => 'Please change your password for security reasons.';
+
+  @override
+  String get cpCurrent => 'Enter Current Password';
+
+  @override
+  String get cpCurrentHint => 'Enter current password';
+
+  @override
+  String get cpNew => 'Enter New Password';
+
+  @override
+  String get cpNewHint => 'Enter new password';
+
+  @override
+  String get cpConfirm => 'Confirm New Password';
+
+  @override
+  String get cpConfirmHint => 'Confirm new password';
+
+  @override
+  String get cpEnterValue => 'Enter a value.';
+
+  @override
+  String get cpDifferentPassword => 'Please enter a different Password';
+
+  @override
+  String get cpPasswordsMatch => 'The Password must match!';
+
+  @override
+  String get cpRequirements => 'Password requirements';
+
+  @override
+  String get cpRequirementsNote =>
+      'All requirements must be satisfied before Submit.';
+
+  @override
+  String get cpRulesIntro => 'Your new password must meet every rule below.';
+
+  @override
+  String cpRuleLength(int min, int max) {
+    return 'Have $min to $max characters';
+  }
+
+  @override
+  String get cpRuleUpper => 'Have uppercase';
+
+  @override
+  String get cpRuleLower => 'Have lowercase';
+
+  @override
+  String get cpRuleNumber => 'Have numbers';
+
+  @override
+  String get cpRuleSpecial => 'Have special characters';
+
+  @override
+  String cpMinimumMandatory(int count) {
+    return '(Minimum $count mandatory)';
+  }
+
+  @override
+  String get cpNotAllowed => '(Not Allowed)';
+
+  @override
+  String cpAllowedChars(String chars) {
+    return '(allowed: $chars)';
+  }
+
+  @override
+  String cpRuleSuccessive(int count) {
+    return 'Not contain successive characters more than $count';
+  }
+
+  @override
+  String cpRuleRepeated(int count) {
+    return 'Not contain repetitive characters more than $count';
+  }
+
+  @override
+  String get cpRuleCommon => 'Not be a common password';
+
+  @override
+  String cpRuleHistory(int count) {
+    return 'Not be one of your most recent $count password(s).';
+  }
+
+  @override
+  String get cpSecurityTip => 'Security tip';
+
+  @override
+  String get cpSecurityTipText =>
+      'Never share your password. Use a unique password and avoid reusing it on other services.';
+
+  @override
+  String get cpSuccessTitle => 'Password Changed Successfully!';
+
+  @override
+  String get cpSuccessMessage => 'Please click below to Login';
+
+  @override
+  String get cpLogin => 'Login';
+
+  @override
+  String get asTitle => 'Alerts Subscription';
+
+  @override
+  String get asHint => 'Choose how each alert reaches you';
+
+  @override
+  String get asPartyId => 'Party Id';
+
+  @override
+  String get asPartyName => 'Party Name';
+
+  @override
+  String get asUserName => 'User Name';
+
+  @override
+  String get asStatus => 'Status';
+
+  @override
+  String get asActive => 'Active';
+
+  @override
+  String get asInactive => 'Inactive';
+
+  @override
+  String get asCopyPartyId => 'Copy Party Id';
+
+  @override
+  String get asCopied => 'Copied';
+
+  @override
+  String get asSelectModule => 'Select Module';
+
+  @override
+  String get asSelectParty => 'Select Party';
+
+  @override
+  String get asSearchParty => 'Search Party';
+
+  @override
+  String get asApply => 'Apply';
+
+  @override
+  String get asSubscribeModes => 'Subscribe Alert Modes';
+
+  @override
+  String get asMapAllModes => 'Map All Modes';
+
+  @override
+  String get asMapAllModesHint => 'Apply the same channels to every alert';
+
+  @override
+  String get asPush => 'Push Notification';
+
+  @override
+  String get asSms => 'SMS';
+
+  @override
+  String get asOnScreen => 'On Screen';
+
+  @override
+  String get asEmail => 'Email';
+
+  @override
+  String get asSubscribed => 'Subscribed';
+
+  @override
+  String get asSelectPartyFirst => 'Select a party, then Apply.';
+
+  @override
+  String get asApplyHint =>
+      'Select a party and press Apply to see and change its alerts.';
+
+  @override
+  String get asNoParties => 'No accounts to choose from.';
+
+  @override
+  String get asNoModules => 'No alerts are available to subscribe to.';
+
+  @override
+  String get asNoAlerts => 'This module has no alerts to subscribe to.';
+
+  @override
+  String get asSaved => 'Alert subscription saved.';
+
+  @override
+  String get srRaiseTicket => 'Raise a New Ticket';
+
+  @override
+  String get srSearchRequests => 'Search service requests';
+
+  @override
+  String get srNoRequestsMatch =>
+      'No request matches the selected search criteria.';
+
+  @override
+  String get srChangeFilters => 'Change filters';
+
+  @override
+  String get fcTitle => 'Financial Calculator';
+
+  @override
+  String get fcTabTd => 'Term Deposit';
+
+  @override
+  String get fcTabLoanInstallment => 'Loan Installment';
+
+  @override
+  String get fcTabLoanEligibility => 'Loan Eligibility';
+
+  @override
+  String get fcTabForex => 'Forex';
+
+  @override
+  String get fcTdTitle => 'Term Deposit Calculator';
+
+  @override
+  String get fcTdSubtitle =>
+      'Calculate maturity value once deposit amount and rate are entered.';
+
+  @override
+  String get fcLoanInstallmentTitle => 'Loan Installment Calculator';
+
+  @override
+  String get fcLoanInstallmentSubtitle =>
+      'Calculate the monthly installment once amount, tenure and rate are entered.';
+
+  @override
+  String get fcLoanEligibilityTitle => 'Loan Eligibility Calculator';
+
+  @override
+  String get fcLoanEligibilitySubtitle =>
+      'Use income and expenses to estimate repayment capacity.';
+
+  @override
+  String get fcEnterValue => 'Enter value';
+
+  @override
+  String get fcInterest => 'Interest';
+
+  @override
+  String get fcMonthlyInstallment => 'Calculated monthly installment';
+
+  @override
+  String get fcTotalRepayment => 'Total repayment';
+
+  @override
+  String get fcDisposableIncome => 'Calculated monthly disposable income';
+
+  @override
+  String get fcEligibilityNote =>
+      'Loan eligibility amount requires lender-specific policy.';
+
+  @override
+  String get fcFrom => 'From';
+
+  @override
+  String get fcTo => 'To';
+
+  @override
+  String get fcCurrency => 'Currency';
+
+  @override
+  String get fcConvertedAmount => 'Converted amount';
+
+  @override
   String get srTitle => 'Service Requests';
 
   @override

@@ -194,7 +194,10 @@ void main() {
             srProductsProvider.overrideWith((ref) async => ['Accounts', 'Profile']),
             srCategoriesProvider.overrideWith((ref, p) async => const [SrCategory(id: 'C1', name: 'Cheques')]),
             srEnumerationProvider.overrideWith((ref, name) async => const <SrOption>[]),
-            srRequestsProvider.overrideWith((ref, f) async => ServiceRequestSummary.listFromPayload(_requests)),
+            // A product filter matches nothing here.
+            srRequestsProvider.overrideWith(
+              (ref, f) async => f.product == null ? ServiceRequestSummary.listFromPayload(_requests) : const <ServiceRequestSummary>[],
+            ),
             srRequestProvider.overrideWith((ref, id) async => ServiceRequestDetail.fromPayload(_detail)),
             srDefinitionsProvider.overrideWith((ref) async => SrDefinition.listFromPayload(_definitions)),
             srDefinitionProvider.overrideWith((ref, id) async => SrDefinition.oneFromPayload(_form)!),
@@ -210,14 +213,14 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('track: the filter first, Apply lists requests, a request opens its details', (tester) async {
+    testWidgets('track: requests listed at once; a request opens its details', (tester) async {
       await pump(tester);
-      expect(find.text('Product Name'), findsOneWidget);
-      expect(find.text('No Service Request Found'), findsNothing);
-      expect(find.text('REF001'), findsNothing);
-
-      await tester.tap(find.text('Apply'));
-      await tester.pumpAndSettle();
+      expect(find.text('Track Requests'), findsOneWidget);
+      for (final f in ['Product Name', 'Status', 'From Date', 'To Date']) {
+        expect(find.text(f), findsWidgets, reason: f);
+      }
+      // No Apply button: the list follows the filters.
+      expect(find.text('Apply'), findsNothing);
       expect(find.text('REF001'), findsOneWidget);
       expect(find.text('REF002'), findsOneWidget);
       expect(find.text('Pending'), findsOneWidget);
@@ -233,6 +236,35 @@ void main() {
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       expect(find.text('REF001'), findsOneWidget);
+    });
+
+    testWidgets('track: a filter with no match shows the empty state; Change filters clears it', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('Please Select').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Profile').last);
+      await tester.pumpAndSettle();
+      // The strip shows the criteria; nothing matches.
+      expect(find.text('Profile'), findsWidgets);
+      expect(find.text('No Service Request Found'), findsOneWidget);
+      expect(find.text('No request matches the selected search criteria.'), findsOneWidget);
+
+      await tester.tap(find.text('Change filters'));
+      await tester.pumpAndSettle();
+      expect(find.text('No Service Request Found'), findsNothing);
+      expect(find.text('REF001'), findsOneWidget);
+    });
+
+    testWidgets('the ⋮ menu goes between Track Requests and Raise a New Ticket', (tester) async {
+      // Wide: Products beside the requests.
+      await pump(tester, width: 1280);
+      await tester.tap(find.byIcon(Icons.more_vert_rounded));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Raise a New Ticket').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Raise a New Ticket'), findsOneWidget);
+      expect(find.text('Service Request Form'), findsOneWidget);
+      expect(find.text('Products'), findsOneWidget);
     });
 
     testWidgets('raise: browse, form checks, Review, Confirm, reference', (tester) async {
