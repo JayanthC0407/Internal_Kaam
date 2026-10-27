@@ -19,7 +19,9 @@ import 'package:ubci_bank/src/infra/repositories/corp/corp_cash_management_repos
 import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
 import 'package:ubci_bank/src/infra/repositories/corp/corp_profile_repository.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
+import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
 import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
@@ -243,6 +245,18 @@ class _FakeProfileRepository implements CorpProfileRepository {
 /// designed layout shows — the case most tests here are about. Pass
 /// [failConfig] instead for a user who has one whose configuration fails
 /// to load.
+/// Personalize Dashboard's only entry point: the header initials open My
+/// Preferences, which lists it.
+Future<void> _openPersonalize(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('My Preferences'));
+  await tester.pumpAndSettle();
+  final row = find.text('Personalize Dashboard');
+  await tester.ensureVisible(row);
+  await tester.pumpAndSettle();
+  await tester.tap(row);
+  await tester.pumpAndSettle();
+}
+
 Future<void> _pumpDashboard(
   WidgetTester tester, {
   DashboardConfig? config,
@@ -278,6 +292,10 @@ Future<void> _pumpDashboard(
           config: config,
           failAuthorization: failAuthorization,
         )),
+        // My Preferences' card and Profile read `me/party`; no network here.
+        partyProfileProvider.overrideWith(
+          (ref) async => PartyProfile.fromPayloads(party: const {}, config: const {}),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
@@ -384,17 +402,23 @@ void main() {
       expect(find.text('3'), findsOneWidget);
     });
 
-    testWidgets('settings menu offers Personalize Dashboard', (tester) async {
+    testWidgets('My Preferences offers Personalize Dashboard; the gear does not',
+        (tester) async {
       // Offered only to a user with a CUSTOM dashboard to save to.
       await _pumpDashboard(
         tester,
         config: _FakeDashboardRepository.emptyConfig(),
       );
 
-      // The entry point: gear icon in the header.
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
+      expect(find.text('Personalize Dashboard'), findsNothing);
+      await tester.tapAt(const Offset(10, 990));
+      await tester.pumpAndSettle();
 
+      // The entry point: the initials open My Preferences.
+      await tester.tap(find.byTooltip('My Preferences'));
+      await tester.pumpAndSettle();
       expect(find.text('Personalize Dashboard'), findsOneWidget);
     });
 
@@ -430,10 +454,7 @@ void main() {
       testWidgets('Personalize has no Arrange section any more',
           (tester) async {
         await _pumpDashboard(tester, config: twoWidgets());
-        await tester.tap(find.byIcon(Icons.settings_outlined));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Personalize Dashboard'));
-        await tester.pumpAndSettle();
+        await _openPersonalize(tester);
 
         expect(find.textContaining('Arrange'), findsNothing);
         // It points to arranging on the dashboard instead.
@@ -541,10 +562,7 @@ void main() {
         // Regression: that close is not a pop the panel sees, so its draft
         // lingered and switched dragging off.
         await _pumpDashboard(tester, config: twoWidgets());
-        await tester.tap(find.byIcon(Icons.settings_outlined));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Personalize Dashboard'));
-        await tester.pumpAndSettle();
+        await _openPersonalize(tester);
 
         // The scrim, left of the panel.
         await tester.tapAt(const Offset(40, 500));
@@ -591,8 +609,7 @@ void main() {
           })!;
 
       Future<void> openCustomize(WidgetTester tester) async {
-        await tester.tap(find.text('Customize'));
-        await tester.pumpAndSettle();
+        await _openPersonalize(tester);
       }
 
       testWidgets('Customize opens Personalize as a bottom sheet',
@@ -690,10 +707,7 @@ void main() {
         config: _FakeDashboardRepository.emptyConfig(),
       );
 
-      await tester.tap(find.byIcon(Icons.settings_outlined));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Personalize Dashboard'));
-      await tester.pumpAndSettle();
+      await _openPersonalize(tester);
 
       // The panel is an end drawer, so the dashboard stays mounted behind
       // it — that is what lets a save show up immediately.
@@ -706,7 +720,7 @@ void main() {
       // No dashboard at all — not even the bank's role one to start from.
       await _pumpDashboard(tester);
 
-      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.tap(find.byTooltip('My Preferences'));
       await tester.pumpAndSettle();
 
       expect(find.text('Personalize Dashboard'), findsNothing);
@@ -749,7 +763,7 @@ void main() {
       expect(find.text('Currency Exposure'), findsWidgets);
       expect(find.text('Pickup Points'), findsNothing);
 
-      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await tester.tap(find.byTooltip('My Preferences'));
       await tester.pumpAndSettle();
       expect(find.text('Personalize Dashboard'), findsOneWidget);
     });
@@ -762,10 +776,7 @@ void main() {
         config: _FakeDashboardRepository.emptyConfig(),
       );
 
-      await tester.tap(find.byIcon(Icons.settings_outlined));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Personalize Dashboard'));
-      await tester.pumpAndSettle();
+      await _openPersonalize(tester);
 
       // The fake catalog has one module, Corporate Dashboard, holding
       // account-financial-summary and currency-exposure. Nothing from it is
@@ -797,10 +808,7 @@ void main() {
         config: _FakeDashboardRepository.emptyConfig(),
       );
 
-      await tester.tap(find.byIcon(Icons.settings_outlined));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Personalize Dashboard'));
-      await tester.pumpAndSettle();
+      await _openPersonalize(tester);
 
       await tester.tap(find.text('Corporate Dashboard'));
       await tester.pumpAndSettle();
