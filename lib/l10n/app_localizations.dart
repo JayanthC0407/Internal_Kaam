@@ -6724,6 +6724,654 @@ abstract class AppLocalizations {
   /// **'Hide card details'**
   String get ccHideDetails;
 
+  /// No description provided for @ssTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Summary'**
+  String get ssTitle;
+
+  /// No description provided for @ssHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Every sign-in and what was done in it'**
+  String get ssHint;
+
+  /// No description provided for @ssStartDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date & Time'**
+  String get ssStartDateTime;
+
+  /// No description provided for @ssEndDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date & Time'**
+  String get ssEndDateTime;
+
+  /// No description provided for @ssChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get ssChannel;
+
+  /// No description provided for @ssIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'IP Address'**
+  String get ssIpAddress;
+
+  /// No description provided for @ssTransactionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Name'**
+  String get ssTransactionName;
+
+  /// No description provided for @ssStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get ssStatus;
+
+  /// No description provided for @ssTransactionDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Date & Time'**
+  String get ssTransactionDateTime;
+
+  /// No description provided for @ssSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get ssSuccess;
+
+  /// No description provided for @ssFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failure'**
+  String get ssFailure;
+
+  /// No description provided for @ssEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions to show.'**
+  String get ssEmpty;
+
+  /// No description provided for @ssNoActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was done in this session.'**
+  String get ssNoActivity;
+
+  /// No description provided for @ssToggleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show or hide what was done in this session'**
+  String get ssToggleDetails;
+
+  /// No description provided for @ssChannelInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet'**
+  String get ssChannelInternet;
+
+  /// No description provided for @ssChannelMobileResponsive.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile (Responsive)'**
+  String get ssChannelMobileResponsive;
+
+  /// No description provided for @ssChannelChatbot.
+  ///
+  /// In en, this message translates to:
+  /// **'Siri/Chatbot'**
+  String get ssChannelChatbot;
+
+  /// No description provided for @ssChannelWearables.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearables'**
+  String get ssChannelWearables;
+
+  /// No description provided for @ssChannelMobileApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Application'**
+  String get ssChannelMobileApp;
+
+  /// No description provided for @ssChannelMobileBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Web Browser'**
+  String get ssChannelMobileBrowser;
+
+  /// No description provided for @ssChannelDesktopBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop Web Browser'**
+  String get ssChannelDesktopBrowser;
+
+  /// No description provided for @ssChannelSoftToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft Token Application'**
+  String get ssChannelSoftToken;
+
+  /// No description provided for @ssChannelUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get ssChannelUnknown;
+
+  /// No description provided for @cpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get cpTitle;
+
+  /// No description provided for @cpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new sign-in password'**
+  String get cpHint;
+
+  /// No description provided for @cpIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Please change your password for security reasons.'**
+  String get cpIntro;
+
+  /// No description provided for @cpCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Current Password'**
+  String get cpCurrent;
+
+  /// No description provided for @cpCurrentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter current password'**
+  String get cpCurrentHint;
+
+  /// No description provided for @cpNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter New Password'**
+  String get cpNew;
+
+  /// No description provided for @cpNewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter new password'**
+  String get cpNewHint;
+
+  /// No description provided for @cpConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New Password'**
+  String get cpConfirm;
+
+  /// No description provided for @cpConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get cpConfirmHint;
+
+  /// No description provided for @cpEnterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value.'**
+  String get cpEnterValue;
+
+  /// No description provided for @cpDifferentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a different Password'**
+  String get cpDifferentPassword;
+
+  /// No description provided for @cpPasswordsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The Password must match!'**
+  String get cpPasswordsMatch;
+
+  /// No description provided for @cpRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Password requirements'**
+  String get cpRequirements;
+
+  /// No description provided for @cpRequirementsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'All requirements must be satisfied before Submit.'**
+  String get cpRequirementsNote;
+
+  /// No description provided for @cpRulesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new password must meet every rule below.'**
+  String get cpRulesIntro;
+
+  /// No description provided for @cpRuleLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Have {min} to {max} characters'**
+  String cpRuleLength(int min, int max);
+
+  /// No description provided for @cpRuleUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Have uppercase'**
+  String get cpRuleUpper;
+
+  /// No description provided for @cpRuleLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Have lowercase'**
+  String get cpRuleLower;
+
+  /// No description provided for @cpRuleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Have numbers'**
+  String get cpRuleNumber;
+
+  /// No description provided for @cpRuleSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Have special characters'**
+  String get cpRuleSpecial;
+
+  /// No description provided for @cpMinimumMandatory.
+  ///
+  /// In en, this message translates to:
+  /// **'(Minimum {count} mandatory)'**
+  String cpMinimumMandatory(int count);
+
+  /// No description provided for @cpNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'(Not Allowed)'**
+  String get cpNotAllowed;
+
+  /// No description provided for @cpAllowedChars.
+  ///
+  /// In en, this message translates to:
+  /// **'(allowed: {chars})'**
+  String cpAllowedChars(String chars);
+
+  /// No description provided for @cpRuleSuccessive.
+  ///
+  /// In en, this message translates to:
+  /// **'Not contain successive characters more than {count}'**
+  String cpRuleSuccessive(int count);
+
+  /// No description provided for @cpRuleRepeated.
+  ///
+  /// In en, this message translates to:
+  /// **'Not contain repetitive characters more than {count}'**
+  String cpRuleRepeated(int count);
+
+  /// No description provided for @cpRuleCommon.
+  ///
+  /// In en, this message translates to:
+  /// **'Not be a common password'**
+  String get cpRuleCommon;
+
+  /// No description provided for @cpRuleHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Not be one of your most recent {count} password(s).'**
+  String cpRuleHistory(int count);
+
+  /// No description provided for @cpSecurityTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Security tip'**
+  String get cpSecurityTip;
+
+  /// No description provided for @cpSecurityTipText.
+  ///
+  /// In en, this message translates to:
+  /// **'Never share your password. Use a unique password and avoid reusing it on other services.'**
+  String get cpSecurityTipText;
+
+  /// No description provided for @cpSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Changed Successfully!'**
+  String get cpSuccessTitle;
+
+  /// No description provided for @cpSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please click below to Login'**
+  String get cpSuccessMessage;
+
+  /// No description provided for @cpLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get cpLogin;
+
+  /// No description provided for @asTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts Subscription'**
+  String get asTitle;
+
+  /// No description provided for @asHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how each alert reaches you'**
+  String get asHint;
+
+  /// No description provided for @asPartyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Party Id'**
+  String get asPartyId;
+
+  /// No description provided for @asPartyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Party Name'**
+  String get asPartyName;
+
+  /// No description provided for @asUserName.
+  ///
+  /// In en, this message translates to:
+  /// **'User Name'**
+  String get asUserName;
+
+  /// No description provided for @asStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get asStatus;
+
+  /// No description provided for @asActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get asActive;
+
+  /// No description provided for @asInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get asInactive;
+
+  /// No description provided for @asCopyPartyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Party Id'**
+  String get asCopyPartyId;
+
+  /// No description provided for @asCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get asCopied;
+
+  /// No description provided for @asSelectModule.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Module'**
+  String get asSelectModule;
+
+  /// No description provided for @asSelectParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Party'**
+  String get asSelectParty;
+
+  /// No description provided for @asSearchParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Party'**
+  String get asSearchParty;
+
+  /// No description provided for @asApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get asApply;
+
+  /// No description provided for @asSubscribeModes.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe Alert Modes'**
+  String get asSubscribeModes;
+
+  /// No description provided for @asMapAllModes.
+  ///
+  /// In en, this message translates to:
+  /// **'Map All Modes'**
+  String get asMapAllModes;
+
+  /// No description provided for @asMapAllModesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the same channels to every alert'**
+  String get asMapAllModesHint;
+
+  /// No description provided for @asPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notification'**
+  String get asPush;
+
+  /// No description provided for @asSms.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get asSms;
+
+  /// No description provided for @asOnScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'On Screen'**
+  String get asOnScreen;
+
+  /// No description provided for @asEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get asEmail;
+
+  /// No description provided for @asSubscribed.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribed'**
+  String get asSubscribed;
+
+  /// No description provided for @asSelectPartyFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a party, then Apply.'**
+  String get asSelectPartyFirst;
+
+  /// No description provided for @asApplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a party and press Apply to see and change its alerts.'**
+  String get asApplyHint;
+
+  /// No description provided for @asNoParties.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts to choose from.'**
+  String get asNoParties;
+
+  /// No description provided for @asNoModules.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts are available to subscribe to.'**
+  String get asNoModules;
+
+  /// No description provided for @asNoAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'This module has no alerts to subscribe to.'**
+  String get asNoAlerts;
+
+  /// No description provided for @asSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert subscription saved.'**
+  String get asSaved;
+
+  /// No description provided for @srRaiseTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a New Ticket'**
+  String get srRaiseTicket;
+
+  /// No description provided for @srSearchRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Search service requests'**
+  String get srSearchRequests;
+
+  /// No description provided for @srNoRequestsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No request matches the selected search criteria.'**
+  String get srNoRequestsMatch;
+
+  /// No description provided for @srChangeFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Change filters'**
+  String get srChangeFilters;
+
+  /// No description provided for @fcTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Calculator'**
+  String get fcTitle;
+
+  /// No description provided for @fcTabTd.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposit'**
+  String get fcTabTd;
+
+  /// No description provided for @fcTabLoanInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Installment'**
+  String get fcTabLoanInstallment;
+
+  /// No description provided for @fcTabLoanEligibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Eligibility'**
+  String get fcTabLoanEligibility;
+
+  /// No description provided for @fcTabForex.
+  ///
+  /// In en, this message translates to:
+  /// **'Forex'**
+  String get fcTabForex;
+
+  /// No description provided for @fcTdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposit Calculator'**
+  String get fcTdTitle;
+
+  /// No description provided for @fcTdSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate maturity value once deposit amount and rate are entered.'**
+  String get fcTdSubtitle;
+
+  /// No description provided for @fcLoanInstallmentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Installment Calculator'**
+  String get fcLoanInstallmentTitle;
+
+  /// No description provided for @fcLoanInstallmentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate the monthly installment once amount, tenure and rate are entered.'**
+  String get fcLoanInstallmentSubtitle;
+
+  /// No description provided for @fcLoanEligibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Eligibility Calculator'**
+  String get fcLoanEligibilityTitle;
+
+  /// No description provided for @fcLoanEligibilitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use income and expenses to estimate repayment capacity.'**
+  String get fcLoanEligibilitySubtitle;
+
+  /// No description provided for @fcEnterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter value'**
+  String get fcEnterValue;
+
+  /// No description provided for @fcInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get fcInterest;
+
+  /// No description provided for @fcMonthlyInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated monthly installment'**
+  String get fcMonthlyInstallment;
+
+  /// No description provided for @fcTotalRepayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Total repayment'**
+  String get fcTotalRepayment;
+
+  /// No description provided for @fcDisposableIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated monthly disposable income'**
+  String get fcDisposableIncome;
+
+  /// No description provided for @fcEligibilityNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan eligibility amount requires lender-specific policy.'**
+  String get fcEligibilityNote;
+
+  /// No description provided for @fcFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get fcFrom;
+
+  /// No description provided for @fcTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get fcTo;
+
+  /// No description provided for @fcCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get fcCurrency;
+
+  /// No description provided for @fcConvertedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Converted amount'**
+  String get fcConvertedAmount;
+
   /// No description provided for @srTitle.
   ///
   /// In en, this message translates to:
