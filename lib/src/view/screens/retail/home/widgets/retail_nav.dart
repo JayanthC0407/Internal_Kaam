@@ -28,6 +28,9 @@ class RetailNav {
   static const creditCards = 'creditCards';
   static const billPayments = 'billPayments';
   static const mailbox = 'mailbox';
+  static const serviceRequests = 'serviceRequests';
+  static const serviceRequestsTrack = 'serviceRequests.track';
+  static const serviceRequestsRaise = 'serviceRequests.raise';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -92,6 +95,17 @@ class RetailNav {
           id: billPayments,
           label: l10n.billPaymentsTitle,
           icon: Icons.receipt_long_rounded,
+        ),
+        // OBDX's Service Requests menu and its two entries; both open one
+        // page, on that half.
+        DashboardNavItem(
+          id: serviceRequests,
+          label: l10n.srTitle,
+          icon: Icons.support_agent_rounded,
+          children: [
+            DashboardNavItem(id: serviceRequestsTrack, label: l10n.srTrackRequests, icon: Icons.manage_search_rounded),
+            DashboardNavItem(id: serviceRequestsRaise, label: l10n.srRaiseNew, icon: Icons.add_comment_outlined),
+          ],
         ),
         // OBDX's Mailbox menu (Mails, Alerts, Notifications) on one page.
         DashboardNavItem(
