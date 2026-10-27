@@ -594,10 +594,20 @@ class _PayRepo implements BillPaymentsRepository {
       ResponseHandler.success({'operationalArea': {'areaName': 'London'}}, code: 200);
 
   @override
-  Future<ResponseHandler<List<BillPayAccount>>> fetchPayAccounts(BillPayType type) async => ResponseHandler.success(
-        BillPayAccount.listFromPayload(type, type == BillPayType.creditCard ? _cardsBody : _casaBody),
-        code: 200,
-      );
+  Future<ResponseHandler<List<BillPayAccount>>> fetchPayAccounts(
+    BillPayType type, {
+    String? taskCode = billPayTaskCode,
+    bool multiple = false,
+  }) async {
+    accountQueries.add((type, taskCode));
+    return ResponseHandler.success(
+      BillPayAccount.listFromPayload(type, type == BillPayType.creditCard ? _cardsBody : _casaBody, multiple: multiple),
+      code: 200,
+    );
+  }
+
+  /// Every Pay From request: (type, task code).
+  final accountQueries = <(BillPayType, String?)>[];
 
   @override
   Future<ResponseHandler<BillPayOutcome>> payBill(

@@ -8001,6 +8001,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose File'**
   String get payBillChooseFile;
+
+  /// No description provided for @payBillsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Bills'**
+  String get payBillsTitle;
+
+  /// No description provided for @payBillsReviewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You have initiated {count} bill payments. Please review the details before you confirm!'**
+  String payBillsReviewMessage(int count);
+
+  /// No description provided for @payBillsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Bill Payment'**
+  String get payBillsEdit;
+
+  /// No description provided for @payBillsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Bill Payment'**
+  String get payBillsDelete;
+
+  /// No description provided for @payBillsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get payBillsSave;
+
+  /// No description provided for @payBillsSaveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Please save all unsaved payments.'**
+  String get payBillsSaveAll;
+
+  /// No description provided for @payBillsSelectAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account to proceed'**
+  String get payBillsSelectAccount;
+
+  /// No description provided for @payBillsCopyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Default this account for all the bill payments records'**
+  String get payBillsCopyAccount;
+
+  /// No description provided for @payBillsCopyDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Default this date for all the bill payments records'**
+  String get payBillsCopyDate;
+
+  /// No description provided for @payBillsStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Bill Payment Status'**
+  String get payBillsStatusTitle;
+
+  /// No description provided for @payBillsFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From Account'**
+  String get payBillsFromAccount;
+
+  /// No description provided for @payBillsHostReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Host Reference No.'**
+  String get payBillsHostReference;
+
+  /// No description provided for @payBillsReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference No.'**
+  String get payBillsReference;
+
+  /// No description provided for @payBillsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get payBillsStatus;
+
+  /// No description provided for @payBillsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get payBillsCompleted;
+
+  /// No description provided for @payBillsInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Initiated'**
+  String get payBillsInitiated;
+
+  /// No description provided for @payBillsPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending for approval'**
+  String get payBillsPendingApproval;
+
+  /// No description provided for @payBillsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get payBillsFailed;
+
+  /// No description provided for @payBillsNoAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer was received for this bill.'**
+  String get payBillsNoAnswer;
+
+  /// No description provided for @payBillsSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the payments.'**
+  String get payBillsSendFailed;
 }
 
 class _AppLocalizationsDelegate

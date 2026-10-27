@@ -93,12 +93,43 @@ final payBillContextProvider = FutureProvider.autoDispose
   );
 });
 
-/// Pay From for one Payment Type.
+/// Which Pay From list: the Payment Type, the CASA task code (null: none)
+/// and whether it is the several-bills flow (its debit card filter).
+typedef BillPayAccountsQuery = ({BillPayType type, String? taskCode, bool multiple});
+
+/// Pay From for one [BillPayAccountsQuery].
 final billPayAccountsProvider = FutureProvider.autoDispose
-    .family<List<BillPayAccount>, BillPayType>((ref, type) async {
-  final result = await ref.read(billPaymentsRepositoryProvider).fetchPayAccounts(type);
+    .family<List<BillPayAccount>, BillPayAccountsQuery>((ref, q) async {
+  final result = await ref
+      .read(billPaymentsRepositoryProvider)
+      .fetchPayAccounts(q.type, taskCode: q.taskCode, multiple: q.multiple);
   if (result is Success<List<BillPayAccount>> && result.data != null) return result.data!;
   throw BillPaymentsLoadError(result is Error<List<BillPayAccount>> ? result.error : null);
+});
+
+/// One bill of the several-bills flow: OBDX loads `billers/{billerId}` and
+/// `operationalareas/{id}` for each list row it was given
+/// (initiate-multiple-bill-payments-stage1/hooks.js:411, 648) — no
+/// `registeredBillers/{id}`. Plans are not loaded: the flow only takes
+/// presented bills and its plan field never shows (bill-payments.md §8.2).
+final billPayMasterProvider = FutureProvider.autoDispose
+    .family<PayBillContext, RegisteredBiller>((ref, registration) async {
+  final repository = ref.read(billPaymentsRepositoryProvider);
+  final areaId = registration.location?.id;
+  final (master, area) = await (
+    repository.fetchBiller(registration.billerId),
+    areaId == null
+        ? Future.value(ResponseHandler<Map<String, dynamic>>.success(null))
+        : repository.fetchOperationalArea(areaId),
+  ).wait;
+  if (master is! Success<BillerInfo> || master.data == null) {
+    throw BillPaymentsLoadError(master is Error<BillerInfo> ? master.error : null);
+  }
+  return PayBillContext(
+    registration: registration,
+    biller: master.data!,
+    location: billLocationLabel(area is Success<Map<String, dynamic>> ? area.data : null, registration),
+  );
 });
 
 class PayBillContext {

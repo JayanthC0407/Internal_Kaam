@@ -13,6 +13,7 @@ import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_scree
 import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/edit_biller_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/pay_bill_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/pay_bills_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/bill_payments/widgets/bills_help_panel.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
@@ -26,8 +27,8 @@ import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 /// (manage-bill-payments-list/hooks.js:156-248). Delete follows OBDX's
 /// rules (blocked while auto pay / a scheduled payment is active) and asks
 /// for an OTP when the bank wants one. Add Billers, Edit Biller (Manual
-/// billers) and Pay Bill (one bill, flows/pay-bill) open in place; paying
-/// several bills at once (initiate-multiple-bill-payments) is not built.
+/// billers), Pay Bill (one bill, flows/pay-bill) and Pay Bills (several,
+/// initiate-multiple-bill-payments) open in place.
 /// Evidence: docs/obdx/features/bill-payments.md §3-4.
 class BillersScreen extends ConsumerStatefulWidget {
   const BillersScreen({super.key, this.embedded = false, this.onBack});
@@ -65,12 +66,10 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
   RegisteredBiller? _paying;
   bool _payingSingle = true;
 
-  DateTime get _today => DateTime.now();
+  /// Pay Bills (two or more ticked) shown in place of the list.
+  List<RegisteredBiller>? _payingMany;
 
-  void _comingSoon(String feature) {
-    final l10n = AppLocalizations.of(context);
-    _snack('$feature · ${l10n.featureComingSoon}');
-  }
+  DateTime get _today => DateTime.now();
 
   void _snack(String message) {
     ScaffoldMessenger.of(context)
@@ -84,18 +83,22 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
         _payingSingle = true;
       });
 
-  /// Pay for the ticked bills (OBDX `payAllSelectedBills`): one goes to
-  /// Pay Bill (`showPayBill(id, false)`), several to
-  /// initiate-multiple-bill-payments, not built yet.
+  /// Pay for the ticked bills (OBDX `payAllSelectedBills`,
+  /// manage-bill-payments-list/hooks.js:215-248): one goes to Pay Bill
+  /// (`showPayBill(id, false)`), several to Pay Bills
+  /// (initiate-multiple-bill-payments), in the list's order.
   void _paySelected(List<RegisteredBiller> all) {
     final l10n = AppLocalizations.of(context);
     if (_selected.isEmpty) return _snack(l10n.billersSelectAtLeastOne);
-    if (_selected.length > 1) return _comingSoon(l10n.billerPay);
-    final biller = all.where((b) => b.id == _selected.first).firstOrNull;
-    if (biller == null) return;
+    final ticked = groupBillers(all).values.expand((g) => g).where((b) => _selected.contains(b.id)).toList();
+    if (ticked.isEmpty) return;
     setState(() {
-      _paying = biller;
-      _payingSingle = false;
+      if (ticked.length == 1) {
+        _paying = ticked.first;
+        _payingSingle = false;
+      } else {
+        _payingMany = ticked;
+      }
     });
   }
 
@@ -103,6 +106,7 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
   /// provider is invalidated by Pay Bill) and the ticks are cleared.
   void _closePay({bool paid = false}) => setState(() {
         _paying = null;
+        _payingMany = null;
         if (paid) {
           _open = null;
           _selected.clear();
@@ -201,6 +205,18 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
           });
           ref.invalidate(registeredBillersProvider);
           ref.invalidate(billerDetailsProvider(editing.id));
+        },
+      );
+    }
+    final payingMany = _payingMany;
+    if (payingMany != null) {
+      return PayBillsScreen(
+        billers: payingMany,
+        onExit: _closePay,
+        onPayAnother: () => _closePay(paid: true),
+        onAddBiller: () {
+          _closePay(paid: true);
+          setState(() => _adding = true);
         },
       );
     }
