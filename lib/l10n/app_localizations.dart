@@ -6351,6 +6351,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The file could not be opened.'**
   String get mailboxPickFailed;
+
+  /// No description provided for @calcTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculators'**
+  String get calcTitle;
+
+  /// No description provided for @calcTd.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposit Calculator'**
+  String get calcTd;
+
+  /// No description provided for @calcLoanInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Installment Calculator'**
+  String get calcLoanInstallment;
+
+  /// No description provided for @calcLoanEligibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Eligibility Calculator'**
+  String get calcLoanEligibility;
+
+  /// No description provided for @calcForex.
+  ///
+  /// In en, this message translates to:
+  /// **'Forex Calculator'**
+  String get calcForex;
+
+  /// No description provided for @calcDepositAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit Amount'**
+  String get calcDepositAmount;
+
+  /// No description provided for @calcDepositTenure.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit Tenure'**
+  String get calcDepositTenure;
+
+  /// No description provided for @calcYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get calcYears;
+
+  /// No description provided for @calcMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get calcMonths;
+
+  /// No description provided for @calcDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get calcDays;
+
+  /// No description provided for @calcInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest Rate'**
+  String get calcInterestRate;
+
+  /// No description provided for @calcMaturityAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Maturity Amount'**
+  String get calcMaturityAmount;
+
+  /// No description provided for @calcEnterValidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a Valid Value'**
+  String get calcEnterValidValue;
+
+  /// No description provided for @calcEnterValidInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid Interest'**
+  String get calcEnterValidInterest;
+
+  /// No description provided for @calcLoanAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Amount'**
+  String get calcLoanAmount;
+
+  /// No description provided for @calcLoanTenureYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Tenure (In Years)'**
+  String get calcLoanTenureYears;
+
+  /// No description provided for @calcInstallmentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment Amount'**
+  String get calcInstallmentAmount;
+
+  /// No description provided for @calcGrossIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross Income (Monthly)'**
+  String get calcGrossIncome;
+
+  /// No description provided for @calcTotalExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Expenses (Monthly)'**
+  String get calcTotalExpenses;
+
+  /// No description provided for @calcInterestRateIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest Rate (In %)'**
+  String get calcInterestRateIn;
+
+  /// No description provided for @calcEligibleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Eligible Amount'**
+  String get calcEligibleAmount;
+
+  /// No description provided for @calcAverageInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Installment'**
+  String get calcAverageInstallment;
+
+  /// No description provided for @calcPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / Month'**
+  String calcPerMonth(String amount);
+
+  /// No description provided for @calcExpensesHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Your monthly expenses seem to be higher than your monthly income. Please modify the values to recalculate loan eligibility.'**
+  String get calcExpensesHigh;
+
+  /// No description provided for @calcFromCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'From Currency'**
+  String get calcFromCurrency;
+
+  /// No description provided for @calcToCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'To Currency'**
+  String get calcToCurrency;
+
+  /// No description provided for @calcForeignCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign Currency'**
+  String get calcForeignCurrency;
+
+  /// No description provided for @calcAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get calcAmount;
+
+  /// No description provided for @calcRate.
+  ///
+  /// In en, this message translates to:
+  /// **'@1 {from} = {rate} {to}'**
+  String calcRate(String from, String rate, String to);
+
+  /// No description provided for @calcSelectCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select Currency'**
+  String get calcSelectCurrency;
+
+  /// No description provided for @calcValidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid amount'**
+  String get calcValidAmount;
+
+  /// No description provided for @calcHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan deposits, loans and currency exchange'**
+  String get calcHubSubtitle;
+
+  /// No description provided for @calcTdDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'What your deposit will be worth at maturity'**
+  String get calcTdDesc;
+
+  /// No description provided for @calcLoanInstallmentDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your installment for a loan amount and tenure'**
+  String get calcLoanInstallmentDesc;
+
+  /// No description provided for @calcLoanEligibilityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'How much you may borrow from your income'**
+  String get calcLoanEligibilityDesc;
+
+  /// No description provided for @calcForexDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert an amount between currencies'**
+  String get calcForexDesc;
+
+  /// No description provided for @calcLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The calculator could not be loaded.'**
+  String get calcLoadFailed;
+
+  /// No description provided for @calcFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The result could not be calculated.'**
+  String get calcFailed;
+
+  /// No description provided for @calcRangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max}'**
+  String calcRangeHint(String min, String max);
+
+  /// No description provided for @calcDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get calcDecrease;
+
+  /// No description provided for @calcIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get calcIncrease;
 }
 
 class _AppLocalizationsDelegate
