@@ -133,6 +133,16 @@ void main() {
       expect([c.mails, c.alerts, c.notifications, c.total], [2, 1, 4, 7]);
     });
 
+    test('UTC times (mailbox.har) are shown in local time', () {
+      final mail = Mail.listFromPayload({
+        'mails': [
+          {..._mail('9', 'x'), 'creationDate': '2026-10-26T09:57:07.000Z'},
+        ],
+      }, userName: _me, folder: MailFolder.inbox).single;
+      expect(mail.date!.isUtc, isFalse);
+      expect(mail.date, DateTime.utc(2026, 10, 26, 9, 57, 7).toLocal());
+    });
+
     test('HTML alert bodies become text with line breaks', () {
       expect(mailboxHtmlToText('<p>Hello,<br>you signed in.</p>&nbsp;&amp; ok'), 'Hello,\nyou signed in.\n & ok');
     });
@@ -229,12 +239,13 @@ void main() {
         contents: const [
           {'value': 'C1', 'displayValue': 'a.pdf'},
         ],
-        party: 'P777',
+        party: const MailParty(id: 'P777', name: 'Doe Traders'),
       );
       expect(body['subject'], 'Address change');
       expect(body['subjectId'], 'S9');
       expect(body['messageType'], 'M');
       expect(body['party'], {'value': 'P777'}, reason: 'OBDX [0] would send only "P"');
+      expect(body['partyName'], 'Doe Traders', reason: 'as the UAT build sends (mailbox.har)');
       expect(body['contentDTO'], [
         {
           'contentId': {'value': 'C1', 'displayValue': 'a.pdf'},
@@ -279,6 +290,13 @@ void main() {
       final second = await repo.sendMail(const {'messageType': 'M'}, challenge: challenge, otp: '1234');
       expect((second as Success<MailboxWriteOutcome>).data!.pendingApproval, isTrue);
       expect(api.sent.length, 2);
+    });
+
+    test('send answered 201 Created (as in UAT, mailbox.har) is done', () async {
+      final api = _FakeApi()..answer = 201;
+      final r = await MailboxRepository(api: api).sendMail(const {'messageType': 'M'});
+      expect((r as Success<MailboxWriteOutcome>).data!.challenge, isNull);
+      expect(r.data!.pendingApproval, isFalse);
     });
 
     test('upload: SUCCESSFUL gives the contentId; anything else fails', () async {
@@ -423,6 +441,7 @@ void main() {
     expect(body['subject'], 'Address change');
     expect(body['subjectId'], 'S9');
     expect(body['party'], {'value': 'P001'}, reason: 'own party when the field is hidden');
+    expect(body['partyName'], 'Jane Doe');
     expect(find.text('Your message has been sent successfully.'), findsOneWidget);
     expect(repo.folders.last, MailFolder.sent);
   });

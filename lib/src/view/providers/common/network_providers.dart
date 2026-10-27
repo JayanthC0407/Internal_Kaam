@@ -9,6 +9,7 @@ import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_payments_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_mobile_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:ubci_bank/src/infra/network/apis/common/obdx_calculators_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_cards_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_limits_api.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_mailbox_api.dart';
@@ -72,6 +73,10 @@ final obdxLimitsApiProvider = Provider(
 
 final obdxMailboxApiProvider = Provider(
   (ref) => ObdxMailboxApi(ref.watch(obdxDioClientProvider)),
+);
+
+final obdxCalculatorsApiProvider = Provider(
+  (ref) => ObdxCalculatorsApi(ref.watch(obdxDioClientProvider)),
 );
 
 final obdxPreferencesApiProvider = Provider(

@@ -28,6 +28,7 @@ class RetailNav {
   static const creditCards = 'creditCards';
   static const billPayments = 'billPayments';
   static const mailbox = 'mailbox';
+  static const calculators = 'calculators';
 
   /// Tab index → id, for the dashboard's first five tabs — the same
   /// indices the phone's bottom bar uses.
@@ -98,6 +99,12 @@ class RetailNav {
           id: mailbox,
           label: l10n.mailboxTitle,
           icon: Icons.mail_outline_rounded,
+        ),
+        // OBDX's Calculators menu: the four calculators on one page.
+        DashboardNavItem(
+          id: calculators,
+          label: l10n.calcTitle,
+          icon: Icons.calculate_outlined,
         ),
         // Last, after Accounts: a catch-all reads best at the end.
         DashboardNavItem(
