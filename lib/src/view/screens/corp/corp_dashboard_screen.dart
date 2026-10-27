@@ -14,6 +14,7 @@ import 'package:ubci_bank/src/view/routes/routes_const.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
@@ -111,6 +112,9 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// [_destination] until Back or a menu choice.
   bool _preferencesOpen = false;
 
+  /// Which half Service Requests was opened on from the menu.
+  SrTab _srTab = SrTab.track;
+
   @override
   void initState() {
     super.initState();
@@ -196,6 +200,9 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   void _onNavSelected(String id) {
     final destination = CorpNavDestination.fromNavId(id);
     if (destination == null) return;
+    if (destination == CorpNavDestination.serviceRequests) {
+      _srTab = id == CorpNavDestination.serviceRequestsRaiseId ? SrTab.raise : SrTab.track;
+    }
     _selectDestination(
       destination,
       lcAction: destination == CorpNavDestination.tradeFinance
@@ -212,6 +219,9 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     final action = _lcAction;
     if (_destination == CorpNavDestination.tradeFinance && action != null) {
       return CorpNavDestination.navIdForLcAction(action);
+    }
+    if (_destination == CorpNavDestination.serviceRequests) {
+      return _srTab == SrTab.raise ? CorpNavDestination.serviceRequestsRaiseId : CorpNavDestination.serviceRequestsTrackId;
     }
     return _destination.name;
   }
@@ -468,6 +478,13 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     }
     if (_destination == CorpNavDestination.home) {
       return _buildHome(responsive);
+    }
+    if (_destination == CorpNavDestination.serviceRequests) {
+      return ServiceRequestsScreen(
+        initialTab: _srTab,
+        embedded: true,
+        onBack: () => _selectDestination(CorpNavDestination.home),
+      );
     }
     if (_destination == CorpNavDestination.tradeFinance) {
       final action = _lcAction;

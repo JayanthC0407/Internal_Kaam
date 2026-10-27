@@ -8,7 +8,10 @@ import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart'
 import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
 import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:ubci_bank/src/view/screens/common/preferences/sections/alerts_subscription_section.dart';
+import 'package:ubci_bank/src/view/screens/common/preferences/sections/change_password_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/primary_account_section.dart';
+import 'package:ubci_bank/src/view/screens/common/preferences/sections/session_summary_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/profile_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/security_login_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/settings_section.dart';
@@ -28,10 +31,11 @@ import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 ///  - Account: Profile, Primary Account Number, Limits & Controls
 ///    (OBDX My Limits);
 ///  - Security & Privacy: Security & Login (with biometric login and
-///    devices), Privacy & Consents (Third Party Applications, Feedback,
-///    Live Help);
-///  - App: Notifications & Alerts (push, OTP delivery), Appearance &
-///    Language (OBDX Themes), Personalize Dashboard;
+///    devices), Change Password, Session Summary, Privacy & Consents
+///    (Third Party Applications, Feedback, Live Help);
+///  - App: Notifications & Alerts (push, OTP delivery), Alerts
+///    Subscription, Appearance & Language (OBDX Themes), Personalize
+///    Dashboard;
 ///  - Log out.
 /// Wide: a profile card over the section list and the open section. Phone:
 /// the card and the list, each row with its current value where cheap to
@@ -41,8 +45,11 @@ enum PrefSection {
   primaryAccount(Icons.account_balance_wallet_outlined),
   limits(Icons.speed_rounded),
   securityLogin(Icons.lock_outline_rounded),
+  changePassword(Icons.password_rounded),
+  sessionSummary(Icons.history_rounded),
   privacy(Icons.privacy_tip_outlined),
   notifications(Icons.notifications_none_rounded),
+  alertsSubscription(Icons.notifications_active_outlined),
   appearance(Icons.palette_outlined);
 
   const PrefSection(this.icon);
@@ -54,7 +61,10 @@ enum PrefSection {
         PrefSection.primaryAccount => l10n.prefPrimaryAccount,
         PrefSection.limits => l10n.prefLimitsControls,
         PrefSection.securityLogin => l10n.prefSecurityLogin,
+        PrefSection.changePassword => l10n.cpTitle,
+        PrefSection.sessionSummary => l10n.ssTitle,
         PrefSection.privacy => l10n.prefPrivacyConsents,
+        PrefSection.alertsSubscription => l10n.asTitle,
         PrefSection.notifications => l10n.prefNotificationsAlerts,
         PrefSection.appearance => l10n.prefAppearanceLanguage,
       };
@@ -65,7 +75,10 @@ enum PrefSection {
         PrefSection.primaryAccount => l10n.prefPrimaryAccountHint,
         PrefSection.limits => l10n.prefLimitsHint,
         PrefSection.securityLogin => l10n.prefSecurityHint,
+        PrefSection.changePassword => l10n.cpHint,
+        PrefSection.sessionSummary => l10n.ssHint,
         PrefSection.privacy => l10n.prefPrivacyHint,
+        PrefSection.alertsSubscription => l10n.asHint,
         PrefSection.notifications => l10n.prefNotificationsHint,
         PrefSection.appearance => l10n.prefAppearanceHint,
       };
@@ -74,8 +87,8 @@ enum PrefSection {
 /// The list's groups, in order.
 const _groups = [
   [PrefSection.profile, PrefSection.primaryAccount, PrefSection.limits],
-  [PrefSection.securityLogin, PrefSection.privacy],
-  [PrefSection.notifications, PrefSection.appearance],
+  [PrefSection.securityLogin, PrefSection.changePassword, PrefSection.sessionSummary, PrefSection.privacy],
+  [PrefSection.notifications, PrefSection.alertsSubscription, PrefSection.appearance],
 ];
 
 String _groupTitle(AppLocalizations l10n, int i) => switch (i) {
@@ -152,6 +165,14 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         PrefSection.primaryAccount => const PrimaryAccountSection(),
         PrefSection.limits => MyLimitsView(wide: wide),
         PrefSection.securityLogin => const SecurityLoginSection(),
+        PrefSection.changePassword => ChangePasswordSection(
+            userName: widget.userName,
+            onCancel: onDone,
+            // OBDX: "Please click below to Login" — the session ends.
+            onLogin: widget.onLogout,
+          ),
+        PrefSection.sessionSummary => const SessionSummarySection(),
+        PrefSection.alertsSubscription => const AlertsSubscriptionSection(),
         PrefSection.privacy => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -231,23 +252,14 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   }
 }
 
-/// Who is signed in: initials, name, user id, masked email and mobile
-/// (from `me/party`) and the last login — a quick fraud check.
+/// Who is signed in: initials, name (from `me/party`), user id and the
+/// last login — a quick fraud check.
 class _ProfileCard extends ConsumerWidget {
   const _ProfileCard({required this.userName, required this.displayName, this.lastLogin});
 
   final String userName;
   final String displayName;
   final DateTime? lastLogin;
-
-  static String _maskEmail(String email) {
-    final at = email.indexOf('@');
-    if (at <= 1) return email;
-    return '${email[0]}${'•' * (at - 1).clamp(1, 6)}${email.substring(at)}';
-  }
-
-  static String _maskPhone(String phone) =>
-      phone.length <= 4 ? phone : '•••• ${phone.substring(phone.length - 4)}';
 
   static String _when(BuildContext context, DateTime t) {
     final local = t.toLocal();
@@ -260,10 +272,6 @@ class _ProfileCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final profile = ref.watch(partyProfileProvider).valueOrNull;
     final name = profile?.displayName.isNotEmpty == true ? profile!.displayName : (displayName.isEmpty ? userName : displayName);
-    final contact = [
-      if (profile != null && profile.email.isNotEmpty) _maskEmail(profile.email),
-      if (profile != null && profile.phone.number.isNotEmpty) _maskPhone(profile.phone.number),
-    ];
     const muted = TextStyle(color: Colors.white, fontSize: 12.5);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -287,10 +295,6 @@ class _ProfileCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(l10n.prefUserId(userName), style: muted.copyWith(color: Colors.white.withValues(alpha: 0.9))),
-                if (contact.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(contact.join('  ·  '), style: muted.copyWith(color: Colors.white.withValues(alpha: 0.9))),
-                ],
                 if (lastLogin != null) ...[
                   const SizedBox(height: 6),
                   Row(

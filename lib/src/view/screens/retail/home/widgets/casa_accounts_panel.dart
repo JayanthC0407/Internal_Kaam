@@ -120,8 +120,10 @@ class _AccountTile extends StatelessWidget {
     final statusLabel = account.isDormant
         ? l10n.accountStatusDormant
         : l10n.accountStatusActive;
-    final numberText =
-        revealed ? account.displayNumber : account.maskedNumber;
+    // Hidden means the whole number, last 4 included.
+    final numberText = revealed
+        ? account.displayNumber
+        : '•' * account.displayNumber.replaceAll(RegExp(r'\s+'), '').length;
 
     return Material(
       color: HomeColors.card(context),

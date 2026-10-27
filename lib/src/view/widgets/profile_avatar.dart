@@ -19,8 +19,6 @@ class ProfileAvatar extends StatelessWidget {
   final VoidCallback? onTap;
   final bool onDarkBackground;
 
-  static const _fill = Color(0xFF556285);
-
   @override
   Widget build(BuildContext context) {
     final size = radius * 2;
@@ -37,7 +35,9 @@ class ProfileAvatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _fill,
+        // Follows the colour theme: the palette's brand, or a white tint on
+        // the brand gradient cards, where brand would vanish.
+        color: onDarkBackground ? Colors.white.withValues(alpha: 0.22) : colors.brand,
         border: Border.all(color: ring, width: 1.5),
         boxShadow: onDarkBackground
             ? null
