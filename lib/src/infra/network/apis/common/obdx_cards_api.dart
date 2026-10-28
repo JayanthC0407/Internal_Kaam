@@ -26,6 +26,12 @@ class ObdxCardsApi extends ObdxApiBase {
   ) =>
       _get('$_creditCards/${Uri.encodeComponent(cardId)}/statements/transactions', queryParameters);
 
+  /// `GET /digx-common/dda/v1/demandDeposit/debitCards` — every debit card
+  /// of the user, `debitCardDetails[]` (debit-card-list/model.js:15-23).
+  /// apiType `dda`, so not under the card base.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDebitCards() =>
+      _get('/digx-common/dda/v1/demandDeposit/debitCards', const {});
+
   Future<ResponseHandler<Map<String, dynamic>>> _get(String path, Map<String, dynamic> query) async {
     try {
       final response = await dio.get(

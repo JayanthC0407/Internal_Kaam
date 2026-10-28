@@ -25,6 +25,12 @@ class RetailNav {
   static const accountsCasa = 'accounts.casa';
   static const accountsLoans = 'accounts.loans';
   static const accountsTermDeposits = 'accounts.termDeposits';
+
+  /// OBDX Accounts → Certificates (Interest, Balance, TDS): a module page.
+  static const accountsCertificates = 'accounts.certificates';
+
+  /// OBDX Accounts → Nominations.
+  static const accountsNominations = 'accounts.nominations';
   static const creditCards = 'creditCards';
   static const billPayments = 'billPayments';
 
@@ -72,6 +78,16 @@ class RetailNav {
               id: accountsTermDeposits,
               label: l10n.menuTermDeposits,
               icon: Icons.savings_outlined,
+            ),
+            DashboardNavItem(
+              id: accountsNominations,
+              label: l10n.nomTitle,
+              icon: Icons.family_restroom_rounded,
+            ),
+            DashboardNavItem(
+              id: accountsCertificates,
+              label: l10n.certMenuTitle,
+              icon: Icons.workspace_premium_outlined,
             ),
           ],
         ),

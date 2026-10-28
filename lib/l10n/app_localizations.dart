@@ -9309,6 +9309,1176 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More actions'**
   String get ccMoreActions;
+
+  /// No description provided for @casaMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current & Savings'**
+  String get casaMenuTitle;
+
+  /// No description provided for @casaAccountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current & Savings Accounts'**
+  String get casaAccountsTitle;
+
+  /// No description provided for @casaChequeStatusInquiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheque Status Inquiry'**
+  String get casaChequeStatusInquiry;
+
+  /// No description provided for @casaChequeBookRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheque Book Request'**
+  String get casaChequeBookRequest;
+
+  /// No description provided for @casaStopUnblockCheque.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop/Unblock Cheque'**
+  String get casaStopUnblockCheque;
+
+  /// No description provided for @casaSweepIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweep-In'**
+  String get casaSweepIn;
+
+  /// No description provided for @dcTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit Cards'**
+  String get dcTitle;
+
+  /// No description provided for @dcEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No card to display'**
+  String get dcEmpty;
+
+  /// No description provided for @dcAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get dcAccountNumber;
+
+  /// No description provided for @dcStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get dcStatusActive;
+
+  /// No description provided for @dcStatusBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'BLOCKED'**
+  String get dcStatusBlocked;
+
+  /// No description provided for @dcStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCELLED'**
+  String get dcStatusCancelled;
+
+  /// No description provided for @dcLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit Card Limits'**
+  String get dcLimits;
+
+  /// No description provided for @dcUpgradeCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade Card'**
+  String get dcUpgradeCard;
+
+  /// No description provided for @dcReissueCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Reissue Card'**
+  String get dcReissueCard;
+
+  /// No description provided for @dcSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View balances, due amounts and manage each card.'**
+  String get dcSubtitle;
+
+  /// No description provided for @casaHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your accounts and what you can do with them'**
+  String get casaHubSubtitle;
+
+  /// No description provided for @casaAccountsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Balances, details and transactions'**
+  String get casaAccountsDesc;
+
+  /// No description provided for @dcDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your debit cards and their status'**
+  String get dcDesc;
+
+  /// No description provided for @dcLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your debit cards.'**
+  String get dcLoadFailed;
+
+  /// No description provided for @dcNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No debit cards match your search.'**
+  String get dcNoMatch;
+
+  /// No description provided for @dcStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get dcStatus;
+
+  /// No description provided for @dcAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All accounts'**
+  String get dcAllAccounts;
+
+  /// No description provided for @certMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates'**
+  String get certMenuTitle;
+
+  /// No description provided for @certInterestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest Certificates'**
+  String get certInterestTitle;
+
+  /// No description provided for @certBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance Certificates'**
+  String get certBalanceTitle;
+
+  /// No description provided for @certTdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'TDS Certificates'**
+  String get certTdsTitle;
+
+  /// No description provided for @certAccountCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Category'**
+  String get certAccountCategory;
+
+  /// No description provided for @certCategoryCasa.
+  ///
+  /// In en, this message translates to:
+  /// **'Current & Savings'**
+  String get certCategoryCasa;
+
+  /// No description provided for @certCategoryDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposits'**
+  String get certCategoryDeposits;
+
+  /// No description provided for @certCategoryLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans & Finances'**
+  String get certCategoryLoans;
+
+  /// No description provided for @certInterestFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Interest Certificate for'**
+  String get certInterestFor;
+
+  /// No description provided for @certSpecificAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific Account'**
+  String get certSpecificAccount;
+
+  /// No description provided for @certAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get certAllAccounts;
+
+  /// No description provided for @certAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get certAccountNumber;
+
+  /// No description provided for @certSelectPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Period'**
+  String get certSelectPeriod;
+
+  /// No description provided for @certFinancialYearOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial year'**
+  String get certFinancialYearOption;
+
+  /// No description provided for @certDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get certDuration;
+
+  /// No description provided for @certFy.
+  ///
+  /// In en, this message translates to:
+  /// **'FY'**
+  String get certFy;
+
+  /// No description provided for @certFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From Date'**
+  String get certFromDate;
+
+  /// No description provided for @certToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date'**
+  String get certToDate;
+
+  /// No description provided for @certApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get certApply;
+
+  /// No description provided for @certReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get certReset;
+
+  /// No description provided for @certDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get certDownload;
+
+  /// No description provided for @certProductType.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Type'**
+  String get certProductType;
+
+  /// No description provided for @certDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get certDate;
+
+  /// No description provided for @certInterestCredited.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest Credited'**
+  String get certInterestCredited;
+
+  /// No description provided for @certInterestDebited.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest Debited'**
+  String get certInterestDebited;
+
+  /// No description provided for @certNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No Certificates available for this specific criteria.'**
+  String get certNoData;
+
+  /// No description provided for @certNoneAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No Certificates Available.'**
+  String get certNoneAvailable;
+
+  /// No description provided for @certSelectMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Month'**
+  String get certSelectMonth;
+
+  /// No description provided for @certCasaAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Current and Savings Accounts'**
+  String get certCasaAccounts;
+
+  /// No description provided for @certTermDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposits'**
+  String get certTermDeposits;
+
+  /// No description provided for @certDepositNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit No'**
+  String get certDepositNo;
+
+  /// No description provided for @certBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get certBalance;
+
+  /// No description provided for @certNoDataToDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'No Data to Display'**
+  String get certNoDataToDisplay;
+
+  /// No description provided for @certSelectFinancialYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Financial Year'**
+  String get certSelectFinancialYear;
+
+  /// No description provided for @certDepositAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit Account'**
+  String get certDepositAccount;
+
+  /// No description provided for @certInterestEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest Earned'**
+  String get certInterestEarned;
+
+  /// No description provided for @certTaxDeducted.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Deducted'**
+  String get certTaxDeducted;
+
+  /// No description provided for @certTdsWaiver.
+  ///
+  /// In en, this message translates to:
+  /// **'TDS Waiver'**
+  String get certTdsWaiver;
+
+  /// No description provided for @certTdsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'TDS For Financial Year {year} was {amount}'**
+  String certTdsHeading(String year, String amount);
+
+  /// No description provided for @certHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest, balance and tax certificates for your accounts'**
+  String get certHubSubtitle;
+
+  /// No description provided for @certInterestDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest credited or debited, by period'**
+  String get certInterestDesc;
+
+  /// No description provided for @certBalanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your balances at the end of a month'**
+  String get certBalanceDesc;
+
+  /// No description provided for @certTdsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax deducted on your deposits, by financial year'**
+  String get certTdsDesc;
+
+  /// No description provided for @certLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load this certificate.'**
+  String get certLoadFailed;
+
+  /// No description provided for @certDatesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select both dates.'**
+  String get certDatesRequired;
+
+  /// No description provided for @nomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nominations'**
+  String get nomTitle;
+
+  /// No description provided for @nomAccountCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Category'**
+  String get nomAccountCategory;
+
+  /// No description provided for @nomViewNomineesOf.
+  ///
+  /// In en, this message translates to:
+  /// **'View Nominees of'**
+  String get nomViewNomineesOf;
+
+  /// No description provided for @nomSpecificAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific Account'**
+  String get nomSpecificAccount;
+
+  /// No description provided for @nomAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get nomAllAccounts;
+
+  /// No description provided for @nomAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get nomAccountNumber;
+
+  /// No description provided for @nomApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get nomApply;
+
+  /// No description provided for @nomReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get nomReset;
+
+  /// No description provided for @nomCategoryCasa.
+  ///
+  /// In en, this message translates to:
+  /// **'Current & Savings'**
+  String get nomCategoryCasa;
+
+  /// No description provided for @nomCategoryTd.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposits'**
+  String get nomCategoryTd;
+
+  /// No description provided for @nomCategoryRd.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Deposits'**
+  String get nomCategoryRd;
+
+  /// No description provided for @nomPrimaryHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary Holder Name'**
+  String get nomPrimaryHolderName;
+
+  /// No description provided for @nomHoldingPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding Pattern'**
+  String get nomHoldingPattern;
+
+  /// No description provided for @nomNominee.
+  ///
+  /// In en, this message translates to:
+  /// **'Nominee'**
+  String get nomNominee;
+
+  /// No description provided for @nomAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get nomAction;
+
+  /// No description provided for @nomSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get nomSingle;
+
+  /// No description provided for @nomJoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint'**
+  String get nomJoint;
+
+  /// No description provided for @nomRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered'**
+  String get nomRegistered;
+
+  /// No description provided for @nomNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Registered'**
+  String get nomNotRegistered;
+
+  /// No description provided for @nomActionViewEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'View/Edit'**
+  String get nomActionViewEdit;
+
+  /// No description provided for @nomActionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get nomActionAdd;
+
+  /// No description provided for @nomActionView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get nomActionView;
+
+  /// No description provided for @nomActionKnowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Know More'**
+  String get nomActionKnowMore;
+
+  /// No description provided for @nomJointNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Note - Since this is a jointly held account, you will need to fill out a Nomination form. This form will have to be signed by all the account holders and submitted at a nearest branch. You may download and print the Nomination form from the Demo Bank website or obtain it from any Demo Bank branch.'**
+  String get nomJointNote;
+
+  /// No description provided for @nomAddNominee.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Nominee'**
+  String get nomAddNominee;
+
+  /// No description provided for @nomViewNominee.
+  ///
+  /// In en, this message translates to:
+  /// **'View Nominee'**
+  String get nomViewNominee;
+
+  /// No description provided for @nomNomineeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Nominee Details'**
+  String get nomNomineeDetails;
+
+  /// No description provided for @nomGuardianDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian Details'**
+  String get nomGuardianDetails;
+
+  /// No description provided for @nomFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get nomFullName;
+
+  /// No description provided for @nomDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get nomDateOfBirth;
+
+  /// No description provided for @nomRelationship.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship'**
+  String get nomRelationship;
+
+  /// No description provided for @nomAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get nomAddress;
+
+  /// No description provided for @nomEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get nomEdit;
+
+  /// No description provided for @nomDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get nomDelete;
+
+  /// No description provided for @nomBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get nomBack;
+
+  /// No description provided for @nomLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the nominations.'**
+  String get nomLoadFailed;
+
+  /// No description provided for @nomNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts to show.'**
+  String get nomNoAccounts;
+
+  /// No description provided for @cbrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheque Book Request'**
+  String get cbrTitle;
+
+  /// No description provided for @cbrAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get cbrAccountNumber;
+
+  /// No description provided for @cbrAccountBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Balance'**
+  String get cbrAccountBalance;
+
+  /// No description provided for @cbrType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type of Cheque Book'**
+  String get cbrType;
+
+  /// No description provided for @cbrBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of Cheque Books'**
+  String get cbrBooks;
+
+  /// No description provided for @cbrBooksError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Valid Number'**
+  String get cbrBooksError;
+
+  /// No description provided for @cbrLeaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of Leaves per Book'**
+  String get cbrLeaves;
+
+  /// No description provided for @cbrLeaveOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheque Book with {count} Leaves'**
+  String cbrLeaveOption(int count);
+
+  /// No description provided for @cbrDeliveryLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Location'**
+  String get cbrDeliveryLocation;
+
+  /// No description provided for @cbrSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select'**
+  String get cbrSelect;
+
+  /// No description provided for @cbrWalletNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheque Book Request not allowed from wallet'**
+  String get cbrWalletNotAllowed;
+
+  /// No description provided for @cbrReviewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for Cheque Book. Please review details before you confirm!'**
+  String get cbrReviewMessage;
+
+  /// No description provided for @cbrDeliveredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cheque book will be delivered at the desired location!'**
+  String get cbrDeliveredMessage;
+
+  /// No description provided for @cbrAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been accepted.'**
+  String get cbrAccepted;
+
+  /// No description provided for @cbrInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been initiated successfully.'**
+  String get cbrInitiated;
+
+  /// No description provided for @cbrReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number'**
+  String get cbrReferenceNumber;
+
+  /// No description provided for @cbrMyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'My Address'**
+  String get cbrMyAddress;
+
+  /// No description provided for @cbrBranchNearMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Near Me'**
+  String get cbrBranchNearMe;
+
+  /// No description provided for @cbrAddressType.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Type'**
+  String get cbrAddressType;
+
+  /// No description provided for @cbrCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get cbrCity;
+
+  /// No description provided for @cbrSelectAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select Address'**
+  String get cbrSelectAddress;
+
+  /// No description provided for @cbrSelectCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select City'**
+  String get cbrSelectCity;
+
+  /// No description provided for @cbrSelectBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Select Branch'**
+  String get cbrSelectBranch;
+
+  /// No description provided for @cbrRequestDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Request details'**
+  String get cbrRequestDetails;
+
+  /// No description provided for @cbrEstimatedIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated issue'**
+  String get cbrEstimatedIssue;
+
+  /// No description provided for @cbrLeavesPerBook.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} leaves / book'**
+  String cbrLeavesPerBook(int count);
+
+  /// No description provided for @cbrSummaryBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 book} other{{count} books}}'**
+  String cbrSummaryBooks(int count);
+
+  /// No description provided for @cbrSummaryLeaves.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} leaves'**
+  String cbrSummaryLeaves(int count);
+
+  /// No description provided for @cbrSummaryDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery: {place}'**
+  String cbrSummaryDelivery(String place);
+
+  /// No description provided for @cbrDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Order a new cheque book for your account.'**
+  String get cbrDesc;
+
+  /// No description provided for @cbrLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the request details.'**
+  String get cbrLoadFailed;
+
+  /// No description provided for @cbrAddressFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the address.'**
+  String get cbrAddressFailed;
+
+  /// No description provided for @cbrNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts available for a cheque book request.'**
+  String get cbrNoAccounts;
+
+  /// No description provided for @cbrNoAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'No address to show.'**
+  String get cbrNoAddress;
+
+  /// No description provided for @cbrFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t submit your cheque book request.'**
+  String get cbrFailed;
+
+  /// No description provided for @cbrDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get cbrDone;
+
+  /// No description provided for @swpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweep-In'**
+  String get swpTitle;
+
+  /// No description provided for @swpAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get swpAccountNumber;
+
+  /// No description provided for @swpAccountBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Balance'**
+  String get swpAccountBalance;
+
+  /// No description provided for @swpLinkedAccountType.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked Account Type'**
+  String get swpLinkedAccountType;
+
+  /// No description provided for @swpCasa.
+  ///
+  /// In en, this message translates to:
+  /// **'Current and Savings'**
+  String get swpCasa;
+
+  /// No description provided for @swpTd.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Deposit'**
+  String get swpTd;
+
+  /// No description provided for @swpAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get swpAccounts;
+
+  /// No description provided for @swpDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposits'**
+  String get swpDeposits;
+
+  /// No description provided for @swpLinkedHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked {type}'**
+  String swpLinkedHeading(String type);
+
+  /// No description provided for @swpLinkHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Link {type}'**
+  String swpLinkHeading(String type);
+
+  /// No description provided for @swpPrimaryHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary Holder Name'**
+  String get swpPrimaryHolderName;
+
+  /// No description provided for @swpBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get swpBalance;
+
+  /// No description provided for @swpDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get swpDelete;
+
+  /// No description provided for @swpNoLinkedAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No linked accounts to display.'**
+  String get swpNoLinkedAccounts;
+
+  /// No description provided for @swpNoLinkedDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'No linked deposits to display.'**
+  String get swpNoLinkedDeposits;
+
+  /// No description provided for @swpNoCasaAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry!  You do not have any Current and Savings accounts available for linking. You need to have two or more accounts to carry out this transaction.'**
+  String get swpNoCasaAvailable;
+
+  /// No description provided for @swpNoTdAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry!  You do not have any Deposits available for linking. You need to have at least one Term Deposit to carry out this transaction.'**
+  String get swpNoTdAvailable;
+
+  /// No description provided for @swpAllLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'All the accounts are already linked to this beneficiary account. You do not have any more Provider accounts to be linked.'**
+  String get swpAllLinked;
+
+  /// No description provided for @swpSelectAtLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one account for linking.'**
+  String get swpSelectAtLeastOne;
+
+  /// No description provided for @swpDelinkConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delink this account?'**
+  String get swpDelinkConfirm;
+
+  /// No description provided for @swpReviewAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for linking new account(s). Please review all your new and existing linking requests before you confirm.'**
+  String get swpReviewAccounts;
+
+  /// No description provided for @swpReviewDeposits.
+  ///
+  /// In en, this message translates to:
+  /// **'You initiated a request for linking new deposit(s). Please review all your new and existing linking requests before you confirm.'**
+  String get swpReviewDeposits;
+
+  /// No description provided for @swpStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get swpStatus;
+
+  /// No description provided for @swpNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get swpNew;
+
+  /// No description provided for @swpSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweep-In Request Submitted successfully.'**
+  String get swpSuccess;
+
+  /// No description provided for @swpPartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweep-In Request initiated successfully. Some Request seem to have failed.'**
+  String get swpPartFailed;
+
+  /// No description provided for @swpStatusLinkText.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the status link to view the status of each Sweep-In request.'**
+  String get swpStatusLinkText;
+
+  /// No description provided for @swpClickHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Click Here'**
+  String get swpClickHere;
+
+  /// No description provided for @swpStatusHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Sweep-In Instruction Status'**
+  String get swpStatusHeader;
+
+  /// No description provided for @swpReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number'**
+  String get swpReferenceNumber;
+
+  /// No description provided for @swpFailureReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Failure Reason'**
+  String get swpFailureReason;
+
+  /// No description provided for @swpCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get swpCompleted;
+
+  /// No description provided for @swpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get swpFailed;
+
+  /// No description provided for @swpNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to do next?'**
+  String get swpNextAction;
+
+  /// No description provided for @swpManageSweepIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Sweep-In'**
+  String get swpManageSweepIn;
+
+  /// No description provided for @swpAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been accepted.'**
+  String get swpAccepted;
+
+  /// No description provided for @swpInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been initiated successfully.'**
+  String get swpInitiated;
+
+  /// No description provided for @swpSelectColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get swpSelectColumn;
+
+  /// No description provided for @swpDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Link accounts that top up this account automatically.'**
+  String get swpDesc;
+
+  /// No description provided for @swpLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the Sweep-In details.'**
+  String get swpLoadFailed;
+
+  /// No description provided for @swpNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts available for Sweep-In.'**
+  String get swpNoAccounts;
+
+  /// No description provided for @swpLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t submit the Sweep-In request.'**
+  String get swpLinkFailed;
+
+  /// No description provided for @swpDelinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t delink the account.'**
+  String get swpDelinkFailed;
+
+  /// No description provided for @dndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage DND Alerts'**
+  String get dndTitle;
+
+  /// No description provided for @dndSelectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Category'**
+  String get dndSelectCategory;
+
+  /// No description provided for @dndAlertHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'DND Alert : {categoryName}'**
+  String dndAlertHeader(String categoryName);
+
+  /// No description provided for @dndReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts DND'**
+  String get dndReview;
+
+  /// No description provided for @dndAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been accepted.'**
+  String get dndAccepted;
+
+  /// No description provided for @dndInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request has been initiated successfully.'**
+  String get dndInitiated;
+
+  /// No description provided for @dndReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number'**
+  String get dndReferenceNumber;
+
+  /// No description provided for @dndHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause alerts by category'**
+  String get dndHint;
+
+  /// No description provided for @dndNoCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'No alert categories to show.'**
+  String get dndNoCategories;
+
+  /// No description provided for @dndNoEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'No events in this category.'**
+  String get dndNoEvents;
+
+  /// No description provided for @dndEventsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load this category\'s events.'**
+  String get dndEventsFailed;
 }
 
 class _AppLocalizationsDelegate

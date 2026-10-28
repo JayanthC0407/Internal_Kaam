@@ -68,6 +68,21 @@ class ObdxAccountSettingsApi extends ObdxApiBase {
   Future<ResponseHandler<Map<String, dynamic>>> deleteSubscription(String id, {String? challengeResponseHeader}) =>
       _write('DELETE', '$_alerts/actionSubscriptions/${Uri.encodeComponent(id)}', null, challengeResponseHeader);
 
+  // ── Manage DND Alerts ──
+
+  /// `GET alerts dndRegistry` → `categories[]`, `mapped[]`. OBDX's `userId`
+  /// query is null, so nothing is sent (manage-dnd-alerts-stage1/model.js).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDndRegistry() => _get('$_alerts/dndRegistry');
+
+  /// `GET alerts activityEvents?categoryId=` → `activityEvents[]`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDndEvents(String categoryId) =>
+      _get('$_alerts/activityEvents', query: {'categoryId': categoryId});
+
+  /// `PUT user me/dndRegistry {categories}` (manage-dnd-alerts-review/model.js).
+  Future<ResponseHandler<Map<String, dynamic>>> saveDndRegistry(Map<String, dynamic> body,
+          {String? challengeResponseHeader}) =>
+      _write('PUT', '${ApiConst.profileApi}/dndRegistry', body, challengeResponseHeader);
+
   /// `GET party parties/{id}/accounts?accountType=&taskCode=AL_N_CS`.
   Future<ResponseHandler<Map<String, dynamic>>> fetchPartyAccounts(String partyId, String accountType) => _get(
         '/digx-common/party/v1/parties/${Uri.encodeComponent(partyId)}/accounts',
