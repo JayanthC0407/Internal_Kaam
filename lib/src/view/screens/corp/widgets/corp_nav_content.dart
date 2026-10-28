@@ -7,26 +7,34 @@ import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
 /// declaration order *is* the order the sidebar and drawer list them, so
 /// [home] stays first.
 ///
-/// Only [home] and [tradeFinance] have a built surface today; every other
-/// destination renders the corporate shell's own placeholder panel (see
-/// `CorpDashboardScreen._buildDestination`) so the sidebar, header and
-/// session handling stay live while those modules are built out.
+/// Built surfaces: [home], [tradeFinance], and the modules shared with
+/// Retail (Accounts, Loan, Term Deposits, Transfer, Bill, Credit Card,
+/// Service Requests, Mailbox, Calculators, More — see `CorpSharedModules`).
+/// The [inMore] ones open from More rather than the side menu.
+/// [statements] and [insurance] still render the corporate shell's
+/// placeholder panel (see `CorpDashboardScreen._buildDestination`).
 enum CorpNavDestination {
   home('Home', Icons.home_outlined),
   accounts('Accounts', Icons.account_balance_outlined),
   loan('Loan', Icons.savings_outlined),
+  termDeposits('Term Deposits', Icons.account_balance_wallet_outlined),
   transfer('Transfer', Icons.swap_horiz_rounded),
   tradeFinance('Trade Finance', Icons.public_rounded),
   bill('Bill', Icons.receipt_long_outlined),
   statements('Statements', Icons.description_outlined),
   creditCard('Credit Card', Icons.credit_card_outlined),
   insurance('Insurance', Icons.shield_outlined),
-  serviceRequests('Service Requests', Icons.support_agent_rounded);
+  serviceRequests('Service Requests', Icons.support_agent_rounded),
+  mailbox('Mailbox', Icons.mail_outline_rounded),
+  calculators('Calculators', Icons.calculate_outlined),
 
-  /// OBDX's two Service Requests entries — the same shared page, opened on
-  /// either half.
-  static const serviceRequestsTrackId = 'serviceRequests.track';
-  static const serviceRequestsRaiseId = 'serviceRequests.raise';
+  /// Last, like Retail's: the same More page (services hub), which also
+  /// holds Mailbox, Service Requests and Calculators.
+  more('More', Icons.more_horiz_rounded);
+
+  /// Reached from More (and the bell for Mailbox), not listed in the side
+  /// menu — as on Retail.
+  static const inMore = {serviceRequests, mailbox, calculators};
 
   const CorpNavDestination(this.label, this.icon);
 
@@ -50,20 +58,10 @@ enum CorpNavDestination {
   static List<DashboardNavItem> navItems(LcPermissions lcPermissions) {
     final items = <DashboardNavItem>[];
     for (final destination in values) {
+      if (inMore.contains(destination)) continue;
       if (destination == tradeFinance) {
         final item = _tradeFinanceItem(lcPermissions);
         if (item != null) items.add(item);
-      } else if (destination == serviceRequests) {
-        // TODO(l10n): like the other corporate labels.
-        items.add(DashboardNavItem(
-          id: destination.name,
-          label: destination.label,
-          icon: destination.icon,
-          children: const [
-            DashboardNavItem(id: serviceRequestsTrackId, label: 'Track Requests', icon: Icons.manage_search_rounded),
-            DashboardNavItem(id: serviceRequestsRaiseId, label: 'Raise a New Request', icon: Icons.add_comment_outlined),
-          ],
-        ));
       } else {
         items.add(DashboardNavItem(
           id: destination.name,
