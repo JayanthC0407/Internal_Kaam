@@ -139,6 +139,18 @@ void main() {
     expect(scaffold.currentState!.isDrawerOpen, isFalse);
   });
 
+  test('Corporate — the shared modules in the menu; Mailbox, Service Requests, Calculators in More', () {
+    final ids = [for (final d in CorpNavDestination.values) d.name];
+    for (final id in ['accounts', 'loan', 'termDeposits', 'transfer', 'bill', 'creditCard', 'serviceRequests', 'mailbox', 'calculators', 'more']) {
+      expect(ids, contains(id), reason: id);
+    }
+    final menu = [for (final item in CorpNavDestination.navItems(const LcPermissions(viewImport: true, viewExport: true, initiate: true, amend: true))) item.id];
+    expect(menu.last, 'more');
+    for (final id in ['serviceRequests', 'mailbox', 'calculators']) {
+      expect(menu, isNot(contains(id)), reason: '$id is in More');
+    }
+  });
+
   group('each user type brings its own entries', () {
     test('Retail', () {
       final ids = [
