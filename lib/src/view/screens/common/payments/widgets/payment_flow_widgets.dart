@@ -683,12 +683,18 @@ class PaySummaryCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      label,
-                      style: TextStyle(fontSize: 12.5, color: HomeColors.textSecondary(context)),
+                    // A long label (e.g. "Number of Leaves per Book") wraps
+                    // instead of pushing the row off a narrow phone.
+                    Flexible(
+                      flex: 2,
+                      child: Text(
+                        label,
+                        style: TextStyle(fontSize: 12.5, color: HomeColors.textSecondary(context)),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
+                      flex: 3,
                       child: Text(
                         value,
                         textAlign: TextAlign.end,
