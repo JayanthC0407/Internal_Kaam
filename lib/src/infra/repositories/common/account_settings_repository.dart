@@ -211,6 +211,23 @@ class AccountSettingsRepository extends ObdxRepositoryBase {
     };
   }
 
+  // ── Manage DND Alerts ──
+
+  Future<ResponseHandler<DndRegistry>> fetchDndRegistry() async =>
+      parseBody(await _api.fetchDndRegistry(), DndRegistry.fromPayload);
+
+  Future<ResponseHandler<List<String>>> fetchDndEvents(String categoryId) async =>
+      parseBody(await _api.fetchDndEvents(categoryId), dndEventsFromPayload);
+
+  /// Confirm: the ticked categories (an empty list turns DND off for all).
+  Future<ResponseHandler<PrefWriteOutcome>> saveDnd(
+    DndRegistry registry,
+    Set<String> selected, {
+    ObdxChallenge? challenge,
+    String? otp,
+  }) =>
+      _write((h) => _api.saveDndRegistry(registry.body(selected), challengeResponseHeader: h), challenge, otp);
+
   Future<ResponseHandler<PrefWriteOutcome>> _write(
     Future<ResponseHandler<Map<String, dynamic>>> Function(String? challengeResponseHeader) call,
     ObdxChallenge? challenge,

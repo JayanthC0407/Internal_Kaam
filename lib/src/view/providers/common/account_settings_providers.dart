@@ -44,6 +44,16 @@ final alertSubscriptionsProvider = FutureProvider.autoDispose<List<AlertSubscrip
   return _unwrap(await ref.read(accountSettingsRepositoryProvider).fetchSubscriptions(user));
 });
 
+/// Manage DND Alerts: the categories and the ones already chosen.
+final dndRegistryProvider = FutureProvider.autoDispose<DndRegistry>(
+  (ref) async => _unwrap(await ref.read(accountSettingsRepositoryProvider).fetchDndRegistry()),
+);
+
+/// A category's events (by category id), for its "DND Alert" dialog.
+final dndEventsProvider = FutureProvider.autoDispose.family<List<String>, String>(
+  (ref, categoryId) async => _unwrap(await ref.read(accountSettingsRepositoryProvider).fetchDndEvents(categoryId)),
+);
+
 /// A module's accounts (by module id), or the party for party-level
 /// modules.
 final alertTargetsProvider = FutureProvider.autoDispose.family<List<AlertTarget>, String>((ref, moduleId) async {

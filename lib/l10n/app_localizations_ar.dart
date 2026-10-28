@@ -4975,4 +4975,629 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ccMoreActions => 'More actions';
+
+  @override
+  String get casaMenuTitle => 'Current & Savings';
+
+  @override
+  String get casaAccountsTitle => 'Current & Savings Accounts';
+
+  @override
+  String get casaChequeStatusInquiry => 'Cheque Status Inquiry';
+
+  @override
+  String get casaChequeBookRequest => 'Cheque Book Request';
+
+  @override
+  String get casaStopUnblockCheque => 'Stop/Unblock Cheque';
+
+  @override
+  String get casaSweepIn => 'Sweep-In';
+
+  @override
+  String get dcTitle => 'Debit Cards';
+
+  @override
+  String get dcEmpty => 'No card to display';
+
+  @override
+  String get dcAccountNumber => 'Account Number';
+
+  @override
+  String get dcStatusActive => 'ACTIVE';
+
+  @override
+  String get dcStatusBlocked => 'BLOCKED';
+
+  @override
+  String get dcStatusCancelled => 'CANCELLED';
+
+  @override
+  String get dcLimits => 'Debit Card Limits';
+
+  @override
+  String get dcUpgradeCard => 'Upgrade Card';
+
+  @override
+  String get dcReissueCard => 'Reissue Card';
+
+  @override
+  String get dcSubtitle => 'View balances, due amounts and manage each card.';
+
+  @override
+  String get casaHubSubtitle => 'Your accounts and what you can do with them';
+
+  @override
+  String get casaAccountsDesc => 'Balances, details and transactions';
+
+  @override
+  String get dcDesc => 'Your debit cards and their status';
+
+  @override
+  String get dcLoadFailed => 'We couldn\'t load your debit cards.';
+
+  @override
+  String get dcNoMatch => 'No debit cards match your search.';
+
+  @override
+  String get dcStatus => 'Status';
+
+  @override
+  String get dcAllAccounts => 'All accounts';
+
+  @override
+  String get certMenuTitle => 'Certificates';
+
+  @override
+  String get certInterestTitle => 'Interest Certificates';
+
+  @override
+  String get certBalanceTitle => 'Balance Certificates';
+
+  @override
+  String get certTdsTitle => 'TDS Certificates';
+
+  @override
+  String get certAccountCategory => 'Account Category';
+
+  @override
+  String get certCategoryCasa => 'Current & Savings';
+
+  @override
+  String get certCategoryDeposits => 'Deposits';
+
+  @override
+  String get certCategoryLoans => 'Loans & Finances';
+
+  @override
+  String get certInterestFor => 'Select Interest Certificate for';
+
+  @override
+  String get certSpecificAccount => 'Specific Account';
+
+  @override
+  String get certAllAccounts => 'All Accounts';
+
+  @override
+  String get certAccountNumber => 'Account Number';
+
+  @override
+  String get certSelectPeriod => 'Select Period';
+
+  @override
+  String get certFinancialYearOption => 'Financial year';
+
+  @override
+  String get certDuration => 'Duration';
+
+  @override
+  String get certFy => 'FY';
+
+  @override
+  String get certFromDate => 'From Date';
+
+  @override
+  String get certToDate => 'To Date';
+
+  @override
+  String get certApply => 'Apply';
+
+  @override
+  String get certReset => 'Reset';
+
+  @override
+  String get certDownload => 'Download';
+
+  @override
+  String get certProductType => 'Product Type';
+
+  @override
+  String get certDate => 'Date';
+
+  @override
+  String get certInterestCredited => 'Interest Credited';
+
+  @override
+  String get certInterestDebited => 'Interest Debited';
+
+  @override
+  String get certNoData =>
+      'No Certificates available for this specific criteria.';
+
+  @override
+  String get certNoneAvailable => 'No Certificates Available.';
+
+  @override
+  String get certSelectMonth => 'Select Month';
+
+  @override
+  String get certCasaAccounts => 'Current and Savings Accounts';
+
+  @override
+  String get certTermDeposits => 'Term Deposits';
+
+  @override
+  String get certDepositNo => 'Deposit No';
+
+  @override
+  String get certBalance => 'Balance';
+
+  @override
+  String get certNoDataToDisplay => 'No Data to Display';
+
+  @override
+  String get certSelectFinancialYear => 'Select Financial Year';
+
+  @override
+  String get certDepositAccount => 'Deposit Account';
+
+  @override
+  String get certInterestEarned => 'Interest Earned';
+
+  @override
+  String get certTaxDeducted => 'Tax Deducted';
+
+  @override
+  String get certTdsWaiver => 'TDS Waiver';
+
+  @override
+  String certTdsHeading(String year, String amount) {
+    return 'TDS For Financial Year $year was $amount';
+  }
+
+  @override
+  String get certHubSubtitle =>
+      'Interest, balance and tax certificates for your accounts';
+
+  @override
+  String get certInterestDesc => 'Interest credited or debited, by period';
+
+  @override
+  String get certBalanceDesc => 'Your balances at the end of a month';
+
+  @override
+  String get certTdsDesc => 'Tax deducted on your deposits, by financial year';
+
+  @override
+  String get certLoadFailed => 'We couldn\'t load this certificate.';
+
+  @override
+  String get certDatesRequired => 'Select both dates.';
+
+  @override
+  String get nomTitle => 'Nominations';
+
+  @override
+  String get nomAccountCategory => 'Account Category';
+
+  @override
+  String get nomViewNomineesOf => 'View Nominees of';
+
+  @override
+  String get nomSpecificAccount => 'Specific Account';
+
+  @override
+  String get nomAllAccounts => 'All Accounts';
+
+  @override
+  String get nomAccountNumber => 'Account Number';
+
+  @override
+  String get nomApply => 'Apply';
+
+  @override
+  String get nomReset => 'Reset';
+
+  @override
+  String get nomCategoryCasa => 'Current & Savings';
+
+  @override
+  String get nomCategoryTd => 'Term Deposits';
+
+  @override
+  String get nomCategoryRd => 'Recurring Deposits';
+
+  @override
+  String get nomPrimaryHolderName => 'Primary Holder Name';
+
+  @override
+  String get nomHoldingPattern => 'Holding Pattern';
+
+  @override
+  String get nomNominee => 'Nominee';
+
+  @override
+  String get nomAction => 'Action';
+
+  @override
+  String get nomSingle => 'Single';
+
+  @override
+  String get nomJoint => 'Joint';
+
+  @override
+  String get nomRegistered => 'Registered';
+
+  @override
+  String get nomNotRegistered => 'Not Registered';
+
+  @override
+  String get nomActionViewEdit => 'View/Edit';
+
+  @override
+  String get nomActionAdd => 'Add';
+
+  @override
+  String get nomActionView => 'View';
+
+  @override
+  String get nomActionKnowMore => 'Know More';
+
+  @override
+  String get nomJointNote =>
+      'Please Note - Since this is a jointly held account, you will need to fill out a Nomination form. This form will have to be signed by all the account holders and submitted at a nearest branch. You may download and print the Nomination form from the Demo Bank website or obtain it from any Demo Bank branch.';
+
+  @override
+  String get nomAddNominee => 'Add Nominee';
+
+  @override
+  String get nomViewNominee => 'View Nominee';
+
+  @override
+  String get nomNomineeDetails => 'Nominee Details';
+
+  @override
+  String get nomGuardianDetails => 'Guardian Details';
+
+  @override
+  String get nomFullName => 'Full Name';
+
+  @override
+  String get nomDateOfBirth => 'Date of Birth';
+
+  @override
+  String get nomRelationship => 'Relationship';
+
+  @override
+  String get nomAddress => 'Address';
+
+  @override
+  String get nomEdit => 'Edit';
+
+  @override
+  String get nomDelete => 'Delete';
+
+  @override
+  String get nomBack => 'Back';
+
+  @override
+  String get nomLoadFailed => 'We couldn\'t load the nominations.';
+
+  @override
+  String get nomNoAccounts => 'No accounts to show.';
+
+  @override
+  String get cbrTitle => 'Cheque Book Request';
+
+  @override
+  String get cbrAccountNumber => 'Account Number';
+
+  @override
+  String get cbrAccountBalance => 'Account Balance';
+
+  @override
+  String get cbrType => 'Type of Cheque Book';
+
+  @override
+  String get cbrBooks => 'Number of Cheque Books';
+
+  @override
+  String get cbrBooksError => 'Enter Valid Number';
+
+  @override
+  String get cbrLeaves => 'Number of Leaves per Book';
+
+  @override
+  String cbrLeaveOption(int count) {
+    return 'Cheque Book with $count Leaves';
+  }
+
+  @override
+  String get cbrDeliveryLocation => 'Delivery Location';
+
+  @override
+  String get cbrSelect => 'Please Select';
+
+  @override
+  String get cbrWalletNotAllowed =>
+      'Cheque Book Request not allowed from wallet';
+
+  @override
+  String get cbrReviewMessage =>
+      'You initiated a request for Cheque Book. Please review details before you confirm!';
+
+  @override
+  String get cbrDeliveredMessage =>
+      'Your cheque book will be delivered at the desired location!';
+
+  @override
+  String get cbrAccepted => 'Your request has been accepted.';
+
+  @override
+  String get cbrInitiated => 'Your request has been initiated successfully.';
+
+  @override
+  String get cbrReferenceNumber => 'Reference Number';
+
+  @override
+  String get cbrMyAddress => 'My Address';
+
+  @override
+  String get cbrBranchNearMe => 'Branch Near Me';
+
+  @override
+  String get cbrAddressType => 'Address Type';
+
+  @override
+  String get cbrCity => 'City';
+
+  @override
+  String get cbrSelectAddress => 'Please Select Address';
+
+  @override
+  String get cbrSelectCity => 'Please Select City';
+
+  @override
+  String get cbrSelectBranch => 'Please Select Branch';
+
+  @override
+  String get cbrRequestDetails => 'Request details';
+
+  @override
+  String get cbrEstimatedIssue => 'Estimated issue';
+
+  @override
+  String cbrLeavesPerBook(int count) {
+    return '$count leaves / book';
+  }
+
+  @override
+  String cbrSummaryBooks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cbrSummaryLeaves(int count) {
+    return '$count leaves';
+  }
+
+  @override
+  String cbrSummaryDelivery(String place) {
+    return 'Delivery: $place';
+  }
+
+  @override
+  String get cbrDesc => 'Order a new cheque book for your account.';
+
+  @override
+  String get cbrLoadFailed => 'We couldn\'t load the request details.';
+
+  @override
+  String get cbrAddressFailed => 'We couldn\'t load the address.';
+
+  @override
+  String get cbrNoAccounts =>
+      'No accounts available for a cheque book request.';
+
+  @override
+  String get cbrNoAddress => 'No address to show.';
+
+  @override
+  String get cbrFailed => 'We couldn\'t submit your cheque book request.';
+
+  @override
+  String get cbrDone => 'Done';
+
+  @override
+  String get swpTitle => 'Sweep-In';
+
+  @override
+  String get swpAccountNumber => 'Account Number';
+
+  @override
+  String get swpAccountBalance => 'Account Balance';
+
+  @override
+  String get swpLinkedAccountType => 'Linked Account Type';
+
+  @override
+  String get swpCasa => 'Current and Savings';
+
+  @override
+  String get swpTd => 'Term Deposit';
+
+  @override
+  String get swpAccounts => 'Accounts';
+
+  @override
+  String get swpDeposits => 'Deposits';
+
+  @override
+  String swpLinkedHeading(String type) {
+    return 'Linked $type';
+  }
+
+  @override
+  String swpLinkHeading(String type) {
+    return 'Link $type';
+  }
+
+  @override
+  String get swpPrimaryHolderName => 'Primary Holder Name';
+
+  @override
+  String get swpBalance => 'Balance';
+
+  @override
+  String get swpDelete => 'Delete';
+
+  @override
+  String get swpNoLinkedAccounts => 'No linked accounts to display.';
+
+  @override
+  String get swpNoLinkedDeposits => 'No linked deposits to display.';
+
+  @override
+  String get swpNoCasaAvailable =>
+      'Sorry!  You do not have any Current and Savings accounts available for linking. You need to have two or more accounts to carry out this transaction.';
+
+  @override
+  String get swpNoTdAvailable =>
+      'Sorry!  You do not have any Deposits available for linking. You need to have at least one Term Deposit to carry out this transaction.';
+
+  @override
+  String get swpAllLinked =>
+      'All the accounts are already linked to this beneficiary account. You do not have any more Provider accounts to be linked.';
+
+  @override
+  String get swpSelectAtLeastOne =>
+      'Please select at least one account for linking.';
+
+  @override
+  String get swpDelinkConfirm =>
+      'Are you sure you want to delink this account?';
+
+  @override
+  String get swpReviewAccounts =>
+      'You initiated a request for linking new account(s). Please review all your new and existing linking requests before you confirm.';
+
+  @override
+  String get swpReviewDeposits =>
+      'You initiated a request for linking new deposit(s). Please review all your new and existing linking requests before you confirm.';
+
+  @override
+  String get swpStatus => 'Status';
+
+  @override
+  String get swpNew => 'New';
+
+  @override
+  String get swpSuccess => 'Sweep-In Request Submitted successfully.';
+
+  @override
+  String get swpPartFailed =>
+      'Sweep-In Request initiated successfully. Some Request seem to have failed.';
+
+  @override
+  String get swpStatusLinkText =>
+      'Click the status link to view the status of each Sweep-In request.';
+
+  @override
+  String get swpClickHere => 'Click Here';
+
+  @override
+  String get swpStatusHeader => 'Multiple Sweep-In Instruction Status';
+
+  @override
+  String get swpReferenceNumber => 'Reference Number';
+
+  @override
+  String get swpFailureReason => 'Failure Reason';
+
+  @override
+  String get swpCompleted => 'Completed';
+
+  @override
+  String get swpFailed => 'Failed';
+
+  @override
+  String get swpNextAction => 'What would you like to do next?';
+
+  @override
+  String get swpManageSweepIn => 'Manage Sweep-In';
+
+  @override
+  String get swpAccepted => 'Your request has been accepted.';
+
+  @override
+  String get swpInitiated => 'Your request has been initiated successfully.';
+
+  @override
+  String get swpSelectColumn => 'Select';
+
+  @override
+  String get swpDesc => 'Link accounts that top up this account automatically.';
+
+  @override
+  String get swpLoadFailed => 'We couldn\'t load the Sweep-In details.';
+
+  @override
+  String get swpNoAccounts => 'No accounts available for Sweep-In.';
+
+  @override
+  String get swpLinkFailed => 'We couldn\'t submit the Sweep-In request.';
+
+  @override
+  String get swpDelinkFailed => 'We couldn\'t delink the account.';
+
+  @override
+  String get dndTitle => 'Manage DND Alerts';
+
+  @override
+  String get dndSelectCategory => 'Select Category';
+
+  @override
+  String dndAlertHeader(String categoryName) {
+    return 'DND Alert : $categoryName';
+  }
+
+  @override
+  String get dndReview => 'Alerts DND';
+
+  @override
+  String get dndAccepted => 'Your request has been accepted.';
+
+  @override
+  String get dndInitiated => 'Your request has been initiated successfully.';
+
+  @override
+  String get dndReferenceNumber => 'Reference Number';
+
+  @override
+  String get dndHint => 'Pause alerts by category';
+
+  @override
+  String get dndNoCategories => 'No alert categories to show.';
+
+  @override
+  String get dndNoEvents => 'No events in this category.';
+
+  @override
+  String get dndEventsFailed => 'We couldn\'t load this category\'s events.';
 }
