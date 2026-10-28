@@ -413,6 +413,58 @@ class AlertsUser {
   }
 }
 
+// ── Manage DND Alerts ────────────────────────────────────────────────────
+
+/// A Select Category option: `dndRegistry` → `categories[]{id, name}`.
+class DndCategory {
+  const DndCategory({required this.id, required this.name, this.raw});
+
+  final String id;
+  final String name;
+
+  /// The id as the bank sent it (string or number), sent back as is.
+  final Object? raw;
+}
+
+/// `GET alerts dndRegistry`: the categories and the ids already chosen
+/// (`mapped`), as manage-dnd-alerts-stage1/hooks.js:37-45 reads them.
+class DndRegistry {
+  const DndRegistry({required this.categories, required this.mapped});
+
+  final List<DndCategory> categories;
+
+  /// Ids ticked on load.
+  final Set<String> mapped;
+
+  factory DndRegistry.fromPayload(Map<String, dynamic> body) => DndRegistry(
+        categories: [
+          for (final c in _maps(body['categories']))
+            if (_nullable(c['id']) case final id?) DndCategory(id: id, name: _nullable(c['name']) ?? id, raw: c['id']),
+        ],
+        mapped: {
+          if (body['mapped'] is List)
+            for (final m in body['mapped'] as List)
+              if (_nullable(m is Map ? m['id'] : m) case final id?) id,
+        },
+      );
+
+  /// Confirm's body, `PUT user me/dndRegistry` (review.js:44-50): the ticked
+  /// ids, each as the bank sent it.
+  Map<String, dynamic> body(Set<String> selected) => {
+        'categories': [
+          for (final c in categories)
+            if (selected.contains(c.id)) c.raw ?? c.id,
+        ],
+      };
+}
+
+/// A category's events for the "DND Alert : {name}" dialog:
+/// `activityEvents[].activityEventDescription`.
+List<String> dndEventsFromPayload(Map<String, dynamic> body) => [
+      for (final e in _maps(body['activityEvents']))
+        if (_nullable(e['activityEventDescription']) case final d?) d,
+    ];
+
 String _str(dynamic v) => v == null || v is Map || v is List ? '' : v.toString().trim();
 
 String? _nullable(dynamic v) {

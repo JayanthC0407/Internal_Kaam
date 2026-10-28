@@ -1,4 +1,5 @@
 import 'package:ubci_bank/src/core/models/common/cards/credit_card_models.dart';
+import 'package:ubci_bank/src/core/models/common/cards/debit_card_models.dart';
 import 'package:ubci_bank/src/infra/network/apis/common/obdx_cards_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
 import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
@@ -12,6 +13,10 @@ class CardsRepository extends ObdxRepositoryBase {
 
   Future<ResponseHandler<List<CreditCard>>> fetchCreditCards() async =>
       parseBody(await _api.fetchCreditCards(), CreditCard.listFromPayload);
+
+  /// Debit Cards in OBDX's order and statuses (debit-cards.md §3).
+  Future<ResponseHandler<List<DebitCard>>> fetchDebitCards() async =>
+      parseBody(await _api.fetchDebitCards(), DebitCard.listFromPayload);
 
   Future<ResponseHandler<CardStatementResult>> fetchTransactions(CardTransactionsQuery query) async =>
       parseBody(

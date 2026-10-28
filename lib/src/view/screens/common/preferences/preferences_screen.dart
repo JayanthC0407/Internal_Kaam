@@ -10,6 +10,7 @@ import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/alerts_subscription_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/change_password_section.dart';
+import 'package:ubci_bank/src/view/screens/common/preferences/sections/dnd_alerts_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/primary_account_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/session_summary_section.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/profile_section.dart';
@@ -34,8 +35,8 @@ import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 ///    devices), Change Password, Session Summary, Privacy & Consents
 ///    (Third Party Applications, Feedback, Live Help);
 ///  - App: Notifications & Alerts (push, OTP delivery), Alerts
-///    Subscription, Appearance & Language (OBDX Themes), Personalize
-///    Dashboard;
+///    Subscription, Manage DND Alerts, Appearance & Language (OBDX
+///    Themes), Personalize Dashboard;
 ///  - Log out.
 /// Wide: a profile card over the section list and the open section. Phone:
 /// the card and the list, each row with its current value where cheap to
@@ -50,6 +51,7 @@ enum PrefSection {
   privacy(Icons.privacy_tip_outlined),
   notifications(Icons.notifications_none_rounded),
   alertsSubscription(Icons.notifications_active_outlined),
+  dndAlerts(Icons.do_not_disturb_on_outlined),
   appearance(Icons.palette_outlined);
 
   const PrefSection(this.icon);
@@ -65,6 +67,7 @@ enum PrefSection {
         PrefSection.sessionSummary => l10n.ssTitle,
         PrefSection.privacy => l10n.prefPrivacyConsents,
         PrefSection.alertsSubscription => l10n.asTitle,
+        PrefSection.dndAlerts => l10n.dndTitle,
         PrefSection.notifications => l10n.prefNotificationsAlerts,
         PrefSection.appearance => l10n.prefAppearanceLanguage,
       };
@@ -79,6 +82,7 @@ enum PrefSection {
         PrefSection.sessionSummary => l10n.ssHint,
         PrefSection.privacy => l10n.prefPrivacyHint,
         PrefSection.alertsSubscription => l10n.asHint,
+        PrefSection.dndAlerts => l10n.dndHint,
         PrefSection.notifications => l10n.prefNotificationsHint,
         PrefSection.appearance => l10n.prefAppearanceHint,
       };
@@ -88,7 +92,7 @@ enum PrefSection {
 const _groups = [
   [PrefSection.profile, PrefSection.primaryAccount, PrefSection.limits],
   [PrefSection.securityLogin, PrefSection.changePassword, PrefSection.sessionSummary, PrefSection.privacy],
-  [PrefSection.notifications, PrefSection.alertsSubscription, PrefSection.appearance],
+  [PrefSection.notifications, PrefSection.alertsSubscription, PrefSection.dndAlerts, PrefSection.appearance],
 ];
 
 String _groupTitle(AppLocalizations l10n, int i) => switch (i) {
@@ -173,6 +177,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           ),
         PrefSection.sessionSummary => const SessionSummarySection(),
         PrefSection.alertsSubscription => const AlertsSubscriptionSection(),
+        PrefSection.dndAlerts => DndAlertsSection(onCancel: onDone),
         PrefSection.privacy => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
