@@ -19,6 +19,7 @@ import 'package:ubci_bank/src/view/screens/common/preferences/sections/themes_se
 import 'package:ubci_bank/src/view/screens/common/preferences/sections/third_party_apps_section.dart';
 import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
+import 'package:ubci_bank/src/view/widgets/design_page.dart';
 import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 
 /// My Preferences — everything about the signed-in user and their
@@ -37,7 +38,8 @@ import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 ///    Subscription, Appearance & Language (OBDX Themes), Personalize
 ///    Dashboard;
 ///  - Log out.
-/// Wide: a profile card over the section list and the open section. Phone:
+/// Wide: two columns scrolling on their own — the title and the section
+/// list; the profile card over the open section. Phone:
 /// the card and the list, each row with its current value where cheap to
 /// show; a section opens full-width and Back returns to the list.
 enum PrefSection {
@@ -199,50 +201,80 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           onPersonalize: widget.onPersonalize,
           onLogout: _logout,
         );
-        // System back on a phone section returns to the list first.
+        // Wide: two columns that scroll on their own — the title and the
+        // section list on the left; the user card and the open section on
+        // the right — so the list stays in reach however long a section is.
+        if (wide) {
+          return Scaffold(
+            backgroundColor: HomeColors.bg(context),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 300,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DesignPageHeader(title: l10n.prefTitle, onBack: _exit, compact: true),
+                          const SizedBox(height: 20),
+                          Expanded(
+                            child: ListView(
+                              key: const PageStorageKey('pref-sections'),
+                              padding: const EdgeInsets.only(bottom: 32),
+                              children: [list],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: ListView(
+                        // A new section starts at its top.
+                        key: PageStorageKey('pref-body-$open'),
+                        padding: const EdgeInsets.only(bottom: 32),
+                        children: [
+                          card,
+                          const SizedBox(height: 20),
+                          LayoutBuilder(
+                            builder: (context, c) => KeyedSubtree(
+                              key: ValueKey(open),
+                              child: _body(open!, wide: c.maxWidth >= 640, onDone: _exit),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        // Phone: the card and the list; a section opens on its own page.
+        // System back on a section returns to the list first.
         return PopScope(
-          canPop: wide || open == null,
+          canPop: open == null,
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) setState(() => _section = null);
           },
           child: PayMenuPage(
-            title: !wide && open != null ? open.label(l10n) : l10n.prefTitle,
-            subtitle: !wide && open != null ? l10n.prefTitle : null,
-            onBack: !wide && open != null ? () => setState(() => _section = null) : _exit,
+            title: open != null ? open.label(l10n) : l10n.prefTitle,
+            subtitle: open != null ? l10n.prefTitle : null,
+            onBack: open != null ? () => setState(() => _section = null) : _exit,
             builder: (context, _) {
-              if (!wide) {
-                if (open == null) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [card, const SizedBox(height: 16), list],
-                  );
-                }
-                return KeyedSubtree(
-                  key: ValueKey(open),
-                  child: _body(open, wide: false, onDone: () => setState(() => _section = null)),
+              if (open == null) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [card, const SizedBox(height: 16), list],
                 );
               }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  card,
-                  const SizedBox(height: 20),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 290, child: list),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, c) => KeyedSubtree(
-                            key: ValueKey(open),
-                            child: _body(open!, wide: c.maxWidth >= 640, onDone: _exit),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              return KeyedSubtree(
+                key: ValueKey(open),
+                child: _body(open, wide: false, onDone: () => setState(() => _section = null)),
               );
             },
           ),
@@ -356,12 +388,13 @@ class _SectionList extends ConsumerWidget {
                 ),
               ),
             ),
-            PayCard(
-              padding: 6,
+            // No box: the rows on the page, a line between each two.
+            Material(
+              type: MaterialType.transparency,
               child: Column(
                 children: [
                   for (final (i, row) in rows.indexed) ...[
-                    if (i > 0 && phone) Divider(height: 1, indent: 56, color: HomeColors.divider(context)),
+                    if (i > 0) Divider(height: 1, thickness: 1, indent: 16, endIndent: 16, color: HomeColors.divider(context)),
                     row,
                   ],
                 ],
@@ -394,8 +427,8 @@ class _SectionList extends ConsumerWidget {
                 onTap: onPersonalize!,
               ),
           ]),
-        PayCard(
-          padding: 6,
+        Material(
+          type: MaterialType.transparency,
           child: _Row(icon: Icons.logout_rounded, title: l10n.logOut, destructive: true, showChevron: false, onTap: onLogout),
         ),
       ],

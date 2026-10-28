@@ -15,6 +15,7 @@ import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
 import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
 import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
+import 'package:ubci_bank/src/view/screens/corp/corp_shared_modules.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
@@ -112,9 +113,6 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// [_destination] until Back or a menu choice.
   bool _preferencesOpen = false;
 
-  /// Which half Service Requests was opened on from the menu.
-  SrTab _srTab = SrTab.track;
-
   @override
   void initState() {
     super.initState();
@@ -200,9 +198,6 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   void _onNavSelected(String id) {
     final destination = CorpNavDestination.fromNavId(id);
     if (destination == null) return;
-    if (destination == CorpNavDestination.serviceRequests) {
-      _srTab = id == CorpNavDestination.serviceRequestsRaiseId ? SrTab.raise : SrTab.track;
-    }
     _selectDestination(
       destination,
       lcAction: destination == CorpNavDestination.tradeFinance
@@ -220,9 +215,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     if (_destination == CorpNavDestination.tradeFinance && action != null) {
       return CorpNavDestination.navIdForLcAction(action);
     }
-    if (_destination == CorpNavDestination.serviceRequests) {
-      return _srTab == SrTab.raise ? CorpNavDestination.serviceRequestsRaiseId : CorpNavDestination.serviceRequestsTrackId;
-    }
+    // Opened from More: More stays lit, as on Retail.
+    if (CorpNavDestination.inMore.contains(_destination)) return CorpNavDestination.more.name;
     return _destination.name;
   }
 
@@ -289,6 +283,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           onMenuTap:
               isDesktop ? null : () => _scaffoldKey.currentState?.openDrawer(),
           onProfileTap: _openPreferences,
+          // The bell opens Mailbox, as on Retail.
+          onNotificationsTap: () => _selectDestination(CorpNavDestination.mailbox),
         ),
         Expanded(
           child: RefreshIndicator(
@@ -479,12 +475,42 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     if (_destination == CorpNavDestination.home) {
       return _buildHome(responsive);
     }
-    if (_destination == CorpNavDestination.serviceRequests) {
-      return ServiceRequestsScreen(
-        initialTab: _srTab,
-        embedded: true,
-        onBack: () => _selectDestination(CorpNavDestination.home),
-      );
+    void home() => _selectDestination(CorpNavDestination.home);
+    // What opens from More goes back to More.
+    void more() => _selectDestination(CorpNavDestination.more);
+    // The modules shared with Retail (CorpSharedModules).
+    switch (_destination) {
+      case CorpNavDestination.more:
+        return CorpSharedModules.more(
+          displayName: ref.watch(corpProfileProvider).displayName(widget.args.fallbackDisplayName),
+          onProfileTap: _openPreferences,
+          onMailboxTap: () => _selectDestination(CorpNavDestination.mailbox),
+          onServiceRequestsTap: () => _selectDestination(CorpNavDestination.serviceRequests),
+          onCalculatorsTap: () => _selectDestination(CorpNavDestination.calculators),
+        );
+      case CorpNavDestination.serviceRequests:
+        return ServiceRequestsScreen(embedded: true, onBack: more);
+      case CorpNavDestination.accounts:
+        return CorpSharedModules.currentAndSavings(context, onBack: home);
+      case CorpNavDestination.loan:
+        return CorpSharedModules.loans(context, onBack: home);
+      case CorpNavDestination.termDeposits:
+        return CorpSharedModules.termDeposits(context, onBack: home);
+      case CorpNavDestination.transfer:
+        return CorpSharedModules.transfers();
+      case CorpNavDestination.bill:
+        return CorpSharedModules.billPayments(context, ref);
+      case CorpNavDestination.creditCard:
+        return CorpSharedModules.creditCards(context);
+      case CorpNavDestination.mailbox:
+        return CorpSharedModules.mailbox(
+          userName: ref.watch(corpProfileProvider).profile?.userName ?? widget.args.userName,
+          onBack: more,
+        );
+      case CorpNavDestination.calculators:
+        return CorpSharedModules.calculators(onBack: more);
+      default:
+        break;
     }
     if (_destination == CorpNavDestination.tradeFinance) {
       final action = _lcAction;
