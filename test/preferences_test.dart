@@ -266,6 +266,24 @@ void main() {
       expect(find.text('Language'), findsOneWidget);
     });
 
+    testWidgets('web: the section list and the open section scroll on their own', (tester) async {
+      await pump(tester, PreferencesScreen(userName: 'tom', onLogout: () {}), width: 1280);
+      final sections = find.byKey(const PageStorageKey('pref-sections'));
+      final body = find.byKey(PageStorageKey('pref-body-${PrefSection.profile}'));
+      expect(sections, findsOneWidget);
+      expect(body, findsOneWidget);
+      // The card heads the right column, the title the left.
+      expect(find.descendant(of: body, matching: find.text('User ID: tom')), findsOneWidget);
+      expect(find.descendant(of: sections, matching: find.text('Profile')), findsOneWidget);
+      expect(find.descendant(of: body, matching: find.text('Profile')), findsNothing);
+
+      // Scrolling the section leaves the list where it is.
+      final listTop = tester.getTopLeft(find.text('Appearance & Language'));
+      await tester.drag(body, const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('Appearance & Language')), listTop);
+    });
+
     testWidgets('web: Notifications & Alerts and Privacy & Consents hold the old Settings blocks', (tester) async {
       await pump(tester, PreferencesScreen(userName: 'tom', onLogout: () {}), width: 1280);
 
