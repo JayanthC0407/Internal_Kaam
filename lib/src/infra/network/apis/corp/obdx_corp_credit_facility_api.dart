@@ -57,6 +57,17 @@ class ObdxCorpCreditFacilityApi extends ObdxApiBase {
       _get('$_cf/liabilities/${Uri.encodeComponent(liabilityId)}/collaterals',
           {'partyId': partyId, 'branchCode': branchCode ?? '', 'currencyCode': currencyCode});
 
+  /// `GET liabilities/{id}/collateralgroups?partyId&branchCode&currencyCode`
+  /// → `collateralgroupdtos[]` (Collateral Summary).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchCollateralGroups(String liabilityId,
+          {required String partyId, String? branchCode, String currencyCode = 'INR'}) =>
+      _get('$_cf/liabilities/${Uri.encodeComponent(liabilityId)}/collateralgroups',
+          {'partyId': partyId, 'branchCode': branchCode ?? '', 'currencyCode': currencyCode});
+
+  /// `GET liabilities/{id}/collaterals/{collateralId}` → `collateralDTO`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchCollateral(String liabilityId, String collateralId) =>
+      _get('$_cf/liabilities/${Uri.encodeComponent(liabilityId)}/collaterals/${Uri.encodeComponent(collateralId)}');
+
   /// `GET liabilities/{id}/collateralgroups/{poolId}` → `collateralGroupDTO`.
   Future<ResponseHandler<Map<String, dynamic>>> fetchCollateralGroup(String liabilityId, String poolId) =>
       _get('$_cf/liabilities/${Uri.encodeComponent(liabilityId)}/collateralgroups/${Uri.encodeComponent(poolId)}');

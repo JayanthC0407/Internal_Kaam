@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
 import 'package:ubci_bank/src/core/models/corp/credit_facility_models.dart';
 import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_credit_facility_api.dart';
 import 'package:ubci_bank/src/infra/network/response_handler.dart';
@@ -25,18 +26,28 @@ class CfPermissions {
     this.facilityDetails = true,
     this.collateralGroups = true,
     this.utilization = true,
+    this.collateralDetails = true,
+    this.overview = true,
   });
+
+  /// Overview: OBDX lists a `type: MODULE` entry only when its name is in
+  /// `me/components` → `defaultDashboards` (dashboard.js:316-317).
+  final bool overview;
 
   final bool facilitySummary;
   final bool facilityDetails;
 
-  /// The Collateral Groups tab (`collateral-overview`).
+  /// Collateral Details (`collateral-details`).
+  final bool collateralDetails;
+
+  /// Collateral Summary and the Collateral Groups tab
+  /// (`collateral-overview`).
   final bool collateralGroups;
 
   /// The Transaction Summary tab and View Utilization (`facility-utilization`).
   final bool utilization;
 
-  bool get any => facilitySummary || facilityDetails;
+  bool get any => overview || facilitySummary || facilityDetails || collateralGroups || collateralDetails;
 }
 
 final cfPermissionsProvider = Provider<CfPermissions>((ref) {
@@ -47,6 +58,8 @@ final cfPermissionsProvider = Provider<CfPermissions>((ref) {
     facilityDetails: allowed('facility-details'),
     collateralGroups: allowed('collateral-overview'),
     utilization: allowed('facility-utilization'),
+    collateralDetails: allowed('collateral-details'),
+    overview: authorized.isEmpty || authorized.defaultDashboards.contains(CfOverviewWidget.module),
   );
 });
 
@@ -79,6 +92,51 @@ final cfCollateralGroupProvider = FutureProvider.autoDispose.family<CfCollateral
   final result = await ref.read(corpCreditFacilityRepositoryProvider).fetchCollateralGroup(poolId, party);
   if (result is Success<CfCollateralGroup?>) return result.data;
   throw CfLoadError(result is Error<CfCollateralGroup?> ? result.error : null);
+});
+
+/// Collateral Summary, for the user's party.
+final cfCollateralSummaryProvider = FutureProvider.autoDispose<CfCollateralSummary>((ref) async {
+  final party = ref.watch(cfUserPartyIdProvider);
+  return _data(await ref.read(corpCreditFacilityRepositoryProvider).fetchCollateralSummary(party));
+});
+
+/// Choose Collateral's Collateral ID options.
+final cfCollateralOptionsProvider = FutureProvider.autoDispose<List<CfCollateral>>((ref) async {
+  final party = ref.watch(cfUserPartyIdProvider);
+  return _data(await ref.read(corpCreditFacilityRepositoryProvider).fetchCollaterals(party));
+});
+
+final cfCollateralDetailProvider = FutureProvider.autoDispose.family<CfCollateralDetail, String>(
+  (ref, code) async => _data(await ref.read(corpCreditFacilityRepositoryProvider).fetchCollateral(code)),
+);
+
+/// The Overview's widgets for [breakpoint]: the server layout
+/// (`dashboards/modules?class=MODULE&value=credit-facility`), else its
+/// default layout, else all four in `moduleComponents.json` order. The
+/// class OBDX sends can be overridden by the user's dashboard metadata;
+/// the app always sends `MODULE` `[UNKNOWN]` (card §3.1).
+final cfOverviewLayoutProvider =
+    FutureProvider.autoDispose.family<List<CfOverviewWidget>, DashboardBreakpoint>((ref, breakpoint) async {
+  final result = await ref
+      .read(dashboardRepositoryProvider)
+      .fetchConfig(dashboardClass: 'MODULE', dashboardClassValue: CfOverviewWidget.module);
+  if (result is! Success<DashboardConfig> || result.data == null) return CfOverviewWidget.values;
+  final config = result.data!;
+  final names = config.selectedComponentsAt(breakpoint);
+  return CfOverviewWidget.fromLayout(
+      names.isNotEmpty ? names : config.selectedComponentsAt(DashboardBreakpoint.defaultLayout));
+});
+
+/// Facility Synopsis and Facility Allocation share one load.
+final cfOverviewFacilitiesProvider = FutureProvider.autoDispose<List<CfFacility>>((ref) async {
+  final party = ref.watch(cfUserPartyIdProvider);
+  return _data(await ref.read(corpCreditFacilityRepositoryProvider).fetchOverviewFacilities(party));
+});
+
+/// Collateral Synopsis and Collateral Allocation share one load.
+final cfOverviewCollateralsProvider = FutureProvider.autoDispose<List<CfCollateral>>((ref) async {
+  final party = ref.watch(cfUserPartyIdProvider);
+  return _data(await ref.read(corpCreditFacilityRepositoryProvider).fetchOverviewCollaterals(party));
 });
 
 typedef CfUtilizationKey = ({String facility, DateTime? from, DateTime? to});
