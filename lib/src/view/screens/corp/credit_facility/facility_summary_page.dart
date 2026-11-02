@@ -324,25 +324,9 @@ class _FacilityCard extends StatelessWidget {
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.only(right: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: (pct / 100).clamp(0, 1).toDouble(),
-                      minHeight: 6,
-                      color: CorpColors.brand(context),
-                      backgroundColor: CorpColors.divider(context),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '${pct.toStringAsFixed(pct == pct.roundToDouble() ? 0 : 2)} % Utilized',
-                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: CorpColors.textSecondary(context)),
-                ),
-              ],
+            child: CfUtilizedBar(
+              percent: pct,
+              label: '${pct.toStringAsFixed(pct == pct.roundToDouble() ? 0 : 2)} % Utilized',
             ),
           ),
         ],

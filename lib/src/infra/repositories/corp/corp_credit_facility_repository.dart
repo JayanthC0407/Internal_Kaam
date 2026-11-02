@@ -120,6 +120,87 @@ class CorpCreditFacilityRepository extends CorpRepositoryBase {
     return parseBody(group, (b) => CfCollateralGroup.fromPayload(b, listed));
   }
 
+  /// The Overview's facility widgets: `liabilities?partyId=null` (the
+  /// widgets pass `null`, sent as the text `null`, card §8.1), then the
+  /// user party's facilities.
+  Future<ResponseHandler<List<CfFacility>>> fetchOverviewFacilities(String userPartyId) async {
+    final liability = await _liability(partyId: 'null');
+    if (liability is! Success<CfLiability>) return mapFailure(liability);
+    final l = liability.data!;
+    return parseBody(
+      await _api.fetchFacilities(l.id, partyId: userPartyId, branchCode: l.branch, currencyCode: cfCurrencyCode),
+      CfFacility.listFromPayload,
+    );
+  }
+
+  /// The Overview's collateral widgets: as [fetchOverviewFacilities], for
+  /// the collaterals.
+  Future<ResponseHandler<List<CfCollateral>>> fetchOverviewCollaterals(String userPartyId) async {
+    final liability = await _liability(partyId: 'null');
+    if (liability is! Success<CfLiability>) return mapFailure(liability);
+    final l = liability.data!;
+    return parseBody(
+      await _api.fetchCollaterals(l.id, partyId: userPartyId, branchCode: l.branch, currencyCode: cfCurrencyCode),
+      CfCollateral.listFromPayload,
+    );
+  }
+
+  /// The collaterals list of the user's party (Choose Collateral).
+  Future<ResponseHandler<List<CfCollateral>>> fetchCollaterals(String userPartyId) async {
+    final liability = await _liability();
+    if (liability is! Success<CfLiability>) return mapFailure(liability);
+    final l = liability.data!;
+    return parseBody(
+      await _api.fetchCollaterals(l.id, partyId: userPartyId, branchCode: l.branch, currencyCode: cfCurrencyCode),
+      CfCollateral.listFromPayload,
+    );
+  }
+
+  /// Collateral Summary (collateral-overview/hooks.js:106-170): the
+  /// collaterals and the groups of the user's party together, then each
+  /// group's own call for its linked collaterals. OBDX shows nothing until
+  /// every group call has answered; one failing fails the page here too.
+  Future<ResponseHandler<CfCollateralSummary>> fetchCollateralSummary(String userPartyId) async {
+    final liability = await _liability();
+    if (liability is! Success<CfLiability>) return mapFailure(liability);
+    final l = liability.data!;
+    final (collaterals, groups) = await (
+      _api.fetchCollaterals(l.id, partyId: userPartyId, branchCode: l.branch, currencyCode: cfCurrencyCode)
+          .then((r) => parseBody(r, CfCollateral.listFromPayload)),
+      _api.fetchCollateralGroups(l.id, partyId: userPartyId, branchCode: l.branch, currencyCode: cfCurrencyCode)
+          .then((r) => parseBody(r, CfCollateralGroup.listFromPayload)),
+    ).wait;
+    if (collaterals is! Success<List<CfCollateral>>) return mapFailure(collaterals);
+    if (groups is! Success<List<CfCollateralGroup>>) return mapFailure(groups);
+    final listed = collaterals.data ?? const <CfCollateral>[];
+    final details = await Future.wait([
+      for (final g in groups.data ?? const <CfCollateralGroup>[])
+        _api.fetchCollateralGroup(l.id, g.poolId).then((r) => parseBody(r, (b) => CfCollateralGroup.fromPayload(b, listed))),
+    ]);
+    final full = <CfCollateralGroup>[];
+    for (final (i, g) in (groups.data ?? const <CfCollateralGroup>[]).indexed) {
+      final detail = details[i];
+      if (detail is! Success<CfCollateralGroup?>) return mapFailure(detail);
+      full.add(g.withLinked(detail.data?.linked ?? const []));
+    }
+    return ResponseHandler.success(CfCollateralSummary(groups: full, collaterals: listed), code: 200);
+  }
+
+  /// Collateral Details: `liabilities` then `collaterals/{code}`.
+  Future<ResponseHandler<CfCollateralDetail>> fetchCollateral(String code) async {
+    final liability = await _liability();
+    if (liability is! Success<CfLiability>) return mapFailure(liability);
+    final result = await parseBody(
+      await _api.fetchCollateral(liability.data!.id, code),
+      (b) => CfCollateralDetail.fromPayload(b, code),
+    );
+    if (result is Success<CfCollateralDetail?> && result.data != null) {
+      return ResponseHandler.success(result.data!, code: 200);
+    }
+    if (result is Success<CfCollateralDetail?>) return ResponseHandler.error(200, null);
+    return mapFailure(result);
+  }
+
   /// Transaction Summary rows; dates as `yyyy-MM-dd` `[UNKNOWN]` format.
   Future<ResponseHandler<List<CfUtilizationRow>>> fetchUtilization(String key, {DateTime? from, DateTime? to}) async {
     final liability = await _liability();

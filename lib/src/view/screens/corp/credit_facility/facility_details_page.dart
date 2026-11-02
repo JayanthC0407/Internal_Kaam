@@ -15,7 +15,7 @@ import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 /// the Facility Schedule, then the Collateral Groups, Covenants and
 /// Transaction Summary tabs. Evidence: docs/obdx/features/credit-facility.md §5.
 class FacilityDetailsPage extends ConsumerStatefulWidget {
-  const FacilityDetailsPage({super.key, this.initialKey, this.initialTab, required this.onExit});
+  const FacilityDetailsPage({super.key, this.initialKey, this.initialTab, required this.onExit, this.onOpenCollateral});
 
   /// `lineCode_lineSerialNumber`; null from the menu.
   final String? initialKey;
@@ -24,6 +24,10 @@ class FacilityDetailsPage extends ConsumerStatefulWidget {
   /// Choose Facility closed without a choice: back where the user came
   /// from (OBDX switches to the dashboard).
   final VoidCallback onExit;
+
+  /// A linked collateral's code: Collateral Details. OBDX's link here does
+  /// nothing (card §8.11); null leaves it plain text.
+  final ValueChanged<String>? onOpenCollateral;
 
   @override
   ConsumerState<FacilityDetailsPage> createState() => _FacilityDetailsPageState();
@@ -93,8 +97,8 @@ class _FacilityDetailsPageState extends ConsumerState<FacilityDetailsPage> {
       }
       return CorpCardShell(
         child: options.hasError
-            ? _Failed(
-                message: _message(options.error, 'We couldn\'t load the facilities.'),
+            ? CfFailed(
+                message: cfError(options.error, 'We couldn\'t load the facilities.'),
                 onRetry: () => ref.invalidate(cfFacilityOptionsProvider),
               )
             : list == null
@@ -115,8 +119,8 @@ class _FacilityDetailsPageState extends ConsumerState<FacilityDetailsPage> {
         child: Padding(padding: EdgeInsets.all(28), child: Center(child: CircularProgressIndicator())),
       ),
       error: (e, _) => CorpCardShell(
-        child: _Failed(
-          message: _message(e, 'We couldn\'t load this facility.'),
+        child: CfFailed(
+          message: cfError(e, 'We couldn\'t load this facility.'),
           onRetry: () => ref.invalidate(cfFacilityProvider(key)),
         ),
       ),
@@ -153,8 +157,8 @@ class _FacilityDetailsPageState extends ConsumerState<FacilityDetailsPage> {
                   ),
                   const SizedBox(height: 14),
                   switch (tab) {
-                    CfDetailTab.collateralGroups => _CollateralGroupsTab(facility: f),
-                    CfDetailTab.covenants => _CovenantsTab(covenants: f.covenants),
+                    CfDetailTab.collateralGroups => _CollateralGroupsTab(facility: f, onOpenCollateral: widget.onOpenCollateral),
+                    CfDetailTab.covenants => CfCovenants(covenants: f.covenants),
                     CfDetailTab.transactionSummary => _UtilizationTab(facilityKey: f.key),
                   },
                 ],
@@ -163,30 +167,6 @@ class _FacilityDetailsPageState extends ConsumerState<FacilityDetailsPage> {
           ],
         );
       },
-    );
-  }
-}
-
-String _message(Object? error, String fallback) =>
-    error is CfLoadError && error.message != null && error.message!.trim().isNotEmpty ? error.message! : fallback;
-
-class _Failed extends StatelessWidget {
-  const _Failed({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LcMessageBanner(message: message),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh_rounded), label: const Text('Retry')),
-        ),
-      ],
     );
   }
 }
@@ -304,9 +284,10 @@ class _Summary extends StatelessWidget {
 /// Collateral Groups (`collateral-groups`): the facility's group with its
 /// linked collaterals.
 class _CollateralGroupsTab extends ConsumerStatefulWidget {
-  const _CollateralGroupsTab({required this.facility});
+  const _CollateralGroupsTab({required this.facility, this.onOpenCollateral});
 
   final CfFacility facility;
+  final ValueChanged<String>? onOpenCollateral;
 
   @override
   ConsumerState<_CollateralGroupsTab> createState() => _CollateralGroupsTabState();
@@ -322,8 +303,8 @@ class _CollateralGroupsTabState extends ConsumerState<_CollateralGroupsTab> {
     if (pool == null) return none;
     return ref.watch(cfCollateralGroupProvider(pool)).when(
           loading: () => const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
-          error: (e, _) => _Failed(
-            message: _message(e, 'We couldn\'t load the collateral group.'),
+          error: (e, _) => CfFailed(
+            message: cfError(e, 'We couldn\'t load the collateral group.'),
             onRetry: () => ref.invalidate(cfCollateralGroupProvider(pool)),
           ),
           data: (g) {
@@ -333,7 +314,7 @@ class _CollateralGroupsTabState extends ConsumerState<_CollateralGroupsTab> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _Panel(
+                CfPanel(
                   header: Row(children: [
                     Text(g.poolId, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: CorpColors.textPrimary(context))),
                     const SizedBox(width: 10),
@@ -356,73 +337,11 @@ class _CollateralGroupsTabState extends ConsumerState<_CollateralGroupsTab> {
                   ),
                 ),
                 if (_linked)
-                  for (final c in g.linked)
-                    _Panel(
-                      header: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(c.code, style: TextStyle(fontWeight: FontWeight.w700, color: CorpColors.textPrimary(context))),
-                          if (c.description != null)
-                            Text(c.description!, style: TextStyle(fontSize: 12.5, color: CorpColors.textSecondary(context))),
-                        ],
-                      ),
-                      child: LcInfoGrid(items: [
-                        ('Collateral Value', cfMoney(c.value)),
-                        ('Collateral Amount (After Haircut)', cfMoney(c.limitContribution)),
-                        ('End Date', cfDateOr(c.endDate, '--')),
-                        ('Margin', cfPercent(c.lendableMargin)),
-                        (
-                          'Contribution to Group',
-                          '${cfMoney(c.utilization)}${c.contributionPercent == null ? '' : '  ${cfPercent(c.contributionPercent)}'}'
-                        ),
-                      ]),
-                    ),
+                  for (final c in g.linked) CfLinkedCollateralCard(collateral: c, onOpen: widget.onOpenCollateral),
               ],
             );
           },
         );
-  }
-}
-
-class _Panel extends StatelessWidget {
-  const _Panel({required this.header, required this.child});
-
-  final Widget header;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: CorpColors.divider(context))),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [header, const SizedBox(height: 10), child]),
-    );
-  }
-}
-
-/// Covenants (`facility-covenants`): one card per `covenantDTO`.
-class _CovenantsTab extends StatelessWidget {
-  const _CovenantsTab({required this.covenants});
-
-  final List<CfCovenant> covenants;
-
-  @override
-  Widget build(BuildContext context) {
-    if (covenants.isEmpty) return const LcEmptyState(icon: Icons.gavel_rounded, title: 'No covenants to show.');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final c in covenants)
-          _Panel(
-            header: LcInfoItem(label: 'Covenant Id', value: c.name ?? '--'),
-            child: LcInfoGrid(items: [
-              ('Revision Date', cfDateOr(c.revisionDate, '--')),
-              ('Description', c.description ?? '--'),
-            ]),
-          ),
-      ],
-    );
   }
 }
 
@@ -579,8 +498,8 @@ class _UtilizationTabState extends ConsumerState<_UtilizationTab> {
         const SizedBox(height: 10),
         async.when(
           loading: () => const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
-          error: (e, _) => _Failed(
-            message: _message(e, 'We couldn\'t load the transactions.'),
+          error: (e, _) => CfFailed(
+            message: cfError(e, 'We couldn\'t load the transactions.'),
             onRetry: () => ref.invalidate(cfUtilizationProvider(_key)),
           ),
           data: (all) {
@@ -645,7 +564,7 @@ class _UtilizationTabState extends ConsumerState<_UtilizationTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final r in rows)
-            _Panel(
+            CfPanel(
               header: LcInfoItem(label: 'Transaction Type', value: r.type ?? '--'),
               child: LcInfoGrid(items: [
                 ('Date', cfDateOr(r.date, '--')),

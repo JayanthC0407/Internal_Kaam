@@ -6,28 +6,50 @@ import 'package:ubci_bank/src/view/providers/corp/corp_credit_facility_providers
 ///
 /// ```
 /// Credit Facility Management
-/// └─ Credit Facility
-///    ├─ Facility Summary
-///    └─ Facility Details
+/// ├─ Overview
+/// ├─ Credit Facility
+/// │  ├─ Facility Summary
+/// │  └─ Facility Details
+/// └─ Collaterals
+///    ├─ Collateral Summary
+///    └─ Collateral Details
 /// ```
 ///
-/// Only built screens are listed; Overview and Collaterals follow.
+/// Only built screens are listed.
 enum CfPage {
-  facilitySummary('Facility Summary', Icons.view_list_rounded),
-  facilityDetails('Facility Details', Icons.description_outlined);
+  /// The module dashboard (`type: MODULE`), directly under the root.
+  overview('Overview', Icons.dashboard_outlined, null),
+  facilitySummary('Facility Summary', Icons.view_list_rounded, CfMenuGroup.credit),
+  facilityDetails('Facility Details', Icons.description_outlined, CfMenuGroup.credit),
+  collateralSummary('Collateral Summary', Icons.inventory_2_outlined, CfMenuGroup.collaterals),
+  collateralDetails('Collateral Details', Icons.article_outlined, CfMenuGroup.collaterals);
 
-  const CfPage(this.label, this.icon);
+  const CfPage(this.label, this.icon, this.group);
 
   final String label;
   final IconData icon;
-
-  /// The menu group the page sits under.
-  static const creditFacilityGroup = 'Credit Facility';
+  /// Null for [overview], which is not in a group.
+  final CfMenuGroup? group;
 
   bool allowedBy(CfPermissions p) => switch (this) {
+        CfPage.overview => p.overview,
         CfPage.facilitySummary => p.facilitySummary,
         CfPage.facilityDetails => p.facilityDetails,
+        CfPage.collateralSummary => p.collateralGroups,
+        CfPage.collateralDetails => p.collateralDetails,
       };
+}
+
+/// The two groups under Credit Facility Management; [name] is the menu id
+/// segment.
+enum CfMenuGroup {
+  credit('Credit Facility', Icons.request_quote_outlined),
+  collaterals('Collaterals', Icons.shield_moon_outlined);
+
+  const CfMenuGroup(this.label, this.icon);
+
+  final String label;
+  final IconData icon;
 }
 
 /// Facility Details tabs (OBDX ids DRAFTS, COVENANTS, UTILIZATION; labels
