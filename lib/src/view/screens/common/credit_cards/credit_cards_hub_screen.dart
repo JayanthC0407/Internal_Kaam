@@ -10,9 +10,12 @@ import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_
 /// Access Denied in UAT (docs/obdx/features/credit-cards.md §1), so they
 /// wait under Coming soon.
 class CreditCardsHubScreen extends StatelessWidget {
-  const CreditCardsHubScreen({super.key, required this.onCreditCardsTap, required this.onTransactionsTap});
+  const CreditCardsHubScreen({super.key, required this.onCreditCardsTap, required this.onTransactionsTap, this.onBack});
 
   final VoidCallback onCreditCardsTap;
+
+  /// The back arrow beside the title; null hides it.
+  final VoidCallback? onBack;
   final VoidCallback onTransactionsTap;
 
   @override
@@ -21,6 +24,7 @@ class CreditCardsHubScreen extends StatelessWidget {
     return ModuleHubPage(
       title: l10n.ccTitle,
       subtitle: l10n.ccModuleSubtitle,
+      onBack: onBack,
       tiles: [
         PayOptionTile(
           icon: Icons.credit_card_rounded,
