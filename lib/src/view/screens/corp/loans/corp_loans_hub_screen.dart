@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/core/models/corp/corp_loans_models.dart';
-import 'package:ubci_bank/src/view/screens/common/dashboard/module_hub_page.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loan_application_tracker_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loan_notices_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loan_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_multi_loan_repayment_screen.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loans_models.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/module_hub_page.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loan_application_tracker_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loan_notices_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loan_transactions_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_multi_loan_repayment_screen.dart';
 
 /// Corporate Loans & Finances (OBDX corporate menu `OBCL_LOAN`), its own
 /// side-menu entry beside Loan, on one page: Transactions, Messages,
