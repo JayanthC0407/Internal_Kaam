@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ubci_bank/src/view/screens/corp/loans/corp_loans_hub_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ubci_bank/l10n/app_localizations.dart';
 import 'package:ubci_bank/src/core/config/locale_config.dart';
@@ -24,6 +25,11 @@ import 'package:ubci_bank/src/view/providers/common/personalization_providers.da
 import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
 import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
 import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
+import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:ubci_bank/src/view/screens/corp/widgets/corp_dashboard_header_bar.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
 import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
 import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
@@ -395,6 +401,59 @@ void main() {
       await _pumpDashboard(tester);
       // "Pooja Jha" -> PJ, rather than the login username's initials.
       expect(find.text('PJ'), findsOneWidget);
+    });
+
+    testWidgets('inner screens of a module open beside the side menu; Back returns', (tester) async {
+      await _pumpDashboard(tester);
+      await tester.tap(find.text('Credit Card'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CreditCardsHubScreen), findsOneWidget);
+
+      await tester.tap(find.text('Transactions').first);
+      await tester.pumpAndSettle();
+      // In the content area: the side menu and the header stay.
+      expect(find.byType(CreditCardTransactionsScreen), findsOneWidget);
+      expect(find.byType(DashboardNavigationSidebar), findsOneWidget);
+      expect(find.byType(CorpDashboardHeaderBar), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Back').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(CreditCardTransactionsScreen), findsNothing);
+      expect(find.byType(CreditCardsHubScreen), findsOneWidget);
+
+      // A menu choice closes whatever was open.
+      await tester.tap(find.text('Transactions').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CreditCardTransactionsScreen), findsNothing);
+    });
+
+    testWidgets('Corporate Loans & Finances is its own menu entry; Loan stays the loans list', (tester) async {
+      await _pumpDashboard(tester);
+      // Both are in the side menu; Loan itself still opens the loans list
+      // (CorpSharedModules.loans), which needs a server, so it is not opened.
+      expect(find.text('Loan'), findsOneWidget);
+
+      await tester.tap(find.text('Corporate Loans & Finances'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CorpLoansHubScreen), findsOneWidget);
+      expect(find.text('Multiple Loan Repayment'), findsOneWidget);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CorpLoansHubScreen), findsNothing);
+    });
+
+    testWidgets('Credit Card and Bill main pages have a Back to Home', (tester) async {
+      await _pumpDashboard(tester);
+      for (final (menu, hub) in [('Credit Card', CreditCardsHubScreen), ('Bill', BillPaymentsHubScreen)]) {
+        await tester.tap(find.text(menu));
+        await tester.pumpAndSettle();
+        expect(find.byType(hub), findsOneWidget, reason: menu);
+        await tester.tap(find.byTooltip('Back'));
+        await tester.pumpAndSettle();
+        expect(find.byType(hub), findsNothing, reason: menu);
+      }
     });
 
     testWidgets('shows the unread mailbox count on the bell', (tester) async {

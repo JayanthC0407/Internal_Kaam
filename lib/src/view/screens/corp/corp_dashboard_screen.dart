@@ -113,6 +113,17 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// [_destination] until Back or a menu choice.
   bool _preferencesOpen = false;
 
+  /// Screens opened from a module (an account's details, Add Biller, a
+  /// transfer…), shown in the content area over [_destination], newest
+  /// last — so the header and the side menu stay on screen, as on Retail.
+  final List<Widget Function(VoidCallback back)> _pages = [];
+
+  void _open(Widget Function(VoidCallback back) page) => setState(() => _pages.add(page));
+
+  void _closePage() => setState(() {
+        if (_pages.isNotEmpty) _pages.removeLast();
+      });
+
   @override
   void initState() {
     super.initState();
@@ -174,6 +185,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() {
       _preferencesOpen = false;
+      _pages.clear();
       _destination = destination;
       if (lcAction != null) _lcAction = lcAction;
     });
@@ -182,7 +194,10 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// The header initials: My Preferences over the current destination.
   void _openPreferences() {
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
-    setState(() => _preferencesOpen = true);
+    setState(() {
+      _pages.clear();
+      _preferencesOpen = true;
+    });
   }
 
   /// Preferences → Personalize Dashboard, its only entry point: Home first,
@@ -289,7 +304,14 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: _refresh,
-            child: _buildDestination(responsive),
+            // System Back closes an opened screen first.
+            child: PopScope(
+              canPop: _pages.isEmpty,
+              onPopInvokedWithResult: (didPop, _) {
+                if (!didPop) _closePage();
+              },
+              child: _buildDestination(responsive),
+            ),
           ),
         ),
       ],
@@ -472,6 +494,10 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
         onBack: () => setState(() => _preferencesOpen = false),
       );
     }
+    // A screen opened from a module: Back returns to the one before.
+    if (_pages.isNotEmpty) {
+      return KeyedSubtree(key: ValueKey('corp-page-${_pages.length}'), child: _pages.last(_closePage));
+    }
     if (_destination == CorpNavDestination.home) {
       return _buildHome(responsive);
     }
@@ -491,17 +517,19 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       case CorpNavDestination.serviceRequests:
         return ServiceRequestsScreen(embedded: true, onBack: more);
       case CorpNavDestination.accounts:
-        return CorpSharedModules.currentAndSavings(context, onBack: home);
+        return CorpSharedModules.currentAndSavings(open: _open, onBack: home);
       case CorpNavDestination.loan:
-        return CorpSharedModules.loans(context, onBack: home);
+        return CorpSharedModules.loans(open: _open, onBack: home);
+      case CorpNavDestination.corporateLoans:
+        return CorpSharedModules.corporateLoans(open: _open, onBack: home);
       case CorpNavDestination.termDeposits:
-        return CorpSharedModules.termDeposits(context, onBack: home);
+        return CorpSharedModules.termDeposits(open: _open, onBack: home);
       case CorpNavDestination.transfer:
-        return CorpSharedModules.transfers();
+        return CorpSharedModules.transfers(open: _open);
       case CorpNavDestination.bill:
-        return CorpSharedModules.billPayments(context, ref);
+        return CorpSharedModules.billPayments(open: _open, ref: ref, onBack: home);
       case CorpNavDestination.creditCard:
-        return CorpSharedModules.creditCards(context);
+        return CorpSharedModules.creditCards(open: _open, onBack: home);
       case CorpNavDestination.mailbox:
         return CorpSharedModules.mailbox(
           userName: ref.watch(corpProfileProvider).profile?.userName ?? widget.args.userName,
