@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Liquidity Management ▸ Charges Inquiry (corporate). Shapes and rules
 /// from the OBDX source `components/liquidity-management/lm-charges-inquiry`

@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
 
 /// Route arguments for the Letter of Credit screens (see `CorpRoutes`).
 

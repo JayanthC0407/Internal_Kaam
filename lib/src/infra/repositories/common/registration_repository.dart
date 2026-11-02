@@ -1,15 +1,15 @@
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/common/account_type_option.dart';
-import 'package:ubci_bank/src/core/models/common/registration_flow_result.dart';
-import 'package:ubci_bank/src/core/models/common/registration_request.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_registration_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/core/models/common/account_type_option.dart';
+import 'package:demo_bank/src/core/models/common/registration_flow_result.dart';
+import 'package:demo_bank/src/core/models/common/registration_request.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_registration_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/security/obdx_password_crypto_service.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
 
 class RegistrationRepository {
   RegistrationRepository({

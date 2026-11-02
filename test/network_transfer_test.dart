@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
-import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/network_transfer_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_transfer_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payees/payee_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/multiple_transfers_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/transfers_module_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/tabs/transfer_tab_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/obdx_batch.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/own_account_transfer.dart';
+import 'package:demo_bank/src/core/models/common/payment/network_transfer.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payee_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payments_api.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/network_transfer_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_transfer_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payees/payee_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/multiple_transfers_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/network_transfer_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/transfers_module_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/tabs/transfer_tab_screen.dart';
 
 // ── Data shaped like the OBDX 22.2 DTOs (values made up) ────────────────
 

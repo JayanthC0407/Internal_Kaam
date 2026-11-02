@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Retail term deposits, parsed from the OBDX TD capture (`TD.har`):
 /// `GET /digx-common/td/v1/deposit` (`accounts[]` + `summary.items[]`) and

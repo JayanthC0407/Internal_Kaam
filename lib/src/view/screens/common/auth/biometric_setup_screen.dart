@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/security/biometric_service.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/security/biometric_service.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/screens/common/auth/auth_colors.dart';
 // Passcode / pattern temporarily hidden from quick-access setup.
-// import 'package:ubci_bank/src/view/screens/common/auth/passcode_setup_screen.dart';
-// import 'package:ubci_bank/src/view/screens/common/auth/pattern_setup_screen.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_quick_access_option.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_secondary_button.dart';
-import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
-import 'package:ubci_bank/src/view/widgets/biometric_ui_copy.dart';
-import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+// import 'package:demo_bank/src/view/screens/common/auth/passcode_setup_screen.dart';
+// import 'package:demo_bank/src/view/screens/common/auth/pattern_setup_screen.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_form_shell.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_quick_access_option.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_secondary_button.dart';
+import 'package:demo_bank/src/view/widgets/biometric_enrollment_prompt.dart';
+import 'package:demo_bank/src/view/widgets/biometric_ui_copy.dart';
+import 'package:demo_bank/src/view/widgets/secure_screen.dart';
 
 /// Full-screen quick-access setup matching the corporate banking design.
 class BiometricSetupScreen extends ConsumerStatefulWidget {

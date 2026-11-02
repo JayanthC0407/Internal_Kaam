@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// `GET /digx-common/common/v1/bankConfiguration` (Corporate capture,
 /// entry #7).

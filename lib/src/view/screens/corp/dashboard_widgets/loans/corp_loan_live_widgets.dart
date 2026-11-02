@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_widget_data_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_live_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_application_tracker_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_installments_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_live_data.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_portfolio_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loans_overview_widget.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_widget_data_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_live_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_application_tracker_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_installments_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_live_data.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_portfolio_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_summary_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loans_overview_widget.dart';
 
 /// The Loans widgets on live data — what the Corporate registry builds.
 ///

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_liquidity_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_liquidity_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
 
 /// The corporate dashboard's main navigation destinations, in menu order —
 /// declaration order *is* the order the sidebar and drawer list them, so

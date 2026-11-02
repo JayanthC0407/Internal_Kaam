@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// One entry of `me`'s `dashboardResponse.dashboardDTOs[]`.
 ///

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
 
 enum WebPayeeDestination { manage, add, addDemandDraft, addPeerToPeer }
 

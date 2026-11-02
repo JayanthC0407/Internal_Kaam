@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/cards/credit_card_models.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/cards/credit_card_models.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
 
 /// OBDX status label for a card (nls credit-card-listing.js:28-32).
 String creditCardStatusLabel(AppLocalizations l10n, CreditCard card) => switch (card.status) {

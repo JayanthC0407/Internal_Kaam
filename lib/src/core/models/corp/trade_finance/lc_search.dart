@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
 
 /// Search criteria for `GET /letterofcredits` (OBDX spec
 /// `LetterOfCredit.list`), used by the Initiate LC tabs:

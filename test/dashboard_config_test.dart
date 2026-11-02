@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
 
 /// The real `GET /digx-admin/config/v1/dashboards/modules?class=CUSTOM&value=custom`
 /// response from `widgets(corp).har` (entry #3), trimmed only by dropping

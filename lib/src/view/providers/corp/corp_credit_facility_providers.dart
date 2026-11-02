@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/corp/credit_facility_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_credit_facility_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_credit_facility_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/corp/credit_facility_models.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_credit_facility_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_credit_facility_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
 
 /// Credit Facility Management (docs/obdx/features/credit-facility.md).
 /// autoDispose: loaded while a screen is open.

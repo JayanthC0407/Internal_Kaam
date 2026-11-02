@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
 import '../home_colors.dart';
 
 /// Compact "which account" control. Renders as a single tappable field

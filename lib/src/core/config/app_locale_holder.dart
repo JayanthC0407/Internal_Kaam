@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
 
 /// Runtime locale for Dio (outside the widget tree).
 ///

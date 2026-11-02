@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
-import 'package:ubci_bank/src/core/models/retail/cheque_book_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_cheque_book_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/cheque_book_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/core/models/retail/cheque_book_models.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_cheque_book_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/retail/cheque_book_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
 
 /// Cheque Book Request (docs/obdx/features/cheque-book-request.md). autoDispose.
 

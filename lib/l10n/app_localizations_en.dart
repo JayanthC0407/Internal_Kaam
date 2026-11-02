@@ -1572,7 +1572,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'An account with this username already exists.';
 
   @override
-  String get biometricUnlockTitle => 'Unlock UBCI Bank';
+  String get biometricUnlockTitle => 'Unlock Demo Bank';
 
   @override
   String get biometricUnlockSubtitle =>

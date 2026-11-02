@@ -1,22 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/infra/repositories/common/auth_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/calculators_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/cards_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/limits_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/mailbox_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/preferences_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/service_requests_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/account_settings_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/biometric_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/forgot_credentials_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/login_wizard_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/registration_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/payee_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/common/payment_repository.dart';
-import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
+import 'package:demo_bank/src/infra/repositories/common/auth_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/bill_payments_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/calculators_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/cards_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/limits_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/mailbox_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/preferences_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/service_requests_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/account_settings_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/biometric_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/forgot_credentials_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/login_wizard_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/registration_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/payee_repository.dart';
+import 'package:demo_bank/src/infra/repositories/common/payment_repository.dart';
+import 'package:demo_bank/src/infra/security/obdx_password_crypto_service.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/view/providers/common/session_providers.dart';
 
 final authRepositoryProvider = Provider(
   (ref) => AuthRepository(

@@ -1,25 +1,25 @@
 import 'dart:math' as math;
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_inline_panel.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposits_inline_panel.dart';
 
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/accounts_tab_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/info_corner_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/recent_transactions_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_accounts_inline_panel.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_tracker_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/quick_actions_strip.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/spendings_donut_card.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/accounts_tab_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/info_corner_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/recent_transactions_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/loan_accounts_inline_panel.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/loan_tracker_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/quick_actions_strip.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/spendings_donut_card.dart';
 import '../home_colors.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({

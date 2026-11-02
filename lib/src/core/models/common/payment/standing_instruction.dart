@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// A repeat transfer — a standing instruction — as OBDX's "View Repeat
 /// Transfers" lists it (`GET payments/instructions`,

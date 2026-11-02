@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/theme/app_radius.dart';
-import 'package:ubci_bank/src/core/theme/app_spacing.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/providers/common/payee_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/core/theme/app_radius.dart';
+import 'package:demo_bank/src/core/theme/app_spacing.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/providers/common/payee_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Add Peer To Peer Payee, matching the captured "Peer To Peer Payee" screen.
 ///

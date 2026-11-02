@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/retail/certificate_models.dart';
-import 'package:ubci_bank/src/core/models/retail/nomination_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/nominations_repository.dart';
-import 'package:ubci_bank/src/view/providers/retail/nominations_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/nominations/nominations_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/retail/certificate_models.dart';
+import 'package:demo_bank/src/core/models/retail/nomination_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/retail/nominations_repository.dart';
+import 'package:demo_bank/src/view/providers/retail/nominations_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/nominations/nominations_screen.dart';
 
 // Shapes follow OBDX nominee components (docs/obdx/features/nominations.md).
 // Values are made up.
