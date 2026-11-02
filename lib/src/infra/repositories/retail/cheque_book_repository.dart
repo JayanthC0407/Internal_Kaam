@@ -1,10 +1,10 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
-import 'package:ubci_bank/src/core/models/retail/cheque_book_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_cheque_book_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/core/models/retail/cheque_book_models.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_cheque_book_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Cheque Book Request: parses [ObdxChequeBookApi] answers.
 /// docs/obdx/features/cheque-book-request.md.

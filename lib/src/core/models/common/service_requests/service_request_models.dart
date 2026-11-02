@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Service Requests (OBDX `service-requests` module, retail and corporate):
 /// Track Requests (`service-requests-track`) and Raise a New Request

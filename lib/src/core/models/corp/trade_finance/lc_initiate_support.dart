@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_product.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_product.dart';
 
 /// Reference data used only by the Initiate LC sections, loaded once when
 /// the form opens. Captures: `LC_inititation complete flow.har` (**H3 #n**).

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_dashboard_widgets.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/retail/dashboard_widgets/retail_dashboard_widgets.dart';
 
 /// The Retail dashboard's `componentName` → widget map.
 ///

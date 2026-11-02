@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 
 /// The Trade Finance menu tree, as the corporate user sees it:
 ///

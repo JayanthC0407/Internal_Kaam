@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/core/models/common/security_question.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/security/biometric_service.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/settings_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
-import 'package:ubci_bank/src/view/widgets/biometric_enrollment_prompt.dart';
-import 'package:ubci_bank/src/view/widgets/biometric_ui_copy.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/core/models/common/security_question.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/security/biometric_service.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/providers/common/preferences_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/settings_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/app_bottom_sheet.dart';
+import 'package:demo_bank/src/view/widgets/biometric_enrollment_prompt.dart';
+import 'package:demo_bank/src/view/widgets/biometric_ui_copy.dart';
 
 enum _SecurityItem { questions, softToken, smsMissedCall, smsPin, biometric, devices }
 

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/bill_pay_models.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/bill_pay_models.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
 
 /// Bill Payments — Billers (docs/obdx/features/bill-payments.md §3).
 ///

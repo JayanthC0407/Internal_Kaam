@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/main.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/service/navigation_service.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes.dart';
-import 'package:ubci_bank/src/view/widgets/biometric_lock_overlay.dart';
-import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
-import 'package:ubci_bank/src/view/widgets/session_expiry_listener.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/main.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/service/navigation_service.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/routes/routes.dart';
+import 'package:demo_bank/src/view/widgets/biometric_lock_overlay.dart';
+import 'package:demo_bank/src/view/widgets/session_activity_scope.dart';
+import 'package:demo_bank/src/view/widgets/session_expiry_listener.dart';
 
-class UbciApp extends ConsumerWidget {
-  const UbciApp({super.key});
+class DemoBankApp extends ConsumerWidget {
+  const DemoBankApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

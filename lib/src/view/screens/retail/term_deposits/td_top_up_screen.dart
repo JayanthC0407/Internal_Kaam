@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit_actions.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit_actions.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/view/providers/retail/term_deposit_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
 
 /// Top up a deposit — OBDX's `td-topup` flow: amount + source account,
 /// then `POST .../topUps?simulation=true` for the review (revised

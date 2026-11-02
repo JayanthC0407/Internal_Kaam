@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/infra/pref/pref_const.dart';
-import 'package:ubci_bank/src/infra/pref/secure_storage_service.dart';
+import 'package:demo_bank/src/infra/pref/pref_const.dart';
+import 'package:demo_bank/src/infra/pref/secure_storage_service.dart';
 
 /// Generates and persists a stable per-install device identifier for OBDX.
 class SecureDeviceIdService {

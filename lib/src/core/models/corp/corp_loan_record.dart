@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account_details.dart';
 
 /// One loan as the Loans widgets need it: the list entry from
 /// `loan/v1/loan`, and its detail call (`loan/v1/loan/{id}`) when that

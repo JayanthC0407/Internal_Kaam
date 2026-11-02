@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
-import 'package:ubci_bank/src/core/models/common/statement_format.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
-import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
+import 'package:demo_bank/src/core/models/common/statement_format.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/view/providers/common/bill_payments_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/app_bottom_sheet.dart';
 
 /// Bill Payment History — OBDX `payment-history`: the user's bill payments
 /// for a period (Current Period by default), newest first, with OBDX's

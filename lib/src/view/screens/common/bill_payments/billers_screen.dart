@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/edit_biller_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/pay_bill_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/pay_bills_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/widgets/bills_help_panel.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/view/providers/common/bill_payments_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/edit_biller_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/pay_bill_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/pay_bills_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/widgets/bills_help_panel.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Billers — OBDX `manage-bill-payments` (Bill Payments → Billers).
 ///

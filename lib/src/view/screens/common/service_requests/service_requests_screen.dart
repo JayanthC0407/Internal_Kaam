@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/service_requests/service_request_models.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/common/service_requests/raise_request_views.dart';
-import 'package:ubci_bank/src/view/screens/common/service_requests/track_requests_views.dart';
-import 'package:ubci_bank/src/view/widgets/design_page.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/service_requests/service_request_models.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/common/service_requests/raise_request_views.dart';
+import 'package:demo_bank/src/view/screens/common/service_requests/track_requests_views.dart';
+import 'package:demo_bank/src/view/widgets/design_page.dart';
 
 /// OBDX's two Service Requests menu entries, one module page.
 enum SrTab { track, raise }

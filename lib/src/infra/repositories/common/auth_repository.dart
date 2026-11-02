@@ -1,22 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:http_status_code/http_status_code.dart';
 import 'package:pointycastle/export.dart';
-import 'package:ubci_bank/src/core/models/common/login_body.dart';
-import 'package:ubci_bank/src/core/models/common/login_flow_result.dart';
-import 'package:ubci_bank/src/core/models/common/login_trace.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/otp_login_pending.dart';
-import 'package:ubci_bank/src/core/models/common/token_response.dart';
-import 'package:ubci_bank/src/core/utils/common/jwt_utils.dart';
-import 'package:ubci_bank/src/core/utils/common/rsa_crypto_utils.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/core/models/common/login_body.dart';
+import 'package:demo_bank/src/core/models/common/login_flow_result.dart';
+import 'package:demo_bank/src/core/models/common/login_trace.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/otp_login_pending.dart';
+import 'package:demo_bank/src/core/models/common/token_response.dart';
+import 'package:demo_bank/src/core/utils/common/jwt_utils.dart';
+import 'package:demo_bank/src/core/utils/common/rsa_crypto_utils.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_user_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
 
 class AuthRepository {
   AuthRepository({

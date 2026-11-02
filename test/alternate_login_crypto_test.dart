@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/infra/security/alternate_login_crypto.dart';
+import 'package:demo_bank/src/infra/security/alternate_login_crypto.dart';
 
 void main() {
   test('encrypt/decrypt round-trips with correct secret', () {

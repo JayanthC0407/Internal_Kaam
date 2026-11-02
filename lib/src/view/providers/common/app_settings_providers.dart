@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/config/app_locale_holder.dart';
-import 'package:ubci_bank/src/core/theme/app_palette.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
+import 'package:demo_bank/src/core/config/app_locale_holder.dart';
+import 'package:demo_bank/src/core/theme/app_palette.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/view/providers/common/session_providers.dart';
 
 class AppSettings {
   const AppSettings({

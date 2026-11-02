@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
 
 /// Web secure on-screen keyboard for credential entry (anti-keylogger).
 class VirtualKeyboardDialog extends StatefulWidget {

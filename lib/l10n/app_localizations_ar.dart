@@ -9,10 +9,10 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'بنك UBCI';
+  String get appTitle => 'Demo Bank';
 
   @override
-  String get brandName => 'UBCI';
+  String get brandName => 'Demo';
 
   @override
   String get welcome => 'مرحبًا!';
@@ -1572,7 +1572,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'An account with this username already exists.';
 
   @override
-  String get biometricUnlockTitle => 'Unlock UBCI Bank';
+  String get biometricUnlockTitle => 'Unlock Demo Bank';
 
   @override
   String get biometricUnlockSubtitle =>

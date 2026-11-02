@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/cards/credit_card_models.dart';
-import 'package:ubci_bank/src/view/providers/common/credit_card_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/widgets/credit_card_face.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/cards/credit_card_models.dart';
+import 'package:demo_bank/src/view/providers/common/credit_card_providers.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/widgets/credit_card_face.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Credit card Transactions — OBDX `creditcard-transactions` (the shared
 /// account-transactions with type CREDIT): Unbilled Transactions (default)

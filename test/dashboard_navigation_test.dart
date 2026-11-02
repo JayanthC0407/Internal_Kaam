@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations_en.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/retail_nav.dart';
+import 'package:demo_bank/l10n/app_localizations_en.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/retail_nav.dart';
 
 const _items = [
   DashboardNavItem(id: 'home', label: 'Home', icon: Icons.home_rounded),

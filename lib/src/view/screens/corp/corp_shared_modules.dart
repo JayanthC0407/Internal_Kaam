@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/calculators/calculator_screens.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_accounts_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_accounts_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/tabs/more_tab_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/tabs/transfer_tab_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
+import 'package:demo_bank/src/view/providers/common/bill_payments_providers.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/billers_screen.dart';
+import 'package:demo_bank/src/view/screens/common/calculators/calculator_screens.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
+import 'package:demo_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_accounts_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_accounts_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/home/tabs/more_tab_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/home/tabs/transfer_tab_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
 
 /// The modules built for Retail, opened on the Corporate dashboard. Each
 /// one is the same screen Retail shows (same OBDX calls — Current &

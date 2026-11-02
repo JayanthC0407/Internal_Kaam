@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
-import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/brand_logo.dart';
+import 'package:demo_bank/src/view/widgets/profile_avatar.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Retail **web** dashboard top bar — the shared [DashboardTopBar], the same
 /// bar the Corporate dashboard uses, fed from the Retail session.

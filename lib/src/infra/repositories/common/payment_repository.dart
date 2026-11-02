@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:ubci_bank/src/core/models/common/payment/payment_models.dart';
+import 'package:demo_bank/src/core/models/common/payment/payment_models.dart';
 
 /// **MOCK REPOSITORY.**
 ///

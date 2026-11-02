@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/charges_inquiry_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_overview_page.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/charges_inquiry_page.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_overview_page.dart';
 
 /// A Liquidity Management screen inside the corporate shell: the page
 /// header (back arrow, title, OBDX's "party | id" caption) over the page.

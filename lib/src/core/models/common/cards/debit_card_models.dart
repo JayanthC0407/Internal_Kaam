@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// OBDX Debit Cards — `components/demand-deposits/debit-card-list`.
 /// Evidence for every field and rule: docs/obdx/features/debit-cards.md.

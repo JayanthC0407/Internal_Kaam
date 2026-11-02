@@ -12,7 +12,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appTitle => 'Demo Bank';
 
   @override
-  String get brandName => 'UBCI';
+  String get brandName => 'Demo';
 
   @override
   String get welcome => 'Добро пожаловать!';
@@ -1573,7 +1573,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'An account with this username already exists.';
 
   @override
-  String get biometricUnlockTitle => 'Unlock UBCI Bank';
+  String get biometricUnlockTitle => 'Unlock Demo Bank';
 
   @override
   String get biometricUnlockSubtitle =>

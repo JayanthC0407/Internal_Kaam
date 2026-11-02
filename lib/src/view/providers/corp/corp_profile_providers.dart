@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_currency.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_user_profile.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
+import 'package:demo_bank/src/core/models/corp/corp_bank_configuration.dart';
+import 'package:demo_bank/src/core/models/corp/corp_currency.dart';
+import 'package:demo_bank/src/core/models/corp/corp_party.dart';
+import 'package:demo_bank/src/core/models/corp/corp_user_profile.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_repository_providers.dart';
 
 /// Corporate profile context for the dashboard chrome.
 ///

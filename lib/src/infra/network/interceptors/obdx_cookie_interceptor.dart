@@ -1,5 +1,5 @@
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
 
 class ObdxCookieInterceptor implements CookieJar {
   @override

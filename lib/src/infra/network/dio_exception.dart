@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
 
 /// Legacy wrapper — prefer [ObdxErrorMapper.fromDioException].
 class AppDioException implements Exception {

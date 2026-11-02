@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
 
 /// Credit Facility Management in the corporate side menu, as OBDX lists it
 /// (corporate.json 997-1053; nls/menu.js 548-563):

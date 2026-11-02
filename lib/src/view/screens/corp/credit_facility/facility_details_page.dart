@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/credit_facility_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/credit_facility_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// Facility Details — OBDX `credit-facility/facility-details`: from the
 /// menu a Choose Facility dialog comes first; from Facility Summary the

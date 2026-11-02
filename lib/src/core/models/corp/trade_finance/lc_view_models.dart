@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
 
 // Models used only by the View LC screen tabs.
 // Captures: `view_LC_details.har` (**H4 #n**).

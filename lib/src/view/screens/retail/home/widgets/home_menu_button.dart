@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 class HomeMenuButton extends StatelessWidget {
   const HomeMenuButton({super.key, required this.onTap});

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/retail/certificate_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_certificates_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/certificates_repository.dart';
-import 'package:ubci_bank/src/view/providers/retail/certificates_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/certificates/certificates_screens.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/retail/certificate_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_certificates_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/infra/repositories/retail/certificates_repository.dart';
+import 'package:demo_bank/src/view/providers/retail/certificates_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/certificates/certificates_screens.dart';
 
 // Shapes follow OBDX interest-certificate-all, balance-certificate and
 // tax-deduction-at-source (docs/obdx/features/certificates.md). Values are

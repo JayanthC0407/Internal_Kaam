@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// OBDX Certificates — Interest, Balance and TDS (Accounts → Certificates).
 /// Evidence for every request and rule: docs/obdx/features/certificates.md.

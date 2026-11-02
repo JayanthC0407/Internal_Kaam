@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Account Settings → Session Summary (`base-components/session-summary`),
 /// Alerts Subscription (`alerts/user-alerts-subscription`) and Change

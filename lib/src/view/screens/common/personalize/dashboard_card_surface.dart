@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
 
 /// The one card style every tile on a personalized dashboard shares.
 ///

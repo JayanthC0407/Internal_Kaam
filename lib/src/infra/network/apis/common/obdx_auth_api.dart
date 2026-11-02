@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/config/env_config.dart';
-import 'package:ubci_bank/src/core/models/common/token_response.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/core/config/env_config.dart';
+import 'package:demo_bank/src/core/models/common/token_response.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_api_base.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_dio_client.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
 
 class ObdxAuthApi extends ObdxApiBase {
   ObdxAuthApi([ObdxDioClient? client])

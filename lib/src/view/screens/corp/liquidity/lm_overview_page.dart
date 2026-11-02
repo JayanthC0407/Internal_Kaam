@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/corp/liquidity_overview_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_liquidity_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_balance_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_sweep_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_widgets.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/corp/liquidity_overview_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_liquidity_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_balance_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_sweep_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_widgets.dart';
 
 /// Liquidity Management ▸ Overview — OBDX's `liquidity-management` module
 /// dashboard: the widgets the server layout lists (card §2). On wide
