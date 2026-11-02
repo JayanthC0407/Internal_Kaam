@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/service_requests/service_request_models.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_loans_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_loans_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_loans_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/core/models/common/service_requests/service_request_models.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loans_models.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_loans_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_loans_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
 
 /// Corporate Loans & Finances. autoDispose: loaded while a screen is open.
 
