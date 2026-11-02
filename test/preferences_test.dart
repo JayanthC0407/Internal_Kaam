@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/core/theme/app_palette.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/themes_section.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/core/theme/app_palette.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/view/providers/common/app_settings_providers.dart';
+import 'package:demo_bank/src/view/providers/common/preferences_providers.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/preferences_screen.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/themes_section.dart';
 
 // Field names follow the OBDX channel components (base-components-profile,
 // sms-primary-account, third-party-consents, generic-settings); values are

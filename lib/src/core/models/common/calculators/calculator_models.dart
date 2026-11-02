@@ -1,7 +1,7 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_otp_outcome.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_otp_outcome.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Calculators (OBDX `components/widgets/calculators`). Every request and
 /// field is from docs/obdx/features/calculators.md; hooks.js lines inline.

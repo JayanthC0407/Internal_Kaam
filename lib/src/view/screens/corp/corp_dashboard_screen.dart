@@ -1,37 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/session_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_shared_modules.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/corp_trade_finance_hub.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_accounts_card.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_dashboard_header_bar.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
-import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/providers/common/session_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/preferences_screen.dart';
+import 'package:demo_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_shared_modules.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/personalize_sheet.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/personalize_panel.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/corp_trade_finance_hub.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/credit_facility_workspace.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_liquidity_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/liquidity_workspace.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_accounts_card.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_dashboard_header_bar.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
+import 'package:demo_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/widgets/sidebar_content_navigator.dart';
 
 /// Arguments for the Corporate dashboard.
 ///
@@ -109,6 +115,14 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   /// same as any other unopened module.
   LcMenuAction? _lcAction;
 
+  /// The open Credit Facility page, while [_destination] is
+  /// [CorpNavDestination.creditFacility].
+  CfPage? _cfPage;
+
+  /// The open Liquidity Management page, while [_destination] is
+  /// [CorpNavDestination.liquidityManagement].
+  LmPage? _lmPage;
+
   /// My Preferences, opened from the header initials, shown over
   /// [_destination] until Back or a menu choice.
   bool _preferencesOpen = false;
@@ -180,7 +194,7 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   }
 
   void _selectDestination(CorpNavDestination destination,
-      {LcMenuAction? lcAction}) {
+      {LcMenuAction? lcAction, CfPage? cfPage, LmPage? lmPage}) {
     // A menu choice replaces whatever was opened on top.
     SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
     setState(() {
@@ -188,6 +202,8 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       _pages.clear();
       _destination = destination;
       if (lcAction != null) _lcAction = lcAction;
+      if (cfPage != null) _cfPage = cfPage;
+      if (lmPage != null) _lmPage = lmPage;
     });
   }
 
@@ -218,6 +234,12 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
       lcAction: destination == CorpNavDestination.tradeFinance
           ? CorpNavDestination.lcActionFromNavId(id)
           : null,
+      cfPage: destination == CorpNavDestination.creditFacility
+          ? CorpNavDestination.cfPageFromNavId(id)
+          : null,
+      lmPage: destination == CorpNavDestination.liquidityManagement
+          ? CorpNavDestination.lmPageFromNavId(id)
+          : null,
     );
   }
 
@@ -229,6 +251,14 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
     final action = _lcAction;
     if (_destination == CorpNavDestination.tradeFinance && action != null) {
       return CorpNavDestination.navIdForLcAction(action);
+    }
+    final cfPage = _cfPage;
+    if (_destination == CorpNavDestination.creditFacility && cfPage != null) {
+      return CorpNavDestination.navIdForCfPage(cfPage);
+    }
+    final lmPage = _lmPage;
+    if (_destination == CorpNavDestination.liquidityManagement && lmPage != null) {
+      return CorpNavDestination.navIdForLmPage(lmPage);
     }
     // Opened from More: More stays lit, as on Retail.
     if (CorpNavDestination.inMore.contains(_destination)) return CorpNavDestination.more.name;
@@ -287,8 +317,11 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final isDesktop = responsive.isDesktop;
-    final navItems =
-        CorpNavDestination.navItems(ref.watch(lcPermissionsProvider));
+    final navItems = CorpNavDestination.navItems(
+      ref.watch(lcPermissionsProvider),
+      cfPermissions: ref.watch(cfPermissionsProvider),
+      lmPermissions: ref.watch(lmPermissionsProvider),
+    );
 
     final shell = Column(
       children: [
@@ -551,6 +584,16 @@ class _CorpDashboardScreenState extends ConsumerState<CorpDashboardScreen> {
           onBack: () => _selectDestination(CorpNavDestination.home),
         );
       }
+    }
+    final cfPage = _cfPage;
+    if (_destination == CorpNavDestination.creditFacility && cfPage != null) {
+      // Reached only from the nav menu, so Back returns Home.
+      return CorpCreditFacilityWorkspace(page: cfPage, onBack: home);
+    }
+    final lmPage = _lmPage;
+    if (_destination == CorpNavDestination.liquidityManagement && lmPage != null) {
+      // Reached only from the nav menu, so Back returns Home.
+      return CorpLiquidityWorkspace(page: lmPage, onBack: home);
     }
     return _CorpDestinationPlaceholder(destination: _destination);
   }

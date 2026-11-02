@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/view/screens/common/dashboard/module_hub_page.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/module_hub_page.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 
 /// The OBDX Credit Cards menu on one page (`retail.json:258-330`, labels
 /// `nls/menu.js:262-272`), opened from the side menu's single Credit Cards

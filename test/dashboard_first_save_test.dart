@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_user_profile.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:demo_bank/src/core/models/corp/corp_user_profile.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_user_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/dashboard_repository.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
 
 /// A new user's first personalization, as captured in
 /// `customize for new user.har`: their `me` lists no `CUSTOM` dashboard,

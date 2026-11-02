@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/pref/pref_const.dart';
-import 'package:ubci_bank/src/infra/pref/secure_storage_service.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/pref/pref_const.dart';
+import 'package:demo_bank/src/infra/pref/secure_storage_service.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
 
 /// Clears the local session and signals the UI when OBDX rejects the JWT
 /// (`401` / `DIGX_AU_035` / invalid authentication token).

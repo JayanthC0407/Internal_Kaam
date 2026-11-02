@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/widgets/sidebar_content_navigator.dart';
 
 /// A dashboard in miniature: a sidebar, and the content area beside it.
 class _Shell extends StatefulWidget {

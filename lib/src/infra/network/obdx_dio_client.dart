@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/dio_ssl_pinning.dart';
-import 'package:ubci_bank/src/infra/network/dio_web_credentials.dart';
-import 'package:ubci_bank/src/infra/network/interceptors/authorization_interceptor.dart';
-import 'package:ubci_bank/src/infra/network/interceptors/logging_interceptor.dart';
-import 'package:ubci_bank/src/infra/network/interceptors/obdx_cookie_interceptor.dart';
-import 'package:ubci_bank/src/infra/network/interceptors/session_expiry_interceptor.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/dio_ssl_pinning.dart';
+import 'package:demo_bank/src/infra/network/dio_web_credentials.dart';
+import 'package:demo_bank/src/infra/network/interceptors/authorization_interceptor.dart';
+import 'package:demo_bank/src/infra/network/interceptors/logging_interceptor.dart';
+import 'package:demo_bank/src/infra/network/interceptors/obdx_cookie_interceptor.dart';
+import 'package:demo_bank/src/infra/network/interceptors/session_expiry_interceptor.dart';
 
 /// Single shared Dio instance for all OBDX API modules.
 class ObdxDioClient {

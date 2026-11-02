@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_liquidity_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
 
 /// The corporate dashboard's main navigation destinations, in menu order —
 /// declaration order *is* the order the sidebar and drawer list them, so
@@ -21,6 +25,12 @@ enum CorpNavDestination {
   termDeposits('Term Deposits', Icons.account_balance_wallet_outlined),
   transfer('Transfer', Icons.swap_horiz_rounded),
   tradeFinance('Trade Finance', Icons.public_rounded),
+
+  /// OBDX's Liquidity Management (see [LmPage]).
+  liquidityManagement('Liquidity Management', Icons.water_drop_outlined),
+
+  /// OBDX's Credit Facility Management (see [CfPage]).
+  creditFacility('Credit Facility Management', Icons.account_tree_outlined),
   bill('Bill', Icons.receipt_long_outlined),
   statements('Statements', Icons.description_outlined),
   creditCard('Credit Card', Icons.credit_card_outlined),
@@ -56,12 +66,22 @@ enum CorpNavDestination {
   /// does not entitle them to, and hides [tradeFinance] entirely when none
   /// are allowed — same rule the old per-destination Trade Finance tree
   /// used, carried over onto the shared nav widget.
-  static List<DashboardNavItem> navItems(LcPermissions lcPermissions) {
+  static List<DashboardNavItem> navItems(
+    LcPermissions lcPermissions, {
+    CfPermissions cfPermissions = const CfPermissions(),
+    LmPermissions lmPermissions = const LmPermissions(),
+  }) {
     final items = <DashboardNavItem>[];
     for (final destination in values) {
       if (inMore.contains(destination)) continue;
       if (destination == tradeFinance) {
         final item = _tradeFinanceItem(lcPermissions);
+        if (item != null) items.add(item);
+      } else if (destination == liquidityManagement) {
+        final item = _liquidityItem(lmPermissions);
+        if (item != null) items.add(item);
+      } else if (destination == creditFacility) {
+        final item = _creditFacilityItem(cfPermissions);
         if (item != null) items.add(item);
       } else {
         items.add(DashboardNavItem(
@@ -122,6 +142,73 @@ enum CorpNavDestination {
       icon: tradeFinance.icon,
       children: sections,
     );
+  }
+
+  /// Credit Facility Management ▸ Overview, then Credit Facility /
+  /// Collaterals ▸ the allowed pages; a group with none is dropped, and the
+  /// whole entry is null when no page is allowed.
+  static DashboardNavItem? _creditFacilityItem(CfPermissions permissions) {
+    final groups = <DashboardNavItem>[
+      if (CfPage.overview.allowedBy(permissions))
+        DashboardNavItem(id: navIdForCfPage(CfPage.overview), label: CfPage.overview.label, icon: CfPage.overview.icon),
+    ];
+    for (final group in CfMenuGroup.values) {
+      final pages = [for (final p in CfPage.values) if (p.group == group && p.allowedBy(permissions)) p];
+      if (pages.isEmpty) continue;
+      groups.add(DashboardNavItem(
+        id: '${creditFacility.name}.${group.name}',
+        label: group.label,
+        icon: group.icon,
+        children: [
+          for (final p in pages) DashboardNavItem(id: navIdForCfPage(p), label: p.label, icon: p.icon),
+        ],
+      ));
+    }
+    if (groups.isEmpty) return null;
+    return DashboardNavItem(
+      id: creditFacility.name,
+      label: creditFacility.label,
+      icon: creditFacility.icon,
+      children: groups,
+    );
+  }
+
+  /// The menu id of a Credit Facility page: `creditFacility.<group>.<page>`,
+  /// or `creditFacility.overview`.
+  static String navIdForCfPage(CfPage page) =>
+      [creditFacility.name, if (page.group case final g?) g.name, page.name].join('.');
+
+  /// Liquidity Management ▸ the allowed pages; null when none is allowed.
+  static DashboardNavItem? _liquidityItem(LmPermissions permissions) {
+    final pages = [for (final p in LmPage.values) if (p.allowedBy(permissions)) p];
+    if (pages.isEmpty) return null;
+    return DashboardNavItem(
+      id: liquidityManagement.name,
+      label: liquidityManagement.label,
+      icon: liquidityManagement.icon,
+      children: [for (final p in pages) DashboardNavItem(id: navIdForLmPage(p), label: p.label, icon: p.icon)],
+    );
+  }
+
+  /// The menu id of a Liquidity Management page: `liquidityManagement.<page>`.
+  static String navIdForLmPage(LmPage page) => '${liquidityManagement.name}.${page.name}';
+
+  /// The Liquidity Management page a leaf id selects.
+  static LmPage? lmPageFromNavId(String id) {
+    final tail = id.split('.').last;
+    for (final page in LmPage.values) {
+      if (page.name == tail) return page;
+    }
+    return null;
+  }
+
+  /// The Credit Facility page a leaf id selects.
+  static CfPage? cfPageFromNavId(String id) {
+    final tail = id.split('.').last;
+    for (final page in CfPage.values) {
+      if (page.name == tail) return page;
+    }
+    return null;
   }
 
   /// The menu id of a Trade Finance option's row:

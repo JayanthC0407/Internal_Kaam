@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
 
 /// The outcome of an OBDX write that may need an OTP first (HTTP 417 with
 /// `X-CHALLENGE`). Implemented by each feature's outcome type so one OTP

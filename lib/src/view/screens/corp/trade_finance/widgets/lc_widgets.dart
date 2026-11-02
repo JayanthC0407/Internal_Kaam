@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/core/utils/corp/corp_money_format.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
-import 'package:ubci_bank/src/view/widgets/simple_option_picker_sheet.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/core/utils/corp/corp_money_format.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/view/widgets/simple_option_picker_sheet.dart';
 
 /// Shared building blocks for the Letter of Credit screens.
 ///

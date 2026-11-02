@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
 
 /// Supported app locales — keep in sync with `lib/l10n/app_*.arb` files.
 class LocaleConfig {

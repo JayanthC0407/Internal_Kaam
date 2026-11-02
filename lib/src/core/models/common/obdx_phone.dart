@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/constants/app_constants.dart';
+import 'package:demo_bank/src/core/constants/app_constants.dart';
 
 /// OBDX `com.ofss.digx.app.common.Phone` — sent as a JSON object, not a string.
 class ObdxPhone {

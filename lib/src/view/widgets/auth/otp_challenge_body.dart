@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_primary_button.dart';
-import 'package:ubci_bank/src/view/widgets/auth/otp_pin_input.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/screens/common/auth/auth_colors.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_primary_button.dart';
+import 'package:demo_bank/src/view/widgets/auth/otp_pin_input.dart';
 
   /// Shared OTP entry used by login, registration, and forgot-credentials.
   ///

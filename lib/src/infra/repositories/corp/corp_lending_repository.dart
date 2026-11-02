@@ -1,7 +1,7 @@
-import 'package:ubci_bank/src/core/models/corp/corp_loan_application.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_process_management_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loan_application.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_process_management_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_repository_base.dart';
 
 /// Corporate lending applications — the Loan Application Tracker's data.
 class CorpLendingRepository extends CorpRepositoryBase {

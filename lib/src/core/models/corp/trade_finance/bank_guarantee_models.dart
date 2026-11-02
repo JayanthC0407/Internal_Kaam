@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_initiate_support.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_initiate_support.dart';
 
 /// Bank Guarantee (Inward) models.
 ///

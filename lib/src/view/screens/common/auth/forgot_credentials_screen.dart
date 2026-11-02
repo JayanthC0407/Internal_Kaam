@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/forgot_credentials_pending.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/date_of_birth_format.dart';
-import 'package:ubci_bank/src/core/utils/common/email_validator.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
-import 'package:ubci_bank/src/view/providers/common/forgot_credentials_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_flow_success_panel.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_labeled_field.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_screen_header.dart';
-import 'package:ubci_bank/src/view/widgets/auth/otp_challenge_body.dart';
-import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/forgot_credentials_pending.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/date_of_birth_format.dart';
+import 'package:demo_bank/src/core/utils/common/email_validator.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/view/providers/common/forgot_credentials_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_flow_success_panel.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_form_shell.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_labeled_field.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_screen_header.dart';
+import 'package:demo_bank/src/view/widgets/auth/otp_challenge_body.dart';
+import 'package:demo_bank/src/view/widgets/secure_screen.dart';
 
 class ForgotCredentialsArgs {
   const ForgotCredentialsArgs({required this.kind});

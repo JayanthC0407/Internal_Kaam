@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/account_category.dart';
-import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_transactions_screen.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/account_category.dart';
+import 'package:demo_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_transactions_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_transactions_screen.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
 import '../home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// Shows [items] as a menu anchored directly under the tapped field,
 /// instead of a full [showModalBottomSheet] — used on every layout (mobile

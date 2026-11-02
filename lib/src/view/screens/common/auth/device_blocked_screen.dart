@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/security/device_security_models.dart';
-import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/security/device_security_models.dart';
+import 'package:demo_bank/src/view/widgets/secure_screen.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
 
 class DeviceBlockedScreen extends StatelessWidget {
   const DeviceBlockedScreen({

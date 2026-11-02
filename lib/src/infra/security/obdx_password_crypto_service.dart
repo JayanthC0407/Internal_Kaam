@@ -1,7 +1,7 @@
 import 'package:pointycastle/export.dart';
-import 'package:ubci_bank/src/core/utils/common/rsa_crypto_utils.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/utils/common/rsa_crypto_utils.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 /// Encrypts a plain password for OBDX using a fresh public key + salt round-trip.
 class ObdxPasswordCryptoService {

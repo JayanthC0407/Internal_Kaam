@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:ubci_bank/src/core/config/ssl_pin_config.dart';
+import 'package:demo_bank/src/core/config/ssl_pin_config.dart';
 
 /// Validates server leaf certificates against configured pin fingerprints.
 class SslPinValidator {

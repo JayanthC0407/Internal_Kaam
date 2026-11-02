@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 
 // Data behind the View LC tabs. Each provider loads only when its tab is
 // first opened (as the web does — `view_LC_details.har`, H4) and is

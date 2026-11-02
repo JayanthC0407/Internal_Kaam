@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/interceptors/session_expiry_interceptor.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/interceptors/session_expiry_interceptor.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
 
 void main() {
   late SessionExpiryCoordinator coordinator;

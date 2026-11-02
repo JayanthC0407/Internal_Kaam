@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_widget_labels.dart';
+import 'package:demo_bank/src/core/utils/common/dashboard_widget_labels.dart';
 
 void main() {
   group('DashboardWidgetLabels.forComponent', () {

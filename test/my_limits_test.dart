@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/limits/my_limits_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_limits_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/limits_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/limits/my_limits_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_limits_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/limits_repository.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/screens/common/limits/my_limits_screen.dart';
 
 // Field names follow OBDX my-limit/hooks.js (docs/obdx/features/my-limits.md
 // §3-4); ids and values are made up.
@@ -249,7 +249,7 @@ void main() {
     expect(find.text('My Limits'), findsWidgets);
     expect(find.text('Internet'), findsOneWidget);
     expect(find.text('Internal Transfer'), findsOneWidget);
-    expect(find.text('Internal Transfer Limits'), findsNWidgets(2), reason: 'tab chip + header');
+    expect(find.text('Internal Transfer Limits'), findsNWidgets(2), reason: 'heading + tab dropdown');
     expect(find.text('Daily Limits'), findsOneWidget);
     expect(find.text('Monthly Limits'), findsOneWidget);
     expect(find.text('31%\nUtilized'), findsOneWidget);
@@ -259,10 +259,10 @@ void main() {
 
   testWidgets('another tab: Monthly not assigned shows the OBDX text with the channel', (tester) async {
     await pump(tester);
-    // The chips scroll sideways on a phone.
-    await tester.ensureVisible(find.text('Transaction Group Limits'));
+    // The tabs are in the dropdown beside the heading (the second label).
+    await tester.tap(find.text('Internal Transfer Limits').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Transaction Group Limits'));
+    await tester.tap(find.text('Transaction Group Limits').last);
     await tester.pumpAndSettle();
     expect(
       find.text('Monthly limit package is not assigned for the selected transaction for Internet Touch Point'),
@@ -276,13 +276,16 @@ void main() {
     expect(find.text('Minimum Amount'), findsNothing);
   });
 
-  testWidgets('web: tabs as a list beside the limits', (tester) async {
+  testWidgets('web: the tab dropdown lists OBDX\'s tabs; a pick reloads the cards', (tester) async {
     await pump(tester, width: 1280);
+    await tester.tap(find.text('Internal Transfer Limits').last);
+    await tester.pumpAndSettle();
     for (final t in ['Internal Transfer Limits', 'Transaction Group Limits', 'Consolidated Limits']) {
       expect(find.text(t), findsWidgets, reason: t);
     }
-    await tester.tap(find.text('Consolidated Limits'));
+    await tester.tap(find.text('Consolidated Limits').last);
     await tester.pumpAndSettle();
+    expect(find.text('Consolidated Limits'), findsNWidgets(2), reason: 'heading + dropdown');
     expect(find.text('100%\nUtilized'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });

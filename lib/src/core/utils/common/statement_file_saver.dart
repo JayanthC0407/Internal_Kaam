@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver_stub.dart'
-    if (dart.library.html) 'package:ubci_bank/src/core/utils/common/statement_file_saver_web.dart'
-    if (dart.library.io) 'package:ubci_bank/src/core/utils/common/statement_file_saver_io.dart'
+import 'package:demo_bank/src/core/utils/common/statement_file_saver_stub.dart'
+    if (dart.library.html) 'package:demo_bank/src/core/utils/common/statement_file_saver_web.dart'
+    if (dart.library.io) 'package:demo_bank/src/core/utils/common/statement_file_saver_io.dart'
     as impl;
 
 /// Saves / shares a downloaded account statement on the current platform.

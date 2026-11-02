@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/core/config/app_locale_holder.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/constants/app_constants.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/core/config/app_locale_holder.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/constants/app_constants.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
 
 class AuthorizationInterceptor extends InterceptorsWrapper {
   @override

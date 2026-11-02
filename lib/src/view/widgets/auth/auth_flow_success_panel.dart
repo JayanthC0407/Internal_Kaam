@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_form_shell.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_form_styles.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_form_shell.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_form_styles.dart';
 
 /// Shared success UI for registration + forgot-credentials (message-driven).
 /// Fills the screen without scrolling — CTA stays visible.

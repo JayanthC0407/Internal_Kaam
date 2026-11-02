@@ -16,19 +16,19 @@
 // Not part of the app — nothing under lib/ imports this.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_profile_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_accounts_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_profile_repository.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/core/models/corp/corp_bank_configuration.dart';
+import 'package:demo_bank/src/core/models/corp/corp_party.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_profile_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_accounts_repository.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_profile_repository.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_repository_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_dashboard_screen.dart';
 
 void main() {
   runApp(

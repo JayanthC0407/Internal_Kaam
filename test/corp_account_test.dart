@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/core/utils/corp/corp_money_format.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/core/utils/corp/corp_money_format.dart';
 
 /// Trimmed copy of the real `GET /digx-common/account/v1/accounts` response
 /// from the Corporate "LOGIN to DASHBOARD" capture (entry #68) — one
