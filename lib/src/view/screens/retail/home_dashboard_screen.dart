@@ -1114,11 +1114,15 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return NominationsScreen(roles: _rolesFromTrace(), embedded: true, onBack: _closeSection);
       case _creditCardsHubIndex:
         return CreditCardsHubScreen(
+          // The module's main page: Back is Home (its inner pages come
+          // back here, so the remembered back index is this page).
+          onBack: () => setState(() => _selectedBottomNavIndex = 0),
           onCreditCardsTap: () => _openSection(index: _creditCardsIndex, back: _creditCardsHubIndex),
           onTransactionsTap: () => _openSection(index: _cardTransactionsIndex, back: _creditCardsHubIndex),
         );
       case _billPaymentsHubIndex:
         return BillPaymentsHubScreen(
+          onBack: () => setState(() => _selectedBottomNavIndex = 0),
           onBillersTap: () => _openSection(index: _billersIndex, back: _billPaymentsHubIndex),
           onAddBillerTap: () => _openSection(index: _addBillerIndex, back: _billPaymentsHubIndex),
           onHistoryTap: () => _openSection(index: _billHistoryIndex, back: _billPaymentsHubIndex),
