@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/src/core/models/corp/corp_loans_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_loans_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loans_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/design_page.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loans_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_loans_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loans_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/design_page.dart';
 
 /// Corporate Loans - Messages / - Advices (OBDX `obcl-loan-messages`,
 /// `obcl-loan-advices`): pick a Loan Account, then its SWIFT messages or

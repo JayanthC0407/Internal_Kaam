@@ -1,11 +1,11 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/core/models/common/service_requests/service_request_models.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_loans_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_loans_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/core/models/common/service_requests/service_request_models.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loans_models.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_loans_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_repository_base.dart';
 
 /// Corporate Loans & Finances: parses [ObdxCorpLoansApi] into
 /// `corp_loans_models.dart`. A repayment can come back with an OTP or for

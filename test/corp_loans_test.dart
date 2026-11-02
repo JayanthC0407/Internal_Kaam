@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/core/models/common/service_requests/service_request_models.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_loans_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_loans_repository.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_loans_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loan_application_tracker_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loan_notices_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loan_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_loans_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/loans/corp_multi_loan_repayment_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/core/models/common/service_requests/service_request_models.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loans_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_loans_repository.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_loans_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loan_application_tracker_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loan_notices_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loan_transactions_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_loans_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/loans/corp_multi_loan_repayment_screen.dart';
 
 // Field names follow OBDX obcl-* model.js; values are made up.
 
