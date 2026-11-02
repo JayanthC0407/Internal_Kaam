@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_filter_panel.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_list_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/tf_filter_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_filter_panel.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_list_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/tf_filter_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// Initiate Lodge Claim / Initiate Lodge Claim-Islamic
 /// (`lodge-claims[-islamic]`, BG #68 / #77).

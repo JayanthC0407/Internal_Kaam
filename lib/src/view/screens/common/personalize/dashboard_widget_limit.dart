@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
 
 /// How many widgets a dashboard may show on one screen size, and how many
 /// it shows now.

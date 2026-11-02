@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_widget_data_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_data.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_snapshot_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cashflow_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_live_widget.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_widget_data_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_data.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_snapshot_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cashflow_summary_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_live_widget.dart';
 
 /// The Cash Flow Snapshot and Summary on live data — what the Corporate
 /// registry builds. Both read [corpCashFlowActivityProvider], for today and

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_amendment_acceptance_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_list_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_lodge_claim_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_list_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_list_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_hub.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_amendment_acceptance_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_list_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_lodge_claim_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_list_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_list_page.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_initiate_hub.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// A Trade Finance screen — Letter of Credit or Bank Guarantee — rendered
 /// *inside* the corporate shell (the

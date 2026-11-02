@@ -69,11 +69,11 @@ dart_defines = root / "dart_defines.json"
 dart_defines.write_text(json.dumps(defines, indent=2) + "\n")
 
 # Android Studio run configuration (local .idea — gitignored)
-run_xml = root / ".idea" / "runConfigurations" / "UBCI_Bank.xml"
+run_xml = root / ".idea" / "runConfigurations" / "Demo_Bank.xml"
 run_xml.write_text(
     """<?xml version="1.0" encoding="UTF-8"?>
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="UBCI Bank" type="FlutterRunConfigurationType" factoryName="Flutter">
+  <configuration default="false" name="Demo Bank" type="FlutterRunConfigurationType" factoryName="Flutter">
     <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
     <option name="additionalArgs" value="--dart-define-from-file=dart_defines.json" />
     <method v="2" />
@@ -84,12 +84,12 @@ run_xml.write_text(
 PY
 
 echo "Updated:"
-echo "  ${ROOT}/.idea/runConfigurations/UBCI_Bank.xml  (Android Studio)"
+echo "  ${ROOT}/.idea/runConfigurations/Demo_Bank.xml  (Android Studio)"
 echo "  ${ROOT}/dart_defines.json                      (Android Studio / CLI)"
 echo "  ${ROOT}/.vscode/settings.json                  (optional local editor)"
 echo ""
 echo "Next steps:"
 echo "  1. Stop the running app completely."
-echo "  2. Android Studio: choose run configuration \"UBCI Bank\" (or add"
+echo "  2. Android Studio: choose run configuration \"Demo Bank\" (or add"
 echo "     --dart-define-from-file=dart_defines.json under Additional run args)."
 echo "  3. Run again — hot restart is NOT enough."

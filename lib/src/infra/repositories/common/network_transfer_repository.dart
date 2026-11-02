@@ -1,18 +1,18 @@
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
-import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
-import 'package:ubci_bank/src/core/models/common/payment/standing_instruction.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/obdx_batch.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/own_account_transfer.dart';
+import 'package:demo_bank/src/core/models/common/payment/network_transfer.dart';
+import 'package:demo_bank/src/core/models/common/payment/standing_instruction.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payee_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payments_api.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Transfers to payees — existing, adhoc, repeat, and International Low
 /// Value Payment — on the OBDX 22.2 network payment APIs.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 
 /// "Other Transfers" — transfer types beside payee transfers. Between My
 /// Accounts is live; demand drafts and peer-to-peer exist on the OBDX

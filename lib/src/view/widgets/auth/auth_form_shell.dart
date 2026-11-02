@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_form_styles.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_mobile_frame.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_screen_header.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_form_styles.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_mobile_frame.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_screen_header.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
 /// Flat auth page layout matching login (no card, no step chrome).
 ///
 /// On wide web/desktop viewports this uses the same split brand + form

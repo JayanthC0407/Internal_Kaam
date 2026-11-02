@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_form_styles.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_form_styles.dart';
 
 class AuthPrimaryButton extends StatelessWidget {
   const AuthPrimaryButton({

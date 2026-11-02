@@ -1,53 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:demo_bank/src/view/screens/common/debit_cards/debit_cards_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/current_savings_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/certificates/certificates_screens.dart';
+import 'package:demo_bank/src/view/screens/retail/nominations/nominations_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/cheque_book_request_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/sweep_in_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/security/device_security_models.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_accounts_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_accounts_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/core/models/common/payment/network_transfer.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/security/device_security_models.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_accounts_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_accounts_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
 
 import 'home/home_colors.dart';
 import 'home/tabs/insights_tab_screen.dart';
 import 'home/tabs/more_tab_screen.dart';
 import 'home/tabs/rewards_tab_screen.dart';
 import 'home/tabs/transfer_tab_screen.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/view/providers/common/bill_payments_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/calculators/calculator_screens.dart';
-import 'package:ubci_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/preferences_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
-import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/personalize_sheet.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
-import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_dashboard_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
-import 'package:ubci_bank/src/view/widgets/sidebar_content_navigator.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/view/providers/common/bill_payments_providers.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/add_biller_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payment_history_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/billers_screen.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_card_transactions_screen.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/calculators/calculator_screens.dart';
+import 'package:demo_bank/src/view/screens/common/mailbox/mailbox_screen.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/preferences_screen.dart';
+import 'package:demo_bank/src/view/screens/common/service_requests/service_requests_screen.dart';
+import 'package:demo_bank/src/view/providers/common/mailbox_providers.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_cards_screen.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_arrange.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/personalize_sheet.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/personalize_panel.dart';
+import 'package:demo_bank/src/view/screens/retail/dashboard_widgets/retail_dashboard_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
+import 'package:demo_bank/src/view/widgets/sidebar_content_navigator.dart';
 
-import 'package:ubci_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
+import 'package:demo_bank/src/view/screens/common/navigation/dashboard_navigation.dart';
 import 'home/widgets/home_content.dart';
 import 'home/widgets/bottom_nav.dart';
 import 'home/widgets/dashboard_header_bar.dart';
@@ -877,6 +883,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     final index = _selectedBottomNavIndex;
     // A module page and everything opened from it keep its entry lit.
     if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
+    if (_casaScreens.contains(index)) return RetailNav.accountsCasa;
+    if (_certificateScreens.contains(index)) return RetailNav.accountsCertificates;
+    if (index == _nominationsIndex) return RetailNav.accountsNominations;
     if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
     // Rewards (tab 3), Mailbox, Service Requests and Calculators open from More.
     if (index == 3 || index == _mailboxIndex || index == _serviceRequestsIndex || _calculatorScreens.contains(index)) {
@@ -899,7 +908,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   void _onNavSelected(String id) {
     switch (id) {
       case RetailNav.accountsCasa:
-        _openAccountsDestination(WebAccountsDestination.casa);
+        // OBDX's Current & Savings menu: its module page (the account list
+        // is its first tile; Home still opens the list directly).
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _casaHubIndex);
+        return;
+      case RetailNav.accountsNominations:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _nominationsIndex);
+        return;
+      case RetailNav.accountsCertificates:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _certificatesHubIndex);
         return;
       case RetailNav.accountsLoans:
         _openAccountsDestination(WebAccountsDestination.loans);
@@ -1006,6 +1026,44 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }
 
   static const _creditCardsScreens = {_creditCardsHubIndex, _creditCardsIndex, _cardTransactionsIndex};
+
+  /// Accounts → Current & Savings (OBDX `CASA_ACCOUNT`): its module page and
+  /// Debit Cards (OBDX `debit-card-list`).
+  static const _casaHubIndex = 39;
+  static const _debitCardsIndex = 40;
+
+  /// Current & Savings → Cheque Book Request (OBDX `cheque-book-request`).
+  static const _chequeBookRequestIndex = 46;
+
+  /// Current & Savings → Sweep-In (OBDX `sweep-in-instruction`).
+  static const _sweepInIndex = 47;
+  static const _casaScreens = {_casaHubIndex, _debitCardsIndex, _chequeBookRequestIndex, _sweepInIndex};
+
+  /// Accounts → Certificates (OBDX `certificates`): its page and Interest,
+  /// Balance and TDS Certificates.
+  static const _certificatesHubIndex = 41;
+  static const _interestCertificatesIndex = 42;
+  static const _balanceCertificatesIndex = 43;
+  static const _tdsCertificatesIndex = 44;
+  static const _certificateScreens = {
+    _certificatesHubIndex,
+    _interestCertificatesIndex,
+    _balanceCertificatesIndex,
+    _tdsCertificatesIndex,
+  };
+
+  /// Accounts → Nominations (OBDX `nominations`).
+  static const _nominationsIndex = 45;
+
+  /// `userProfile.roles` from the login profile: Interest Certificates'
+  /// Account Category options come from them, as in OBDX.
+  List<String> _rolesFromTrace() {
+    final profileResponse = widget.args.loginTrace?['profileResponse'];
+    final body = profileResponse is Map ? profileResponse['body'] : null;
+    final userProfile = body is Map ? body['userProfile'] : null;
+    final roles = userProfile is Map ? userProfile['roles'] : null;
+    return roles is List ? [for (final r in roles) '$r'] : const [];
+  }
   static const _billPaymentsScreens = {_billPaymentsHubIndex, _billersIndex, _billHistoryIndex, _addBillerIndex};
 
   /// Where Back on an opened section goes: the module page it came from,
@@ -1027,6 +1085,33 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   Widget _buildCurrentBody(CasaAccountsState accountsState) {
     switch (_selectedBottomNavIndex) {
+      case _casaHubIndex:
+        return CurrentSavingsHubScreen(
+          onAccountsTap: () => _openAccountsDestination(WebAccountsDestination.casa),
+          onChequeBookTap: () => _openSection(index: _chequeBookRequestIndex, back: _casaHubIndex),
+          onDebitCardsTap: () => _openSection(index: _debitCardsIndex, back: _casaHubIndex),
+          onSweepInTap: () => _openSection(index: _sweepInIndex, back: _casaHubIndex),
+        );
+      case _debitCardsIndex:
+        return DebitCardsScreen(embedded: true, onBack: _closeSection);
+      case _chequeBookRequestIndex:
+        return ChequeBookRequestScreen(onExit: _closeSection);
+      case _sweepInIndex:
+        return SweepInScreen(onExit: _closeSection, onHome: () => setState(() => _selectedBottomNavIndex = 0));
+      case _certificatesHubIndex:
+        return CertificatesHubScreen(
+          onInterestTap: () => _openSection(index: _interestCertificatesIndex, back: _certificatesHubIndex),
+          onBalanceTap: () => _openSection(index: _balanceCertificatesIndex, back: _certificatesHubIndex),
+          onTdsTap: () => _openSection(index: _tdsCertificatesIndex, back: _certificatesHubIndex),
+        );
+      case _interestCertificatesIndex:
+        return InterestCertificatesScreen(roles: _rolesFromTrace(), embedded: true, onBack: _closeSection);
+      case _balanceCertificatesIndex:
+        return BalanceCertificatesScreen(embedded: true, onBack: _closeSection);
+      case _tdsCertificatesIndex:
+        return TdsCertificatesScreen(embedded: true, onBack: _closeSection);
+      case _nominationsIndex:
+        return NominationsScreen(roles: _rolesFromTrace(), embedded: true, onBack: _closeSection);
       case _creditCardsHubIndex:
         return CreditCardsHubScreen(
           // The module's main page: Back is Home (its inner pages come

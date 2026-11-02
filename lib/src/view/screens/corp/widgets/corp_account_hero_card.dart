@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
-import 'package:ubci_bank/src/core/utils/corp/corp_money_format.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/core/utils/corp/corp_money_format.dart';
 
 /// The gradient account card at the top-left of the corporate dashboard.
 ///

@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_otp_outcome.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_otp_outcome.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Mailbox (OBDX `components/mailbox`). Every rule here is from
 /// docs/obdx/features/mailbox.md; `mb/` paths are cited inline.

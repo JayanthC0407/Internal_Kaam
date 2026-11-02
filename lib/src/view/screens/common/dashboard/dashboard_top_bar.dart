@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/theme/app_palette.dart';
-import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
-import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
-import 'package:ubci_bank/src/view/widgets/language_picker.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_palette.dart';
+import 'package:demo_bank/src/core/utils/common/profile_initials.dart';
+import 'package:demo_bank/src/view/providers/common/app_settings_providers.dart';
+import 'package:demo_bank/src/view/widgets/language_picker.dart';
 
 /// The web dashboard top bar shared by Retail and Corporate: search field on
 /// the left, icon strip on the right (favourites, language, help,

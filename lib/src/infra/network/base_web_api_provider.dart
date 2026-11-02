@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/constants/adlog.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 abstract class BaseWebApiProvider {
   Future<ResponseHandler<T>> getErrorResponse<T>(DioException error) async {

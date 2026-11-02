@@ -1,7 +1,7 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_initiate_support.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_product.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_initiate_support.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_product.dart';
 
 /// 41A "Credit available by" (`transferableType` on the wire).
 ///

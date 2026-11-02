@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_widget_labels.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:demo_bank/src/core/utils/common/dashboard_widget_labels.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// Minimum tile heights, so a row of small widgets does not look stunted.
 ///

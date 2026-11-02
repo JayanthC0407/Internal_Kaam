@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
 
 /// Legacy model — prefer [ObdxError] via [ObdxErrorMapper].
 class ErrorResponse {

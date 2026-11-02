@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_repayment.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_detail_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account_details.dart';
+import 'package:demo_bank/src/core/models/retail/loan_repayment.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_detail_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_providers.dart';
 
 /// OBDX task code for the loan repayment flow — used both to filter
 /// eligible settlement (CASA) accounts and, in the wider OBDX web app, to

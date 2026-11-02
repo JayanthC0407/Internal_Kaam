@@ -1,15 +1,15 @@
 import 'dart:convert';
 
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_repayment.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_loan_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/models/retail/account_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account_details.dart';
+import 'package:demo_bank/src/core/models/retail/loan_repayment.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_loan_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 class LoanRepository {
   LoanRepository({required ObdxLoanApi loanApi}) : _loanApi = loanApi;

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/payee_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/view/providers/common/payee_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payees/payees_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payee_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/payee_repository.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/view/providers/common/payee_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payees/payees_screen.dart';
 
 // ── Shapes from OBDX `payeesv3` and `payeeGroup` (values made up) ────────
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
 
 /// A faithful slice of the real `moduleComponents.json`, chosen to cover
 /// every shape the file actually contains:

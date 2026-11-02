@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/statement_format.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/core/models/common/statement_format.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
 
 // The shared download decoder (moved unchanged from AccountsRepository,
 // used by account statements and Bill Payment History).

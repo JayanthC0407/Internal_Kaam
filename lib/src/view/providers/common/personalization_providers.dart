@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:demo_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/repositories/common/dashboard_repository.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
 
 final obdxDashboardApiProvider = Provider(
   (ref) => ObdxDashboardApi(ref.watch(obdxDioClientProvider)),

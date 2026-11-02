@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// The page look of the newer designs (Track Requests, Raise a New Ticket,
 /// Financial Calculator): a tinted square back button beside a large

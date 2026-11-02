@@ -1,26 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_cash_collection.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_loan_application.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_loan_record.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_process_management_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_lending_repository.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/accounts_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_repository_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/core/models/corp/corp_cash_collection.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loan_application.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loan_record.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account_details.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_process_management_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_lending_repository.dart';
+import 'package:demo_bank/src/infra/repositories/retail/accounts_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_cash_management_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_repository_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_providers.dart';
 
 /// Data for the Corporate dashboard's Loans, Term Deposit and Cash
 /// Withdrawal widgets, from the calls the widgets capture shows the web

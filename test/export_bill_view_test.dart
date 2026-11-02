@@ -3,17 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_bill.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_detail_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_list_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_bill.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_detail_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_list_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
 
 // A `billDTOs[]` row with the fields the OBDX web list reads, and a `bill`
 // detail with the bill model's fields. Values are made up.

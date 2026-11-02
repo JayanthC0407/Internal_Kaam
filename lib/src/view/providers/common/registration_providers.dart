@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/viewmodel/common/registration_screen_vm.dart';
+import 'package:demo_bank/src/view/viewmodel/common/registration_screen_vm.dart';
 
 final registrationIsLoadingProvider =
     StateProvider.autoDispose<bool>((ref) => false);

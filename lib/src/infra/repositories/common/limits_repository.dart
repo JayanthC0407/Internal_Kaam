@@ -1,7 +1,7 @@
-import 'package:ubci_bank/src/core/models/common/limits/my_limits_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_limits_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/limits/my_limits_models.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_limits_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// My Limits — parses [ObdxLimitsApi] responses into
 /// `my_limits_models.dart` (docs/obdx/features/my-limits.md).

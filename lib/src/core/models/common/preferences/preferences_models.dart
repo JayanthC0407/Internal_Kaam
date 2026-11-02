@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Account Settings → Preferences (OBDX `side-menu`): Profile, Primary
 /// Account Number, Third Party Applications, Security & Login, Themes and

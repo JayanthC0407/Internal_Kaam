@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/account_settings/account_settings_models.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/core/models/common/account_settings/account_settings_models.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/view/providers/common/preferences_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
 
 /// Session Summary, Alerts Subscription and Change Password. autoDispose:
 /// loaded while the section is open. Failures surface as
@@ -43,6 +43,16 @@ final alertSubscriptionsProvider = FutureProvider.autoDispose<List<AlertSubscrip
   final user = await ref.watch(alertsUserProvider.future);
   return _unwrap(await ref.read(accountSettingsRepositoryProvider).fetchSubscriptions(user));
 });
+
+/// Manage DND Alerts: the categories and the ones already chosen.
+final dndRegistryProvider = FutureProvider.autoDispose<DndRegistry>(
+  (ref) async => _unwrap(await ref.read(accountSettingsRepositoryProvider).fetchDndRegistry()),
+);
+
+/// A category's events (by category id), for its "DND Alert" dialog.
+final dndEventsProvider = FutureProvider.autoDispose.family<List<String>, String>(
+  (ref, categoryId) async => _unwrap(await ref.read(accountSettingsRepositoryProvider).fetchDndEvents(categoryId)),
+);
 
 /// A module's accounts (by module id), or the party for party-level
 /// modules.

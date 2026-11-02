@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_transactions_screen_provider.dart';
-import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transactions_table.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/statement_download.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/transactions_phone_header.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/account_picker_field.dart';
-import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
-import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_transactions_screen_provider.dart';
+import 'package:demo_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transactions_table.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/statement_download.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/transactions_phone_header.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/account_picker_field.dart';
+import 'package:demo_bank/src/view/widgets/paginated_list_controls.dart';
+import 'package:demo_bank/src/view/widgets/secure_screen.dart';
 
 /// Rows per step — OBDX loads 10 at a time (`fetchSize: 10`).
 const int _pageSize = 10;
