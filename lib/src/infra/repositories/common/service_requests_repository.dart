@@ -1,10 +1,10 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/core/models/common/service_requests/service_request_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_service_requests_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/core/models/common/service_requests/service_request_models.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_service_requests_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Service Requests: parses [ObdxServiceRequestsApi] into
 /// `service_request_models.dart`. Raising a request can come back with an

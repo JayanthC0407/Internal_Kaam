@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_product.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_product.dart';
 
 /// Reference data the Initiate / Amend LC screens need, loaded together.
 ///

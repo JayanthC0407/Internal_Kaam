@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/retail/account_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Single CASA transaction from
 /// `GET /digx-common/dda/v1/demandDeposit/{accountId}/transactions`.

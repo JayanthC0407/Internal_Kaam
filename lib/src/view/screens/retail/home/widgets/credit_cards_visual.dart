@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/view/providers/common/credit_card_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/widgets/credit_card_face.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/view/providers/common/credit_card_providers.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/widgets/credit_card_face.dart';
 
 /// Home "Credit Card" tab: the customer's real credit cards from
 /// `GET cards/credit?expand=ALL` (docs/obdx/features/credit-cards.md §3),

@@ -1,10 +1,10 @@
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
 
 // `MoneyAmount` moved to money_amount.dart so the Corporate model layer can
 // share the same parser; re-exported here so existing Retail imports of
 // `casa_account.dart` continue to resolve it.
-export 'package:ubci_bank/src/core/models/common/money_amount.dart';
+export 'package:demo_bank/src/core/models/common/money_amount.dart';
 
 /// CASA demand-deposit account from `GET /digx-common/dda/v1/demandDeposit`.
 ///

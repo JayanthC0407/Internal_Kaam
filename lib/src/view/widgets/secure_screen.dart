@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/config/screen_security_config.dart';
-import 'package:ubci_bank/src/infra/security/screen_security_service.dart';
+import 'package:demo_bank/src/core/config/screen_security_config.dart';
+import 'package:demo_bank/src/infra/security/screen_security_service.dart';
 
 /// Wraps sensitive screens with OS screenshot / screen-recording protection.
 ///

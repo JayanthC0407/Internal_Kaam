@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/accounts_tab_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/credit_cards_visual.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/info_corner_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_accounts_inline_panel.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/loan_tracker_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/recent_transactions_card.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/spendings_donut_card.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/accounts_tab_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/casa_accounts_panel.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/credit_cards_visual.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/info_corner_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/loan_accounts_inline_panel.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/loan_tracker_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/recent_transactions_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/spendings_donut_card.dart';
 
 /// Zero-argument wrappers around the Retail dashboard's existing widgets,
 /// so [RetailWidgetRegistry] can build each from a `componentName` alone.

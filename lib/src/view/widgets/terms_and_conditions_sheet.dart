@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/legal/legal_content.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/legal/legal_content.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Scrollable Terms and Conditions viewer backed by [LegalContent].
 ///

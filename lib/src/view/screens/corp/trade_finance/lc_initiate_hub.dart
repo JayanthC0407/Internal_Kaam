@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// Import LC → Initiate Letter of Credit (design: "Initiate Letter of
 /// Credit — Web", 4 frames).

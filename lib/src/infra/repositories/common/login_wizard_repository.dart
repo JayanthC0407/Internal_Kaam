@@ -1,15 +1,15 @@
 import 'dart:convert';
 
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/core/models/common/lfw_party_profile.dart';
-import 'package:ubci_bank/src/core/models/common/lfw_progress.dart';
-import 'package:ubci_bank/src/core/models/common/security_question.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_login_wizard_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/constants/adlog.dart';
+import 'package:demo_bank/src/core/models/common/lfw_party_profile.dart';
+import 'package:demo_bank/src/core/models/common/lfw_progress.dart';
+import 'package:demo_bank/src/core/models/common/security_question.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_login_wizard_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 /// First-time Login Flow Wizard orchestration.
 ///

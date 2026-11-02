@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_application_tracker_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_installments_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_portfolio_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loans_overview_widget.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_application_tracker_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_installments_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_portfolio_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_summary_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loans_overview_widget.dart';
 
 /// Draws [child] [width] wide, as a dashboard column or a phone would.
 Future<void> _pump(

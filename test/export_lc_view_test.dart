@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_bill.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_lc_details.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_detail_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_list_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_bill.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_lc_details.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_detail_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_list_page.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
 
 // ── Data shaped like the View Export LC / LC detail captures ────────────
 // (Values are made up; the field names and shapes are the captured ones.)

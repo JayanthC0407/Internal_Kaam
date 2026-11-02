@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/view/providers/corp/corp_widget_data_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_sample_data.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_widget_data_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_sample_data.dart';
 
 /// The current and savings accounts' transactions for a period, as the
 /// Cash Flow Snapshot and Summary need them: money in is the credits, money

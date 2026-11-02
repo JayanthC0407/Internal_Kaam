@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/providers/common/network_transfer_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
+import 'package:demo_bank/src/core/models/common/payment/network_transfer.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/providers/common/network_transfer_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/common/payments/network_transfer_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
 
 /// Starts a payee transfer in [mode], with [payee] already chosen when the
 /// person picked one on the hub.

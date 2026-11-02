@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/lfw_progress.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/core/utils/common/user_type_resolver.dart';
-import 'package:ubci_bank/src/infra/repositories/common/login_wizard_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_manager.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/lfw_progress.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/core/utils/common/user_type_resolver.dart';
+import 'package:demo_bank/src/infra/repositories/common/login_wizard_repository.dart';
+import 'package:demo_bank/src/infra/session/session_manager.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/home_dashboard_screen.dart';
+import 'package:demo_bank/src/view/widgets/session_activity_scope.dart';
 
 Map<String, dynamic> _me({
   required List<String> roles,

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/transfer/transfer_theme.dart';
-import 'package:ubci_bank/src/view/screens/common/transfer/widgets/transfer_account_widgets.dart';
-import 'package:ubci_bank/src/view/screens/common/transfer/widgets/transfer_shared_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/own_account_transfer.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home_dashboard_screen.dart';
+import 'package:demo_bank/src/view/screens/common/transfer/transfer_theme.dart';
+import 'package:demo_bank/src/view/screens/common/transfer/widgets/transfer_account_widgets.dart';
+import 'package:demo_bank/src/view/screens/common/transfer/widgets/transfer_shared_widgets.dart';
 
 class TransferSuccessScreen extends ConsumerWidget {
   const TransferSuccessScreen({super.key, required this.snapshot});

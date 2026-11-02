@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
 
 /// Phone layout of every sign-in screen (designer mock): brand gradient
 /// with a faint logomark, the white Demobank logo, a large white title and

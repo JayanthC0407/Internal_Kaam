@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_sample_data.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_sample_data.dart';
 
 /// Term deposits from `td/v1/deposit`, as the TD widgets need them.
 ///

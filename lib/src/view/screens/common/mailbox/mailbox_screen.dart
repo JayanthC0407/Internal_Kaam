@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/mailbox/mailbox_models.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/view/providers/common/mailbox_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/mailbox/mail_compose.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/paginated_list_controls.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/mailbox/mailbox_models.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/view/providers/common/mailbox_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/screens/common/mailbox/mail_compose.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/paginated_list_controls.dart';
 
 /// The three parts of OBDX's Mailbox menu.
 enum MailboxTab { mails, alerts, notifications }

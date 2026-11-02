@@ -18,7 +18,7 @@ void main() {
 
   test('nothing under common/ imports from corp/', () {
     final corpImport = RegExp(
-      r'''^\s*(import|export)\s+['"]package:ubci_bank/src/(.+/)?corp/''',
+      r'''^\s*(import|export)\s+['"]package:demo_bank/src/(.+/)?corp/''',
       multiLine: true,
     );
 

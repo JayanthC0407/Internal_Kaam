@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/infra/security/biometric_service.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/infra/security/biometric_service.dart';
 
 /// Labels and icons for the single biometric control (client-agreed UX).
 class BiometricUiCopy {

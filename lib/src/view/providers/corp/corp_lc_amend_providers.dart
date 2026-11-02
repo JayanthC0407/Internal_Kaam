@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
 
 class CorpLcAmendState {
   const CorpLcAmendState({

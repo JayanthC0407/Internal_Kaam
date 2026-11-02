@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// Building blocks the Corporate dashboard widget designs share — the
 /// Loans, Term Deposit and Cash Flow widgets are all a header, a row of

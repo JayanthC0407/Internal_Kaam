@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit_actions.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/term_deposit_repository.dart';
-import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_maturity_edit_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_open_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_redeem_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_top_up_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/retail/account_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit_actions.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/retail/term_deposit_repository.dart';
+import 'package:demo_bank/src/view/providers/retail/term_deposit_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_maturity_edit_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_open_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_redeem_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_top_up_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposit_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
 
 // ── Payloads shaped like the TD capture (values made up) ────────────────
 

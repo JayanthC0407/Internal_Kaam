@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_user_profile.dart';
-import 'package:ubci_bank/src/core/utils/common/user_type_resolver.dart';
+import 'package:demo_bank/src/core/models/corp/corp_bank_configuration.dart';
+import 'package:demo_bank/src/core/models/corp/corp_party.dart';
+import 'package:demo_bank/src/core/models/corp/corp_user_profile.dart';
+import 'package:demo_bank/src/core/utils/common/user_type_resolver.dart';
 
 /// The real `GET /digx-common/user/v1/me` response for the corporate user
 /// in the "LOGIN to DASHBOARD" capture (entry #5), wrapped in the

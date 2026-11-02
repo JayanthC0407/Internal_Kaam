@@ -1,18 +1,18 @@
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/config/session_config.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/pref/pref_const.dart';
-import 'package:ubci_bank/src/infra/pref/secure_storage_service.dart';
-import 'package:ubci_bank/src/infra/security/biometric_unlock_policy.dart';
-import 'package:ubci_bank/src/infra/security/biometric_service.dart';
-import 'package:ubci_bank/src/infra/security/secure_device_id_service.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/home_dashboard_screen.dart';
+import 'package:demo_bank/src/core/config/session_config.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_user_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/pref/pref_const.dart';
+import 'package:demo_bank/src/infra/pref/secure_storage_service.dart';
+import 'package:demo_bank/src/infra/security/biometric_unlock_policy.dart';
+import 'package:demo_bank/src/infra/security/biometric_service.dart';
+import 'package:demo_bank/src/infra/security/secure_device_id_service.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/home_dashboard_screen.dart';
 
 /// Manages authenticated session lifecycle, idle timeout, and sign-out.
 class SessionManager {

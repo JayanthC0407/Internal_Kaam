@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_widget_data_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_widget_data_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
 
 /// A dashboard widget backed by a provider: loading, a failure with Retry,
 /// nothing to show, or the design widget [builder] makes from the data —

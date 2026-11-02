@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/config/env_config.dart';
-import 'package:ubci_bank/src/core/models/common/login_flow_result.dart';
-import 'package:ubci_bank/src/core/models/common/login_trace.dart';
-import 'package:ubci_bank/src/core/models/common/otp_login_pending.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/view/providers/common/login_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/config/env_config.dart';
+import 'package:demo_bank/src/core/models/common/login_flow_result.dart';
+import 'package:demo_bank/src/core/models/common/login_trace.dart';
+import 'package:demo_bank/src/core/models/common/otp_login_pending.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/view/providers/common/login_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
 
 class LoginScreenVm {
   LoginScreenVm(this._ref);

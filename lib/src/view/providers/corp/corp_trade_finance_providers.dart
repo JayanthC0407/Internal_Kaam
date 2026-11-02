@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_trade_finance_api.dart';
-import 'package:ubci_bank/src/infra/network/corp/corp_bank_guarantee_api_constants.dart';
-import 'package:ubci_bank/src/infra/network/corp/corp_trade_finance_api_constants.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_trade_finance_api.dart';
+import 'package:demo_bank/src/infra/network/corp/corp_bank_guarantee_api_constants.dart';
+import 'package:demo_bank/src/infra/network/corp/corp_trade_finance_api_constants.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_trade_finance_repository.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
 
 // ── Wiring ──────────────────────────────────────────────────────────────
 

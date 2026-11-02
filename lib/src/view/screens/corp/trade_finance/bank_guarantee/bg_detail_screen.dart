@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
 
 /// One inward guarantee in full (`bankguarantees/{id}`, FROM COMPONENT —
 /// the web opens `view-bank-guarantee-details`).

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account_detail.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/accounts_repository.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/casa_transactions_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transactions_table.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account_detail.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/retail/accounts_repository.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_account_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/casa_transactions_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transactions_table.dart';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────
 

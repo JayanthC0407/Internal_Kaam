@@ -1,4 +1,4 @@
-# UBCI Bank
+# Demo Bank
 
 Retail mobile banking application (Flutter) — Android, iOS, and Web.
 
@@ -18,7 +18,7 @@ chmod +x scripts/run_app.sh
 ./scripts/run_app.sh
 ```
 
-Or open the project in Android Studio, run `./scripts/sync_ide_config.sh`, then select the **UBCI Bank** run configuration.
+Or open the project in Android Studio, run `./scripts/sync_ide_config.sh`, then select the **Demo Bank** run configuration.
 
 ## Quick start (Web / Chrome)
 

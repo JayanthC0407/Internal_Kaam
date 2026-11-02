@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
 
 /// An LC product from `GET …/tradeproducts/letterofcredits` (H1 #51).
 ///

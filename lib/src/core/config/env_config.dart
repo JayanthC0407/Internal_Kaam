@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/core/config/app_config.dart';
-import 'package:ubci_bank/src/core/constants/adlog.dart';
+import 'package:demo_bank/src/core/config/app_config.dart';
+import 'package:demo_bank/src/core/constants/adlog.dart';
 
 /// Runtime configuration from `--dart-define` / CI build args.
 /// See `docs/setup.md` and `.env.example` (local copy as `.env`, never committed).

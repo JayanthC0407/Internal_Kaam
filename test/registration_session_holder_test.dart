@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/token_response.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/core/models/common/token_response.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
 
 void main() {
   tearDown(RegistrationSessionHolder.instance.clear);

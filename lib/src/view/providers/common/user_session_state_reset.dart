@@ -1,19 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_detail_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/payee_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_lc_amend_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_lc_export_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_lc_initiate_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_detail_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_providers.dart';
+import 'package:demo_bank/src/view/providers/common/payee_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/recent_transactions_widget_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/term_deposit_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_cash_management_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_lc_amend_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_lc_export_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_lc_initiate_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
 
 /// Invalidates all Riverpod state that belongs to the authenticated user.
 ///

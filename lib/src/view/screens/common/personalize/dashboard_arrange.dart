@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
 
 /// Drag-and-drop arrangement on the dashboard itself, shared by Retail and
 /// Corporate.

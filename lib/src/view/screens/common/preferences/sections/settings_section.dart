@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/providers/common/preferences_providers.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
 
 /// The blocks of OBDX's `security/generic-settings`, placed where a user
 /// looks for them:

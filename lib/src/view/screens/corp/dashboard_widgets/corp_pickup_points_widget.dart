@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_pickup_point.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_cash_management_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/corp_pickup_point.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_cash_management_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// OBDX `pickup-point-collections` — cash-management pickup and delivery
 /// points with their collection schedules.

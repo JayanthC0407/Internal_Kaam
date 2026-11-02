@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/config/env_config.dart';
-import 'package:ubci_bank/src/core/models/common/registration_flow_result.dart';
-import 'package:ubci_bank/src/core/models/common/registration_request.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/view/providers/common/registration_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/config/env_config.dart';
+import 'package:demo_bank/src/core/models/common/registration_flow_result.dart';
+import 'package:demo_bank/src/core/models/common/registration_request.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/view/providers/common/registration_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
 
 class RegistrationScreenVm {
   RegistrationScreenVm(this._ref);

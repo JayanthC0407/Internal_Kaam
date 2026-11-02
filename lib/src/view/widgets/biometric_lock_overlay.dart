@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/alternate_login_method.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/security/alternate_login_crypto.dart';
-import 'package:ubci_bank/src/infra/security/biometric_service.dart';
-import 'package:ubci_bank/src/infra/service/navigation_service.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/auth/passcode_setup_screen.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_pattern_lock.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_pin_pad.dart';
-import 'package:ubci_bank/src/view/widgets/auth/biometric_hero.dart';
-import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/alternate_login_method.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/security/alternate_login_crypto.dart';
+import 'package:demo_bank/src/infra/security/biometric_service.dart';
+import 'package:demo_bank/src/infra/service/navigation_service.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/common/auth/auth_colors.dart';
+import 'package:demo_bank/src/view/screens/common/auth/passcode_setup_screen.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_pattern_lock.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_pin_pad.dart';
+import 'package:demo_bank/src/view/widgets/auth/biometric_hero.dart';
+import 'package:demo_bank/src/view/widgets/secure_screen.dart';
 
 /// Full-screen lock shown when the app resumes with quick-access unlock enabled.
 /// No-op on web (biometrics / local PIN unlock are mobile-only).

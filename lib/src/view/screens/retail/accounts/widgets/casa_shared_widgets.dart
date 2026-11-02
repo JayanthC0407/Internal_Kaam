@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Brand summary banner used on CASA details / transactions screens.
 /// Uses the app's cyan brand gradient (see [AppGradients.primary]) +

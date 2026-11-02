@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
 
 /// Export Bills — View Export Bill (manual ch. 14).
 ///

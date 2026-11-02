@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/view/screens/common/dashboard/module_hub_page.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/module_hub_page.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 
 /// The OBDX Bill Payments menu on one page (`retail.json:470-503`, labels
 /// `nls/menu.js:531-537`), opened from the side menu's single Bill Payments

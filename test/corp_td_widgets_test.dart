@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_accounts_overview_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_sample_data.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_summary_widget.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_accounts_overview_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_sample_data.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_summary_widget.dart';
 
 /// Draws [child] [width] wide, as a dashboard column or a phone would.
 Future<void> _pump(

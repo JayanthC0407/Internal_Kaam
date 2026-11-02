@@ -2,15 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
-import 'package:ubci_bank/src/infra/network/dashboard_api_constants.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_dashboard_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_user_api.dart';
+import 'package:demo_bank/src/infra/network/dashboard_api_constants.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Where a loaded widget catalog came from. Surfaced so the UI can say so
 /// when it is running on the shipped copy, which is known to lag the
