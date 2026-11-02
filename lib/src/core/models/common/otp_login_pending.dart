@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/login_trace.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/login_trace.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
 
 /// Password login succeeded but profile requires OTP before session is complete.
 class OtpLoginPending {

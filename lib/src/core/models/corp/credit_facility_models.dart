@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Credit Facility Management (corporate): the Overview widgets, Facility
 /// Summary / Details and Collateral Summary / Details. Shapes and rules

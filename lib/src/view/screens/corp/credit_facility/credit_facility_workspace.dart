@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_overview_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/cf_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/collateral_details_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/collateral_summary_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/facility_details_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/credit_facility/facility_summary_page.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_overview_page.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/cf_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/collateral_details_page.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/collateral_summary_page.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/facility_details_page.dart';
+import 'package:demo_bank/src/view/screens/corp/credit_facility/facility_summary_page.dart';
 
 /// One screen in the workspace: a menu page, or a facility / collateral
 /// opened from one (OBDX `loadComponent` with `facilityId` /

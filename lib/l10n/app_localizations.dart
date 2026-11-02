@@ -3007,7 +3007,7 @@ abstract class AppLocalizations {
   /// No description provided for @biometricUnlockTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock UBCI Bank'**
+  /// **'Unlock Demo Bank'**
   String get biometricUnlockTitle;
 
   /// No description provided for @biometricUnlockSubtitle.

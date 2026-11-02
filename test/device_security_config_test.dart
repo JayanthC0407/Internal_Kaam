@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/config/device_security_config.dart';
+import 'package:demo_bank/src/core/config/device_security_config.dart';
 
 void main() {
   test('default mode is auto', () {

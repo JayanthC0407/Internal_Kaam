@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:ubci_bank/src/core/config/app_locale_holder.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/config/app_locale_holder.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
 
 class ObdxApiUtils {
   ObdxApiUtils._();

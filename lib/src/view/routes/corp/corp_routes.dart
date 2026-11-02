@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_dashboard_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_acceptance_review_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_amendment_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_claim_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_detail_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_detail_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_detail_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_acceptance_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_amend_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_detail_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_initiate_screen.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_transfer_screen.dart';
-import 'package:ubci_bank/src/view/widgets/session_activity_scope.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_dashboard_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_acceptance_review_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_amendment_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_claim_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_detail_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_bill_detail_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_detail_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_acceptance_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_amend_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_detail_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_initiate_screen.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_transfer_screen.dart';
+import 'package:demo_bank/src/view/widgets/session_activity_scope.dart';
 
 /// Route generation for the Corporate (`corporateuser`) surfaces.
 ///

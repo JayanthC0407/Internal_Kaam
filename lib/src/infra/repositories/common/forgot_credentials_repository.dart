@@ -1,15 +1,15 @@
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/common/forgot_credentials_pending.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_error.dart';
-import 'package:ubci_bank/src/core/models/common/security_question.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_credentials_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/session/registration_session_holder.dart';
+import 'package:demo_bank/src/core/models/common/forgot_credentials_pending.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_error.dart';
+import 'package:demo_bank/src/core/models/common/security_question.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_credentials_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
 
 class ForgotCredentialsRepository {
   ForgotCredentialsRepository({

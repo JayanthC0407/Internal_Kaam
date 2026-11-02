@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
 
 /// Shared session / auth recovery dialog (title, message, Sign in).
 class SessionExpiredDialog extends StatelessWidget {

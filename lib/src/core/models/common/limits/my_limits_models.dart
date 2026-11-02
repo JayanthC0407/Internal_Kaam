@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// My Limits (OBDX `limits-enquiry/my-limit`). Every rule here is from
 /// docs/obdx/features/my-limits.md; hooks.js line numbers are cited inline.

@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/constants/adlog.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_api_base.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_dio_client.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 class ObdxUserApi extends ObdxApiBase {
   ObdxUserApi([ObdxDioClient? client])

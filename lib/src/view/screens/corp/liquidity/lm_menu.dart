@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_liquidity_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_liquidity_providers.dart';
 
 /// Liquidity Management in the corporate side menu, as OBDX lists it
 /// (corporate.json 815-843; nls/menu.js 87-93):

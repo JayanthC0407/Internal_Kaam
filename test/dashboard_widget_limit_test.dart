@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_limit.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_limit.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/retail/dashboard_widgets/retail_widget_registry.dart';
 
 /// A loaded state whose saved `small` (phone) layout holds [saved], with an
 /// optional open edit [draft].

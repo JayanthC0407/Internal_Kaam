@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
 
 // The Credit Cards and Bill Payments module pages: one side-menu entry
 // each, every OBDX menu item on one page (OBDX labels, nls/menu.js).

@@ -1,6 +1,6 @@
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/l10n/error_localizations.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/l10n/error_localizations.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 extension ResponseHandlerUserMessage<T> on ResponseHandler<T> {
   String resolveUserMessage({

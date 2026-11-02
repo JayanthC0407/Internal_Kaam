@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
 
 class PayeeAccountTypeOption {
   const PayeeAccountTypeOption({

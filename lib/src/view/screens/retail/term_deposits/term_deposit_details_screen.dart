@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/statement_download.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/view/providers/retail/term_deposit_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transaction_filter_sheet.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_transaction_row.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/statement_download.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/td_route_args.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
 
-export 'package:ubci_bank/src/view/screens/retail/term_deposits/td_route_args.dart'
+export 'package:demo_bank/src/view/screens/retail/term_deposits/td_route_args.dart'
     show TermDepositDetailsArgs;
 
 /// One term deposit: `GET .../deposit/{id};module=` and its

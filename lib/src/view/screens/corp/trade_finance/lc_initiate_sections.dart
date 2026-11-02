@@ -2,13 +2,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_lc_initiate_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_initiate_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_lc_initiate_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_initiate_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
 
 // The eight "Application Sections" of Initiate Letter of Credit. Each one
 // reads and writes `corpLcInitiateProvider`; reference data comes from

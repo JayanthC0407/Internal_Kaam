@@ -1,9 +1,9 @@
-import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_otp_outcome.dart';
-import 'package:ubci_bank/src/core/models/common/payment/network_transfer.dart' show obdxPaymentDate;
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_otp_outcome.dart';
+import 'package:demo_bank/src/core/models/common/payment/network_transfer.dart' show obdxPaymentDate;
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// OBDX Bill Payments — Pay Bill (`flows/pay-bill`), one bill.
 ///

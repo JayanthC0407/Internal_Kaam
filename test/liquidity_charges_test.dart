@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/corp/liquidity_charges_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_liquidity_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_liquidity_repository.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_liquidity_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/charges_inquiry_page.dart';
-import 'package:ubci_bank/src/view/screens/corp/liquidity/lm_menu.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/corp/liquidity_charges_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_liquidity_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_liquidity_repository.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_liquidity_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_trade_finance_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/charges_inquiry_page.dart';
+import 'package:demo_bank/src/view/screens/corp/liquidity/lm_menu.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
 
 // Shapes follow OBDX lm-charges-inquiry (docs/obdx/features/
 // liquidity-management.md §10). No samples exist; values are made up.

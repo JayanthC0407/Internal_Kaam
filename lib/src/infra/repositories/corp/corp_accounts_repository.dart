@@ -1,7 +1,7 @@
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_repository_base.dart';
 
 /// Corporate account data for the dashboard.
 class CorpAccountsRepository extends CorpRepositoryBase {

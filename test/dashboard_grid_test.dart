@@ -1,10 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/core/utils/common/dashboard_grid_span.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/core/utils/common/dashboard_grid_span.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
 
 List<List<int>> _spans(List<int> input) => [
       for (final row in DashboardGridSpan.packRows(input))

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
 
 // OBDX account-transactions (docs/obdx/features/accounts.md §6-7):
 // View Options and how each is sent, dates from the bank's business date,

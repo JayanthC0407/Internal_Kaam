@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/payment/standing_instruction.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/network_transfer_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_transfer_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/repeat_transfers_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/payment/standing_instruction.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payee_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payments_api.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/network_transfer_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_transfer_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/repeat_transfers_screen.dart';
 
 // ── Shapes of `GET payments/instructions` as OBDX's list reads them ──────
 

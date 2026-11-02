@@ -1,15 +1,15 @@
-import 'package:ubci_bank/src/core/models/common/bill_payments/bill_pay_models.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/statement_format.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/bill_pay_models.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/bill_payment_models.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:demo_bank/src/core/models/common/obdx_batch.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/statement_format.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Bill Payments (EBPP) — Billers and Add Billers. Parses
 /// [ObdxBillPaymentsApi] responses into `biller_models.dart`;

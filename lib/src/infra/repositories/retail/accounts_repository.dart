@@ -1,13 +1,13 @@
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account_detail.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/common/statement_format.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account_detail.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/common/statement_format.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 /// `common/v1/currentDate` (API-05) response.
 class BankingDate {

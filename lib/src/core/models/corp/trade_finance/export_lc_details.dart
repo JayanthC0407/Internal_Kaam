@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
 
 /// Fields of `GET /letterofcredits/{id}` the View Export LC tabs show that
 /// [CorpLetterOfCredit] does not parse (manual ch. 11.1–11.4).

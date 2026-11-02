@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/network_transfer_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/common/payments/network_transfer_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 
 /// The OBDX "Transfers" menu: its seven items, in the bank's order and
 /// under the bank's names.

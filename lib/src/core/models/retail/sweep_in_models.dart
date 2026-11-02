@@ -1,8 +1,8 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_batch.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_otp_outcome.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/common/obdx_batch.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/obdx_otp_outcome.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Sweep-In (OBDX `flows/sweep-in-instruction`). Shapes and rules from the
 /// source: docs/obdx/features/sweep-in.md.

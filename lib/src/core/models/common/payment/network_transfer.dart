@@ -1,7 +1,7 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/own_account_transfer.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/own_account_transfer.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Transfers to payees — existing, adhoc and repeat — as the OBDX 22.2
 /// payments server defines them (read from its REST resources and DTOs in

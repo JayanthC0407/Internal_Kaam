@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
 
 import '../home_colors.dart';
 

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_filter_panel.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_filter_panel.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/bank_guarantee/bg_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// View Bank Guarantee/Stand By LC and View Bank Kafalah/Stand By LC
 /// (`inward-guarantee-list[-islamic]`, BG #37 / #46): guarantees issued in

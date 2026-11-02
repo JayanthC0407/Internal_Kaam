@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
-import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_api_base.dart';
+import 'package:demo_bank/src/infra/network/corp/corp_api_constants.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_dio_client.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 /// Cash-management APIs behind the `pickup-point-collections` dashboard
 /// widget (Home widgets capture, entries #45/#46 and #51).

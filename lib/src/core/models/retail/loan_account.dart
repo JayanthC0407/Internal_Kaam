@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Single loan from `GET /digx-common/loan/v1/loan`.
 class LoanAccount {

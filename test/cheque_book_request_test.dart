@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
-import 'package:ubci_bank/src/core/models/retail/cheque_book_models.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_cheque_book_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/cheque_book_repository.dart';
-import 'package:ubci_bank/src/view/providers/retail/cheque_book_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/cheque_book_request_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/core/models/retail/cheque_book_models.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_cheque_book_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/retail/cheque_book_repository.dart';
+import 'package:demo_bank/src/view/providers/retail/cheque_book_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/cheque_book_request_screen.dart';
 
 // Shapes follow the OBDX cheque-book-request flow and obdx-address element
 // (docs/obdx/features/cheque-book-request.md). Values are made up.

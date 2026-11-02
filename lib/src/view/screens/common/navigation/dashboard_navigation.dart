@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/view/widgets/brand_logo.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
 
 /// One entry of a dashboard's side menu.
 ///

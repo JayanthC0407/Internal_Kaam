@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/login_trace.dart';
-import 'package:ubci_bank/src/core/models/common/otp_login_pending.dart';
+import 'package:demo_bank/src/core/models/common/login_trace.dart';
+import 'package:demo_bank/src/core/models/common/otp_login_pending.dart';
 
 /// Outcome of password login — either complete or OTP step-up required.
 class LoginFlowResult {

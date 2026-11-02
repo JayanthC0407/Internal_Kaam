@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/retail/certificate_models.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/certificates_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
-import 'package:ubci_bank/src/view/providers/retail/certificates_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/dashboard/module_hub_page.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/retail/certificate_models.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/infra/repositories/retail/certificates_repository.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/view/providers/retail/certificates_providers.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/module_hub_page.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// OBDX Accounts → Certificates (`retail.json:197-211`): Interest, Balance
 /// and TDS Certificates, in the designer's layout (UI designs 2,

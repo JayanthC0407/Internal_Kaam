@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/personalize_panel.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/personalize_panel.dart';
 
 /// Opens Personalize Dashboard the way the screen suits: a bottom sheet on
 /// phones, the side panel everywhere else. Shared by both dashboards.

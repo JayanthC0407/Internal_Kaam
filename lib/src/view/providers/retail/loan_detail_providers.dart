@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account_details.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account_details.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_providers.dart';
 
 /// Identifies a loan for [loanAccountDetailProvider] — the loan id plus its
 /// OBDX module (`CON`/`ISL`), both required by the detail sub-resources.

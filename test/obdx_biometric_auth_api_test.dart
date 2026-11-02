@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
 
 void main() {
   group('ObdxAuthApi.extractBiometricSetupToken', () {

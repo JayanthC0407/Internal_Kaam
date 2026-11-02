@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
 
 /// Corporate dashboard palette — resolves from the active [ThemeData] so
 /// the corporate surfaces follow the same light/dark theme extension as the

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/infra/security/secure_device_id_service.dart';
+import 'package:demo_bank/src/infra/security/secure_device_id_service.dart';
 
 void main() {
   group('SecureDeviceIdService', () {

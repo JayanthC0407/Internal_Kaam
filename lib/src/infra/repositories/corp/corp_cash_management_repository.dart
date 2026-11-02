@@ -1,9 +1,9 @@
-import 'package:ubci_bank/src/core/models/corp/corp_cash_collection.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_pickup_point.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_cash_management_api.dart';
-import 'package:ubci_bank/src/infra/network/corp/corp_api_constants.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:demo_bank/src/core/models/corp/corp_cash_collection.dart';
+import 'package:demo_bank/src/core/models/corp/corp_pickup_point.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_cash_management_api.dart';
+import 'package:demo_bank/src/infra/network/corp/corp_api_constants.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_repository_base.dart';
 
 class CorpCashManagementRepository extends CorpRepositoryBase {
   CorpCashManagementRepository({

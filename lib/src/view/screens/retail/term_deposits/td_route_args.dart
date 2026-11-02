@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
 
 /// Route arguments for the term deposit details screen.
 class TermDepositDetailsArgs {

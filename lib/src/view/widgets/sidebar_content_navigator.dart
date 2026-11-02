@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/routes/routes.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/routes/routes.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
 
 /// The area to the right of a dashboard's persistent side menu, on web.
 ///

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_export_lc_view_providers.dart';
-import 'package:ubci_bank/src/view/routes/corp/corp_routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_filter_panel.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/trade_finance_models.dart';
+import 'package:demo_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_export_lc_view_providers.dart';
+import 'package:demo_bank/src/view/routes/corp/corp_routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/export_lc_filter_panel.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/lc_route_args.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// View Export Letter of Credit — search and results (manual ch. 11,
 /// steps 1–5): Export LCs issued in the user's favour as beneficiary.

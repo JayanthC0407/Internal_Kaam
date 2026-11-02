@@ -1,10 +1,10 @@
-import 'package:ubci_bank/src/core/models/common/account_settings/account_settings_models.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/preferences/preferences_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_account_settings_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
-import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
+import 'package:demo_bank/src/core/models/common/account_settings/account_settings_models.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/preferences/preferences_models.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_account_settings_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/infra/security/obdx_password_crypto_service.dart';
 
 /// Session Summary, Alerts Subscription and Change Password. Writes come
 /// back as [PrefWriteOutcome], like every other Preferences write.
