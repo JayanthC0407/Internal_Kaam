@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/export_lc/tf_filter_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/export_lc/tf_filter_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
 
 /// The View Export LC search form (manual ch. 11, step 1).
 ///

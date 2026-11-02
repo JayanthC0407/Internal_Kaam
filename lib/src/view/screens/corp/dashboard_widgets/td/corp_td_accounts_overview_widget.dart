@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_sample_data.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_sample_data.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// OBDX `td-accounts-overview` — the term deposit portfolio at a glance,
 /// and the deposits maturing next.

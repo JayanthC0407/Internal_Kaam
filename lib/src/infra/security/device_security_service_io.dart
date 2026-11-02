@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
-import 'package:ubci_bank/src/core/config/device_security_config.dart';
-import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/infra/security/device_security_models.dart';
+import 'package:demo_bank/src/core/config/device_security_config.dart';
+import 'package:demo_bank/src/core/constants/adlog.dart';
+import 'package:demo_bank/src/infra/security/device_security_models.dart';
 
 class DeviceSecurityService {
   DeviceSecurityService._();

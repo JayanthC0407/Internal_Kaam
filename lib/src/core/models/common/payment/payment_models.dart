@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
 
 /// The two payment journeys covered by this module (see
 /// "Internal & International Payments — Functional Flow Document",

@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// A corporate lending application in progress, from
 /// `GET /digx-processmanagement/v1/processManagement?moduleId=OBCLPM`.

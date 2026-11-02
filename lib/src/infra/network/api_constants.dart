@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/core/config/env_config.dart';
+import 'package:demo_bank/src/core/config/env_config.dart';
 
 class ApiConst {
   static const String contentTypeKey = 'Content-Type';

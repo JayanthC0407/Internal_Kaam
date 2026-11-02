@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// The designer's Bill Payments help cards (UI designs 2026-10-27): an icon
 /// tile beside a title and paragraphs. Designer copy, with "Demo Bank" in

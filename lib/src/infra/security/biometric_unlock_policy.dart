@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/security/biometric_service.dart';
-import 'package:ubci_bank/src/infra/session/session_manager.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/security/biometric_service.dart';
+import 'package:demo_bank/src/infra/session/session_manager.dart';
 
 /// Decides when local biometric / PIN / pattern unlock should be shown.
 class BiometricUnlockPolicy {

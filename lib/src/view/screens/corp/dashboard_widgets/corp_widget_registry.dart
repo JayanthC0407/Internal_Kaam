@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_forecast_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_live_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_live_widgets.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_tile_grid.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_forecast_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_live_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_currency_exposure_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_financial_summary_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/corp_pickup_points_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_live_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/td/corp_td_live_widgets.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_account_summary_card.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_quick_links_card.dart';
 
 /// The OBDX `componentName` each Corporate widget is registered under.
 ///

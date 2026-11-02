@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
-import 'package:ubci_bank/src/view/widgets/simple_option_picker_sheet.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/export_lc_search.dart';
+import 'package:demo_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/view/widgets/simple_option_picker_sheet.dart';
 
 /// Building blocks shared by the Bank Guarantee screens. Colours come from
 /// [CorpColors], spacing and shapes from the LC widgets, so guarantees

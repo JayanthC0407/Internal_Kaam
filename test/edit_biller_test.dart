@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/theme/app_theme.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/bill_payments/billers_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/theme/app_theme.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/bill_payments_repository.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/screens/common/bill_payments/billers_screen.dart';
 
 // PUT shape: OBDX modify-biller-review/model.js:27-50 (bill-payments.md
 // §6.3). Values are made up.

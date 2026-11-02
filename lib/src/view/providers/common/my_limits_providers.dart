@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/limits/my_limits_models.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/core/models/common/limits/my_limits_models.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
 
 /// My Limits (docs/obdx/features/my-limits.md). autoDispose: loaded while
 /// the screen is open, dropped afterwards and on logout.

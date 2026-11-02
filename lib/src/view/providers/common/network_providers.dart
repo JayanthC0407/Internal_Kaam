@@ -1,24 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_credentials_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_loan_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_login_wizard_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_mobile_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_calculators_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_cards_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_limits_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_mailbox_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_preferences_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_service_requests_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_account_settings_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_registration_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_accounts_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_credentials_api.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_loan_api.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_login_wizard_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payee_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payments_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_mobile_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_calculators_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_cards_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_limits_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_mailbox_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_preferences_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_service_requests_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_account_settings_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_registration_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_user_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_dio_client.dart';
 
 /// Shared Dio client — single instance for all OBDX API modules.
 final obdxDioClientProvider = Provider<ObdxDioClient>(

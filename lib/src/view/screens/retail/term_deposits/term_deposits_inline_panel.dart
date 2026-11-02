@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
-import 'package:ubci_bank/src/view/providers/retail/term_deposit_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/view/providers/retail/term_deposit_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/term_deposits_list_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/term_deposits/widgets/td_shared_widgets.dart';
 
 /// The home Accounts tab's "Term Deposits" category: the active deposits
 /// as cards, with "View all" for the full list.

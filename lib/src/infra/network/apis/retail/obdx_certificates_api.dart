@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:ubci_bank/src/core/models/retail/certificate_models.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/models/retail/certificate_models.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_api_base.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_dio_client.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 /// OBDX Certificates — Interest, Balance and TDS. Every path, query name
 /// and task code is from the OBDX source: docs/obdx/features/certificates.md.

@@ -1,8 +1,8 @@
-import 'package:ubci_bank/src/core/models/corp/credit_facility_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_credit_facility_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:demo_bank/src/core/models/corp/credit_facility_models.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_credit_facility_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_repository_base.dart';
 
 /// Facilities and the first liability they belong to.
 class CfFacilities {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
 import 'blank_tab_scaffold.dart';
 
 class InsightsTabScreen extends StatelessWidget {

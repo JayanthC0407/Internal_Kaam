@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/retail/certificate_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_certificates_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/retail/certificates_repository.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/src/core/models/retail/certificate_models.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_certificates_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/retail/certificates_repository.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
 
 /// Certificates (docs/obdx/features/certificates.md). autoDispose: loaded
 /// while a certificate screen is open.

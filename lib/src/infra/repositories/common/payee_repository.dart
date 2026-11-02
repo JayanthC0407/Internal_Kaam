@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_payee_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_payee_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 class PayeeRepository {
   PayeeRepository({required ObdxPayeeApi payeeApi}) : _payeeApi = payeeApi;

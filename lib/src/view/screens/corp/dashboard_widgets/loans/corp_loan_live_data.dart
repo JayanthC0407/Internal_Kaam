@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:ubci_bank/src/core/models/corp/corp_loan_application.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_loan_record.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_sample_data.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loan_application.dart';
+import 'package:demo_bank/src/core/models/corp/corp_loan_record.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/loans/corp_loan_sample_data.dart';
 
 /// The loans behind the four Loans widgets, and the figures each shows.
 ///

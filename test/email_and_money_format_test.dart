@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/utils/common/email_validator.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/core/utils/common/email_validator.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
 
 void main() {
   group('EmailValidator', () {

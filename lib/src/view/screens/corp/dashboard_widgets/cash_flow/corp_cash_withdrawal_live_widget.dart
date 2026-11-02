@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_widget_data_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_data.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_summary_widget.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_live_widget.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_widget_data_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_live_data.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_withdrawal_summary_widget.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_live_widget.dart';
 
 /// OBDX `cash-withdrawal-summary` on live data — this month's cash
 /// withdrawals, what the Corporate registry builds.

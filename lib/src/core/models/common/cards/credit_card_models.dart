@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// OBDX Credit Cards — list and transactions.
 /// Evidence for every field and rule: docs/obdx/features/credit-cards.md.

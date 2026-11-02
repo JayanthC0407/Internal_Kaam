@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/cards/credit_card_models.dart';
-import 'package:ubci_bank/src/core/models/common/cards/debit_card_models.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/core/models/common/cards/credit_card_models.dart';
+import 'package:demo_bank/src/core/models/common/cards/debit_card_models.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
 
 /// Credit Cards (docs/obdx/features/credit-cards.md). autoDispose: loaded
 /// when a screen (or the Home card tab) shows cards, dropped afterwards and

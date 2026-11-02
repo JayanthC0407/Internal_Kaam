@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ubci_bank/src/core/extensions/extensions.dart';
+import 'package:demo_bank/src/core/extensions/extensions.dart';
 
 class BasePreferences {
   Future<bool> getBool(String key) async {

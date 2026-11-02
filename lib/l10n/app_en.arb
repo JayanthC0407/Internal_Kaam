@@ -577,7 +577,7 @@
   "registrationCredentialsSubmitting": "Creating your account...",
   "registrationCredentialsFailed": "Could not create your credentials. Please try again.",
   "errorUserAlreadyExists": "An account with this username already exists.",
-  "biometricUnlockTitle": "Unlock UBCI Bank",
+  "biometricUnlockTitle": "Unlock Demo Bank",
   "biometricUnlockSubtitle": "Use your fingerprint or face to continue",
   "biometricUsePassword": "Use password instead",
   "biometricTryAgain": "Try again",

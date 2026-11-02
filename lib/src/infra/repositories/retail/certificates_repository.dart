@@ -1,10 +1,10 @@
-import 'package:ubci_bank/src/core/models/common/statement_format.dart';
-import 'package:ubci_bank/src/core/models/retail/certificate_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_certificates_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/statement_download.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/statement_format.dart';
+import 'package:demo_bank/src/core/models/retail/certificate_models.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_certificates_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/statement_download.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Certificates (Interest, Balance, TDS): parses [ObdxCertificatesApi]
 /// answers; the PDFs go through the shared statement decoder.

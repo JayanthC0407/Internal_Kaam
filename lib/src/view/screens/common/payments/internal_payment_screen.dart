@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/common/payment/payment_models.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/payment_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/beneficiary_picker_sheet.dart';
-import 'package:ubci_bank/src/view/widgets/payment_otp_sheet_view.dart';
-import 'package:ubci_bank/src/view/widgets/settlement_account_picker_sheet.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/common/payment/payment_models.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/common/payment_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/beneficiary_picker_sheet.dart';
+import 'package:demo_bank/src/view/widgets/payment_otp_sheet_view.dart';
+import 'package:demo_bank/src/view/widgets/settlement_account_picker_sheet.dart';
 
 /// Internal (same-bank) payment — the functional flow doc's Phase 1
 /// (§21): Source Account → Beneficiary → Amount + Details → Review →

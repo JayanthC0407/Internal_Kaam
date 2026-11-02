@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
 
 /// Debit / credit direction of a transaction line.
 enum TransactionDirection { debit, credit, unknown }

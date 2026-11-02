@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/core/models/corp/credit_facility_models.dart';
-import 'package:ubci_bank/src/core/utils/common/statement_file_saver.dart';
-import 'package:ubci_bank/src/core/utils/corp/corp_money_format.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
-import 'package:ubci_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/core/models/corp/credit_facility_models.dart';
+import 'package:demo_bank/src/core/utils/common/statement_file_saver.dart';
+import 'package:demo_bank/src/core/utils/corp/corp_money_format.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_credit_facility_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/common/corp_widget_kit.dart';
+import 'package:demo_bank/src/view/screens/corp/trade_finance/widgets/lc_widgets.dart';
 
 /// Shared pieces of the Credit Facility screens.
 

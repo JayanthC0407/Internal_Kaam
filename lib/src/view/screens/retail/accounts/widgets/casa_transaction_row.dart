@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
 
 const List<String> _monthNames = [
   'January',

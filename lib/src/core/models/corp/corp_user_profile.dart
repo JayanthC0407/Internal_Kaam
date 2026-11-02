@@ -1,6 +1,6 @@
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/utils/common/profile_initials.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/core/utils/common/profile_initials.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// The authenticated corporate user, parsed from `GET /digx-common/user/v1/me`.
 ///

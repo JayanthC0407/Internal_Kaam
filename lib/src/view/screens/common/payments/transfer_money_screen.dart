@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/src/core/theme/app_spacing.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/core/theme/app_spacing.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// "Transfer Money → Who are you sending money to?" Both branches
 /// converge on the same Payment Details → Review → Authentication →

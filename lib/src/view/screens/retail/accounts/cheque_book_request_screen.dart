@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/cheque_book_models.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/view/providers/retail/cheque_book_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/obdx_write_runner.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/cheque_book_models.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/view/providers/retail/cheque_book_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/obdx_write_runner.dart';
 
 /// Cheque Book Request — OBDX `flows/cheque-book-request`: the form →
 /// Review → confirmation. Confirm sends `POST demandDeposit/{id}/chequeBooks`

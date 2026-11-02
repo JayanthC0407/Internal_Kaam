@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_account.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_accounts_providers.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_profile_providers.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_account_hero_card.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/corp_account.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_accounts_providers.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_profile_providers.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_account_hero_card.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// Dashboard card with the **Accounts / Deposits / Loans** tab strip, the
 /// account carousel, the account-type filter and the "View all accounts"

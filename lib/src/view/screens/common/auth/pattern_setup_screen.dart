@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/alternate_login_method.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/infra/security/alternate_login_crypto.dart';
-import 'package:ubci_bank/src/view/providers/global_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_pattern_lock.dart';
-import 'package:ubci_bank/src/view/widgets/auth/auth_screen_header.dart';
-import 'package:ubci_bank/src/view/widgets/secure_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/alternate_login_method.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/infra/security/alternate_login_crypto.dart';
+import 'package:demo_bank/src/view/providers/global_providers.dart';
+import 'package:demo_bank/src/view/screens/common/auth/auth_colors.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_pattern_lock.dart';
+import 'package:demo_bank/src/view/widgets/auth/auth_screen_header.dart';
+import 'package:demo_bank/src/view/widgets/secure_screen.dart';
 
 /// Create + confirm a pattern for quick access.
 class PatternSetupScreen extends ConsumerStatefulWidget {

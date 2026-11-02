@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// "Activity Centre" / "Quick Actions" grid — 6 shortcut tiles shown
 /// under the Accounts hero card and Loan Tracker on the redesigned Home

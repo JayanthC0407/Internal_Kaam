@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/common/limits/my_limits_models.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/view/providers/common/my_limits_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/common/limits/my_limits_models.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/view/providers/common/my_limits_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Account Settings → My Limits (OBDX `limits-enquiry/my-limit`): pick a
 /// Channel and a Transaction, then a limit tab; Daily and Monthly Limits

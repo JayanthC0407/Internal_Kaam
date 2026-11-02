@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// `X-BATCH_TYPE` values the OBDX batch servlet accepts for the calls the
 /// app makes (the servlet rejects a batch without one — `DIGX_BT_0002`).

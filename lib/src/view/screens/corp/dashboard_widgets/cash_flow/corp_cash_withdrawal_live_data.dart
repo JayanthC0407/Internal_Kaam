@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/corp/corp_cash_collection.dart';
-import 'package:ubci_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_sample_data.dart';
+import 'package:demo_bank/src/core/models/corp/corp_cash_collection.dart';
+import 'package:demo_bank/src/view/screens/corp/dashboard_widgets/cash_flow/corp_cash_flow_sample_data.dart';
 
 /// Cash withdrawals from `cashmanagement/collections/CW`, as the Cash
 /// Withdrawal Summary needs them.

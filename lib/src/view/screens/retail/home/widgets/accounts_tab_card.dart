@@ -3,17 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
 import 'credit_cards_visual.dart';
 import '../home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// Dashboard "Accounts / Credit Card / Loans / Insurance" hero section.
 ///
