@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// The corporate party behind the logged-in user, from
 /// `GET /digx-common/user/v1/me/party` (Corporate capture, entry #12).

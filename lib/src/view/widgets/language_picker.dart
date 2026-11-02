@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
-import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/view/providers/common/app_settings_providers.dart';
+import 'package:demo_bank/src/view/widgets/app_bottom_sheet.dart';
 
 /// The app's language choice, shared by the dashboard top bar and the Menu
 /// tab (Languages tile, App Settings → Language). Saves through

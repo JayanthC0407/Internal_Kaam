@@ -1,9 +1,9 @@
-import 'package:ubci_bank/src/core/models/corp/corp_bank_configuration.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_currency.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_party.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_profile_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_repository_base.dart';
+import 'package:demo_bank/src/core/models/corp/corp_bank_configuration.dart';
+import 'package:demo_bank/src/core/models/corp/corp_currency.dart';
+import 'package:demo_bank/src/core/models/corp/corp_party.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_profile_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_repository_base.dart';
 
 /// Corporate profile context: the party behind the logged-in user, the bank
 /// configuration, and the header's unread-message count.

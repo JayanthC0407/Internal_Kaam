@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/l10n/app_localizations_helper.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_pickup_point.dart';
-import 'package:ubci_bank/src/infra/network/apis/corp/obdx_corp_cash_management_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/network/response_handler_extensions.dart';
-import 'package:ubci_bank/src/infra/repositories/corp/corp_cash_management_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_expiry_coordinator.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/common/network_providers.dart';
+import 'package:demo_bank/l10n/app_localizations_helper.dart';
+import 'package:demo_bank/src/core/models/corp/corp_pickup_point.dart';
+import 'package:demo_bank/src/infra/network/apis/corp/obdx_corp_cash_management_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/response_handler_extensions.dart';
+import 'package:demo_bank/src/infra/repositories/corp/corp_cash_management_repository.dart';
+import 'package:demo_bank/src/infra/session/session_expiry_coordinator.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/common/network_providers.dart';
 
 final obdxCorpCashManagementApiProvider = Provider(
   (ref) => ObdxCorpCashManagementApi(ref.watch(obdxDioClientProvider)),

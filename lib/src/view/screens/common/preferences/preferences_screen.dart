@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/config/locale_config.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
-import 'package:ubci_bank/src/view/providers/common/app_settings_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/limits/my_limits_screen.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/alerts_subscription_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/change_password_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/primary_account_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/session_summary_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/profile_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/security_login_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/settings_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/themes_section.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/sections/third_party_apps_section.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/widgets/app_bottom_sheet.dart';
-import 'package:ubci_bank/src/view/widgets/design_page.dart';
-import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/config/locale_config.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/view/providers/common/app_settings_providers.dart';
+import 'package:demo_bank/src/view/providers/common/preferences_providers.dart';
+import 'package:demo_bank/src/view/screens/common/limits/my_limits_screen.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/alerts_subscription_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/change_password_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/dnd_alerts_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/primary_account_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/session_summary_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/profile_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/security_login_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/settings_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/themes_section.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/sections/third_party_apps_section.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/widgets/app_bottom_sheet.dart';
+import 'package:demo_bank/src/view/widgets/design_page.dart';
+import 'package:demo_bank/src/view/widgets/profile_avatar.dart';
 
 /// My Preferences — everything about the signed-in user and their
 /// account, opened from the initials in the dashboard header (Retail and
@@ -35,8 +36,8 @@ import 'package:ubci_bank/src/view/widgets/profile_avatar.dart';
 ///    devices), Change Password, Session Summary, Privacy & Consents
 ///    (Third Party Applications, Feedback, Live Help);
 ///  - App: Notifications & Alerts (push, OTP delivery), Alerts
-///    Subscription, Appearance & Language (OBDX Themes), Personalize
-///    Dashboard;
+///    Subscription, Manage DND Alerts, Appearance & Language (OBDX
+///    Themes), Personalize Dashboard;
 ///  - Log out.
 /// Wide: two columns scrolling on their own — the title and the section
 /// list; the profile card over the open section. Phone:
@@ -52,6 +53,7 @@ enum PrefSection {
   privacy(Icons.privacy_tip_outlined),
   notifications(Icons.notifications_none_rounded),
   alertsSubscription(Icons.notifications_active_outlined),
+  dndAlerts(Icons.do_not_disturb_on_outlined),
   appearance(Icons.palette_outlined);
 
   const PrefSection(this.icon);
@@ -67,6 +69,7 @@ enum PrefSection {
         PrefSection.sessionSummary => l10n.ssTitle,
         PrefSection.privacy => l10n.prefPrivacyConsents,
         PrefSection.alertsSubscription => l10n.asTitle,
+        PrefSection.dndAlerts => l10n.dndTitle,
         PrefSection.notifications => l10n.prefNotificationsAlerts,
         PrefSection.appearance => l10n.prefAppearanceLanguage,
       };
@@ -81,6 +84,7 @@ enum PrefSection {
         PrefSection.sessionSummary => l10n.ssHint,
         PrefSection.privacy => l10n.prefPrivacyHint,
         PrefSection.alertsSubscription => l10n.asHint,
+        PrefSection.dndAlerts => l10n.dndHint,
         PrefSection.notifications => l10n.prefNotificationsHint,
         PrefSection.appearance => l10n.prefAppearanceHint,
       };
@@ -90,7 +94,7 @@ enum PrefSection {
 const _groups = [
   [PrefSection.profile, PrefSection.primaryAccount, PrefSection.limits],
   [PrefSection.securityLogin, PrefSection.changePassword, PrefSection.sessionSummary, PrefSection.privacy],
-  [PrefSection.notifications, PrefSection.alertsSubscription, PrefSection.appearance],
+  [PrefSection.notifications, PrefSection.alertsSubscription, PrefSection.dndAlerts, PrefSection.appearance],
 ];
 
 String _groupTitle(AppLocalizations l10n, int i) => switch (i) {
@@ -175,6 +179,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           ),
         PrefSection.sessionSummary => const SessionSummarySection(),
         PrefSection.alertsSubscription => const AlertsSubscriptionSection(),
+        PrefSection.dndAlerts => DndAlertsSection(onCancel: onDone),
         PrefSection.privacy => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Base for the Corporate repositories.
 ///

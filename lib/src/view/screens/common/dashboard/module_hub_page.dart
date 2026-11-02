@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
 
 /// One page for a whole OBDX module, laid out like the Payments hub
 /// (transfer_tab_screen.dart): a header, the module's functions as tiles,

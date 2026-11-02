@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Segmented currency selector shown wherever loan totals are aggregated
 /// (dashboard tracker card, "Loans & Finances" summary banners) — only

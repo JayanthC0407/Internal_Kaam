@@ -1,4 +1,4 @@
-package com.ubci.android
+package com.demo.bank
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/security_question.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/security_question.dart';
 
 enum ForgotCredentialsKind { username, password }
 

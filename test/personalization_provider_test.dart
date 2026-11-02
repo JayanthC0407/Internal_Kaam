@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_config.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
-import 'package:ubci_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/dashboard_repository.dart';
-import 'package:ubci_bank/src/infra/session/session_generation.dart';
-import 'package:ubci_bank/src/view/providers/common/personalization_providers.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_config.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_descriptor.dart';
+import 'package:demo_bank/src/core/models/common/dashboard/dashboard_widget_catalog.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/dashboard_repository.dart';
+import 'package:demo_bank/src/infra/session/session_generation.dart';
+import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
 
 /// Stands in for the host. The test swaps [next] to change what the next
 /// configuration fetch returns, since both users request the same

@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_api_base.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_dio_client.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_api_base.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_dio_client.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
 
 /// Account Settings → Session Summary, Alerts Subscription, Change
 /// Password. OBDX `apiType`s: `user` → `/digx-common/user/v1`, `sms` →
@@ -67,6 +67,21 @@ class ObdxAccountSettingsApi extends ObdxApiBase {
   /// Unsubscribing from everything at a level deletes its record.
   Future<ResponseHandler<Map<String, dynamic>>> deleteSubscription(String id, {String? challengeResponseHeader}) =>
       _write('DELETE', '$_alerts/actionSubscriptions/${Uri.encodeComponent(id)}', null, challengeResponseHeader);
+
+  // ── Manage DND Alerts ──
+
+  /// `GET alerts dndRegistry` → `categories[]`, `mapped[]`. OBDX's `userId`
+  /// query is null, so nothing is sent (manage-dnd-alerts-stage1/model.js).
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDndRegistry() => _get('$_alerts/dndRegistry');
+
+  /// `GET alerts activityEvents?categoryId=` → `activityEvents[]`.
+  Future<ResponseHandler<Map<String, dynamic>>> fetchDndEvents(String categoryId) =>
+      _get('$_alerts/activityEvents', query: {'categoryId': categoryId});
+
+  /// `PUT user me/dndRegistry {categories}` (manage-dnd-alerts-review/model.js).
+  Future<ResponseHandler<Map<String, dynamic>>> saveDndRegistry(Map<String, dynamic> body,
+          {String? challengeResponseHeader}) =>
+      _write('PUT', '${ApiConst.profileApi}/dndRegistry', body, challengeResponseHeader);
 
   /// `GET party parties/{id}/accounts?accountType=&taskCode=AL_N_CS`.
   Future<ResponseHandler<Map<String, dynamic>>> fetchPartyAccounts(String partyId, String accountType) => _get(

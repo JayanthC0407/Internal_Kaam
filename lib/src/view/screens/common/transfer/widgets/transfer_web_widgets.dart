@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/transfer/transfer_theme.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/common/transfer/transfer_theme.dart';
 
 /// Web action row — equal-height Pay / Cancel / Back buttons.
 class TransferWebActionBar extends StatelessWidget {

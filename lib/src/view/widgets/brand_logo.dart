@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
 
 /// The Demobank logo, following the theme: the teal artwork on light
 /// surfaces, white in dark mode (the same artwork tinted, as on the auth

@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubci_bank/src/core/models/common/bill_payments/biller_models.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/bill_payments_repository.dart';
+import 'package:demo_bank/src/core/models/common/bill_payments/biller_models.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_bill_payments_api.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/bill_payments_repository.dart';
 
 // Field names follow the UAT capture (docs/obdx/features/bill-payments.md
 // §3.5); every value here is made up.

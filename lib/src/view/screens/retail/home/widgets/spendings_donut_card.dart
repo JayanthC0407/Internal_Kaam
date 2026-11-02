@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 /// "My Spendings" donut chart — replaces the old monthly bar chart.
 ///

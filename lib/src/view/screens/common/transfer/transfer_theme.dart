@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Figma transfer flow design tokens (Option 1 + Option 2).
 enum TransferDesignVariant { option1, option2 }

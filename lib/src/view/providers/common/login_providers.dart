@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/view/viewmodel/common/login_screen_vm.dart';
+import 'package:demo_bank/src/view/viewmodel/common/login_screen_vm.dart';
 
 final loginIsLoadingProvider =
     StateProvider.autoDispose<bool>((ref) => false);

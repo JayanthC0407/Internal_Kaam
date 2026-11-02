@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
 
 /// Result of submitting an LC initiation or amendment.
 ///

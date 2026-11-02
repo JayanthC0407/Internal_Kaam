@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ubci_bank/src/core/models/common/payee/payee_models.dart';
-import 'package:ubci_bank/src/core/models/common/payment/payment_models.dart';
-import 'package:ubci_bank/src/core/theme/app_radius.dart';
-import 'package:ubci_bank/src/core/theme/app_spacing.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/providers/common/payee_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/payment_providers.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
+import 'package:demo_bank/src/core/models/common/payment/payment_models.dart';
+import 'package:demo_bank/src/core/theme/app_radius.dart';
+import 'package:demo_bank/src/core/theme/app_spacing.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/providers/common/payee_providers.dart';
+import 'package:demo_bank/src/view/providers/common/payment_providers.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Add Demand Draft Payee — Domestic / International draft type, matching
 /// the captured "Add Demand Draft Payee" screens.

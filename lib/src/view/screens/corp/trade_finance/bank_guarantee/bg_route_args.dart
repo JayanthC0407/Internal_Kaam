@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
-import 'package:ubci_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/bank_guarantee_models.dart';
+import 'package:demo_bank/src/view/providers/corp/corp_bank_guarantee_providers.dart';
 
 /// Route arguments for the Bank Guarantee screens (see `CorpRoutes`).
 

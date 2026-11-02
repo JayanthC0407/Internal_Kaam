@@ -1,13 +1,13 @@
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/retail/account_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_transaction.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit.dart';
-import 'package:ubci_bank/src/core/models/retail/term_deposit_actions.dart';
-import 'package:ubci_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/repositories/common/obdx_repository_base.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/retail/account_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit.dart';
+import 'package:demo_bank/src/core/models/retail/term_deposit_actions.dart';
+import 'package:demo_bank/src/infra/network/apis/retail/obdx_term_deposit_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/repositories/common/obdx_repository_base.dart';
 
 /// Retail term deposits: reads and the four actions.
 class TermDepositRepository extends ObdxRepositoryBase {

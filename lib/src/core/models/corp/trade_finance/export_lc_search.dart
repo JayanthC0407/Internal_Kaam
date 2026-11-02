@@ -1,4 +1,4 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
 
 /// LC status filter — `lcStatus` on `GET /letterofcredits`. The options are
 /// the manual's (View Export LC, ch. 11); `ACTIVE` is the one seen in the

@@ -1,23 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:http_status_code/http_status_code.dart';
-import 'package:ubci_bank/src/core/constants/adlog.dart';
-import 'package:ubci_bank/src/core/models/common/login_flow_result.dart';
-import 'package:ubci_bank/src/core/models/common/login_trace.dart';
-import 'package:ubci_bank/src/core/models/common/obdx_challenge.dart';
-import 'package:ubci_bank/src/core/models/common/otp_login_pending.dart';
-import 'package:ubci_bank/src/core/utils/common/jwt_utils.dart';
-import 'package:ubci_bank/src/infra/network/api_constants.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_auth_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_mobile_api.dart';
-import 'package:ubci_bank/src/infra/network/apis/common/obdx_user_api.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
-import 'package:ubci_bank/src/infra/network/obdx_error_mapper.dart';
-import 'package:ubci_bank/src/infra/network/response_handler.dart';
-import 'package:ubci_bank/src/infra/pref/preference_helper.dart';
-import 'package:ubci_bank/src/infra/security/mobile_device_info_service.dart';
-import 'package:ubci_bank/src/infra/security/obdx_password_crypto_service.dart';
-import 'package:ubci_bank/src/infra/security/secure_device_id_service.dart';
-import 'package:ubci_bank/src/infra/session/session_manager.dart';
+import 'package:demo_bank/src/core/constants/adlog.dart';
+import 'package:demo_bank/src/core/models/common/login_flow_result.dart';
+import 'package:demo_bank/src/core/models/common/login_trace.dart';
+import 'package:demo_bank/src/core/models/common/obdx_challenge.dart';
+import 'package:demo_bank/src/core/models/common/otp_login_pending.dart';
+import 'package:demo_bank/src/core/utils/common/jwt_utils.dart';
+import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_auth_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_mobile_api.dart';
+import 'package:demo_bank/src/infra/network/apis/common/obdx_user_api.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/infra/network/obdx_error_mapper.dart';
+import 'package:demo_bank/src/infra/network/response_handler.dart';
+import 'package:demo_bank/src/infra/pref/preference_helper.dart';
+import 'package:demo_bank/src/infra/security/mobile_device_info_service.dart';
+import 'package:demo_bank/src/infra/security/obdx_password_crypto_service.dart';
+import 'package:demo_bank/src/infra/security/secure_device_id_service.dart';
+import 'package:demo_bank/src/infra/session/session_manager.dart';
 
 /// OBDX server biometric enrollment (steps 4–5) and token login (step 6).
 class BiometricRepository {

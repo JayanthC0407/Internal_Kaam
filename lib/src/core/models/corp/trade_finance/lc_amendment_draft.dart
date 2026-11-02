@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
-import 'package:ubci_bank/src/core/models/corp/trade_finance/lc_common.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/corp_letter_of_credit.dart';
+import 'package:demo_bank/src/core/models/corp/trade_finance/lc_common.dart';
 
 /// The fields an Import LC amendment can change in this app.
 ///

@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/models/retail/loan_account.dart';
-import 'package:ubci_bank/src/core/theme/app_colors.dart';
-import 'package:ubci_bank/src/core/theme/app_gradients.dart';
-import 'package:ubci_bank/src/core/utils/common/money_format.dart';
-import 'package:ubci_bank/src/core/utils/common/responsive.dart';
-import 'package:ubci_bank/src/view/providers/retail/loan_providers.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/accounts/widgets/loan_currency_tabs.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/models/retail/loan_account.dart';
+import 'package:demo_bank/src/core/theme/app_colors.dart';
+import 'package:demo_bank/src/core/theme/app_gradients.dart';
+import 'package:demo_bank/src/core/utils/common/money_format.dart';
+import 'package:demo_bank/src/core/utils/common/responsive.dart';
+import 'package:demo_bank/src/view/providers/retail/loan_providers.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/loan_account_details_screen.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/loan_currency_tabs.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// "Loans & Finances" — lists every loan/finance account from
 /// `GET /digx-common/loan/v1/loan`. Tapping a tile opens

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
-import 'package:ubci_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/common/personalize/dashboard_card_surface.dart';
 
 class _InfoItem {
   const _InfoItem(this.icon, this.label);

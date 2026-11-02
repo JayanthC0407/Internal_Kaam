@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/view/widgets/brand_logo.dart';
-import 'package:ubci_bank/src/view/screens/common/auth/auth_colors.dart';
+import 'package:demo_bank/src/view/widgets/brand_logo.dart';
+import 'package:demo_bank/src/view/screens/common/auth/auth_colors.dart';
 
 class AuthLogoHeader extends StatelessWidget {
   const AuthLogoHeader({

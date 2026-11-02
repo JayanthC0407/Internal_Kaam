@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubci_bank/src/core/models/corp/corp_quick_link.dart';
-import 'package:ubci_bank/src/view/routes/routes_const.dart';
-import 'package:ubci_bank/src/view/screens/corp/corp_colors.dart';
-import 'package:ubci_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
+import 'package:demo_bank/src/core/models/corp/corp_quick_link.dart';
+import 'package:demo_bank/src/view/routes/routes_const.dart';
+import 'package:demo_bank/src/view/screens/corp/corp_colors.dart';
+import 'package:demo_bank/src/view/screens/corp/widgets/corp_card_shell.dart';
 
 /// "Quick Links" panel — the corporate dashboard's shortcut grid.
 ///

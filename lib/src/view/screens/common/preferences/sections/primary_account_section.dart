@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ubci_bank/l10n/app_localizations.dart';
-import 'package:ubci_bank/src/core/constants/app_constants.dart';
-import 'package:ubci_bank/src/core/models/retail/casa_account.dart';
-import 'package:ubci_bank/src/view/providers/common/preferences_providers.dart';
-import 'package:ubci_bank/src/view/providers/common/repository_providers.dart';
-import 'package:ubci_bank/src/view/providers/retail/accounts_providers.dart';
-import 'package:ubci_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:ubci_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
-import 'package:ubci_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
+import 'package:demo_bank/src/core/constants/app_constants.dart';
+import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/view/providers/common/preferences_providers.dart';
+import 'package:demo_bank/src/view/providers/common/repository_providers.dart';
+import 'package:demo_bank/src/view/providers/retail/accounts_providers.dart';
+import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/common/preferences/widgets/preferences_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 
 /// Preferences → Primary Account Number (OBDX `sms-primary-account`):
 /// "Select Primary Account" from the CASA accounts (Account Type And
