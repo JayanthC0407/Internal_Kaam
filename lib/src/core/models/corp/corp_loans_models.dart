@@ -1,5 +1,5 @@
-import 'package:ubci_bank/src/core/models/common/money_amount.dart';
-import 'package:ubci_bank/src/infra/network/obdx_api_utils.dart';
+import 'package:demo_bank/src/core/models/common/money_amount.dart';
+import 'package:demo_bank/src/infra/network/obdx_api_utils.dart';
 
 /// Corporate Loans & Finances (OBDX corporate menu `OBCL_LOAN`):
 /// Transactions (`loans/obcl-loan-transactions`), Messages and Advices
