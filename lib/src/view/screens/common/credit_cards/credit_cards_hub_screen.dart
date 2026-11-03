@@ -13,6 +13,9 @@ class CreditCardsHubScreen extends StatelessWidget {
   const CreditCardsHubScreen({super.key, this.onBack, required this.onCreditCardsTap, required this.onTransactionsTap});
 
   final VoidCallback onCreditCardsTap;
+
+  /// The back arrow beside the title; null hides it.
+  final VoidCallback? onBack;
   final VoidCallback onTransactionsTap;
 
   /// Back to where the page was opened from (a ‹ instead of ☰ on phones).
@@ -25,6 +28,7 @@ class CreditCardsHubScreen extends StatelessWidget {
       onBack: onBack,
       title: l10n.ccTitle,
       subtitle: l10n.ccModuleSubtitle,
+      onBack: onBack,
       tiles: [
         PayOptionTile(
           icon: Icons.credit_card_rounded,

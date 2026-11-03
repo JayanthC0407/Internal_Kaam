@@ -22,6 +22,9 @@ class ModuleHubPage extends StatelessWidget {
     this.onBack,
   });
 
+  /// Back beside the title; null shows none.
+  final VoidCallback? onBack;
+
   final String title;
   final String subtitle;
 
@@ -70,6 +73,10 @@ class ModuleHubPage extends StatelessWidget {
                               HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
                             const SizedBox(width: 12),
                           ],
+                          if (onBack != null) ...[
+                            _BackButton(onTap: onBack!),
+                            const SizedBox(width: 14),
+                          ],
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,6 +120,31 @@ class ModuleHubPage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A round back button, as on the module's own pages.
+class _BackButton extends StatelessWidget {
+  const _BackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+        message: MaterialLocalizations.of(context).backButtonTooltip,
+        child: Material(
+          color: HomeColors.card(context),
+          shape: CircleBorder(side: BorderSide(color: HomeColors.divider(context))),
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(Icons.arrow_back_rounded, size: 20, color: HomeColors.textPrimary(context)),
+            ),
+          ),
+        ),
+      );
 }
 
 class _ComingSoon extends StatelessWidget {

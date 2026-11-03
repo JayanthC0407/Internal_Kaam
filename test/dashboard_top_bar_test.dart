@@ -10,6 +10,7 @@ import 'package:demo_bank/src/view/providers/common/app_settings_providers.dart'
 import 'package:demo_bank/src/view/screens/common/dashboard/dashboard_top_bar.dart';
 import 'package:demo_bank/src/view/screens/corp/widgets/corp_nav_content.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/dashboard_header_bar.dart';
+import 'package:demo_bank/src/view/widgets/notification_bell.dart';
 
 Future<void> _pump(WidgetTester tester, Widget bar) async {
   tester.view.physicalSize = const Size(1400, 900);
@@ -109,6 +110,57 @@ void main() {
         tester.element(find.byType(DashboardTopBar)),
       );
       expect(container.read(appSettingsProvider).locale.languageCode, 'fr');
+    });
+  });
+
+  group('notification bell', () {
+    testWidgets('web: red unread count, hidden at zero, 99+ above 99', (tester) async {
+      for (final (count, shown) in [(0, null), (7, '7'), (150, '99+')]) {
+        await _pump(
+          tester,
+          WebDashboardHeaderBar(displayName: 'Pooja Jha', onLogout: () {}, unreadNotificationCount: count),
+        );
+        expect(find.byTooltip('Notifications'), findsOneWidget);
+        expect(find.byType(UnreadCountBadge), shown == null ? findsNothing : findsOneWidget, reason: '$count');
+        if (shown != null) expect(find.text(shown), findsOneWidget);
+      }
+    });
+
+    testWidgets('phone header: bell with the count beside the initials; opens Mailbox', (tester) async {
+      var opened = false;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: LocaleConfig.supportedLocales,
+            home: Scaffold(
+              body: DemobankHomeHeader(
+                onMenuTap: () {},
+                displayName: 'Pooja Jha',
+                onNotificationsTap: () => opened = true,
+                unreadNotificationCount: 12,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('12'), findsOneWidget);
+      expect(find.text('PJ'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      // The bell sits left of the initials.
+      expect(tester.getCenter(find.byTooltip('Notifications')).dx, lessThan(tester.getCenter(find.text('PJ')).dx));
+      await tester.tap(find.byTooltip('Notifications'));
+      expect(opened, isTrue);
+    });
+
+    testWidgets('phone header without a bell callback shows no bell', (tester) async {
+      await _pump(tester, const DemobankHomeHeader(displayName: 'Pooja Jha'));
+      expect(find.byType(NotificationBell), findsNothing);
     });
   });
 
