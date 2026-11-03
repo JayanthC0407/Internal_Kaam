@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:demo_bank/src/view/widgets/brand_logo.dart';
+import 'package:demo_bank/src/view/widgets/notification_bell.dart';
 import 'package:demo_bank/src/view/widgets/profile_avatar.dart';
 import 'package:demo_bank/l10n/app_localizations.dart';
 import 'package:demo_bank/src/core/theme/app_colors.dart';
@@ -85,8 +86,12 @@ class MobileDashboardHeaderRow extends StatelessWidget {
     this.onMenuTap,
     this.onSearchSubmitted,
     this.onNotificationsTap,
+    this.unreadNotificationCount = 0,
     this.onProfileTap,
   });
+
+  /// Unread mails + alerts + notifications, on the bell.
+  final int unreadNotificationCount;
 
   /// Opens the hamburger drawer. `null` hides the icon.
   final VoidCallback? onMenuTap;
@@ -157,14 +162,11 @@ class MobileDashboardHeaderRow extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(
-          onPressed: onNotificationsTap,
-          visualDensity: VisualDensity.compact,
-          icon: Icon(
-            Icons.notifications_none_rounded,
-            color: HomeColors.textPrimary(context),
-            size: 26,
-          ),
+        NotificationBell(
+          count: unreadNotificationCount,
+          color: HomeColors.textPrimary(context),
+          size: 26,
+          onTap: onNotificationsTap,
         ),
         InkWell(
           onTap: onProfileTap,
@@ -181,18 +183,27 @@ class MobileDashboardHeaderRow extends StatelessWidget {
 }
 
 /// Phone Home header: menu on the left, the Demobank logo in the middle,
-/// the customer's initials on the right (opens My Preferences, as OBDX's
-/// header profile does).
+/// the notification bell (with OBDX's red unread count; opens Mailbox) and
+/// the customer's initials (open My Preferences, as OBDX's header profile
+/// does) on the right.
 class DemobankHomeHeader extends StatelessWidget {
   const DemobankHomeHeader({
     super.key,
     this.onMenuTap,
     this.onProfileTap,
+    this.onNotificationsTap,
+    this.unreadNotificationCount = 0,
     this.displayName = '',
   });
 
   final VoidCallback? onMenuTap;
   final VoidCallback? onProfileTap;
+
+  /// The bell; `null` hides it.
+  final VoidCallback? onNotificationsTap;
+
+  /// Unread mails + alerts + notifications, on the bell.
+  final int unreadNotificationCount;
 
   /// For the avatar's initials.
   final String displayName;
@@ -201,10 +212,13 @@ class DemobankHomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final iconColor = HomeColors.textPrimary(context);
+    final bell = onNotificationsTap;
+    // Both sides as wide, so the logo stays centred.
+    final side = bell == null ? 48.0 : 92.0;
     return Row(
       children: [
         SizedBox(
-          width: 48,
+          width: side,
           child: onMenuTap == null
               ? null
               : IconButton(
@@ -220,14 +234,29 @@ class DemobankHomeHeader extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 48,
-          child: Tooltip(
-            message: l10n.prefTitle,
-            child: ProfileAvatar(
-              name: displayName.trim().isEmpty ? '?' : displayName,
-              radius: 18,
-              onTap: onProfileTap,
-            ),
+          width: side,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (bell != null) ...[
+                NotificationBell(
+                  count: unreadNotificationCount,
+                  color: iconColor,
+                  size: 26,
+                  padding: const EdgeInsets.all(6),
+                  onTap: bell,
+                ),
+                const SizedBox(width: 4),
+              ],
+              Tooltip(
+                message: l10n.prefTitle,
+                child: ProfileAvatar(
+                  name: displayName.trim().isEmpty ? '?' : displayName,
+                  radius: 18,
+                  onTap: onProfileTap,
+                ),
+              ),
+            ],
           ),
         ),
       ],
