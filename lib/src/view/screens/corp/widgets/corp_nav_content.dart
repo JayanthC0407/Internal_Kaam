@@ -21,6 +21,7 @@ enum CorpNavDestination {
   home('Home', Icons.home_outlined),
   accounts('Accounts', Icons.account_balance_outlined),
   loan('Loan', Icons.savings_outlined),
+  corporateLoans('Corporate Loans & Finances', Icons.business_center_outlined),
   termDeposits('Term Deposits', Icons.account_balance_wallet_outlined),
   transfer('Transfer', Icons.swap_horiz_rounded),
   tradeFinance('Trade Finance', Icons.public_rounded),

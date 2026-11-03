@@ -16,9 +16,13 @@ class BillPaymentsHubScreen extends StatelessWidget {
     required this.onBillersTap,
     required this.onAddBillerTap,
     required this.onHistoryTap,
+    this.onBack,
   });
 
   final VoidCallback onBillersTap;
+
+  /// The back arrow beside the title; null hides it.
+  final VoidCallback? onBack;
   final VoidCallback onAddBillerTap;
   final VoidCallback onHistoryTap;
 
@@ -32,6 +36,7 @@ class BillPaymentsHubScreen extends StatelessWidget {
       onBack: onBack,
       title: l10n.billPaymentsTitle,
       subtitle: l10n.billsModuleSubtitle,
+      onBack: onBack,
       tiles: [
         PayOptionTile(
           icon: Icons.storefront_outlined,
