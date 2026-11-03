@@ -90,6 +90,8 @@
   "logOutConfirmWithBiometric": "Sign out of this session on this device?\n\nYou will lose biometric login and will need to set it up again after you sign in.",
   "forgetDeviceConfirm": "Supprimer toutes les données de session enregistrées sur cet appareil ? Vous devrez vous reconnecter.",
   "cancel": "Annuler",
+  "exitAppConfirm": "Do you want to Exit?",
+  "exitApp": "Exit",
   "confirm": "Confirmer",
   "deviceBlockedTitle": "Appareil non pris en charge",
   "deviceBlockedCompromisedMessage": "Pour votre sécurité, cette application ne peut pas fonctionner sur des appareils modifiés ou compromis. Veuillez utiliser un appareil standard non modifié.",

@@ -146,8 +146,9 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
     if (!widget.args.performTokenLogin) {
       setState(() => _authenticating = false);
       ref.read(biometricLockProvider.notifier).state = false;
-      Navigator.of(context).pushReplacementNamed(
+      Navigator.of(context).pushNamedAndRemoveUntil(
         RoutesConst.homeScreen,
+        (route) => false,
         arguments: widget.args.homeArgs,
       );
       return;
@@ -164,8 +165,9 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
 
     setState(() => _authenticating = false);
     ref.read(biometricLockProvider.notifier).state = false;
-    Navigator.of(context).pushReplacementNamed(
+    Navigator.of(context).pushNamedAndRemoveUntil(
       RoutesConst.homeScreen,
+      (route) => false,
       arguments: widget.args.homeArgs,
     );
   }
@@ -195,8 +197,9 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
             await ref.read(sessionManagerProvider).getLastUserName() ??
                 widget.args.homeArgs.userName;
         if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed(
+        Navigator.of(context).pushNamedAndRemoveUntil(
           RoutesConst.homeScreen,
+          (route) => false,
           arguments: HomeDashboardArgs(
             userName: userName,
             loginTrace: flow.trace!.toSafeMap(),

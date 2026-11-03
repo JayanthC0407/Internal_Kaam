@@ -90,6 +90,8 @@
   "logOutConfirmWithBiometric": "Sign out of this session on this device?\n\nYou will lose biometric login and will need to set it up again after you sign in.",
   "forgetDeviceConfirm": "إزالة جميع بيانات الجلسة المحفوظة من هذا الجهاز؟ ستحتاج إلى تسجيل الدخول مرة أخرى.",
   "cancel": "إلغاء",
+  "exitAppConfirm": "Do you want to Exit?",
+  "exitApp": "Exit",
   "confirm": "تأكيد",
   "deviceBlockedTitle": "الجهاز غير مدعوم",
   "deviceBlockedCompromisedMessage": "لحمايتك، لا يمكن تشغيل هذا التطبيق على أجهزة معدّلة أو غير آمنة. يرجى استخدام جهاز قياسي غير معدّل.",

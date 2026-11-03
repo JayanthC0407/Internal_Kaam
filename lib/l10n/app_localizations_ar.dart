@@ -339,6 +339,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cancel => 'إلغاء';
 
   @override
+  String get exitAppConfirm => 'Do you want to Exit?';
+
+  @override
+  String get exitApp => 'Exit';
+
+  @override
   String get confirm => 'تأكيد';
 
   @override

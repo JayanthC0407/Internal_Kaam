@@ -340,6 +340,12 @@ class AppLocalizationsUz extends AppLocalizations {
   String get cancel => 'Bekor qilish';
 
   @override
+  String get exitAppConfirm => 'Do you want to Exit?';
+
+  @override
+  String get exitApp => 'Exit';
+
+  @override
   String get confirm => 'Tasdiqlash';
 
   @override

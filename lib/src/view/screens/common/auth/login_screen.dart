@@ -262,8 +262,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               await BiometricEnrollmentPrompt.afterPasswordLogin(context, ref);
               if (!mounted) return;
             }
-            Navigator.of(context).pushReplacementNamed(
+            Navigator.of(context).pushNamedAndRemoveUntil(
               RoutesConst.homeScreen,
+              (route) => false,
               arguments: HomeDashboardArgs(
                 userName: username,
                 loginTrace: flow.trace!.toSafeMap(),
