@@ -1458,6 +1458,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 displayName: _displayNameFromTrace(),
                 // Initials → Preferences (OBDX's header profile).
                 onProfileTap: _openPreferences,
+                // The bell and its live unread count, as on the web bar.
+                onNotificationsTap: _openMailbox,
+                unreadNotificationCount: ref.watch(mailboxCountsProvider).valueOrNull?.total ?? 0,
               ),
               const SizedBox(height: 12),
               card,
