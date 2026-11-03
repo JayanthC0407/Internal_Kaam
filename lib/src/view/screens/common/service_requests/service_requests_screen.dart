@@ -6,6 +6,7 @@ import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_
 import 'package:demo_bank/src/view/screens/common/service_requests/raise_request_views.dart';
 import 'package:demo_bank/src/view/screens/common/service_requests/track_requests_views.dart';
 import 'package:demo_bank/src/view/widgets/design_page.dart';
+import 'package:demo_bank/src/view/widgets/embedded_back.dart';
 
 /// OBDX's two Service Requests menu entries, one module page.
 enum SrTab { track, raise }
@@ -164,7 +165,9 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
     return PopScope(
       canPop: _atTop,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _back();
+        if (didPop) return;
+        _back();
+        EmbeddedBack.claim();
       },
       // The ⋮ menu goes to the other half.
       child: DesignPage(

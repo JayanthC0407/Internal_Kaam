@@ -6,6 +6,7 @@ import 'package:demo_bank/src/core/utils/common/dashboard_widget_labels.dart';
 import 'package:demo_bank/src/view/providers/common/personalization_providers.dart';
 import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_limit.dart';
 import 'package:demo_bank/src/view/screens/common/personalize/dashboard_widget_registry.dart';
+import 'package:demo_bank/src/view/widgets/embedded_back.dart';
 
 /// Personalize Dashboard — pick which widgets appear on the home screen.
 ///
@@ -160,6 +161,7 @@ class _PersonalizePanelState extends ConsumerState<PersonalizePanel> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        EmbeddedBack.claim();
         if (await _confirmDiscard() && mounted) widget.onClose();
       },
       child: Material(

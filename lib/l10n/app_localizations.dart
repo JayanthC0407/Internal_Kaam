@@ -730,6 +730,18 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get cancel;
 
+  /// Asked when Android Back is pressed on the Home tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to Exit?'**
+  String get exitAppConfirm;
+
+  /// No description provided for @exitApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exitApp;
+
   /// No description provided for @confirm.
   ///
   /// In en, this message translates to:
