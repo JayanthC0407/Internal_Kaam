@@ -430,6 +430,8 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
       );
     }
 
+    // Any bill to tick: every phone row keeps the tick's room, so rows line up.
+    final selectMode = rows.any((b) => b.selectableForPay);
     return PayCard(
       padding: 0,
       child: Column(
@@ -453,6 +455,7 @@ class _BillersScreenState extends ConsumerState<BillersScreen> {
               wide: wide,
               last: i == rows.length - 1,
               selectable: biller.selectableForPay,
+              selectMode: selectMode,
               selected: _selected.contains(biller.id),
               deleting: _deleting.contains(biller.id),
               onSelect: (v) => setState(() => v ? _selected.add(biller.id) : _selected.remove(biller.id)),
@@ -626,6 +629,7 @@ class _BillerRow extends StatelessWidget {
     required this.wide,
     required this.last,
     required this.selectable,
+    required this.selectMode,
     required this.selected,
     required this.deleting,
     required this.onSelect,
@@ -642,6 +646,9 @@ class _BillerRow extends StatelessWidget {
 
   /// Presented bills only (OBDX's tick box rule).
   final bool selectable;
+
+  /// Some row in the list has a tick box: on phones every row keeps its room.
+  final bool selectMode;
   final bool selected;
   final bool deleting;
   final ValueChanged<bool> onSelect;
@@ -692,6 +699,12 @@ class _BillerRow extends StatelessWidget {
                 Text(
                   l10n.billerDueBy(MaterialLocalizations.of(context).formatShortDate(due)),
                   style: TextStyle(fontSize: 13.5, color: secondary),
+                ),
+              // Phones: the amount on its own line, so the name keeps the width.
+              if (!wide && amount.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(amount, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: primary)),
                 ),
               const SizedBox(height: 6),
               Wrap(spacing: 6, runSpacing: 6, children: _billerChips(l10n, biller, today, withType: !wide)),
@@ -758,12 +771,24 @@ class _BillerRow extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (selectable) tick,
+                  if (selectMode)
+                    // As tall as the initial tile, so the box sits on its centre.
+                    SizedBox(
+                      width: 36,
+                      height: 52,
+                      child: selectable
+                          ? Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Checkbox(
+                                value: selected,
+                                visualDensity: VisualDensity.compact,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                onChanged: deleting ? null : (v) => onSelect(v ?? false),
+                              ),
+                            )
+                          : null,
+                    ),
                   Expanded(child: who),
-                  if (amount.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    Text(amount, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: primary)),
-                  ],
                 ],
               ),
               const SizedBox(height: 12),

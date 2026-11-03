@@ -78,6 +78,7 @@ import '../common/payees/add_peer_to_peer_payee_screen.dart';
 import '../common/payees/payees_screen.dart';
 import '../common/transfer/own_account_transfer_screen.dart';
 import 'package:demo_bank/src/view/widgets/embedded_back.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/retail_home_actions.dart';
 
 class HomeDashboardArgs {
   const HomeDashboardArgs({
@@ -697,7 +698,15 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   /// Home never pops on Android Back: [_onSystemBack] decides, unless an
   /// embedded screen handled the press itself ([EmbeddedBack]).
-  Widget _withSystemBack(Widget child) => PopScope(
+  Widget _withSystemBack(Widget child) => RetailHomeActions(
+        // The personalised dashboard's Activity Centre: the same actions
+        // as the fixed Home's (see the HomeContent call).
+        onTermDeposit: () => Navigator.of(context).pushNamed(RoutesConst.tdOpenScreen),
+        onViewStatement: () => _openAccountsDestination(WebAccountsDestination.casa),
+        onChequeBook: () => _openSection(index: _chequeBookRequestIndex),
+        onNewDebitCard: () => _openSection(index: _debitCardsIndex),
+        onCalculator: () => _openSection(index: _calculatorsHubIndex),
+        child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) return;
@@ -708,7 +717,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           });
         },
         child: child,
-      );
+      ));
 
   void _openMenu() => _scaffoldKey.currentState?.openDrawer();
 
@@ -906,6 +915,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     final index = _selectedBottomNavIndex;
     // A module page and everything opened from it keep its entry lit.
     if (_billPaymentsScreens.contains(index)) return RetailNav.billPayments;
+    if (_casaScreens.contains(index)) return RetailNav.accountsCasa;
+    if (_certificateScreens.contains(index)) return RetailNav.accountsCertificates;
+    if (index == _nominationsIndex) return RetailNav.accountsNominations;
     if (_creditCardsScreens.contains(index)) return RetailNav.creditCards;
     // Rewards (tab 3), Mailbox, Service Requests and Calculators open from More.
     if (index == 3 || index == _mailboxIndex || index == _serviceRequestsIndex || _calculatorScreens.contains(index)) {
@@ -928,7 +940,18 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   void _onNavSelected(String id) {
     switch (id) {
       case RetailNav.accountsCasa:
-        _openAccountsDestination(WebAccountsDestination.casa);
+        // OBDX's Current & Savings menu: its module page (the account list
+        // is its first tile; Home still opens the list directly).
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _casaHubIndex);
+        return;
+      case RetailNav.accountsNominations:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _nominationsIndex);
+        return;
+      case RetailNav.accountsCertificates:
+        SidebarContentNavigator.closeOpenedScreens(_contentNavigatorKey);
+        _openSection(index: _certificatesHubIndex);
         return;
       case RetailNav.accountsLoans:
         _openAccountsDestination(WebAccountsDestination.loans);
@@ -1035,6 +1058,44 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }
 
   static const _creditCardsScreens = {_creditCardsHubIndex, _creditCardsIndex, _cardTransactionsIndex};
+
+  /// Accounts → Current & Savings (OBDX `CASA_ACCOUNT`): its module page and
+  /// Debit Cards (OBDX `debit-card-list`).
+  static const _casaHubIndex = 39;
+  static const _debitCardsIndex = 40;
+
+  /// Current & Savings → Cheque Book Request (OBDX `cheque-book-request`).
+  static const _chequeBookRequestIndex = 46;
+
+  /// Current & Savings → Sweep-In (OBDX `sweep-in-instruction`).
+  static const _sweepInIndex = 47;
+  static const _casaScreens = {_casaHubIndex, _debitCardsIndex, _chequeBookRequestIndex, _sweepInIndex};
+
+  /// Accounts → Certificates (OBDX `certificates`): its page and Interest,
+  /// Balance and TDS Certificates.
+  static const _certificatesHubIndex = 41;
+  static const _interestCertificatesIndex = 42;
+  static const _balanceCertificatesIndex = 43;
+  static const _tdsCertificatesIndex = 44;
+  static const _certificateScreens = {
+    _certificatesHubIndex,
+    _interestCertificatesIndex,
+    _balanceCertificatesIndex,
+    _tdsCertificatesIndex,
+  };
+
+  /// Accounts → Nominations (OBDX `nominations`).
+  static const _nominationsIndex = 45;
+
+  /// `userProfile.roles` from the login profile: Interest Certificates'
+  /// Account Category options come from them, as in OBDX.
+  List<String> _rolesFromTrace() {
+    final profileResponse = widget.args.loginTrace?['profileResponse'];
+    final body = profileResponse is Map ? profileResponse['body'] : null;
+    final userProfile = body is Map ? body['userProfile'] : null;
+    final roles = userProfile is Map ? userProfile['roles'] : null;
+    return roles is List ? [for (final r in roles) '$r'] : const [];
+  }
   static const _billPaymentsScreens = {_billPaymentsHubIndex, _billersIndex, _billHistoryIndex, _addBillerIndex};
 
   /// Where Back on each opened section goes: the module page it came from,
@@ -1188,6 +1249,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return const InsightsTabScreen();
       case 2:
         return TransferTabScreen(
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 0)),
           // Every way to pay opens embedded: a payee transfer (19, by mode,
           // with the payee picked on the hub's strip), Between My Accounts
           // (11), Payees (14) and Multiple Transfers (21).
