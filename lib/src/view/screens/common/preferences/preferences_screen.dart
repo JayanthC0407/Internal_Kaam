@@ -22,6 +22,7 @@ import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:demo_bank/src/view/widgets/app_bottom_sheet.dart';
 import 'package:demo_bank/src/view/widgets/design_page.dart';
 import 'package:demo_bank/src/view/widgets/profile_avatar.dart';
+import 'package:demo_bank/src/view/widgets/embedded_back.dart';
 
 /// My Preferences — everything about the signed-in user and their
 /// account, opened from the initials in the dashboard header (Retail and
@@ -264,7 +265,9 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         return PopScope(
           canPop: open == null,
           onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) setState(() => _section = null);
+            if (didPop || _section == null) return;
+            setState(() => _section = null);
+            EmbeddedBack.claim();
           },
           child: PayMenuPage(
             title: open != null ? open.label(l10n) : l10n.prefTitle,

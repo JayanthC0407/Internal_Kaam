@@ -39,6 +39,9 @@ class HomeContent extends StatelessWidget {
     this.onTransferTap,
     this.onBillsTap,
     this.onCalculatorTap,
+    this.onViewStatementTap,
+    this.onChequeBookTap,
+    this.onNewDebitCardTap,
     this.onCasaAccountTap,
     this.onLoanAccountTap,
     this.onDepositTap,
@@ -90,6 +93,13 @@ class HomeContent extends StatelessWidget {
 
   /// Home "Calculator" quick action → the Calculators page.
   final VoidCallback? onCalculatorTap;
+
+  /// Activity Centre: View Statement → the Current & Savings accounts (each
+  /// account's statement is in its details), Cheque Book → Cheque Book
+  /// Request, New Debit card → Debit Cards. "Coming soon" when unset.
+  final VoidCallback? onViewStatementTap;
+  final VoidCallback? onChequeBookTap;
+  final VoidCallback? onNewDebitCardTap;
 
   /// Invoked when a CASA account is tapped, on either the Overview tab's
   /// account preview or the Accounts tab's Current & Savings list. Falls
@@ -187,6 +197,9 @@ class HomeContent extends StatelessWidget {
           onTransferTap: onTransferTap,
           onBillsTap: onBillsTap,
           onCalculatorTap: onCalculatorTap,
+          onViewStatementTap: onViewStatementTap,
+          onChequeBookTap: onChequeBookTap,
+          onNewDebitCardTap: onNewDebitCardTap,
           onViewAllAccountsTap: onViewAllAccountsTap ?? () => onTopTabSelected(1),
           onViewAllLoans: onViewAllLoans,
           onLoanAccountTap: onLoanAccountTap,
@@ -393,6 +406,9 @@ class _OverviewContent extends StatelessWidget {
     this.onTransferTap,
     this.onBillsTap,
     this.onCalculatorTap,
+    this.onViewStatementTap,
+    this.onChequeBookTap,
+    this.onNewDebitCardTap,
     this.onViewAllAccountsTap,
     this.onViewAllLoans,
     this.onLoanAccountTap,
@@ -413,6 +429,9 @@ class _OverviewContent extends StatelessWidget {
   /// Home "Bill" quick action → Billers.
   final VoidCallback? onBillsTap;
   final VoidCallback? onCalculatorTap;
+  final VoidCallback? onViewStatementTap;
+  final VoidCallback? onChequeBookTap;
+  final VoidCallback? onNewDebitCardTap;
   final VoidCallback? onViewAllAccountsTap;
   final VoidCallback? onViewAllLoans;
   final ValueChanged<LoanAccount>? onLoanAccountTap;
@@ -445,10 +464,11 @@ class _OverviewContent extends StatelessWidget {
       title: isWide ? 'Activity Centre' : l10n.quickActions,
       onTermDeposit:
           onOpenDeposit ?? () => _comingSoon(context, 'Term Deposit'),
-      onViewStatement: () => _comingSoon(context, 'View Statement'),
-      onChequeBook: () => _comingSoon(context, 'Cheque Book'),
+      onViewStatement: onViewStatementTap ?? () => _comingSoon(context, 'View Statement'),
+      onChequeBook: onChequeBookTap ?? () => _comingSoon(context, 'Cheque Book'),
+      // Not an OBDX retail feature in this app.
       onPassbook: () => _comingSoon(context, 'Passbook'),
-      onNewDebitCard: () => _comingSoon(context, 'New Debit card'),
+      onNewDebitCard: onNewDebitCardTap ?? () => _comingSoon(context, 'New Debit card'),
       onCalculator: onCalculatorTap ?? () => _comingSoon(context, 'Calculator'),
       // Phone Home design: Transfer is the second tile.
       onTransfer: isWide ? null : onTransferTap,

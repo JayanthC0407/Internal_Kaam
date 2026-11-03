@@ -14,6 +14,7 @@ import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_
 class CurrentSavingsHubScreen extends StatelessWidget {
   const CurrentSavingsHubScreen({
     super.key,
+    this.onBack,
     required this.onAccountsTap,
     required this.onChequeBookTap,
     required this.onDebitCardsTap,
@@ -25,10 +26,14 @@ class CurrentSavingsHubScreen extends StatelessWidget {
   final VoidCallback onDebitCardsTap;
   final VoidCallback onSweepInTap;
 
+  /// Back to where the page was opened from (a ‹ instead of ☰ on phones).
+  final VoidCallback? onBack;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return ModuleHubPage(
+      onBack: onBack,
       title: l10n.casaMenuTitle,
       subtitle: l10n.casaHubSubtitle,
       tiles: [

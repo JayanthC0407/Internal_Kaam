@@ -27,6 +27,7 @@ import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 class CertificatesHubScreen extends StatelessWidget {
   const CertificatesHubScreen({
     super.key,
+    this.onBack,
     required this.onInterestTap,
     required this.onBalanceTap,
     required this.onTdsTap,
@@ -36,10 +37,14 @@ class CertificatesHubScreen extends StatelessWidget {
   final VoidCallback onBalanceTap;
   final VoidCallback onTdsTap;
 
+  /// Back to where the page was opened from (a ‹ instead of ☰ on phones).
+  final VoidCallback? onBack;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return ModuleHubPage(
+      onBack: onBack,
       title: l10n.certMenuTitle,
       subtitle: l10n.certHubSubtitle,
       tiles: [

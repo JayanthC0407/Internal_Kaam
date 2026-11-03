@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:demo_bank/l10n/app_localizations.dart';
 import 'package:demo_bank/src/core/utils/common/responsive.dart';
 import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
+import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
 
@@ -18,6 +19,7 @@ class ModuleHubPage extends StatelessWidget {
     required this.subtitle,
     required this.tiles,
     this.comingSoon = const [],
+    this.onBack,
   });
 
   final String title;
@@ -28,6 +30,10 @@ class ModuleHubPage extends StatelessWidget {
 
   /// OBDX menu items not built yet: icon and OBDX label.
   final List<(IconData, String)> comingSoon;
+
+  /// Back to where the page was opened from. Off the desktop it replaces
+  /// the menu button, as on Loans; without it the menu button shows.
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +61,13 @@ class ModuleHubPage extends StatelessWidget {
                       Row(
                         children: [
                           // The desktop sidebar is always there; smaller
-                          // layouts reach the drawer from here.
+                          // layouts go back (as on Loans) or reach the
+                          // drawer from here.
                           if (!responsive.isDesktop) ...[
-                            HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
+                            if (onBack != null)
+                              CasaBackButton(onPressed: onBack)
+                            else
+                              HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
                             const SizedBox(width: 12),
                           ],
                           Expanded(

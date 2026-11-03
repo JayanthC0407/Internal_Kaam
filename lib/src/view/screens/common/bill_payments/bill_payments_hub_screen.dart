@@ -12,6 +12,7 @@ import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_
 class BillPaymentsHubScreen extends StatelessWidget {
   const BillPaymentsHubScreen({
     super.key,
+    this.onBack,
     required this.onBillersTap,
     required this.onAddBillerTap,
     required this.onHistoryTap,
@@ -21,10 +22,14 @@ class BillPaymentsHubScreen extends StatelessWidget {
   final VoidCallback onAddBillerTap;
   final VoidCallback onHistoryTap;
 
+  /// Back to where the page was opened from (a ‹ instead of ☰ on phones).
+  final VoidCallback? onBack;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return ModuleHubPage(
+      onBack: onBack,
       title: l10n.billPaymentsTitle,
       subtitle: l10n.billsModuleSubtitle,
       tiles: [

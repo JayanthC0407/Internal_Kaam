@@ -338,6 +338,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cancel => 'Отмена';
 
   @override
+  String get exitAppConfirm => 'Do you want to Exit?';
+
+  @override
+  String get exitApp => 'Exit';
+
+  @override
   String get confirm => 'Подтвердить';
 
   @override

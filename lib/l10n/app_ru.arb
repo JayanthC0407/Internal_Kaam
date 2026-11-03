@@ -90,6 +90,8 @@
   "logOutConfirmWithBiometric": "Sign out of this session on this device?\n\nYou will lose biometric login and will need to set it up again after you sign in.",
   "forgetDeviceConfirm": "Удалить все сохранённые данные сессии с этого устройства? Потребуется повторный вход.",
   "cancel": "Отмена",
+  "exitAppConfirm": "Do you want to Exit?",
+  "exitApp": "Exit",
   "confirm": "Подтвердить",
   "deviceBlockedTitle": "Устройство не поддерживается",
   "deviceBlockedCompromisedMessage": "В целях безопасности это приложение не может работать на изменённых или скомпрометированных устройствах. Используйте стандартное неизменённое устройство.",
