@@ -6,6 +6,7 @@ import 'package:demo_bank/src/core/theme/app_palette.dart';
 import 'package:demo_bank/src/core/utils/common/profile_initials.dart';
 import 'package:demo_bank/src/view/providers/common/app_settings_providers.dart';
 import 'package:demo_bank/src/view/widgets/language_picker.dart';
+import 'package:demo_bank/src/view/widgets/notification_bell.dart';
 
 /// The web dashboard top bar shared by Retail and Corporate: search field on
 /// the left, icon strip on the right (favourites, language, help,
@@ -141,10 +142,9 @@ class DashboardTopBar extends ConsumerWidget {
               onTap: onHelpTap,
             ),
           ],
-          _TopBarIconButton(
-            icon: Icons.notifications_none_rounded,
-            tooltip: 'Notifications',
-            badgeCount: unreadNotificationCount,
+          NotificationBell(
+            count: unreadNotificationCount,
+            color: _TopBarColors.textSecondary(context),
             onTap: onNotificationsTap,
           ),
           const _SettingsMenu(),
@@ -251,15 +251,11 @@ class _TopBarIconButton extends StatelessWidget {
     required this.icon,
     required this.tooltip,
     this.onTap,
-    this.badgeCount = 0,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback? onTap;
-
-  /// Shows a count bubble when greater than zero (notification bell).
-  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -270,38 +266,7 @@ class _TopBarIconButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Icon(icon, size: 20, color: _TopBarColors.textSecondary(context)),
-              if (badgeCount > 0)
-                Positioned(
-                  right: -5,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 1,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 14),
-                    decoration: BoxDecoration(
-                      color: _TopBarColors.error(context),
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Text(
-                      badgeCount > 99 ? '99+' : '$badgeCount',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          child: Icon(icon, size: 20, color: _TopBarColors.textSecondary(context)),
         ),
       ),
     );

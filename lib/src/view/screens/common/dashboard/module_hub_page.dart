@@ -59,8 +59,9 @@ class ModuleHubPage extends StatelessWidget {
                       Row(
                         children: [
                           // The desktop sidebar is always there; smaller
-                          // layouts reach the drawer from here.
-                          if (!responsive.isDesktop) ...[
+                          // layouts reach the drawer from here — unless
+                          // there is a Back, which then stands alone.
+                          if (!responsive.isDesktop && onBack == null) ...[
                             HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
                             const SizedBox(width: 12),
                           ],
