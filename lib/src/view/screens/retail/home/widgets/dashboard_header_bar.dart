@@ -219,12 +219,17 @@ class DemobankHomeHeader extends StatelessWidget {
       children: [
         SizedBox(
           width: side,
+          // At the start of its side, not centred in it: the side is wider
+          // when the bell is there, and the menu stays at the left edge.
           child: onMenuTap == null
               ? null
-              : IconButton(
-                  tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-                  onPressed: onMenuTap,
-                  icon: Icon(Icons.sort_rounded, color: iconColor, size: 26),
+              : Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: IconButton(
+                    tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+                    onPressed: onMenuTap,
+                    icon: Icon(Icons.sort_rounded, color: iconColor, size: 26),
+                  ),
                 ),
         ),
         Expanded(

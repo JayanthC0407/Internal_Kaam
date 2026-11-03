@@ -16,7 +16,6 @@ class BillPaymentsHubScreen extends StatelessWidget {
     required this.onBillersTap,
     required this.onAddBillerTap,
     required this.onHistoryTap,
-    this.onBack,
   });
 
   final VoidCallback onBillersTap;
@@ -26,14 +25,10 @@ class BillPaymentsHubScreen extends StatelessWidget {
   final VoidCallback onAddBillerTap;
   final VoidCallback onHistoryTap;
 
-  /// Back to where the page was opened from (a ‹ instead of ☰ on phones).
-  final VoidCallback? onBack;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return ModuleHubPage(
-      onBack: onBack,
       title: l10n.billPaymentsTitle,
       subtitle: l10n.billsModuleSubtitle,
       onBack: onBack,

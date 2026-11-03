@@ -5,8 +5,8 @@ import 'package:demo_bank/src/core/config/locale_config.dart';
 import 'package:demo_bank/src/core/theme/app_theme.dart';
 import 'package:demo_bank/src/view/screens/common/bill_payments/bill_payments_hub_screen.dart';
 import 'package:demo_bank/src/view/screens/common/credit_cards/credit_cards_hub_screen.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/module_hub_page.dart';
 import 'package:demo_bank/src/view/screens/retail/accounts/current_savings_hub_screen.dart';
-import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:demo_bank/src/view/screens/retail/certificates/certificates_screens.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
 
@@ -85,7 +85,7 @@ void main() {
     });
   }
 
-  testWidgets('phone: opened from the side menu, a module page shows ‹ (as Loans), not ☰', (tester) async {
+  testWidgets('phone: opened from the side menu, a module page shows ←, not ☰', (tester) async {
     var backs = 0;
     final pages = <Widget Function(VoidCallback?)>[
       (b) => CurrentSavingsHubScreen(
@@ -102,10 +102,10 @@ void main() {
     for (final page in pages) {
       await _pump(tester, page(() => backs++));
       expect(find.byType(HomeMenuButton), findsNothing);
-      await tester.tap(find.byType(CasaBackButton));
+      await tester.tap(find.byType(ModuleBackButton));
       await _pump(tester, page(null));
       expect(find.byType(HomeMenuButton), findsOneWidget, reason: 'no back: the menu, as before');
-      expect(find.byType(CasaBackButton), findsNothing);
+      expect(find.byType(ModuleBackButton), findsNothing);
     }
     expect(backs, 4);
   });
