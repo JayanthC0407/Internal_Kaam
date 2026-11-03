@@ -90,6 +90,8 @@
   "logOutConfirmWithBiometric": "Sign out of this session on this device?\n\nYou will lose biometric login and will need to set it up again after you sign in.",
   "forgetDeviceConfirm": "Ushbu qurilmadagi barcha saqlangan seans ma'lumotlari o'chirilsinmi? Qayta kirishingiz kerak bo'ladi.",
   "cancel": "Bekor qilish",
+  "exitAppConfirm": "Do you want to Exit?",
+  "exitApp": "Exit",
   "confirm": "Tasdiqlash",
   "deviceBlockedTitle": "Qurilma qo'llab-quvvatlanmaydi",
   "deviceBlockedCompromisedMessage": "Xavfsizligingiz uchun bu ilova o'zgartirilgan yoki xavfli qurilmalarda ishlamaydi. Standart, o'zgartirilmagan qurilmadan foydalaning.",

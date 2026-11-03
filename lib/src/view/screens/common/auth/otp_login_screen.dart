@@ -91,8 +91,9 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
       if (!mounted) return;
     }
 
-    Navigator.of(context).pushReplacementNamed(
+    Navigator.of(context).pushNamedAndRemoveUntil(
       RoutesConst.homeScreen,
+      (route) => false,
       arguments: HomeDashboardArgs(
         userName: widget.pending.userName,
         loginTrace: result.data!.toSafeMap(),

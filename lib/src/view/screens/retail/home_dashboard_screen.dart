@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:demo_bank/src/view/screens/common/debit_cards/debit_cards_screen.dart';
 import 'package:demo_bank/src/view/screens/retail/accounts/current_savings_hub_screen.dart';
 import 'package:demo_bank/src/view/screens/retail/certificates/certificates_screens.dart';
@@ -74,6 +77,7 @@ import '../common/payees/add_demand_draft_payee_screen.dart';
 import '../common/payees/add_peer_to_peer_payee_screen.dart';
 import '../common/payees/payees_screen.dart';
 import '../common/transfer/own_account_transfer_screen.dart';
+import 'package:demo_bank/src/view/widgets/embedded_back.dart';
 
 class HomeDashboardArgs {
   const HomeDashboardArgs({
@@ -535,6 +539,9 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       onTransferTap: () => setState(() => _selectedBottomNavIndex = 2),
       onBillsTap: _openSection,
       onCalculatorTap: () => _openSection(index: _calculatorsHubIndex),
+      onViewStatementTap: () => _openAccountsDestination(WebAccountsDestination.casa),
+      onChequeBookTap: () => _openSection(index: _chequeBookRequestIndex),
+      onNewDebitCardTap: () => _openSection(index: _debitCardsIndex),
     );
   }
 
@@ -606,6 +613,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       });
     }
 
+    _systemBack = null;
     if (responsive.useWideHome) {
       final destination = _selectedBottomNavIndex == 0
           ? RefreshIndicator(
@@ -623,7 +631,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           ],
         ),
       );
-      return Scaffold(
+      return _withSystemBack(Scaffold(
         key: _scaffoldKey,
         backgroundColor: bg,
         drawer: responsive.isDesktop ? null : _buildNavDrawer(),
@@ -661,10 +669,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 onSelected: (index) =>
                     setState(() => _selectedBottomNavIndex = index),
               ),
-      );
+      ));
     }
 
-    return Scaffold(
+    return _withSystemBack(Scaffold(
       key: _scaffoldKey,
       backgroundColor: bg,
       drawer: _buildNavDrawer(),
@@ -684,8 +692,23 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         selectedIndex: _selectedBottomNavIndex,
         onSelected: (index) => setState(() => _selectedBottomNavIndex = index),
       ),
-    );
+    ));
   }
+
+  /// Home never pops on Android Back: [_onSystemBack] decides, unless an
+  /// embedded screen handled the press itself ([EmbeddedBack]).
+  Widget _withSystemBack(Widget child) => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          // After every handler on the route has run: an embedded screen
+          // that stepped back itself has claimed the press.
+          scheduleMicrotask(() {
+            if (mounted && !EmbeddedBack.wasClaimed) _onSystemBack();
+          });
+        },
+        child: child,
+      );
 
   void _openMenu() => _scaffoldKey.currentState?.openDrawer();
 
@@ -1066,14 +1089,56 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   }
   static const _billPaymentsScreens = {_billPaymentsHubIndex, _billersIndex, _billHistoryIndex, _addBillerIndex};
 
-  /// Where Back on an opened section goes: the module page it came from,
-  /// the Menu tab for My Limits, else Home.
-  int _sectionBackIndex = 0;
+  /// Where Back on each opened section goes: the module page it came from,
+  /// the More tab, else Home. One entry per section, so Back walks a
+  /// module page → section chain correctly (a single slot was overwritten
+  /// by the inner section, so Back on the module page returned to itself).
+  final _sectionBackIndex = <int, int>{};
 
-  void _closeSection() => setState(() => _selectedBottomNavIndex = _sectionBackIndex);
+  void _closeSection() =>
+      setState(() => _selectedBottomNavIndex = _sectionBackIndex[_selectedBottomNavIndex] ?? 0);
+
+  /// What Android Back / swipe-back does for the screen shown: the same
+  /// action as its on-screen back, registered while the body is built.
+  VoidCallback? _systemBack;
+
+  /// Returns [action] unchanged and makes it Android Back's action too.
+  VoidCallback _back(VoidCallback action) {
+    _systemBack = action;
+    return action;
+  }
+
+  /// Android Back / swipe-back: close an open drawer, else do what the
+  /// screen's back does, else go to the Home tab, else ask to exit.
+  Future<void> _onSystemBack() async {
+    final scaffold = _scaffoldKey.currentState;
+    if (scaffold != null && (scaffold.isDrawerOpen || scaffold.isEndDrawerOpen)) {
+      scaffold.closeDrawer();
+      scaffold.closeEndDrawer();
+      return;
+    }
+    final back = _systemBack;
+    if (back != null) return back();
+    if (_selectedBottomNavIndex != 0) {
+      setState(() => _selectedBottomNavIndex = 0);
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final exit = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        content: Text(l10n.exitAppConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialog).pop(false), child: Text(l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.of(dialog).pop(true), child: Text(l10n.exitApp)),
+        ],
+      ),
+    );
+    if (exit == true) await SystemNavigator.pop();
+  }
 
   void _openSection({int index = _billersIndex, int back = 0}) => setState(() {
-        _sectionBackIndex = back;
+        _sectionBackIndex[index] = back;
         _transferPayee = null;
         _selectedPayeeDestination = null;
         _selectedAccountsDestination = null;
@@ -1087,45 +1152,49 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     switch (_selectedBottomNavIndex) {
       case _casaHubIndex:
         return CurrentSavingsHubScreen(
+          onBack: _back(_closeSection),
           onAccountsTap: () => _openAccountsDestination(WebAccountsDestination.casa),
           onChequeBookTap: () => _openSection(index: _chequeBookRequestIndex, back: _casaHubIndex),
           onDebitCardsTap: () => _openSection(index: _debitCardsIndex, back: _casaHubIndex),
           onSweepInTap: () => _openSection(index: _sweepInIndex, back: _casaHubIndex),
         );
       case _debitCardsIndex:
-        return DebitCardsScreen(embedded: true, onBack: _closeSection);
+        return DebitCardsScreen(embedded: true, onBack: _back(_closeSection));
       case _chequeBookRequestIndex:
-        return ChequeBookRequestScreen(onExit: _closeSection);
+        return ChequeBookRequestScreen(onExit: _back(_closeSection));
       case _sweepInIndex:
-        return SweepInScreen(onExit: _closeSection, onHome: () => setState(() => _selectedBottomNavIndex = 0));
+        return SweepInScreen(onExit: _back(_closeSection), onHome: () => setState(() => _selectedBottomNavIndex = 0));
       case _certificatesHubIndex:
         return CertificatesHubScreen(
+          onBack: _back(_closeSection),
           onInterestTap: () => _openSection(index: _interestCertificatesIndex, back: _certificatesHubIndex),
           onBalanceTap: () => _openSection(index: _balanceCertificatesIndex, back: _certificatesHubIndex),
           onTdsTap: () => _openSection(index: _tdsCertificatesIndex, back: _certificatesHubIndex),
         );
       case _interestCertificatesIndex:
-        return InterestCertificatesScreen(roles: _rolesFromTrace(), embedded: true, onBack: _closeSection);
+        return InterestCertificatesScreen(roles: _rolesFromTrace(), embedded: true, onBack: _back(_closeSection));
       case _balanceCertificatesIndex:
-        return BalanceCertificatesScreen(embedded: true, onBack: _closeSection);
+        return BalanceCertificatesScreen(embedded: true, onBack: _back(_closeSection));
       case _tdsCertificatesIndex:
-        return TdsCertificatesScreen(embedded: true, onBack: _closeSection);
+        return TdsCertificatesScreen(embedded: true, onBack: _back(_closeSection));
       case _nominationsIndex:
-        return NominationsScreen(roles: _rolesFromTrace(), embedded: true, onBack: _closeSection);
+        return NominationsScreen(roles: _rolesFromTrace(), embedded: true, onBack: _back(_closeSection));
       case _creditCardsHubIndex:
         return CreditCardsHubScreen(
+          onBack: _back(_closeSection),
           onCreditCardsTap: () => _openSection(index: _creditCardsIndex, back: _creditCardsHubIndex),
           onTransactionsTap: () => _openSection(index: _cardTransactionsIndex, back: _creditCardsHubIndex),
         );
       case _billPaymentsHubIndex:
         return BillPaymentsHubScreen(
+          onBack: _back(_closeSection),
           onBillersTap: () => _openSection(index: _billersIndex, back: _billPaymentsHubIndex),
           onAddBillerTap: () => _openSection(index: _addBillerIndex, back: _billPaymentsHubIndex),
           onHistoryTap: () => _openSection(index: _billHistoryIndex, back: _billPaymentsHubIndex),
         );
       case _addBillerIndex:
         return AddBillerScreen(
-          onExit: _closeSection,
+          onExit: _back(_closeSection),
           // "Back to Billers" on the Done step: the list, with the new one.
           onAdded: (_) {
             ref.invalidate(registeredBillersProvider);
@@ -1133,29 +1202,29 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           },
         );
       case _billersIndex:
-        return BillersScreen(embedded: true, onBack: _closeSection);
+        return BillersScreen(embedded: true, onBack: _back(_closeSection));
       case _billHistoryIndex:
-        return BillPaymentHistoryScreen(embedded: true, onBack: _closeSection);
+        return BillPaymentHistoryScreen(embedded: true, onBack: _back(_closeSection));
       case _creditCardsIndex:
-        return CreditCardsScreen(embedded: true, onBack: _closeSection);
+        return CreditCardsScreen(embedded: true, onBack: _back(_closeSection));
       case _cardTransactionsIndex:
-        return CreditCardTransactionsScreen(embedded: true, onBack: _closeSection);
+        return CreditCardTransactionsScreen(embedded: true, onBack: _back(_closeSection));
       // One Financial Calculator page with the four calculators as tabs
       // (the design); it replaces the hub of four tiles.
       case _calculatorsHubIndex:
-        return FinancialCalculatorScreen(onBack: _closeSection);
+        return FinancialCalculatorScreen(onBack: _back(_closeSection));
       case _tdCalculatorIndex:
-        return TdCalculatorScreen(onBack: _closeSection);
+        return TdCalculatorScreen(onBack: _back(_closeSection));
       case _loanInstallmentIndex:
-        return LoanInstallmentScreen(onBack: _closeSection);
+        return LoanInstallmentScreen(onBack: _back(_closeSection));
       case _loanEligibilityIndex:
-        return LoanEligibilityScreen(onBack: _closeSection);
+        return LoanEligibilityScreen(onBack: _back(_closeSection));
       case _forexCalculatorIndex:
-        return ForexCalculatorScreen(onBack: _closeSection);
+        return ForexCalculatorScreen(onBack: _back(_closeSection));
       case _mailboxIndex:
-        return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _closeSection);
+        return MailboxScreen(userName: _signedInUserName(), embedded: true, onBack: _back(_closeSection));
       case _serviceRequestsIndex:
-        return ServiceRequestsScreen(embedded: true, onBack: _closeSection);
+        return ServiceRequestsScreen(embedded: true, onBack: _back(_closeSection));
       case _preferencesIndex:
         return PreferencesScreen(
           userName: _signedInUserName(),
@@ -1165,7 +1234,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           // Only when the customer has a personalisable OBDX dashboard.
           onPersonalize: ref.watch(personalizationProvider).isUnavailable ? null : _personalizeFromPreferences,
           embedded: true,
-          onBack: _closeSection,
+          onBack: _back(_closeSection),
         );
       case 1:
         return const InsightsTabScreen();
@@ -1222,27 +1291,27 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
               AddPayeeFlow.peerToPeer => 8,
             };
           }),
-          onBack: () => setState(() {
+          onBack: _back(() => setState(() {
             _selectedPayeeDestination = null;
             _selectedBottomNavIndex = _payeeFlowHomeIndex;
-          }),
+          })),
         );
       case 6:
         return AddBankAccountPayeeScreen(
           embedded: true,
-          onBack: () => setState(() => _returnFromAddPayee()),
+          onBack: _back(() => setState(() => _returnFromAddPayee())),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
       case 7:
         return AddDemandDraftPayeeScreen(
           embedded: true,
-          onBack: () => setState(() => _returnFromAddPayee()),
+          onBack: _back(() => setState(() => _returnFromAddPayee())),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
       case 8:
         return AddPeerToPeerPayeeScreen(
           embedded: true,
-          onBack: () => setState(() => _returnFromAddPayee()),
+          onBack: _back(() => setState(() => _returnFromAddPayee())),
           onCompleted: () => setState(() => _returnFromAddPayee()),
         );
       case 11:
@@ -1252,7 +1321,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // stays visible instead of a pushed full screen covering it.
         return OwnAccountTransferScreen(
           embedded: true,
-          onClose: () => setState(() => _selectedBottomNavIndex = 2),
+          onClose: _back(() => setState(() => _selectedBottomNavIndex = 2)),
         );
       case 12:
         // "Transfers" (Transfer Money / Adhoc Payee module) — same reasoning
@@ -1263,7 +1332,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // all the way through.
         return TransfersModuleScreen(
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 2)),
           // Its seven items open embedded too: a payee transfer (19, by
           // mode), Other Transfers (20) and Multiple Transfers (21).
           onTransferTap: (mode) => setState(() {
@@ -1285,8 +1354,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // fixed tab.
         return TransferMoneyScreen(
           embedded: true,
-          onBack: () => setState(
-              () => _selectedBottomNavIndex = _transferMoneyReturnIndex),
+          onBack: _back(() => setState(
+              () => _selectedBottomNavIndex = _transferMoneyReturnIndex)),
           onExistingPayeeTap: () =>
               setState(() => _selectedBottomNavIndex = 15),
           onAdhocPayeeTap: () => setState(() => _selectedBottomNavIndex = 16),
@@ -1297,7 +1366,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return NetworkTransferScreen(
           mode: NetworkTransferMode.existingPayee,
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 13),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 13)),
         );
       case 16:
         // "Adhoc Payee" transfer, reached from Transfer Money (13) — same
@@ -1305,7 +1374,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return NetworkTransferScreen(
           mode: NetworkTransferMode.adhocPayee,
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 13),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 13)),
         );
       case 17:
         // "International Low Value Payment", reached from the Transfers
@@ -1314,7 +1383,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         return NetworkTransferScreen(
           mode: NetworkTransferMode.internationalLowValue,
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 12),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 12)),
         );
       case 19:
         // A payee transfer chosen on the Transfer hub, the menu or the
@@ -1325,12 +1394,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           mode: _transferMode,
           initialPayee: _transferPayee,
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 2)),
         );
       case 20:
         return OtherTransfersScreen(
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 2)),
           onOwnAccountTap: () => setState(() => _selectedBottomNavIndex = 11),
         );
       case 22:
@@ -1338,7 +1407,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // Repeat Transfers - Existing Payee flow (19); back returns to the hub.
         return RepeatTransfersScreen(
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 2)),
           onNewTap: () => setState(() {
             _transferMode = NetworkTransferMode.repeatExistingPayee;
             _transferPayee = null;
@@ -1348,7 +1417,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       case 21:
         return MultipleTransfersScreen(
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 2)),
         );
       case 14:
         // "Payee" hub — reached directly from the Transfer tab (Quick
@@ -1364,7 +1433,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         // handlers return to this hub instead of the Dashboard.
         return PayeeHubScreen(
           embedded: true,
-          onBack: () => setState(() => _selectedBottomNavIndex = 2),
+          onBack: _back(() => setState(() => _selectedBottomNavIndex = 2)),
           // "Pay" on a payee starts the transfer to them, as on the hub.
           onPayTap: (payee) => setState(() {
             _transferMode = NetworkTransferMode.existingPayee;
@@ -1830,11 +1899,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             child: CasaAccountDetailsScreen(
               accountId: _selectedCasaAccountId!,
               embedded: true,
-              onBack: () {
+              onBack: _back(() {
                 setState(() {
                   _selectedCasaAccountId = null;
                 });
-              },
+              }),
             ),
           );
         }
@@ -1847,14 +1916,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 _selectedCasaAccountId = account.id;
               });
             },
-            onBack: () {
+            onBack: _back(() {
               setState(() {
                 _selectedAccountsDestination = null;
                 _selectedCasaAccountId = null;
                 _selectedPayeeDestination = null;
                 _selectedBottomNavIndex = 0;
               });
-            },
+            }),
           ),
         );
 
@@ -1864,11 +1933,11 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             child: LoanAccountDetailsScreen(
               args: LoanAccountDetailsArgs(loan: _selectedLoanAccount!),
               embedded: true,
-              onBack: () {
+              onBack: _back(() {
                 setState(() {
                   _selectedLoanAccount = null;
                 });
-              },
+              }),
             ),
           );
         }
@@ -1881,14 +1950,14 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 _selectedLoanAccount = loan;
               });
             },
-            onBack: () {
+            onBack: _back(() {
               setState(() {
                 _selectedAccountsDestination = null;
                 _selectedLoanAccount = null;
                 _selectedPayeeDestination = null;
                 _selectedBottomNavIndex = 0;
               });
-            },
+            }),
           ),
         );
 
@@ -1898,7 +1967,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             child: TermDepositDetailsScreen(
               args: TermDepositDetailsArgs(deposit: _selectedTermDeposit!),
               embedded: true,
-              onBack: () => setState(() => _selectedTermDeposit = null),
+              onBack: _back(() => setState(() => _selectedTermDeposit = null)),
             ),
           );
         }
@@ -1907,12 +1976,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             embedded: true,
             onDepositSelected: (deposit) =>
                 setState(() => _selectedTermDeposit = deposit),
-            onBack: () => setState(() {
+            onBack: _back(() => setState(() {
               _selectedAccountsDestination = null;
               _selectedTermDeposit = null;
               _selectedPayeeDestination = null;
               _selectedBottomNavIndex = 0;
-            }),
+            })),
           ),
         );
 
