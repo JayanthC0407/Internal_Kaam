@@ -14,6 +14,8 @@ import 'package:demo_bank/src/view/screens/retail/home/widgets/loan_tracker_card
 import 'package:demo_bank/src/view/screens/retail/home/widgets/quick_actions_grid.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/recent_transactions_card.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/spendings_donut_card.dart';
+import 'package:demo_bank/src/view/screens/retail/home/widgets/retail_home_actions.dart';
+import 'package:demo_bank/l10n/app_localizations.dart';
 
 /// Zero-argument wrappers around the Retail dashboard's existing widgets,
 /// so [RetailWidgetRegistry] can build each from a `componentName` alone.
@@ -107,12 +109,25 @@ class RetailLoanSummaryWidget extends StatelessWidget {
       );
 }
 
-/// OBDX `quick-links` (module `dashboard`).
+/// OBDX `quick-links` (module `dashboard`): the Activity Centre, with the
+/// Home's actions ([RetailHomeActions]); Passbook is not offered yet.
 class RetailQuickLinksWidget extends StatelessWidget {
   const RetailQuickLinksWidget({super.key});
 
   @override
-  Widget build(BuildContext context) => const QuickActionsGrid();
+  Widget build(BuildContext context) {
+    final actions = RetailHomeActions.maybeOf(context);
+    return QuickActionsGrid(
+      onTermDeposit: actions?.onTermDeposit,
+      onViewStatement: actions?.onViewStatement,
+      onChequeBook: actions?.onChequeBook,
+      onPassbook: () => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Passbook · ${AppLocalizations.of(context).featureComingSoon}')),
+      ),
+      onNewDebitCard: actions?.onNewDebitCard,
+      onCalculator: actions?.onCalculator,
+    );
+  }
 }
 
 /// OBDX `offers` (module `dashboard`) — the dashboard's info corner.
