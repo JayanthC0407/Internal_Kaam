@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:demo_bank/l10n/app_localizations.dart';
 import 'package:demo_bank/src/core/utils/common/responsive.dart';
 import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
-import 'package:demo_bank/src/view/screens/retail/accounts/widgets/casa_shared_widgets.dart';
 import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
 
@@ -34,10 +33,6 @@ class ModuleHubPage extends StatelessWidget {
   /// OBDX menu items not built yet: icon and OBDX label.
   final List<(IconData, String)> comingSoon;
 
-  /// Back to where the page was opened from. Off the desktop it replaces
-  /// the menu button, as on Loans; without it the menu button shows.
-  final VoidCallback? onBack;
-
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
@@ -64,17 +59,14 @@ class ModuleHubPage extends StatelessWidget {
                       Row(
                         children: [
                           // The desktop sidebar is always there; smaller
-                          // layouts go back (as on Loans) or reach the
-                          // drawer from here.
-                          if (!responsive.isDesktop) ...[
-                            if (onBack != null)
-                              CasaBackButton(onPressed: onBack)
-                            else
-                              HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
+                          // layouts reach the drawer from here — unless
+                          // there is a Back, which then stands alone.
+                          if (!responsive.isDesktop && onBack == null) ...[
+                            HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
                             const SizedBox(width: 12),
                           ],
                           if (onBack != null) ...[
-                            _BackButton(onTap: onBack!),
+                            ModuleBackButton(onTap: onBack!),
                             const SizedBox(width: 14),
                           ],
                           Expanded(
@@ -123,8 +115,9 @@ class ModuleHubPage extends StatelessWidget {
 }
 
 /// A round back button, as on the module's own pages.
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
+/// The round ← of a module page, also used by the Payments tab.
+class ModuleBackButton extends StatelessWidget {
+  const ModuleBackButton({super.key, required this.onTap});
 
   final VoidCallback onTap;
 

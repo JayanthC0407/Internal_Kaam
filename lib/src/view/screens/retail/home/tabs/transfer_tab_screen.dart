@@ -8,6 +8,7 @@ import 'package:demo_bank/src/view/routes/routes_const.dart';
 import 'package:demo_bank/src/view/screens/common/payments/network_transfer_screen.dart';
 import 'package:demo_bank/src/view/screens/common/payments/widgets/payment_flow_widgets.dart';
 import 'package:demo_bank/src/view/screens/retail/home/home_colors.dart';
+import 'package:demo_bank/src/view/screens/common/dashboard/module_hub_page.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/home_menu_button.dart';
 
 /// Starts a payee transfer in [mode], with [payee] already chosen when the
@@ -33,6 +34,7 @@ class TransferTabScreen extends ConsumerWidget {
     this.onPayeeHubTap,
     this.onMultipleTransfersTap,
     this.onRepeatTransfersTap,
+    this.onBack,
   });
 
   /// Opens a payee transfer inside the dashboard; pushes it otherwise.
@@ -51,6 +53,9 @@ class TransferTabScreen extends ConsumerWidget {
   /// Opens the repeat transfers (standing instructions) inside the
   /// dashboard.
   final VoidCallback? onRepeatTransfersTap;
+
+  /// Back to Home: a round ← instead of ☰ on phones.
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -152,10 +157,15 @@ class TransferTabScreen extends ConsumerWidget {
                       Row(
                         children: [
                           // The desktop sidebar is always there; smaller
-                          // layouts reach the drawer from here.
-                          if (!responsive.isDesktop) ...[
+                          // layouts reach the drawer from here — unless
+                          // there is a Back (to Home), as on module pages.
+                          if (!responsive.isDesktop && onBack == null) ...[
                             HomeMenuButton(onTap: () => Scaffold.of(context).openDrawer()),
                             const SizedBox(width: 12),
+                          ],
+                          if (onBack != null) ...[
+                            ModuleBackButton(onTap: onBack!),
+                            const SizedBox(width: 14),
                           ],
                           Expanded(
                             child: Column(

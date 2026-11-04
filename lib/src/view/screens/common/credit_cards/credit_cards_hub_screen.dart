@@ -18,14 +18,10 @@ class CreditCardsHubScreen extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback onTransactionsTap;
 
-  /// Back to where the page was opened from (a ‹ instead of ☰ on phones).
-  final VoidCallback? onBack;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return ModuleHubPage(
-      onBack: onBack,
       title: l10n.ccTitle,
       subtitle: l10n.ccModuleSubtitle,
       onBack: onBack,
