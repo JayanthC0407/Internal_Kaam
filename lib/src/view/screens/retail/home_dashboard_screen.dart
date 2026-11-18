@@ -79,6 +79,14 @@ import '../common/payees/payees_screen.dart';
 import '../common/transfer/own_account_transfer_screen.dart';
 import 'package:demo_bank/src/view/widgets/embedded_back.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/retail_home_actions.dart';
+import 'package:demo_bank/src/view/screens/common/assistant/ask_assistant_button.dart';
+// DXP POC (docs/dxp/CONTRACT-OBDX.md): draws nothing unless DXP_ENABLED.
+import 'package:demo_bank/src/sdui/dxp_providers.dart';
+import 'package:demo_bank/src/sdui/dxp_runtime.dart';
+import 'package:demo_bank/src/sdui/render/widgets/common.dart' show dxpIcon;
+import 'package:demo_bank/src/sdui/view/dxp_home_slot.dart';
+import 'package:demo_bank/src/sdui/view/dxp_screen_page.dart';
+import 'package:demo_bank/src/view/screens/retail/dxp/retail_dxp_host.dart';
 
 class HomeDashboardArgs {
   const HomeDashboardArgs({
@@ -162,6 +170,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _dxp = ref.read(dxpRuntimeProvider);
     _selectedBottomNavIndex = widget.args.initialTab;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -178,7 +187,55 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
             ),
             userKey: _signedInUserName(),
           );
+      _startDxp();
     });
+  }
+
+  /// The DXP runtime, held so [dispose] can end its session without `ref`.
+  late final DxpRuntime _dxp;
+
+  /// Opens the platform session after the OBDX login (CONTRACT-OBDX §1.1).
+  /// A no-op unless DXP_ENABLED; a platform failure leaves Home native.
+  void _startDxp() {
+    final name = _displayNameFromTrace();
+    _dxp.start(
+      host: RetailDxpHost(
+        loadAccounts: () async {
+          await ref.read(casaAccountsProvider.notifier).ensureLoaded();
+          return ref.read(casaAccountsProvider).summary?.accounts ?? const [];
+        },
+        openNavItem: _onNavSelected,
+        firstName: name.split(' ').first,
+        fullName: name,
+      ),
+      userId: _signedInUserName(),
+      userType: 'RETAIL',
+    );
+  }
+
+  /// Menu entries the published configuration adds (CONTRACT-OBDX §10),
+  /// after the Retail ones. Their ids carry the screen they open.
+  static const _dxpNavPrefix = 'dxp:';
+
+  List<DashboardNavItem> _navItems(AppLocalizations l10n) => [
+        ...RetailNav.items(l10n),
+        for (final entry in _dxp.menu)
+          if (entry['action'] is Map && entry['action']['type'] == 'navigate')
+            DashboardNavItem(
+              id: '$_dxpNavPrefix${entry['action']['screen']}',
+              label: entry['label']?.toString() ?? '',
+              icon: dxpIcon(entry['icon']?.toString()),
+            ),
+      ];
+
+  void _openDxpScreen(String screenId) {
+    // Beside the sidebar on web, like the other menu screens.
+    final navigator = _contentNavigatorKey.currentState;
+    if (navigator != null) {
+      navigator.push(DxpScreenPage.route(screenId));
+    } else {
+      DxpScreenPage.open(context, screenId);
+    }
   }
 
   /// The signed-in user, for scoping personalization state.
@@ -561,6 +618,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   /// personalizable dashboard for this user.
   Widget? _buildPersonalizeDrawer() {
     if (ref.watch(personalizationProvider).isUnavailable) return null;
+    if (_dxp.homeIsFullLayout) return null;
     return Drawer(
       backgroundColor: HomeColors.card(context),
       width: _personalizePanelWidth(context),
@@ -575,6 +633,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
 
   @override
   void dispose() {
+    // The dashboard closes on logout: end the platform session with it.
+    _dxp.stop();
     super.dispose();
   }
 
@@ -601,6 +661,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     // dropped when the dashboard closes (logout).
     ref.watch(personalizationProvider.select((s) => s.isUnavailable));
     ref.watch(recentTransactionsWidgetProvider.select((s) => s.category));
+    // DXP menu entries change with a newly published configuration.
+    ref.watch(dxpRuntimeProvider.select((r) => (r.status, r.revision)));
 
     // Read and personalize the layout for this screen size, as Corporate
     // does. Without this Retail always used `large`, so a phone showed —
@@ -647,7 +709,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                   // entries. No Payee group: Payee has its own entry point
                   // on the Transfer tab, so it is not reachable two ways.
                   DashboardNavigationSidebar(
-                    items: RetailNav.items(AppLocalizations.of(context)),
+                    items: _navItems(AppLocalizations.of(context)),
                     selectedId: _selectedNavId,
                     onSelected: _onNavSelected,
                     footer: RetailNav.footer(AppLocalizations.of(context)),
@@ -663,6 +725,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 ],
               )
             : content,
+        // AI assistant entry point; renders nothing unless enabled (dev only).
+        floatingActionButton: const AskAssistantButton(),
         bottomNavigationBar: responsive.isDesktop
             ? null
             : BottomNav(
@@ -689,6 +753,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         onRefresh: _refreshHomeData,
         child: _buildCurrentBody(accountsState),
       ),
+      // AI assistant entry point; renders nothing unless enabled (dev only).
+      floatingActionButton: const AskAssistantButton(),
       bottomNavigationBar: BottomNav(
         selectedIndex: _selectedBottomNavIndex,
         onSelected: (index) => setState(() => _selectedBottomNavIndex = index),
@@ -893,7 +959,7 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   Widget _buildNavDrawer() {
     final l10n = AppLocalizations.of(context);
     return DashboardNavDrawer(
-      items: RetailNav.items(l10n),
+      items: _navItems(l10n),
       selectedId: _selectedNavId,
       onSelected: _onNavSelected,
       footer: RetailNav.footer(l10n),
@@ -938,6 +1004,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   static const _transferScreens = {2, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22};
 
   void _onNavSelected(String id) {
+    if (id.startsWith(_dxpNavPrefix)) {
+      _openDxpScreen(id.substring(_dxpNavPrefix.length));
+      return;
+    }
     switch (id) {
       case RetailNav.accountsCasa:
         // OBDX's Current & Savings menu: its module page (the account list
@@ -1241,7 +1311,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           lastLogin: _lastLoginFromTrace(),
           onLogout: _logout,
           // Only when the customer has a personalisable OBDX dashboard.
-          onPersonalize: ref.watch(personalizationProvider).isUnavailable ? null : _personalizeFromPreferences,
+          // Hidden while DXP lays out Home: the OBDX arrangement no longer applies.
+          onPersonalize: ref.watch(personalizationProvider).isUnavailable || _dxp.homeIsFullLayout
+              ? null
+              : _personalizeFromPreferences,
           embedded: true,
           onBack: _back(_closeSection),
         );
@@ -1507,10 +1580,34 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
       color: page,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(child: _buildMobileTopPanel(accountsState)),
-          SliverToBoxAdapter(child: _buildPhoneWidgets(accountsState)),
-        ],
+        slivers: _dxp.homeIsFullLayout
+            ? [
+                // DXP lays out the whole body (CONTRACT-OBDX §10); the
+                // header and the security notice stay the app's own.
+                SliverToBoxAdapter(
+                  child: _buildMobileTopPanel(accountsState, headerOnly: true),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildSecurityNotice(),
+                        const DxpHomeSlot(),
+                      ],
+                    ),
+                  ),
+                ),
+              ]
+            : [
+                SliverToBoxAdapter(child: _buildMobileTopPanel(accountsState)),
+                // DXP slot: the published `home` screen; empty when DXP is off.
+                const SliverToBoxAdapter(
+                  child: DxpHomeSlot(padding: EdgeInsets.fromLTRB(16, 20, 16, 0)),
+                ),
+                SliverToBoxAdapter(child: _buildPhoneWidgets(accountsState)),
+              ],
       ),
     );
   }
@@ -1551,7 +1648,12 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
     );
   }
 
-  Widget _buildMobileTopPanel(CasaAccountsState accountsState) {
+  /// [headerOnly]: DXP draws Home's body, accounts card included, so the
+  /// panel keeps just the header.
+  Widget _buildMobileTopPanel(
+    CasaAccountsState accountsState, {
+    bool headerOnly = false,
+  }) {
     final l10n = AppLocalizations.of(context);
     final accounts = accountsState.summary?.accounts ?? const <CasaAccount>[];
     final Widget card;
@@ -1622,8 +1724,10 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 onNotificationsTap: _openMailbox,
                 unreadNotificationCount: ref.watch(mailboxCountsProvider).valueOrNull?.total ?? 0,
               ),
-              const SizedBox(height: 12),
-              card,
+              if (!headerOnly) ...[
+                const SizedBox(height: 12),
+                card,
+              ],
             ],
           ),
         ),
@@ -1706,7 +1810,17 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
           // Dashboard content — keep max width 1400
           child: ResponsiveBody(
             maxWidth: 1400,
-            child: _buildWidgetArea(accountsState, isWide: true),
+            child: _dxp.homeIsFullLayout
+                // DXP lays out the whole body (CONTRACT-OBDX §10).
+                ? const DxpHomeSlot()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // DXP slot: the published `home` screen; empty when DXP is off.
+                      const DxpHomeSlot(padding: EdgeInsets.only(bottom: 24)),
+                      _buildWidgetArea(accountsState, isWide: true),
+                    ],
+                  ),
           ),
         );
       },
