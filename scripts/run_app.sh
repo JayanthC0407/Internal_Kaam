@@ -97,4 +97,15 @@ if [[ -n "${SCREEN_PROTECTION_ENABLED:-}" ]]; then
   )
 fi
 
+# DXP POC (docs/dxp/CONTRACT-OBDX.md): off unless DXP_ENABLED=true.
+if [[ "${DXP_ENABLED:-}" == "true" ]]; then
+  DEFINES+=(
+    "--dart-define=DXP_ENABLED=true"
+    "--dart-define=DXP_BASE_URL=${DXP_BASE_URL:-}"
+  )
+  if [[ -n "${DXP_APP_KEY:-}" ]]; then
+    DEFINES+=("--dart-define=DXP_APP_KEY=${DXP_APP_KEY}")
+  fi
+fi
+
 exec flutter run "${DEFINES[@]}" "$@"
