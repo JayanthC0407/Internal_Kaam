@@ -57,18 +57,6 @@ dependencies:
   share_plus: ^12.0.2
   file_picker: ^11.0.3
 
-  # AI assistant (Noor) SDK, development preview. Local path until the SDK is
-  # published; see lib/src/view/screens/common/assistant/.
-  assistant_core:
-    path: "../AI-Chat-Assistant/packages/assistant_core"
-  assistant_actions:
-    path: "../AI-Chat-Assistant/packages/assistant_actions"
-  assistant_transport:
-    path: "../AI-Chat-Assistant/packages/assistant_transport"
-  assistant_l10n:
-    path: "../AI-Chat-Assistant/packages/assistant_l10n"
-  assistant_ui:
-    path: "../AI-Chat-Assistant/packages/assistant_ui"
 
 dev_dependencies:
   flutter_test:
