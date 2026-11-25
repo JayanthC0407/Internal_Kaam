@@ -198,11 +198,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
   void _startDxp() {
     final name = _displayNameFromTrace();
     _dxp.start(
-      host: RetailDxpHost(
-        loadAccounts: () async {
-          await ref.read(casaAccountsProvider.notifier).ensureLoaded();
-          return ref.read(casaAccountsProvider).summary?.accounts ?? const [];
-        },
+      host: RetailDxpHost.live(
+        ref,
         openNavItem: _onNavSelected,
         firstName: name.split(' ').first,
         fullName: name,

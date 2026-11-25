@@ -14,6 +14,7 @@ import 'layout_widgets.dart';
 final Map<String, NodeBuilder> widgetRegistry = <String, NodeBuilder>{
   'Column': buildColumn,
   'Row': buildRow,
+  'Grid': buildGrid,
   'Card': buildCard,
   'Text': buildText,
   'Button': buildButton,
