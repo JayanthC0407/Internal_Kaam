@@ -20,8 +20,6 @@ class ApiConst {
   /// OBDX returns this when login OTP (or step-up) is required on profile.
   static const int expectationFailed = 417;
 
-  static const String userAgent =
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
 
   static String get baseUrl => EnvConfig.requireBaseUrl();
 
