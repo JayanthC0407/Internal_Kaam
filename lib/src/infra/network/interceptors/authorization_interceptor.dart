@@ -4,6 +4,7 @@ import 'package:demo_bank/src/core/config/app_locale_holder.dart';
 import 'package:demo_bank/src/core/config/locale_config.dart';
 import 'package:demo_bank/src/core/constants/app_constants.dart';
 import 'package:demo_bank/src/infra/network/api_constants.dart';
+import 'package:demo_bank/src/infra/network/mobile_user_agent.dart';
 import 'package:demo_bank/src/infra/session/registration_session_holder.dart';
 import 'package:demo_bank/src/infra/pref/preference_helper.dart';
 
@@ -14,11 +15,10 @@ class AuthorizationInterceptor extends InterceptorsWrapper {
     RequestInterceptorHandler handler,
   ) async {
     // Browsers forbid setting User-Agent from JS; skip on web to avoid console noise.
-    if (!kIsWeb) {
-      options.headers.putIfAbsent(
-        ApiConst.userAgentKey,
-        () => ApiConst.userAgent,
-      );
+    // The app sends the device's own, marked `obdx-mobile` as OBDX's app
+    // does, so OBDX records it as the mobile app, not a browser.
+    if (!kIsWeb && !options.headers.containsKey(ApiConst.userAgentKey)) {
+      options.headers[ApiConst.userAgentKey] = await MobileUserAgent.value;
     }
     options.headers.putIfAbsent(
       ApiConst.xRequestedWith,
