@@ -99,9 +99,13 @@ fi
 
 # DXP POC (docs/dxp/CONTRACT-OBDX.md): off unless DXP_ENABLED=true.
 if [[ "${DXP_ENABLED:-}" == "true" ]]; then
+  # The app's version (pubspec `version: 1.2.3+4` → 1.2.3) for the platform's
+  # minAppVersion rules (CONTRACT-OBDX §2, §3).
+  APP_VERSION="$(sed -n 's/^version:[[:space:]]*\([0-9][0-9.]*\).*/\1/p' pubspec.yaml | head -1)"
   DEFINES+=(
     "--dart-define=DXP_ENABLED=true"
     "--dart-define=DXP_BASE_URL=${DXP_BASE_URL:-}"
+    "--dart-define=DXP_APP_VERSION=${APP_VERSION:-1.0.0}"
   )
   if [[ -n "${DXP_APP_KEY:-}" ]]; then
     DEFINES+=("--dart-define=DXP_APP_KEY=${DXP_APP_KEY}")
