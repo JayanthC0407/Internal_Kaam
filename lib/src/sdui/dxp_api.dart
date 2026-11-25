@@ -19,6 +19,15 @@ class DxpManifestResult {
   final String? etag;
 }
 
+/// A screen document and the platform's hash of it (null from a platform
+/// that does not send one).
+class DxpScreenDoc {
+  const DxpScreenDoc(this.json, this.hash);
+
+  final Map<String, dynamic> json;
+  final String? hash;
+}
+
 /// The platform's App API (`/api/app/v1`, CONTRACT-OBDX §1).
 ///
 /// Its own Dio client, separate from the OBDX one: no OBDX cookies, headers
@@ -74,12 +83,18 @@ class DxpApi {
     );
   }
 
-  Future<Map<String, dynamic>> screen(String token, String id) async {
+  /// A screen as it stood in [release] (the manifest's `releaseNo`), with the
+  /// hash the platform computed for it (CONTRACT-OBDX §2).
+  Future<DxpScreenDoc> screen(String token, String id, {int? release}) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/screens/${Uri.encodeComponent(id)}',
+      queryParameters: {if (release != null) 'release': release},
       options: _auth(token),
     );
-    return res.data ?? const <String, dynamic>{};
+    return DxpScreenDoc(
+      res.data ?? const <String, dynamic>{},
+      res.headers.value('x-dxp-screen-hash'),
+    );
   }
 
   Future<void> postEvents(String token, List<Map<String, dynamic>> events) async {
@@ -90,8 +105,13 @@ class DxpApi {
     );
   }
 
-  /// Server-Sent Events as text lines (§8). Not used on web, where Dio
-  /// cannot stream a response; see [DxpRuntime].
+  /// The live channel's address, for the browser's own EventSource on web
+  /// (Dio cannot stream a response there). The platform token goes in the
+  /// query because EventSource cannot send headers (prototype §8).
+  String liveUrl(String token) =>
+      '${DxpConfig.baseUrl}/api/app/v1/live?token=${Uri.encodeQueryComponent(token)}';
+
+  /// Server-Sent Events as text lines (§8), on Android and iOS.
   Future<Stream<String>> live(String token, CancelToken cancel) async {
     final res = await _dio.get<ResponseBody>(
       '/live',

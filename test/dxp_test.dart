@@ -1,13 +1,21 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:demo_bank/src/core/models/common/cards/credit_card_models.dart';
+import 'package:demo_bank/src/core/models/common/cards/debit_card_models.dart';
+import 'package:demo_bank/src/core/models/common/payee/payee_models.dart';
 import 'package:demo_bank/src/core/models/retail/casa_account.dart';
+import 'package:demo_bank/src/core/models/retail/casa_transaction.dart';
 import 'package:demo_bank/src/sdui/dxp_api.dart';
 import 'package:demo_bank/src/sdui/dxp_providers.dart';
 import 'package:demo_bank/src/sdui/dxp_runtime.dart';
 import 'package:demo_bank/src/sdui/render/render_context.dart';
+import 'package:demo_bank/src/sdui/render/renderer.dart';
 import 'package:demo_bank/src/sdui/view/dxp_home_slot.dart';
 import 'package:demo_bank/l10n/app_localizations.dart';
 import 'package:demo_bank/src/core/theme/app_theme.dart';
@@ -26,10 +34,25 @@ class _FakeApi extends DxpApi {
   int screenCalls = 0;
   Map<String, dynamic>? lastSession;
 
+  /// No answer at all, as when the server is off or unreachable.
+  bool down = false;
+
+  /// The platform answers and refuses, e.g. 403 NOT_IN_SCOPE.
+  int? refuseWith;
+
   String _hash(String id) => '${screens[id].hashCode}';
 
   @override
   Future<String> openSession(Map<String, dynamic> body) async {
+    final req = RequestOptions(path: '/session');
+    if (down) throw DioException(requestOptions: req, type: DioExceptionType.connectionError);
+    if (refuseWith != null) {
+      throw DioException(
+        requestOptions: req,
+        type: DioExceptionType.badResponse,
+        response: Response(requestOptions: req, statusCode: refuseWith),
+      );
+    }
     lastSession = body;
     return 'token';
   }
@@ -41,6 +64,7 @@ class _FakeApi extends DxpApi {
     if (etag == tag) return const DxpManifestResult.notModified();
     return DxpManifestResult.changed({
       'configVersion': version,
+      'releaseNo': version,
       'home': 'home',
       'menu': [
         {'label': 'Offers', 'icon': 'star', 'action': {'type': 'navigate', 'screen': 'offers'}},
@@ -50,10 +74,29 @@ class _FakeApi extends DxpApi {
   }
 
   @override
-  Future<Map<String, dynamic>> screen(String token, String id) async {
+  Future<DxpScreenDoc> screen(String token, String id, {int? release}) async {
     screenCalls++;
-    return screens[id]!;
+    lastScreenRelease = release;
+    final publish = publishDuringNextScreenFetch;
+    if (publish != null) {
+      // A checker approves a new release between the manifest and this call,
+      // and this platform ignores `release` (the old behaviour).
+      publishDuringNextScreenFetch = null;
+      publish();
+    }
+    return DxpScreenDoc(screens[id]!, _hash(id));
   }
+
+  int? lastScreenRelease;
+
+  /// Runs once, inside the next screen fetch.
+  void Function()? publishDuringNextScreenFetch;
+
+  /// The live channel, as lines the platform would stream.
+  final liveLines = StreamController<String>.broadcast();
+
+  @override
+  Future<Stream<String>> live(String token, CancelToken cancel) async => liveLines.stream;
 
   @override
   Future<void> postEvents(String token, List<Map<String, dynamic>> events) async {}
@@ -103,29 +146,121 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('Retail binding (CONTRACT-OBDX §6, §7)', () {
-    test('account numbers are masked to their last four digits', () {
-      expect(RetailDxpHost.maskAccountNumber('0123 4567 8901 2345'), '•••• 2345');
-      expect(RetailDxpHost.maskAccountNumber('123'), '123');
+    test('numbers are masked to their last four digits', () {
+      expect(RetailDxpHost.maskNumber('0123 4567 8901 2345'), '•••• 2345');
+      expect(RetailDxpHost.maskNumber('0000 00XX XXXX 4417'), '•••• 4417');
+      expect(RetailDxpHost.maskNumber('123'), '123');
     });
 
-    test('a CASA account maps to the contract shape', () {
-      const account = CasaAccount(
-        id: 'ACC-1',
-        displayNumber: '000123456789',
-        status: 'ACTIVE',
-        currencyCode: 'INR',
-        accountType: 'Saving',
-        nickname: 'Salary',
-        availableBalance: MoneyAmount(amount: 1500.5, currency: 'INR'),
-      );
-      expect(RetailDxpHost.accountToContract(account), {
-        'id': 'ACC-1',
+    const account = CasaAccount(
+      id: '000123456789', // OBDX's id is the full account number
+      displayNumber: '000123456789',
+      status: 'ACTIVE',
+      currencyCode: 'INR',
+      accountType: 'Saving',
+      nickname: 'Salary',
+      availableBalance: MoneyAmount(amount: 1500.5, currency: 'INR'),
+    );
+
+    test('a CASA account maps to the contract shape, with an opaque id', () {
+      expect(RetailDxpHost.accountToContract(account, 0), {
+        'id': 'a1',
         'name': 'Salary',
         'number': '•••• 6789',
         'type': 'SAVING',
         'balance': 1500.5,
         'currency': 'INR',
       });
+    });
+
+    test('a debit is negative, a credit positive', () {
+      final debit = RetailDxpHost.transactionToContract(
+        CasaTransaction(id: 'X', title: 'Grocery', amount: const MoneyAmount(amount: 250, currency: 'INR'), isCredit: false, transactionDate: DateTime(2026, 11, 5)),
+        0,
+      );
+      expect(debit, {'id': 't1', 'date': '2026-11-05', 'description': 'Grocery', 'amount': -250.0, 'currency': 'INR', 'status': ''});
+      final credit = RetailDxpHost.transactionToContract(
+        CasaTransaction(id: 'Y', title: 'Salary', amount: const MoneyAmount(amount: 900, currency: 'INR'), isCredit: true),
+        1,
+      );
+      expect(credit['amount'], 900.0);
+      expect(credit['id'], 't2');
+    });
+
+    RetailDxpHost hostWith({
+      Future<List<CasaTransaction>> Function(String)? txns,
+      Future<List<CreditCard>> Function()? credit,
+      Future<List<DebitCard>> Function()? debit,
+      Future<List<PayeeSummary>> Function()? payees,
+      List<String>? txnAccounts,
+    }) =>
+        RetailDxpHost(
+          loadAccounts: () async => [
+            account,
+            const CasaAccount(id: '999988887777', displayNumber: '999988887777', status: 'ACTIVE', currencyCode: 'INR', isDefault: true),
+          ],
+          loadTransactions: txns,
+          loadCreditCards: credit,
+          loadDebitCards: debit,
+          loadPayees: payees,
+          openNavItem: (_) {},
+          firstName: 'Asha',
+          fullName: 'Asha K',
+        );
+
+    test('txn.history reads the default account and keeps the latest 10', () async {
+      String? readFrom;
+      final host = hostWith(txns: (id) async {
+        readFrom = id;
+        return [
+          for (var i = 0; i < 15; i++)
+            CasaTransaction(id: '$i', title: 'T$i', amount: const MoneyAmount(amount: 1), isCredit: true),
+        ];
+      });
+      final out = await host.resolveData('txn.history') as List;
+      expect(readFrom, '999988887777');
+      expect(out, hasLength(10));
+    });
+
+    test('cards.list joins credit and debit cards, masked, with opaque ids', () async {
+      final host = hostWith(
+        credit: () async => const [
+          CreditCard(id: '4111111111114417', displayNumber: '4111 11XX XXXX 4417', status: CreditCardStatus.active,
+              creditLimit: MoneyAmount(amount: 200000, currency: 'INR'), availableCredit: MoneyAmount(amount: 180000, currency: 'INR')),
+        ],
+        debit: () async => const [
+          DebitCard(cardNo: '5200000000001234', displayNumber: '5200 00XX XXXX 1234', status: DebitCardStatus.blocked, cardType: 'Visa Debit'),
+        ],
+      );
+      final out = (await host.resolveData('cards.list') as List).cast<Map<String, dynamic>>();
+      expect(out.map((c) => c['id']), ['c1', 'c2']);
+      expect(out.map((c) => c['number']), ['•••• 4417', '•••• 1234']);
+      expect(out[0]['kind'], 'CREDIT');
+      expect(out[0]['limit'], 200000.0);
+      expect(out[1]['status'], 'BLOCKED');
+      expect(out[1]['name'], 'Visa Debit');
+      expect(out.toString().contains('4111111111114417'), isFalse);
+    });
+
+    test('payees.list masks the account and keeps the bank', () async {
+      final host = hostWith(payees: () async => const [
+            PayeeSummary(nickname: 'Landlord', accountType: 'Domestic', accountDetails: 'HDFC Bank', accountNumber: '50100012349012'),
+          ]);
+      expect(await host.resolveData('payees.list'), [
+        {'id': 'p1', 'name': 'Landlord', 'account': '•••• 9012', 'bank': 'HDFC Bank', 'type': ''},
+      ]);
+    });
+
+    test('a failed source renders empty instead of failing the screen', () async {
+      final host = hostWith(payees: () async => throw StateError('OBDX down'));
+      expect(await host.resolveData('payees.list'), isNull);
+      expect(await host.resolveData('no.such.source'), isNull);
+    });
+
+    test('every data source matches the platform allow-list', () {
+      // dxp-platform src/validate.js DATA_SOURCES.
+      expect(RetailDxpHost.dataSources.toSet(),
+          {'customer.profile', 'accounts.list', 'txn.history', 'cards.list', 'payees.list'});
     });
 
     test('nativeRoute opens a Retail menu item; unknown routes are refused', () {
@@ -183,8 +318,8 @@ void main() {
       expect(api.lastSession!['contract'], 'obdx-1');
       expect(runtime.menu.single['label'], 'Offers');
       expect(runtime.cachedScreen('home'), isNotNull);
-      // Only the home screen is fetched up front.
-      expect(api.screenCalls, 1);
+      // Home, then every other screen for the offline copy.
+      expect(api.screenCalls, 2);
 
       final before = runtime.revision;
       await runtime.refresh(); // 304
@@ -197,6 +332,194 @@ void main() {
       expect(runtime.configVersion, 2);
       expect(runtime.cachedScreen('home')!['root']['children'][0]['props']['title'], 'B');
       await runtime.stop();
+    });
+  });
+
+  test('live channel: a ping marks it live, a publish signal refreshes', () async {
+    final api = _FakeApi({'home': _bannerHome('A')});
+    final runtime = DxpRuntime(api: api, enabled: true);
+    await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+    await Future<void>.delayed(Duration.zero);
+    expect(runtime.liveConnected, isFalse);
+
+    api.liveLines.add(': ping');
+    await Future<void>.delayed(Duration.zero);
+    expect(runtime.liveConnected, isTrue);
+
+    api
+      ..screens['home'] = _bannerHome('B')
+      ..version = 2;
+    api.liveLines
+      ..add('event: config.published')
+      ..add('data: {"configVersion":2}')
+      ..add('');
+    // Applied after a random delay of up to 1.5 s.
+    await Future<void>.delayed(const Duration(milliseconds: 1700));
+    expect(runtime.configVersion, 2);
+    await runtime.stop();
+    expect(runtime.liveConnected, isFalse);
+  });
+
+  test('screens are requested from the manifest\'s own release', () async {
+    final api = _FakeApi({'home': _bannerHome('A')})..version = 7;
+    final runtime = DxpRuntime(api: api, enabled: true, live: false);
+    await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+    expect(api.lastScreenRelease, 7);
+    await runtime.stop();
+  });
+
+  test('a release published mid-fetch never mixes two releases', () async {
+    final api = _FakeApi({'home': _bannerHome('A')});
+    final runtime = DxpRuntime(api: api, enabled: true, live: false);
+    await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+
+    // Release 2 is announced; while the app fetches its home, release 3 lands.
+    api
+      ..screens['home'] = _bannerHome('B')
+      ..version = 2
+      ..publishDuringNextScreenFetch = () => api
+        ..screens['home'] = _bannerHome('C')
+        ..version = 3;
+    await runtime.refresh();
+
+    // The screen did not match release 2's hash, so the app re-checked and
+    // applied release 3 whole: manifest and screen from the same release.
+    expect(runtime.configVersion, 3);
+    expect(runtime.cachedScreen('home')!['root']['children'][0]['props']['title'], 'C');
+    await runtime.stop();
+  });
+
+  group('Grid block (two columns, like the web Home)', () {
+    final grid = {
+      'type': 'Grid',
+      'children': [
+        {'type': 'Text', 'props': {'text': 'A'}},
+        {'type': 'Text', 'props': {'text': 'B'}},
+        {'type': 'Text', 'span': 'full', 'props': {'text': 'WIDE'}},
+        {'type': 'Text', 'props': {'text': 'C'}},
+      ],
+    };
+
+    Future<void> pumpAt(WidgetTester tester, double width) async {
+      tester.view.physicalSize = Size(width, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final renderer = Renderer(onAction: (_, __) {}, onStateChanged: () {}, onError: (_, __, ___) {});
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: renderer.build(grid, RenderContext.build(customer: const {}))),
+      ));
+    }
+
+    testWidgets('wide: left, right, then a full-width row, then left again', (tester) async {
+      await pumpAt(tester, 1200);
+      final a = tester.getTopLeft(find.text('A'));
+      final b = tester.getTopLeft(find.text('B'));
+      final wide = tester.getTopLeft(find.text('WIDE'));
+      final c = tester.getTopLeft(find.text('C'));
+      expect(a.dy, b.dy); // same row
+      expect(b.dx, greaterThan(500)); // B in the right column
+      expect(wide.dy, greaterThan(a.dy)); // full width below them
+      expect(c.dx, a.dx); // C starts the left column again
+      expect(c.dy, greaterThan(wide.dy));
+    });
+
+    testWidgets('narrow: one column in the designer\'s order', (tester) async {
+      await pumpAt(tester, 400);
+      final ys = ['A', 'B', 'WIDE', 'C'].map((t) => tester.getTopLeft(find.text(t)).dy).toList();
+      expect(ys, orderedEquals([...ys]..sort()));
+      expect(tester.getTopLeft(find.text('A')).dx, tester.getTopLeft(find.text('B')).dx);
+    });
+  });
+
+  test('the fallback poll is slow', () {
+    expect(DxpRuntime.fallbackPollInterval, const Duration(minutes: 5));
+  });
+
+  group('device cache (platform down)', () {
+    Map<String, Map<String, dynamic>> published() =>
+        {'home': _bannerHome('Saved banner'), 'offers': {'id': 'offers', 'root': {'type': 'Column'}}};
+
+    test('a successful start saves every screen for offline use', () async {
+      final api = _FakeApi(published());
+      final runtime = DxpRuntime(api: api, enabled: true, live: false);
+      await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      expect(runtime.offline, isFalse);
+      // Home up front, offers prefetched for the saved copy.
+      expect(api.screenCalls, 2);
+      await runtime.stop();
+    });
+
+    test('platform down: the saved configuration is drawn, offline', () async {
+      final api = _FakeApi(published());
+      final first = DxpRuntime(api: api, enabled: true, live: false);
+      await first.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      await first.stop();
+
+      api.down = true;
+      final runtime = DxpRuntime(api: api, enabled: true, live: false);
+      await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      expect(runtime.status, DxpStatus.ready);
+      expect(runtime.offline, isTrue);
+      expect(runtime.menu.single['label'], 'Offers');
+      expect(runtime.cachedScreen('home')!['root']['children'][0]['props']['title'], 'Saved banner');
+      expect(runtime.cachedScreen('offers'), isNotNull);
+      await runtime.stop();
+    });
+
+    test('platform back: an offline app reconnects on resume and goes live', () async {
+      final api = _FakeApi(published());
+      final first = DxpRuntime(api: api, enabled: true, live: false);
+      await first.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      await first.stop();
+
+      api.down = true;
+      final runtime = DxpRuntime(api: api, enabled: true, live: false);
+      await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      expect(runtime.offline, isTrue);
+
+      api
+        ..down = false
+        ..screens['home'] = _bannerHome('New banner')
+        ..version = 2;
+      runtime.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(runtime.offline, isFalse);
+      expect(runtime.configVersion, 2);
+      expect(runtime.cachedScreen('home')!['root']['children'][0]['props']['title'], 'New banner');
+      await runtime.stop();
+    });
+
+    test('platform down and nothing saved: the app stays native', () async {
+      final api = _FakeApi(published())..down = true;
+      final runtime = DxpRuntime(api: api, enabled: true, live: false);
+      await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      expect(runtime.status, DxpStatus.unavailable);
+    });
+
+    test('platform refuses the app: the saved copy is not used', () async {
+      final api = _FakeApi(published());
+      final first = DxpRuntime(api: api, enabled: true, live: false);
+      await first.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      await first.stop();
+
+      api.refuseWith = 403;
+      final runtime = DxpRuntime(api: api, enabled: true, live: false);
+      await runtime.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      expect(runtime.status, DxpStatus.unavailable);
+      expect(runtime.offline, isFalse);
+    });
+
+    test('a saved copy for another user type is never used', () async {
+      final api = _FakeApi(published());
+      final first = DxpRuntime(api: api, enabled: true, live: false);
+      await first.start(host: _FakeHost(), userId: 'asha', userType: 'RETAIL');
+      await first.stop();
+
+      api.down = true;
+      final runtime = DxpRuntime(api: api, enabled: true, live: false);
+      await runtime.start(host: _FakeHost(), userId: 'boss', userType: 'CORP');
+      expect(runtime.status, DxpStatus.unavailable);
     });
   });
 
