@@ -59,6 +59,64 @@ Widget buildRow(NodeSpec n, NodeScope s) {
   );
 }
 
+/// Two columns, like the app's own web Home (`DashboardGridLayout.twoColumns`):
+/// children go left, right, left, … and each column stacks at its own pace,
+/// so a short card is never stretched to match a tall neighbour. A child
+/// with `"span": "full"` (on the node, beside `type`) crosses both columns;
+/// the cards before it finish their columns first. Narrower than
+/// `collapseBelow` (default 920, as Home), it is one column in JSON order,
+/// so phones keep the order the designer set.
+Widget buildGrid(NodeSpec n, NodeScope s) {
+  final gap = n.dbl('gap', 20);
+  final collapseBelow = n.dbl('collapseBelow', 920);
+  final kids = s.children(n);
+  final full = [
+    for (final c in n.children) c is Map && c['span'] == 'full',
+  ];
+  return LayoutBuilder(builder: (context, constraints) {
+    if (constraints.maxWidth < collapseBelow) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: withGaps(kids, gap),
+      );
+    }
+    final rows = <Widget>[];
+    var left = <Widget>[], right = <Widget>[];
+    var toLeft = true;
+    void flush() {
+      if (left.isEmpty && right.isEmpty) return;
+      rows.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: withGaps(left, gap))),
+          SizedBox(width: gap),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: withGaps(right, gap))),
+        ],
+      ));
+      left = [];
+      right = [];
+      toLeft = true;
+    }
+
+    for (var i = 0; i < kids.length; i++) {
+      if (i < full.length && full[i]) {
+        flush();
+        rows.add(kids[i]);
+        continue;
+      }
+      (toLeft ? left : right).add(kids[i]);
+      toLeft = !toLeft;
+    }
+    flush();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: withGaps(rows, gap),
+    );
+  });
+}
+
 Widget buildCard(NodeSpec n, NodeScope s) {
   final primaryTone = n.str('tone', 'surface') == 'primary';
   final padding = n.dbl('padding', 16);
