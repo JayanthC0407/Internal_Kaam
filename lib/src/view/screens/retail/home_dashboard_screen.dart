@@ -79,6 +79,7 @@ import '../common/payees/payees_screen.dart';
 import '../common/transfer/own_account_transfer_screen.dart';
 import 'package:demo_bank/src/view/widgets/embedded_back.dart';
 import 'package:demo_bank/src/view/screens/retail/home/widgets/retail_home_actions.dart';
+import 'package:demo_bank/src/view/screens/common/assistant/ask_assistant_button.dart';
 
 class HomeDashboardArgs {
   const HomeDashboardArgs({
@@ -663,6 +664,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
                 ],
               )
             : content,
+        // AI assistant entry point; renders nothing unless enabled (dev only).
+        floatingActionButton: const AskAssistantButton(),
         bottomNavigationBar: responsive.isDesktop
             ? null
             : BottomNav(
@@ -689,6 +692,8 @@ class _HomeDashboardScreenState extends ConsumerState<HomeDashboardScreen> {
         onRefresh: _refreshHomeData,
         child: _buildCurrentBody(accountsState),
       ),
+      // AI assistant entry point; renders nothing unless enabled (dev only).
+      floatingActionButton: const AskAssistantButton(),
       bottomNavigationBar: BottomNav(
         selectedIndex: _selectedBottomNavIndex,
         onSelected: (index) => setState(() => _selectedBottomNavIndex = index),
